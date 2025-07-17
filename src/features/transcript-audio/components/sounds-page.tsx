@@ -2,7 +2,7 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
-import { Download, Loader2, FileUp, Languages, Sparkles, X as XIcon, PanelLeft, Copy } from 'lucide-react';
+import { Download, Loader2, FileUp, Languages, Sparkles, X as XIcon, Menu, Copy } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Sheet,
@@ -365,7 +365,7 @@ export function SoundsPage() {
                   <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
                       <SheetTrigger asChild>
                       <Button variant="outline" size="icon" className="md:hidden">
-                          <PanelLeft className="h-6 w-6" />
+                          <Menu className="h-6 w-6" />
                           <span className="sr-only">Toggle navigation menu</span>
                       </Button>
                       </SheetTrigger>
@@ -447,13 +447,15 @@ export function SoundsPage() {
           
           <footer className="flex-shrink-0 flex items-center justify-center gap-2 p-4 border-t bg-background shadow-sm">
               <div className="w-full max-w-lg flex gap-2 items-center">
-                  <Button onClick={handleCopy} disabled={!isReadyForContent} variant="outline" size="icon" className="h-14 w-14 rounded-full flex-shrink-0">
-                      <Copy className="h-6 w-6" />
+                  <Button onClick={handleCopy} disabled={!isReadyForContent} variant="outline" size="lg" className="rounded-full h-14 px-8">
+                      <Copy className="h-5 w-5" />
+                      <span className="ml-2 sm:inline font-bold text-lg">{t.copy}</span>
                   </Button>
                   <Sheet open={isVocabSheetOpen} onOpenChange={setIsVocabSheetOpen}>
                       <SheetTrigger asChild>
-                          <Button variant="outline" size="icon" disabled={!isReadyForContent} className="h-14 w-14 rounded-full flex-shrink-0">
-                              <Sparkles className="h-6 w-6" />
+                          <Button variant="outline" size="lg" disabled={!isReadyForContent} className="rounded-full h-14 px-8">
+                              <Sparkles className="h-5 w-5" />
+                              <span className="ml-2 sm:inline font-bold text-lg">{t.improveAccuracy}</span>
                           </Button>
                       </SheetTrigger>
                       <SheetContent side="bottom" className="rounded-t-lg">

@@ -2,7 +2,7 @@
 "use client";
 
 import { useState, useRef, useMemo, useCallback } from 'react';
-import { FileUp, Loader2, Download, Languages, Copy, Sparkles, PanelLeft } from 'lucide-react';
+import { FileUp, Loader2, Download, Languages, Copy, Sparkles, Menu } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
@@ -228,7 +228,7 @@ export function PdfTranscriptPage() {
               <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
                 <SheetTrigger asChild>
                   <Button variant="outline" size="icon" className="md:hidden">
-                    <PanelLeft className="h-6 w-6" />
+                    <Menu className="h-6 w-6" />
                     <span className="sr-only">Toggle navigation menu</span>
                   </Button>
                 </SheetTrigger>
