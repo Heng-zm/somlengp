@@ -73,7 +73,7 @@ const translations = {
     rateLimitMessage: "អ្នកបានធ្វើការស្នើសុំច្រើនពេក។ សូមរង់ចាំមួយភ្លែត ឬពិនិត្យមើលផែនការ API និងព័ត៌មានលម្អិតអំពីការចេញវិក្កយប័ត្ររបស់អ្នក។",
     support: "គាំទ្រ",
     supportDescription: "ប្រសិនបើអ្នកពេញចិត្តនឹងកម្មវិធីនេះ សូមពិចារណាគាំទ្រការអភិវឌ្ឍន៍របស់វា។",
-    improveAccuracy: "កែលម្អភាពត្រឹមត្រូវ",
+    improveAccuracy: "កែលម្អ",
     customVocabulary: "វាក្យសព្ទផ្ទាល់ខ្លួន",
     customVocabularyHint: "បន្ថែមពាក្យ ឬឃ្លាដែលពិបាកបកប្រែ ដើម្បីបង្កើនភាពត្រឹមត្រូវ។",
     addWord: "បន្ថែមពាក្យ",
@@ -114,7 +114,7 @@ const translations = {
     rateLimitMessage: "You've made too many requests. Please wait a moment or check your API plan and billing details.",
     support: "Support",
     supportDescription: "If you find this application useful, please consider supporting its development.",
-    improveAccuracy: "Improve Accuracy",
+    improveAccuracy: "IMPROVE",
     customVocabulary: "Custom Vocabulary",
     customVocabularyHint: "Add difficult-to-transcribe words or phrases to improve accuracy.",
     addWord: "Add Word",
@@ -438,14 +438,16 @@ export function SoundsPage() {
           </main>
           
           <footer className="flex-shrink-0 flex items-center justify-center gap-2 p-4 border-t bg-background shadow-sm">
-              <div className="w-full max-w-md flex gap-2 items-center">
-                   <Button onClick={handleCopy} disabled={!isReadyForContent} variant="outline" size="icon" className="h-14 w-14 rounded-full flex-shrink-0">
-                      <Copy className="h-6 w-6" />
+              <div className="w-full max-w-lg flex gap-2 items-center">
+                   <Button onClick={handleCopy} disabled={!isReadyForContent} variant="outline" size="lg" className="rounded-full h-14 flex-1">
+                      <Copy />
+                      <span className="ml-2 font-bold">{t.copy}</span>
                   </Button>
                   <Sheet open={isVocabSheetOpen} onOpenChange={setIsVocabSheetOpen}>
                       <SheetTrigger asChild>
-                          <Button variant="outline" size="icon" disabled={!isReadyForContent} className="h-14 w-14 rounded-full flex-shrink-0">
-                              <Sparkles className="h-6 w-6" />
+                          <Button variant="outline" size="lg" disabled={!isReadyForContent} className="rounded-full h-14 flex-1">
+                              <Sparkles />
+                              <span className="ml-2 font-bold">{t.improveAccuracy}</span>
                           </Button>
                       </SheetTrigger>
                       <SheetContent side="bottom" className="rounded-t-lg">
@@ -480,55 +482,56 @@ export function SoundsPage() {
                           </div>
                       </SheetContent>
                   </Sheet>
-                  <div className="flex-grow">
-                      <Sheet open={isExportSheetOpen} onOpenChange={setIsExportSheetOpen}>
-                          <SheetTrigger asChild>
-                              <Button variant="default" size="lg" disabled={!isReadyForContent} className="rounded-full h-14 px-8 w-full">
-                                  <Download className="h-5 w-5" />
-                                  <span className="ml-2 sm:inline font-bold text-lg">{t.download}</span>
-                              </Button>
-                          </SheetTrigger>
-                          <SheetContent side="bottom" className="rounded-t-lg">
-                              <SheetHeader className="text-left">
-                                  <SheetTitle>{t.exportSettings}</SheetTitle>
-                                  <SheetDescription>
-                                  {t.chooseFormat}
-                                  </SheetDescription>
-                              </SheetHeader>
-                              <div className="grid gap-6 py-6">
-                                  <div className="grid gap-3">
-                                      <Label>{t.exportFormat}</Label>
-                                      <Select value={exportFormat} onValueChange={setExportFormat}>
-                                          <SelectTrigger>
-                                              <SelectValue placeholder="Select format" />
-                                          </SelectTrigger>
-                                          <SelectContent>
-                                              {Object.entries(formatDisplayNames).map(([value, label]) => (
-                                              <SelectItem key={value} value={value}>{label}</SelectItem>
-                                              ))}
-                                          </SelectContent>
-                                      </Select>
-                                  </div>
-                                  <div className="grid gap-3">
-                                      <Label htmlFor="words-per-second" className="text-center">{t.wordsPerSecond}</Label>
-                                      <NumberPicker 
-                                          value={wordsPerSecond}
-                                          onChange={setWordsPerSecond}
-                                      />
-                                      <p className="text-xs text-muted-foreground text-center">{t.wordsPerSecondHint}</p>
-                                  </div>
-                                  <Button 
-                                      onClick={handleExport}
-                                      disabled={!isReadyForContent}
-                                      size="lg"
-                                  >
-                                      <Download className="mr-2" />
-                                      {t.exportTranscript}
-                                  </Button>
+                  <Sheet open={isExportSheetOpen} onOpenChange={setIsExportSheetOpen}>
+                      <SheetTrigger asChild>
+                          <Button variant="default" size="lg" disabled={!isReadyForContent} className="rounded-full h-14 flex-1">
+                              <Download />
+                              <span className="ml-2 font-bold">{t.download}</span>
+                          </Button>
+                      </SheetTrigger>
+                      <SheetContent side="bottom" className="rounded-t-lg">
+                        <SheetHeader className="text-left">
+                            <SheetTitle>
+                                {t.exportSettings}
+                                <span className="sr-only">Export Settings</span>
+                            </SheetTitle>
+                            <SheetDescription>
+                            {t.chooseFormat}
+                            </SheetDescription>
+                        </SheetHeader>
+                          <div className="grid gap-6 py-6">
+                              <div className="grid gap-3">
+                                  <Label>{t.exportFormat}</Label>
+                                  <Select value={exportFormat} onValueChange={setExportFormat}>
+                                      <SelectTrigger>
+                                          <SelectValue placeholder="Select format" />
+                                      </SelectTrigger>
+                                      <SelectContent>
+                                          {Object.entries(formatDisplayNames).map(([value, label]) => (
+                                          <SelectItem key={value} value={value}>{label}</SelectItem>
+                                          ))}
+                                      </SelectContent>
+                                  </Select>
                               </div>
-                          </SheetContent>
-                      </Sheet>
-                  </div>
+                              <div className="grid gap-3">
+                                  <Label htmlFor="words-per-second" className="text-center">{t.wordsPerSecond}</Label>
+                                  <NumberPicker 
+                                      value={wordsPerSecond}
+                                      onChange={setWordsPerSecond}
+                                  />
+                                  <p className="text-xs text-muted-foreground text-center">{t.wordsPerSecondHint}</p>
+                              </div>
+                              <Button 
+                                  onClick={handleExport}
+                                  disabled={!isReadyForContent}
+                                  size="lg"
+                              >
+                                  <Download className="mr-2" />
+                                  {t.exportTranscript}
+                              </Button>
+                          </div>
+                      </SheetContent>
+                  </Sheet>
               </div>
           </footer>
           <RatingDialog
