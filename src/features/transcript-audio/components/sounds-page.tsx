@@ -91,6 +91,7 @@ const translations = {
     features: "លក្ខណៈពិសេស",
     copy: "ចម្លង",
     copied: "បានចម្លង!",
+    chooseFile: "Choose File",
   },
   en: {
     voiceScribe: "Voice Transcript",
@@ -132,6 +133,7 @@ const translations = {
     features: "Features",
     copy: "COPY",
     copied: "Copied!",
+    chooseFile: "Choose File",
   }
 };
 
@@ -410,14 +412,20 @@ export function SoundsPage() {
               {!audioFile ? (
                   <div 
                       className={cn(
-                          "flex flex-col items-center justify-center text-center rounded-lg border-2 border-dashed border-muted-foreground/20 bg-background h-full transition-colors cursor-pointer",
+                          "flex flex-col items-center justify-center text-center rounded-lg border-2 border-dashed border-muted-foreground/20 bg-background h-full transition-colors",
                           isDragging && "border-primary bg-primary/10"
                       )}
-                      onClick={() => fileInputRef.current?.click()}
                   >
-                      <FileUp className="w-20 h-20 text-muted-foreground/30 mb-4"/>
-                      <h3 className="text-2xl font-semibold">{t.readyToTranscribe}</h3>
-                      <p className="text-muted-foreground mt-2 mb-4">{t.dropAudio}</p>
+                      <div className="flex-grow flex flex-col items-center justify-center cursor-pointer w-full" onClick={() => fileInputRef.current?.click()}>
+                        <FileUp className="w-20 h-20 text-muted-foreground/30 mb-4"/>
+                        <h3 className="text-2xl font-semibold">{t.readyToTranscribe}</h3>
+                        <p className="text-muted-foreground mt-2 mb-4">{t.dropAudio}</p>
+                      </div>
+                      <div className="w-full p-4 border-t border-dashed">
+                        <Button onClick={() => fileInputRef.current?.click()} className="w-full" variant="ghost">
+                            {t.chooseFile}
+                        </Button>
+                      </div>
                   </div>
               ) : (
                   <Card className="flex flex-col h-full shadow-sm overflow-hidden">
