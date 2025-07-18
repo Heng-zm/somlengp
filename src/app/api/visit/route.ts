@@ -25,3 +25,15 @@ export async function POST() {
     );
   }
 }
+
+export async function GET() {
+    try {
+        return NextResponse.json({ success: true, count: visitorCount });
+    } catch (error) {
+        console.error('Error fetching visitor count:', error);
+        return NextResponse.json(
+            { success: false, message: 'An internal error occurred.' },
+            { status: 500 }
+        );
+    }
+}
