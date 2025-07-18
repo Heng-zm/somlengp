@@ -7,7 +7,6 @@ import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { Card } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
-import { exportTranscript } from '@/lib/client-export';
 import { allTranslations } from '@/lib/translations';
 import { LanguageContext } from '@/contexts/language-context';
 
@@ -22,7 +21,7 @@ export function MakePdfPage() {
   const { language } = langContext;
   const t = useMemo(() => allTranslations[language], [language]);
   
-  const handleExport = () => {
+  const handleExport = async () => {
     if (!text.trim()) {
         toast({
             title: t.exportFailed,
@@ -31,6 +30,7 @@ export function MakePdfPage() {
         });
         return;
     }
+    const { exportTranscript } = await import('@/lib/client-export');
     exportTranscript(text, 'docx', [], toast);
   };
 

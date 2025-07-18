@@ -13,7 +13,6 @@ import {
   SheetTrigger
 } from '@/components/ui/sheet';
 import { useToast } from '@/hooks/use-toast';
-import { exportTranscript } from '@/lib/client-export';
 import type { TranscriptWord } from '@/lib/types';
 import { transcribeAudio } from '@/ai/flows/speech-to-text-flow';
 import { improveTranscriptionAccuracy } from '@/ai/flows/improve-transcription-accuracy-flow';
@@ -206,7 +205,8 @@ export function SoundsPage() {
     handleFileSelect(e.dataTransfer.files?.[0]);
   };
   
-  const handleExport = useCallback(() => {
+  const handleExport = useCallback(async () => {
+    const { exportTranscript } = await import('@/lib/client-export');
     exportTranscript(editedTranscript, exportFormat as 'srt' | 'vtt' | 'txt' | 'json' | 'csv', structuredTranscript, toast, wordsPerSecond);
     setIsExportSheetOpen(false);
     if (!hasRated.current) {
@@ -299,6 +299,13 @@ export function SoundsPage() {
                 </div>
             ) : (
                 <Card className="flex flex-col h-full shadow-sm overflow-hidden rounded-2xl">
+                    {isTranscribing && (
+                        <div className="absolute inset-0 bg-background/80 flex flex-col items-center justify-center z-10">
+                            <Loader2 className="h-12 w-12 animate-spin text-primary mb-4" />
+                            <p className="text-lg font-medium text-foreground">{t.transcribing}</p>
+                            <p className="text-muted-foreground">{audioFile.name}</p>
+                        </div>
+                    )}
                     <EditorView
                         transcript={editedTranscript}
                         onTranscriptChange={setEditedTranscript}
