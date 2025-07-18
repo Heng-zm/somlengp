@@ -13,6 +13,8 @@ import {googleAI} from '@genkit-ai/googleai';
 import {z} from 'genkit';
 import { TranscribeAudioOutput, TranscribeAudioOutputSchema } from '@/lib/types';
 
+const MAX_BASE64_SIZE_BYTES = 4.5 * 1024 * 1024 * 1.37; // 4.5MB with 37% overhead for base64
+
 const TranscribeAudioInputSchema = z.object({
   audioDataUri: z
     .string()
@@ -47,6 +49,9 @@ const transcribeAudioFlow = ai.defineFlow(
     outputSchema: TranscribeAudioOutputSchema,
   },
   async (input) => {
+    if (input.audioDataUri.length > MAX_BASE64_SIZE_BYTES) {
+        throw new Error('413: Payload Too Large. Audio file size exceeds the server limit.');
+    }
     const {output} = await prompt(input);
     if (!output) {
       throw new Error('Transcription failed: The model did not return any output.');
