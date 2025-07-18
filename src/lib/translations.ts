@@ -87,7 +87,7 @@ const enTranslations: Translations = {
     conversionErrorDescription: "Please upload at least one image to convert.",
     selectImageFile: "Please select an image file (JPEG, PNG, etc.).",
     fileTooLargeTitle: "File Too Large",
-    fileTooLargeDescription: (size: number) => `The file exceeds the maximum size of ${size}MB. Please upload a smaller file.`,
+    fileTooLargeDescription: (size: number) => `The file exceeds the server's limit of ${size}MB. Please use a smaller file.`,
 };
 
 const kmTranslations: Translations = {
