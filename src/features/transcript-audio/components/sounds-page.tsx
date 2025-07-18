@@ -273,6 +273,7 @@ export function SoundsPage() {
             onDragOver={handleDragEvents}
             onDragLeave={handleDragLeave}
             onDrop={handleDrop}
+            style={{minHeight: !audioFile ? '80vh' : 'auto' }}
         >
             {isTranscribing && (
                 <div className="absolute inset-0 bg-background/80 flex flex-col items-center justify-center z-10">
