@@ -12,6 +12,8 @@ import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
 import {PDFDocument} from 'pdf-lib';
 
+const MAX_BASE64_SIZE_BYTES = 4.5 * 1024 * 1024 * 1.37; // 4.5MB with 37% overhead for base64
+
 const CombinePdfInputSchema = z.object({
   pdfDataUris: z
     .array(z.string())
@@ -43,6 +45,11 @@ const combinePdfFlow = ai.defineFlow(
   async ({pdfDataUris}) => {
     if (pdfDataUris.length === 0) {
       throw new Error('No PDF files provided to combine.');
+    }
+
+    const totalSize = pdfDataUris.reduce((acc, uri) => acc + uri.length, 0);
+    if (totalSize > MAX_BASE64_SIZE_BYTES) {
+        throw new Error('413: Payload Too Large. Combined file size exceeds the server limit.');
     }
 
     const mergedPdf = await PDFDocument.create();

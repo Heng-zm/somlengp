@@ -12,6 +12,8 @@ import {ai} from '@/ai/genkit';
 import {googleAI} from '@genkit-ai/googleai';
 import {z} from 'genkit';
 
+const MAX_BASE64_SIZE_BYTES = 4.5 * 1024 * 1024 * 1.37; // 4.5MB with 37% overhead for base64
+
 const TranscribePdfInputSchema = z.object({
   pdfDataUri: z
     .string()
@@ -55,6 +57,9 @@ const pdfTranscriptFlow = ai.defineFlow(
     outputSchema: TranscribePdfOutputSchema,
   },
   async input => {
+    if (input.pdfDataUri.length > MAX_BASE64_SIZE_BYTES) {
+        throw new Error('413: Payload Too Large. PDF file size exceeds the server limit.');
+    }
     const {output} = await prompt(input);
     if (!output) {
       throw new Error(

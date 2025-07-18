@@ -125,9 +125,17 @@ export function CombinePdfPage() {
         setFiles([]);
 
     } catch(e: any) {
+        let title = t.combineError;
+        let description = e.message || 'An unknown error occurred.';
+        const errorMessage = (e.message || '').toLowerCase();
+
+        if (errorMessage.includes('413') || errorMessage.includes('too large')) {
+            title = t.fileTooLargeTitle;
+            description = t.fileTooLargeDescription(MAX_FILE_SIZE_MB);
+        }
         toast({
-            title: t.combineError,
-            description: e.message || 'An unknown error occurred.',
+            title,
+            description,
             variant: 'destructive',
         });
     } finally {

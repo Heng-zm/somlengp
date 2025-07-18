@@ -102,7 +102,10 @@ export function SoundsPage() {
       let title = t.transcriptionError;
       let description = e.message || "An error occurred while processing your audio.";
       const errorMessage = (e.message || '').toLowerCase();
-      if (errorMessage.includes('429') || errorMessage.includes('rate limit')) {
+      if (errorMessage.includes('413') || errorMessage.includes('too large')) {
+        title = t.fileTooLargeTitle;
+        description = t.fileTooLargeDescription(MAX_FILE_SIZE_MB);
+      } else if (errorMessage.includes('429') || errorMessage.includes('rate limit')) {
         title = t.rateLimitExceeded;
         description = t.rateLimitMessage;
       }
