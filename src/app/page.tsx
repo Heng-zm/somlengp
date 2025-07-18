@@ -3,7 +3,7 @@
 
 import { useContext, useMemo } from 'react';
 import Link from 'next/link';
-import { Mic, FileText, Menu, FilePlus } from 'lucide-react';
+import { Mic, FileText, Menu, Combine } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
@@ -58,10 +58,10 @@ export default function Home() {
           gradient="from-purple-400 to-pink-400"
         />
         <FeatureCard
-          href="/make-pdf"
-          title={t.makePdf}
-          description={t.makePdfDescription}
-          icon={FilePlus}
+          href="/combine-pdf"
+          title={t.combinePdf}
+          description={t.combinePdfDescription}
+          icon={Combine}
           gradient="from-green-400 to-blue-400"
         />
       </div>
