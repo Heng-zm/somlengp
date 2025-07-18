@@ -5,32 +5,11 @@ import { createContext, useState, useMemo, useContext } from 'react';
 import { ChevronLeft } from 'lucide-react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { allTranslations } from '@/lib/translations';
 import { LanguageContext } from '@/contexts/language-context';
 
-
-// Model Context
-interface ModelContextType {
-    selectedModel: string;
-    setSelectedModel: (model: string) => void;
-}
-export const ModelContext = createContext<ModelContextType | undefined>(undefined);
-
-// Provider for Model context
 export function FeaturePageLayoutProvider({ children }: { children: React.ReactNode }) {
-    const [selectedModel, setSelectedModel] = useState('gemini-1.5-flash-latest');
-    
-    const modelContextValue = useMemo(() => ({
-        selectedModel,
-        setSelectedModel,
-    }), [selectedModel]);
-
-    return (
-        <ModelContext.Provider value={modelContextValue}>
-            {children}
-        </ModelContext.Provider>
-    );
+    return <>{children}</>;
 }
 
 // The actual layout component
@@ -48,17 +27,6 @@ export function FeaturePageLayout({ children, title, showModelSelector = false }
     const { language } = langContext;
     const t = useMemo(() => allTranslations[language], [language]);
 
-    const modelContext = useContext(ModelContext);
-    if (!modelContext) {
-        throw new Error('FeaturePageLayout must be used within a FeaturePageLayoutProvider');
-    }
-    const { selectedModel, setSelectedModel } = modelContext;
-
-    const modelOptions = useMemo(() => ([
-        { value: 'gemini-1.5-flash-latest', label: 'Gemini 1.5 Flash' },
-        { value: 'gemini-1.5-pro-latest', label: 'Gemini 1.5 Pro' },
-    ]), []);
-
     return (
         <div className="flex flex-col h-full">
             <header className="flex-shrink-0 flex items-center justify-between p-2 sm:p-4 border-b">
@@ -69,20 +37,7 @@ export function FeaturePageLayout({ children, title, showModelSelector = false }
                   </Link>
                 </Button>
                 <h1 className="text-lg sm:text-xl font-bold">{title}</h1>
-                {showModelSelector ? (
-                    <Select value={selectedModel} onValueChange={setSelectedModel}>
-                        <SelectTrigger className="w-fit md:w-[180px] text-xs sm:text-sm">
-                            <SelectValue placeholder={t.selectModel} />
-                        </SelectTrigger>
-                        <SelectContent>
-                            {modelOptions.map((option) => (
-                                <SelectItem key={option.value} value={option.value}>{option.label}</SelectItem>
-                            ))}
-                        </SelectContent>
-                    </Select>
-                ) : (
-                    <div className="w-10"></div> // Placeholder for alignment
-                )}
+                <div className="w-10"></div>
             </header>
             <div className="flex-grow overflow-y-auto">
                 {children}
