@@ -34,7 +34,6 @@ export function PdfTranscriptPage() {
   const [isTranscribing, setIsTranscribing] = useState(false);
   const [transcribedText, setTranscribedText] = useState('');
   const [isDragging, setIsDragging] = useState(false);
-  const [exportFormat, setExportFormat] = useState('docx');
 
   const { toast } = useToast();
   const fileInputRef = useRef<HTMLInputElement | null>(null);
@@ -153,7 +152,7 @@ export function PdfTranscriptPage() {
   return (
     <div className="flex flex-col h-full bg-background text-foreground">
         <main 
-            className="flex-grow p-4 md:p-6 grid grid-cols-1 gap-6 relative"
+            className="flex-grow flex flex-col p-4 md:p-6 relative"
             onDragEnter={handleDragEnter}
             onDragOver={handleDragEvents}
             onDragLeave={handleDragLeave}
@@ -169,7 +168,7 @@ export function PdfTranscriptPage() {
             {!pdfFile ? (
                 <div 
                     className={cn(
-                        "flex flex-col items-center justify-center text-center rounded-2xl border-2 border-border bg-card h-full transition-colors cursor-pointer",
+                        "flex flex-col flex-grow items-center justify-center text-center rounded-2xl border-2 border-border bg-card h-full transition-colors cursor-pointer",
                         isDragging && "border-primary bg-primary/10"
                     )}
                     onClick={() => fileInputRef.current?.click()}
@@ -180,7 +179,7 @@ export function PdfTranscriptPage() {
                 </div>
             ) : (
                 isReadyForContent && (
-                  <Card className="flex flex-col h-full shadow-sm overflow-hidden rounded-2xl">
+                  <Card className="flex flex-col flex-grow h-full shadow-sm overflow-hidden rounded-2xl">
                       <Textarea
                           value={transcribedText}
                           readOnly
