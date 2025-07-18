@@ -508,12 +508,14 @@ var { g: global, __dirname } = __turbopack_context__;
  * NOTE: Vercel Hobby plan has a 4.5MB body size limit for Serverless Functions.
  * Base64 encoding adds ~37% overhead. To stay safely under 4.5MB,
  * we set the raw file limit to 3MB (3MB * 1.37 ≈ 4.11MB).
+ * The user has requested to increase this to 8MB. This may cause issues on
+ * hosting platforms with smaller limits.
  */ __turbopack_context__.s({
     "MAX_BASE64_SIZE_BYTES": (()=>MAX_BASE64_SIZE_BYTES),
     "MAX_FILE_SIZE_BYTES": (()=>MAX_FILE_SIZE_BYTES),
     "MAX_FILE_SIZE_MB": (()=>MAX_FILE_SIZE_MB)
 });
-const MAX_FILE_SIZE_MB = 3;
+const MAX_FILE_SIZE_MB = 8;
 const MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024;
 const MAX_BASE64_SIZE_BYTES = MAX_FILE_SIZE_BYTES * 1.37;
 }}),
@@ -531,6 +533,8 @@ var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$re
 var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$download$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__$3c$export__default__as__Download$3e$__ = __turbopack_context__.i("[project]/node_modules/lucide-react/dist/esm/icons/download.js [app-ssr] (ecmascript) <export default as Download>");
 var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$copy$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__$3c$export__default__as__Copy$3e$__ = __turbopack_context__.i("[project]/node_modules/lucide-react/dist/esm/icons/copy.js [app-ssr] (ecmascript) <export default as Copy>");
 var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$loader$2d$circle$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__$3c$export__default__as__Loader2$3e$__ = __turbopack_context__.i("[project]/node_modules/lucide-react/dist/esm/icons/loader-circle.js [app-ssr] (ecmascript) <export default as Loader2>");
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$file$2d$text$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__$3c$export__default__as__FileText$3e$__ = __turbopack_context__.i("[project]/node_modules/lucide-react/dist/esm/icons/file-text.js [app-ssr] (ecmascript) <export default as FileText>");
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$x$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__$3c$export__default__as__X$3e$__ = __turbopack_context__.i("[project]/node_modules/lucide-react/dist/esm/icons/x.js [app-ssr] (ecmascript) <export default as X>");
 var __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$button$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/src/components/ui/button.tsx [app-ssr] (ecmascript)");
 var __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$hooks$2f$use$2d$toast$2e$ts__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/src/hooks/use-toast.ts [app-ssr] (ecmascript)");
 var __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$utils$2e$ts__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/src/lib/utils.ts [app-ssr] (ecmascript)");
@@ -590,10 +594,6 @@ function PdfTranscriptPage() {
     const t = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useMemo"])(()=>__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$translations$2e$ts__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["allTranslations"][language], [
         language
     ]);
-    const resetState = ()=>{
-        setPdfFile(null);
-        setTranscribedText('');
-    };
     const handleFileSelect = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useCallback"])(async (file)=>{
         if (!file) return;
         if (file.size > __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$config$2e$ts__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["MAX_FILE_SIZE_BYTES"]) {
@@ -682,6 +682,7 @@ function PdfTranscriptPage() {
             });
             return;
         }
+        // Lazy load for performance
         const { exportTranscript: exportFn } = await __turbopack_context__.r("[project]/src/lib/client-export.ts [app-ssr] (ecmascript, async loader)")(__turbopack_context__.i);
         exportFn(transcribedText, exportFormat, [], toast);
         setIsExportSheetOpen(false);
@@ -699,6 +700,13 @@ function PdfTranscriptPage() {
             docx: 'DOCX (Word Document)',
             txt: 'TXT (Plain Text)'
         }), []);
+    const clearFile = ()=>{
+        setPdfFile(null);
+        setTranscribedText('');
+        if (fileInputRef.current) {
+            fileInputRef.current.value = '';
+        }
+    };
     return /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
         className: "flex flex-col h-full bg-background text-foreground",
         onDragEnter: handleDragEnter,
@@ -710,14 +718,14 @@ function PdfTranscriptPage() {
                 className: "flex-grow p-4 md:p-6 relative",
                 children: [
                     !pdfFile ? /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                        className: (0, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$utils$2e$ts__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["cn"])('flex cursor-pointer flex-col items-center justify-center rounded-2xl border-2 bg-card text-center transition-colors border-border h-full min-h-[70vh]', isDragging && 'border-primary bg-primary/10'),
+                        className: (0, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$utils$2e$ts__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["cn"])('flex cursor-pointer flex-col items-center justify-center rounded-2xl border-2 border-dashed bg-card text-center transition-colors border-border h-full min-h-[70vh]', isDragging && 'border-primary bg-primary/10'),
                         onClick: ()=>fileInputRef.current?.click(),
                         children: [
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$file$2d$up$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__$3c$export__default__as__FileUp$3e$__["FileUp"], {
                                 className: "mb-4 h-16 w-16 text-muted-foreground/30"
                             }, void 0, false, {
                                 fileName: "[project]/src/features/transcript-pdf/components/pdf-transcript-page.tsx",
-                                lineNumber: 188,
+                                lineNumber: 191,
                                 columnNumber: 18
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("h3", {
@@ -725,7 +733,7 @@ function PdfTranscriptPage() {
                                 children: t.chooseFile
                             }, void 0, false, {
                                 fileName: "[project]/src/features/transcript-pdf/components/pdf-transcript-page.tsx",
-                                lineNumber: 189,
+                                lineNumber: 192,
                                 columnNumber: 18
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -733,65 +741,134 @@ function PdfTranscriptPage() {
                                 children: t.dropPdf
                             }, void 0, false, {
                                 fileName: "[project]/src/features/transcript-pdf/components/pdf-transcript-page.tsx",
-                                lineNumber: 190,
+                                lineNumber: 193,
                                 columnNumber: 18
                             }, this)
                         ]
                     }, void 0, true, {
                         fileName: "[project]/src/features/transcript-pdf/components/pdf-transcript-page.tsx",
-                        lineNumber: 181,
+                        lineNumber: 184,
                         columnNumber: 18
                     }, this) : /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$card$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["Card"], {
-                        className: "shadow-sm overflow-hidden rounded-2xl",
+                        className: "shadow-sm overflow-hidden rounded-2xl h-full flex flex-col",
                         children: [
-                            isTranscribing && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                                className: "absolute inset-0 bg-background/80 flex flex-col items-center justify-center z-10",
+                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                className: "flex-shrink-0 flex items-center justify-between p-3 border-b bg-muted/30",
                                 children: [
-                                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$loader$2d$circle$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__$3c$export__default__as__Loader2$3e$__["Loader2"], {
-                                        className: "h-12 w-12 animate-spin text-primary mb-4"
-                                    }, void 0, false, {
-                                        fileName: "[project]/src/features/transcript-pdf/components/pdf-transcript-page.tsx",
-                                        lineNumber: 196,
-                                        columnNumber: 29
-                                    }, this),
-                                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
-                                        className: "text-lg font-medium text-foreground",
-                                        children: t.transcribing
-                                    }, void 0, false, {
-                                        fileName: "[project]/src/features/transcript-pdf/components/pdf-transcript-page.tsx",
-                                        lineNumber: 197,
-                                        columnNumber: 29
-                                    }, this),
-                                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
-                                        className: "text-muted-foreground",
-                                        children: pdfFile.name
-                                    }, void 0, false, {
+                                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                        className: "flex items-center gap-2 overflow-hidden",
+                                        children: [
+                                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$file$2d$text$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__$3c$export__default__as__FileText$3e$__["FileText"], {
+                                                className: "w-5 h-5 text-primary"
+                                            }, void 0, false, {
+                                                fileName: "[project]/src/features/transcript-pdf/components/pdf-transcript-page.tsx",
+                                                lineNumber: 199,
+                                                columnNumber: 29
+                                            }, this),
+                                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
+                                                className: "font-medium truncate",
+                                                children: pdfFile.name
+                                            }, void 0, false, {
+                                                fileName: "[project]/src/features/transcript-pdf/components/pdf-transcript-page.tsx",
+                                                lineNumber: 200,
+                                                columnNumber: 29
+                                            }, this),
+                                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
+                                                className: "text-sm text-muted-foreground",
+                                                children: `${(pdfFile.size / 1024 / 1024).toFixed(2)} MB`
+                                            }, void 0, false, {
+                                                fileName: "[project]/src/features/transcript-pdf/components/pdf-transcript-page.tsx",
+                                                lineNumber: 201,
+                                                columnNumber: 29
+                                            }, this)
+                                        ]
+                                    }, void 0, true, {
                                         fileName: "[project]/src/features/transcript-pdf/components/pdf-transcript-page.tsx",
                                         lineNumber: 198,
-                                        columnNumber: 29
+                                        columnNumber: 25
+                                    }, this),
+                                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$button$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["Button"], {
+                                        onClick: clearFile,
+                                        variant: "ghost",
+                                        size: "icon",
+                                        className: "rounded-full",
+                                        children: [
+                                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$x$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__$3c$export__default__as__X$3e$__["X"], {
+                                                className: "w-4 h-4"
+                                            }, void 0, false, {
+                                                fileName: "[project]/src/features/transcript-pdf/components/pdf-transcript-page.tsx",
+                                                lineNumber: 204,
+                                                columnNumber: 29
+                                            }, this),
+                                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
+                                                className: "sr-only",
+                                                children: "Clear file"
+                                            }, void 0, false, {
+                                                fileName: "[project]/src/features/transcript-pdf/components/pdf-transcript-page.tsx",
+                                                lineNumber: 205,
+                                                columnNumber: 29
+                                            }, this)
+                                        ]
+                                    }, void 0, true, {
+                                        fileName: "[project]/src/features/transcript-pdf/components/pdf-transcript-page.tsx",
+                                        lineNumber: 203,
+                                        columnNumber: 25
                                     }, this)
                                 ]
                             }, void 0, true, {
                                 fileName: "[project]/src/features/transcript-pdf/components/pdf-transcript-page.tsx",
-                                lineNumber: 195,
-                                columnNumber: 25
+                                lineNumber: 197,
+                                columnNumber: 21
                             }, this),
-                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$textarea$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["Textarea"], {
-                                value: transcribedText,
-                                readOnly: true,
-                                placeholder: t.transcribedTextPlaceholder,
-                                className: "h-[76vh] w-full resize-none text-base leading-relaxed p-6 border-0 focus-visible:ring-0 focus-visible:ring-offset-0",
-                                "aria-label": "Transcribed Text",
-                                disabled: isTranscribing
-                            }, void 0, false, {
+                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                className: "flex-grow relative",
+                                children: [
+                                    isTranscribing && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                        className: "absolute inset-0 bg-background/80 flex flex-col items-center justify-center z-10",
+                                        children: [
+                                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$loader$2d$circle$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__$3c$export__default__as__Loader2$3e$__["Loader2"], {
+                                                className: "h-12 w-12 animate-spin text-primary mb-4"
+                                            }, void 0, false, {
+                                                fileName: "[project]/src/features/transcript-pdf/components/pdf-transcript-page.tsx",
+                                                lineNumber: 211,
+                                                columnNumber: 33
+                                            }, this),
+                                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
+                                                className: "text-lg font-medium text-foreground",
+                                                children: t.transcribing
+                                            }, void 0, false, {
+                                                fileName: "[project]/src/features/transcript-pdf/components/pdf-transcript-page.tsx",
+                                                lineNumber: 212,
+                                                columnNumber: 33
+                                            }, this)
+                                        ]
+                                    }, void 0, true, {
+                                        fileName: "[project]/src/features/transcript-pdf/components/pdf-transcript-page.tsx",
+                                        lineNumber: 210,
+                                        columnNumber: 29
+                                    }, this),
+                                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$textarea$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["Textarea"], {
+                                        value: transcribedText,
+                                        readOnly: true,
+                                        placeholder: isTranscribing ? 'Transcribing...' : t.transcribedTextPlaceholder,
+                                        className: "h-[calc(76vh-60px)] w-full resize-none text-base leading-relaxed p-6 border-0 focus-visible:ring-0 focus-visible:ring-offset-0",
+                                        "aria-label": "Transcribed Text",
+                                        disabled: isTranscribing
+                                    }, void 0, false, {
+                                        fileName: "[project]/src/features/transcript-pdf/components/pdf-transcript-page.tsx",
+                                        lineNumber: 215,
+                                        columnNumber: 25
+                                    }, this)
+                                ]
+                            }, void 0, true, {
                                 fileName: "[project]/src/features/transcript-pdf/components/pdf-transcript-page.tsx",
-                                lineNumber: 201,
+                                lineNumber: 208,
                                 columnNumber: 21
                             }, this)
                         ]
                     }, void 0, true, {
                         fileName: "[project]/src/features/transcript-pdf/components/pdf-transcript-page.tsx",
-                        lineNumber: 193,
+                        lineNumber: 196,
                         columnNumber: 17
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("input", {
@@ -802,13 +879,13 @@ function PdfTranscriptPage() {
                         accept: "application/pdf"
                     }, void 0, false, {
                         fileName: "[project]/src/features/transcript-pdf/components/pdf-transcript-page.tsx",
-                        lineNumber: 212,
+                        lineNumber: 227,
                         columnNumber: 13
                     }, this)
                 ]
             }, void 0, true, {
                 fileName: "[project]/src/features/transcript-pdf/components/pdf-transcript-page.tsx",
-                lineNumber: 179,
+                lineNumber: 182,
                 columnNumber: 9
             }, this),
             pdfFile && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("footer", {
@@ -827,7 +904,7 @@ function PdfTranscriptPage() {
                                     className: "h-5 w-5"
                                 }, void 0, false, {
                                     fileName: "[project]/src/features/transcript-pdf/components/pdf-transcript-page.tsx",
-                                    lineNumber: 225,
+                                    lineNumber: 240,
                                     columnNumber: 23
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
@@ -835,13 +912,13 @@ function PdfTranscriptPage() {
                                     children: t.copy
                                 }, void 0, false, {
                                     fileName: "[project]/src/features/transcript-pdf/components/pdf-transcript-page.tsx",
-                                    lineNumber: 226,
+                                    lineNumber: 241,
                                     columnNumber: 23
                                 }, this)
                             ]
                         }, void 0, true, {
                             fileName: "[project]/src/features/transcript-pdf/components/pdf-transcript-page.tsx",
-                            lineNumber: 224,
+                            lineNumber: 239,
                             columnNumber: 19
                         }, this),
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$sheet$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["Sheet"], {
@@ -852,20 +929,20 @@ function PdfTranscriptPage() {
                                     asChild: true,
                                     children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$button$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["Button"], {
                                         size: "lg",
-                                        className: "h-12 px-6 rounded-full bg-accent text-accent-foreground hover:bg-accent/90 w-full",
+                                        className: "h-12 px-6 rounded-full bg-accent text-accent-foreground hover:bg-accent/90 flex-1",
                                         disabled: isTranscribing || !isReadyForContent,
                                         children: [
                                             isTranscribing ? /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$loader$2d$circle$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__$3c$export__default__as__Loader2$3e$__["Loader2"], {
                                                 className: "animate-spin h-5 w-5"
                                             }, void 0, false, {
                                                 fileName: "[project]/src/features/transcript-pdf/components/pdf-transcript-page.tsx",
-                                                lineNumber: 231,
+                                                lineNumber: 246,
                                                 columnNumber: 45
                                             }, this) : /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$download$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__$3c$export__default__as__Download$3e$__["Download"], {
                                                 className: "h-5 w-5"
                                             }, void 0, false, {
                                                 fileName: "[project]/src/features/transcript-pdf/components/pdf-transcript-page.tsx",
-                                                lineNumber: 231,
+                                                lineNumber: 246,
                                                 columnNumber: 92
                                             }, this),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
@@ -873,18 +950,18 @@ function PdfTranscriptPage() {
                                                 children: isTranscribing ? t.transcribing : t.download
                                             }, void 0, false, {
                                                 fileName: "[project]/src/features/transcript-pdf/components/pdf-transcript-page.tsx",
-                                                lineNumber: 232,
+                                                lineNumber: 247,
                                                 columnNumber: 27
                                             }, this)
                                         ]
                                     }, void 0, true, {
                                         fileName: "[project]/src/features/transcript-pdf/components/pdf-transcript-page.tsx",
-                                        lineNumber: 230,
+                                        lineNumber: 245,
                                         columnNumber: 23
                                     }, this)
                                 }, void 0, false, {
                                     fileName: "[project]/src/features/transcript-pdf/components/pdf-transcript-page.tsx",
-                                    lineNumber: 229,
+                                    lineNumber: 244,
                                     columnNumber: 21
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$sheet$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["SheetContent"], {
@@ -898,20 +975,20 @@ function PdfTranscriptPage() {
                                                     children: t.exportSettings
                                                 }, void 0, false, {
                                                     fileName: "[project]/src/features/transcript-pdf/components/pdf-transcript-page.tsx",
-                                                    lineNumber: 237,
+                                                    lineNumber: 252,
                                                     columnNumber: 25
                                                 }, this),
                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$sheet$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["SheetDescription"], {
                                                     children: t.chooseFormat
                                                 }, void 0, false, {
                                                     fileName: "[project]/src/features/transcript-pdf/components/pdf-transcript-page.tsx",
-                                                    lineNumber: 238,
+                                                    lineNumber: 253,
                                                     columnNumber: 25
                                                 }, this)
                                             ]
                                         }, void 0, true, {
                                             fileName: "[project]/src/features/transcript-pdf/components/pdf-transcript-page.tsx",
-                                            lineNumber: 236,
+                                            lineNumber: 251,
                                             columnNumber: 23
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -924,7 +1001,7 @@ function PdfTranscriptPage() {
                                                             children: t.exportFormat
                                                         }, void 0, false, {
                                                             fileName: "[project]/src/features/transcript-pdf/components/pdf-transcript-page.tsx",
-                                                            lineNumber: 242,
+                                                            lineNumber: 257,
                                                             columnNumber: 27
                                                         }, this),
                                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$select$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["Select"], {
@@ -936,12 +1013,12 @@ function PdfTranscriptPage() {
                                                                         placeholder: "Select format"
                                                                     }, void 0, false, {
                                                                         fileName: "[project]/src/features/transcript-pdf/components/pdf-transcript-page.tsx",
-                                                                        lineNumber: 245,
+                                                                        lineNumber: 260,
                                                                         columnNumber: 36
                                                                     }, this)
                                                                 }, void 0, false, {
                                                                     fileName: "[project]/src/features/transcript-pdf/components/pdf-transcript-page.tsx",
-                                                                    lineNumber: 244,
+                                                                    lineNumber: 259,
                                                                     columnNumber: 32
                                                                 }, this),
                                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$select$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["SelectContent"], {
@@ -950,24 +1027,24 @@ function PdfTranscriptPage() {
                                                                             children: label
                                                                         }, value, false, {
                                                                             fileName: "[project]/src/features/transcript-pdf/components/pdf-transcript-page.tsx",
-                                                                            lineNumber: 249,
+                                                                            lineNumber: 264,
                                                                             columnNumber: 36
                                                                         }, this))
                                                                 }, void 0, false, {
                                                                     fileName: "[project]/src/features/transcript-pdf/components/pdf-transcript-page.tsx",
-                                                                    lineNumber: 247,
+                                                                    lineNumber: 262,
                                                                     columnNumber: 32
                                                                 }, this)
                                                             ]
                                                         }, void 0, true, {
                                                             fileName: "[project]/src/features/transcript-pdf/components/pdf-transcript-page.tsx",
-                                                            lineNumber: 243,
+                                                            lineNumber: 258,
                                                             columnNumber: 28
                                                         }, this)
                                                     ]
                                                 }, void 0, true, {
                                                     fileName: "[project]/src/features/transcript-pdf/components/pdf-transcript-page.tsx",
-                                                    lineNumber: 241,
+                                                    lineNumber: 256,
                                                     columnNumber: 25
                                                 }, this),
                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$button$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["Button"], {
@@ -981,7 +1058,7 @@ function PdfTranscriptPage() {
                                                                 className: "mr-2 animate-spin"
                                                             }, void 0, false, {
                                                                 fileName: "[project]/src/features/transcript-pdf/components/pdf-transcript-page.tsx",
-                                                                lineNumber: 257,
+                                                                lineNumber: 272,
                                                                 columnNumber: 36
                                                             }, this),
                                                             t.transcribing
@@ -992,7 +1069,7 @@ function PdfTranscriptPage() {
                                                                 className: "mr-2"
                                                             }, void 0, false, {
                                                                 fileName: "[project]/src/features/transcript-pdf/components/pdf-transcript-page.tsx",
-                                                                lineNumber: 262,
+                                                                lineNumber: 277,
                                                                 columnNumber: 36
                                                             }, this),
                                                             t.exportTranscript
@@ -1000,42 +1077,42 @@ function PdfTranscriptPage() {
                                                     }, void 0, true)
                                                 }, void 0, false, {
                                                     fileName: "[project]/src/features/transcript-pdf/components/pdf-transcript-page.tsx",
-                                                    lineNumber: 254,
+                                                    lineNumber: 269,
                                                     columnNumber: 25
                                                 }, this)
                                             ]
                                         }, void 0, true, {
                                             fileName: "[project]/src/features/transcript-pdf/components/pdf-transcript-page.tsx",
-                                            lineNumber: 240,
+                                            lineNumber: 255,
                                             columnNumber: 23
                                         }, this)
                                     ]
                                 }, void 0, true, {
                                     fileName: "[project]/src/features/transcript-pdf/components/pdf-transcript-page.tsx",
-                                    lineNumber: 235,
+                                    lineNumber: 250,
                                     columnNumber: 21
                                 }, this)
                             ]
                         }, void 0, true, {
                             fileName: "[project]/src/features/transcript-pdf/components/pdf-transcript-page.tsx",
-                            lineNumber: 228,
+                            lineNumber: 243,
                             columnNumber: 19
                         }, this)
                     ]
                 }, void 0, true, {
                     fileName: "[project]/src/features/transcript-pdf/components/pdf-transcript-page.tsx",
-                    lineNumber: 223,
+                    lineNumber: 238,
                     columnNumber: 13
                 }, this)
             }, void 0, false, {
                 fileName: "[project]/src/features/transcript-pdf/components/pdf-transcript-page.tsx",
-                lineNumber: 222,
+                lineNumber: 237,
                 columnNumber: 11
             }, this)
         ]
     }, void 0, true, {
         fileName: "[project]/src/features/transcript-pdf/components/pdf-transcript-page.tsx",
-        lineNumber: 172,
+        lineNumber: 175,
         columnNumber: 5
     }, this);
 }

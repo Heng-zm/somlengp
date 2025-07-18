@@ -235,12 +235,14 @@ var { g: global, __dirname } = __turbopack_context__;
  * NOTE: Vercel Hobby plan has a 4.5MB body size limit for Serverless Functions.
  * Base64 encoding adds ~37% overhead. To stay safely under 4.5MB,
  * we set the raw file limit to 3MB (3MB * 1.37 ≈ 4.11MB).
+ * The user has requested to increase this to 8MB. This may cause issues on
+ * hosting platforms with smaller limits.
  */ __turbopack_context__.s({
     "MAX_BASE64_SIZE_BYTES": (()=>MAX_BASE64_SIZE_BYTES),
     "MAX_FILE_SIZE_BYTES": (()=>MAX_FILE_SIZE_BYTES),
     "MAX_FILE_SIZE_MB": (()=>MAX_FILE_SIZE_MB)
 });
-const MAX_FILE_SIZE_MB = 3;
+const MAX_FILE_SIZE_MB = 8;
 const MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024;
 const MAX_BASE64_SIZE_BYTES = MAX_FILE_SIZE_BYTES * 1.37;
 }}),
