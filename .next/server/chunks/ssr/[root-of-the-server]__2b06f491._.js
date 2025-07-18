@@ -249,6 +249,7 @@ var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist
 ;
 ;
 ;
+const MAX_BASE64_SIZE_BYTES = 4.5 * 1024 * 1024 * 1.37; // 4.5MB with 37% overhead for base64
 const TranscribePdfInputSchema = __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$genkit$2f$lib$2f$common$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["z"].object({
     pdfDataUri: __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$genkit$2f$lib$2f$common$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["z"].string().describe("A PDF file, as a data URI that must include a MIME type and use Base64 encoding. Expected format: 'data:application/pdf;base64,<encoded_data>'")
 });
@@ -282,6 +283,9 @@ const pdfTranscriptFlow = __TURBOPACK__imported__module__$5b$project$5d2f$src$2f
     inputSchema: TranscribePdfInputSchema,
     outputSchema: TranscribePdfOutputSchema
 }, async (input)=>{
+    if (input.pdfDataUri.length > MAX_BASE64_SIZE_BYTES) {
+        throw new Error('413: Payload Too Large. PDF file size exceeds the server limit.');
+    }
     const { output } = await prompt(input);
     if (!output) {
         throw new Error('PDF to Text transcription failed: The model did not return any output.');

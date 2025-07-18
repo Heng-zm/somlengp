@@ -15,9 +15,7 @@ import { LanguageContext } from '@/contexts/language-context';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger, SheetDescription } from '@/components/ui/sheet';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-
-const MAX_FILE_SIZE_MB = 4.5;
-const MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024;
+import { MAX_FILE_SIZE_BYTES, MAX_FILE_SIZE_MB } from '@/config';
 
 const blobToBase64 = (blob: Blob): Promise<string> => {
   return new Promise((resolve, reject) => {

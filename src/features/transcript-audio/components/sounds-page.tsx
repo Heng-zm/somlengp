@@ -28,9 +28,7 @@ import { RatingDialog } from '@/components/shared/rating-dialog';
 import { allTranslations } from '@/lib/translations';
 import { LanguageContext } from '@/contexts/language-context';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-
-const MAX_FILE_SIZE_MB = 4.5;
-const MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024;
+import { MAX_FILE_SIZE_BYTES, MAX_FILE_SIZE_MB } from '@/config';
 
 const blobToBase64 = (blob: Blob): Promise<string> => {
   return new Promise((resolve, reject) => {
