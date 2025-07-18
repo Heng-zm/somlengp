@@ -9,7 +9,7 @@ import {
   useCallback,
   useEffect,
 } from 'react';
-import {Loader2, FileUp, X, Download, Wand2} from 'lucide-react';
+import {Loader2, FileUp, X, Download, Wand2, ImagePlus} from 'lucide-react';
 import {Button} from '@/components/ui/button';
 import {useToast} from '@/hooks/use-toast';
 import {Card} from '@/components/ui/card';
@@ -33,14 +33,14 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import {Label} from '@/components/ui/label';
-import {MAX_FILE_SIZE_BYTES, MAX_FILE_SIZE_MB} from '@/config';
+import JSZip from 'jszip';
 
 type TargetFormat = 'jpeg' | 'png' | 'webp';
 
 const clientSideConvert = (
   file: File,
   targetFormat: TargetFormat
-): Promise<string> => {
+): Promise<Blob> => {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
     reader.onload = event => {
@@ -54,8 +54,16 @@ const clientSideConvert = (
           return reject(new Error('Could not get canvas context.'));
         }
         ctx.drawImage(img, 0, 0);
-        const dataUrl = canvas.toDataURL(`image/${targetFormat}`);
-        resolve(dataUrl);
+        canvas.toBlob(
+          blob => {
+            if (blob) {
+              resolve(blob);
+            } else {
+              reject(new Error('Canvas to Blob conversion failed.'));
+            }
+          },
+          `image/${targetFormat}`
+        );
       };
       img.onerror = reject;
       img.src = event.target?.result as string;
@@ -66,8 +74,7 @@ const clientSideConvert = (
 };
 
 export function ConvertImageFormatPage() {
-  const [file, setFile] = useState<File | null>(null);
-  const [filePreview, setFilePreview] = useState<string | null>(null);
+  const [files, setFiles] = useState<File[]>([]);
   const [isConverting, setIsConverting] = useState(false);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
@@ -84,44 +91,37 @@ export function ConvertImageFormatPage() {
   const {language} = langContext;
   const t = useMemo(() => allTranslations[language], [language]);
 
+  const fileObjectURLs = useMemo(() => files.map(file => URL.createObjectURL(file)), [files]);
+
   useEffect(() => {
-    if (file) {
-      const url = URL.createObjectURL(file);
-      setFilePreview(url);
-      return () => URL.revokeObjectURL(url);
-    } else {
-      setFilePreview(null);
-    }
-  }, [file]);
+    return () => {
+        fileObjectURLs.forEach(url => URL.revokeObjectURL(url));
+    };
+  }, [fileObjectURLs]);
 
   const handleFileSelect = useCallback(
-    (selectedFile: File | null | undefined) => {
-      if (!selectedFile) return;
+    (selectedFiles: FileList | null) => {
+      if (!selectedFiles) return;
 
-      if (selectedFile.size > MAX_FILE_SIZE_BYTES) {
-        toast({
-          title: t.fileTooLargeTitle,
-          description: t.fileTooLargeDescription(MAX_FILE_SIZE_MB),
-          variant: 'destructive',
-        });
-        return;
-      }
+      const newFiles = Array.from(selectedFiles).filter(file => {
+        if (!file.type.startsWith('image/')) {
+          toast({
+            title: t.invalidFileType,
+            description: `${file.name} is not a valid image file.`,
+            variant: 'destructive',
+          });
+          return false;
+        }
+        return true;
+      });
 
-      if (!selectedFile.type.startsWith('image/')) {
-        toast({
-          title: t.invalidFileType,
-          description: t.selectImageFile,
-          variant: 'destructive',
-        });
-        return;
-      }
-      setFile(selectedFile);
+      setFiles(prev => [...prev, ...newFiles]);
     },
-    [t, toast]
+    [t.invalidFileType, toast]
   );
 
   const handleConvert = async () => {
-    if (!file) {
+    if (files.length === 0) {
       toast({
         title: t.conversionError,
         description: t.conversionErrorDescription,
@@ -131,22 +131,34 @@ export function ConvertImageFormatPage() {
     }
 
     setIsConverting(true);
-    try {
-      const convertedImageDataUri = await clientSideConvert(file, targetFormat);
+    const zip = new JSZip();
 
+    try {
+      await Promise.all(
+        files.map(async file => {
+          const convertedBlob = await clientSideConvert(file, targetFormat);
+          const originalName = file.name.substring(
+            0,
+            file.name.lastIndexOf('.')
+          );
+          zip.file(`${originalName}.${targetFormat}`, convertedBlob);
+        })
+      );
+
+      const zipBlob = await zip.generateAsync({type: 'blob'});
       const a = document.createElement('a');
-      a.href = convertedImageDataUri;
-      const originalName = file.name.substring(0, file.name.lastIndexOf('.'));
-      a.download = `${originalName}.${targetFormat}`;
+      a.href = URL.createObjectURL(zipBlob);
+      a.download = `converted_images.zip`;
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
+      URL.revokeObjectURL(a.href);
 
       toast({
         title: 'Conversion Successful!',
-        description: `Your image has been converted to ${targetFormat.toUpperCase()}.`,
+        description: `${files.length} images have been converted and downloaded as a zip file.`,
       });
-      setIsDrawerOpen(false); // Close drawer on success
+      setIsDrawerOpen(false);
     } catch (e: any) {
       toast({
         title: t.conversionError,
@@ -178,13 +190,13 @@ export function ConvertImageFormatPage() {
   const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
     handleDragEvents(e);
     setIsDragging(false);
-    handleFileSelect(e.dataTransfer.files?.[0]);
+    handleFileSelect(e.dataTransfer.files);
   };
 
-  const clearFile = () => {
-    setFile(null);
-    if (fileInputRef.current) {
-      fileInputRef.current.value = '';
+  const handleRemoveFile = (index: number) => {
+    setFiles(prev => prev.filter((_, i) => i !== index));
+    if (files.length === 1 && fileInputRef.current) {
+        fileInputRef.current.value = '';
     }
   };
 
@@ -197,7 +209,7 @@ export function ConvertImageFormatPage() {
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
       >
-        {!file ? (
+        {files.length === 0 ? (
           <Card
             className={cn(
               'flex flex-col items-center justify-center text-center rounded-2xl border-2 border-dashed border-border bg-card h-full transition-colors cursor-pointer p-6 min-h-[70vh]',
@@ -207,39 +219,46 @@ export function ConvertImageFormatPage() {
           >
             <FileUp className="w-16 h-16 text-muted-foreground/30 mb-4" />
             <h3 className="text-xl font-semibold">{t.convertImageFormatTitle}</h3>
-            <p className="text-muted-foreground mt-2">{t.dropImageToConvert}</p>
+            <p className="text-muted-foreground mt-2">{t.dropImages}</p>
           </Card>
         ) : (
-          <div className="flex flex-col items-center justify-center gap-6">
-            <Card className="relative w-full max-w-xl aspect-video group overflow-hidden rounded-lg shadow-md">
-              {filePreview && (
-                <Image
-                  src={filePreview}
-                  alt="Image preview"
-                  fill
-                  style={{objectFit: 'contain'}}
-                />
-              )}
-              <div className="absolute top-2 right-2">
-                <Button
-                  variant="destructive"
-                  size="icon"
-                  className="rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
-                  onClick={clearFile}
-                >
-                  <X className="w-5 h-5" />
-                </Button>
-              </div>
-            </Card>
-          </div>
+            <div className="w-full h-full flex flex-col gap-4">
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+                    {fileObjectURLs.map((url, index) => (
+                        <Card key={url} className="relative aspect-square group overflow-hidden">
+                            <Image
+                                src={url}
+                                alt={`Preview ${index}`}
+                                fill
+                                sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, (max-width: 1024px) 25vw, 20vw"
+                                style={{ objectFit: 'cover' }}
+                                className="transition-transform duration-300 group-hover:scale-105"
+                            />
+                            <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
+                                <Button variant="destructive" size="icon" onClick={() => handleRemoveFile(index)}>
+                                    <X className="w-5 h-5"/>
+                                </Button>
+                            </div>
+                        </Card>
+                    ))}
+                    <button
+                        onClick={() => fileInputRef.current?.click()}
+                        className="flex flex-col items-center justify-center aspect-square border-2 border-dashed rounded-lg text-muted-foreground hover:bg-muted/50 hover:border-primary transition-colors"
+                    >
+                        <ImagePlus className="w-8 h-8 mb-2" />
+                        <span>{t.addMoreImages}</span>
+                    </button>
+                </div>
+            </div>
         )}
 
         <input
           type="file"
           ref={fileInputRef}
-          onChange={e => handleFileSelect(e.target.files?.[0])}
+          onChange={e => handleFileSelect(e.target.files)}
           className="hidden"
           accept="image/*"
+          multiple
         />
       </main>
 
@@ -249,7 +268,7 @@ export function ConvertImageFormatPage() {
             <Button
               size="lg"
               className="w-full max-w-lg rounded-full h-12 px-8 bg-accent text-accent-foreground hover:bg-accent/90"
-              disabled={isConverting || !file}
+              disabled={isConverting || files.length === 0}
             >
                 <Wand2 className="h-5 w-5" />
                 <span className="ml-2 sm:inline font-bold">
@@ -284,7 +303,7 @@ export function ConvertImageFormatPage() {
                 onClick={handleConvert}
                 size="lg"
                 className="w-full bg-accent text-accent-foreground hover:bg-accent/90"
-                disabled={isConverting || !file}
+                disabled={isConverting || files.length === 0}
               >
                 {isConverting ? (
                   <Loader2 className="animate-spin" />
