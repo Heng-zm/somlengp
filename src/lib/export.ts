@@ -1,5 +1,4 @@
 import type { TranscriptWord } from "./types";
-import { Document, Packer, Paragraph, TextRun } from "docx";
 
 function formatSrtTime(totalSeconds: number): string {
   const hours = Math.floor(totalSeconds / 3600);
@@ -131,21 +130,6 @@ function exportToCsv(words: TranscriptWord[]): string | null {
     return csvContent;
 }
 
-async function exportToDocx(text: string): Promise<Blob> {
-    const doc = new Document({
-      sections: [{
-        properties: {},
-        children: [
-          new Paragraph({
-            children: text.split('\n').map(line => new TextRun(line))
-          }),
-        ],
-      }],
-    });
-  
-    return await Packer.toBlob(doc);
-  }
-
 function downloadFile(content: string | Blob, filename: string, mimeType: string): void {
     const blob = content instanceof Blob ? content : new Blob([content], { type: mimeType });
     const url = URL.createObjectURL(blob);
@@ -165,7 +149,7 @@ export async function exportTranscript(
     showToast: (options: { title: string; description: string; variant: 'destructive' }) => void,
     wordsPerSecond?: number
   ): Promise<void> {
-    if (!text.trim() && format !== 'json' && format !== 'csv') {
+    if (!text.trim() && format !== 'json' && format !== 'csv' && format !== 'docx') {
       showToast({
         title: "Export Failed",
         description: "There is no text to export.",
@@ -235,9 +219,20 @@ export async function exportTranscript(
           }
           break;
       case 'docx':
-        content = await exportToDocx(text);
-        filename += '.docx';
-        mimeType = 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
+        try {
+            const { exportToDocx } = await import('./client-export');
+            content = await exportToDocx(text);
+            filename += '.docx';
+            mimeType = 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
+        } catch (error) {
+            console.error("Failed to export DOCX:", error);
+            showToast({
+                title: "Export Failed",
+                description: "Could not create DOCX file.",
+                variant: "destructive",
+            });
+            return;
+        }
         break;
       default:
         showToast({
@@ -248,5 +243,7 @@ export async function exportTranscript(
         return;
     }
 
-    downloadFile(content, filename, mimeType);
+    if (content) {
+        downloadFile(content, filename, mimeType);
+    }
   }
