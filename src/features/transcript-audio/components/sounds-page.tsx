@@ -275,7 +275,7 @@ export function SoundsPage() {
             onDrop={handleDrop}
         >
             {isTranscribing ? (
-                <div className="absolute inset-0 bg-background/80 flex flex-col items-center justify-end z-10 pb-20">
+                <div className="absolute inset-0 bg-background/80 flex flex-col items-center justify-center z-10">
                     <div className="flex space-x-2">
                         <div className="w-4 h-4 rounded-full bg-primary animate-bounce-dot"></div>
                         <div className="w-4 h-4 rounded-full bg-primary animate-bounce-dot [animation-delay:-0.16s]"></div>
