@@ -9,6 +9,7 @@
  */
 
 import {ai} from '@/ai/genkit';
+import {googleAI} from '@genkit-ai/googleai';
 import {z} from 'genkit';
 import type {TranscribeAudioOutput} from '@/lib/types';
 import {TranscribeAudioOutputSchema} from '@/lib/types';
@@ -29,6 +30,7 @@ export async function improveTranscriptionAccuracy(input: ImproveTranscriptionAc
 
 const prompt = ai.definePrompt({
   name: 'improveTranscriptionAccuracyPrompt',
+  model: googleAI.model('gemini-1.5-flash'),
   input: {schema: ImproveTranscriptionAccuracyInputSchema},
   output: {schema: TranscribeAudioOutputSchema},
   prompt: `You are a highly accurate audio transcription service that can understand both English and Khmer.
