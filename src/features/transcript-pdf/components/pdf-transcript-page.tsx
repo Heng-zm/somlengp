@@ -159,14 +159,14 @@ export function PdfTranscriptPage() {
     >
         <main className="p-4 md:p-6">
             {isTranscribing ? (
-                <div className="flex flex-col items-center justify-center rounded-2xl border-border bg-card h-full">
+                <div className="flex flex-col items-center justify-center rounded-2xl border-border bg-card h-[76vh]">
                     <Loader2 className="h-12 w-12 animate-spin text-primary" />
                     <p className="text-muted-foreground mt-4 text-lg">{t.transcribing}</p>
                 </div>
             ) : !pdfFile ? (
                  <div
                  className={cn(
-                   'flex cursor-pointer flex-col items-center justify-center rounded-2xl border-2 border-border bg-card text-center transition-colors',
+                   'flex cursor-pointer flex-col items-center justify-center rounded-2xl border-2 bg-card text-center transition-colors',
                    isDragging ? 'border-primary bg-primary/10' : 'border-border'
                  )}
                  style={{minHeight: '80vh'}}
@@ -209,7 +209,7 @@ export function PdfTranscriptPage() {
                   <Button 
                       onClick={handleExport}
                       size="lg"
-                      className="h-12 px-6 rounded-full bg-accent text-accent-foreground hover:bg-accent/90"
+                      className="h-12 px-6 rounded-full bg-accent text-accent-foreground hover:bg-accent/90 w-full"
                   >
                       <Download className="h-5 w-5" />
                       <span className="ml-2 sm:inline font-bold">{t.download}</span>
