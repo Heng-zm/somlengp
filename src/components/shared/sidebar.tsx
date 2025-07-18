@@ -4,7 +4,7 @@
 import { useMemo } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { BotMessageSquare, Languages, FileText, LifeBuoy, Mic } from 'lucide-react';
+import { BotMessageSquare, Languages, FileText, LifeBuoy, Mic, Combine, Image as ImageIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { allTranslations } from '@/lib/translations';
@@ -23,6 +23,8 @@ export function Sidebar({ language, toggleLanguage }: SidebarProps) {
   const navItems = [
     { href: '/voice-transcript', label: t.voiceScribe, icon: Mic },
     { href: '/pdf-transcript', label: t.pdfTranscript, icon: FileText },
+    { href: '/combine-pdf', label: t.combinePdf, icon: Combine },
+    { href: '/image-to-pdf', label: t.imageToPdf, icon: ImageIcon },
   ];
 
   return (

@@ -3,7 +3,7 @@
 
 import { useContext, useMemo } from 'react';
 import Link from 'next/link';
-import { Mic, FileText, Menu, Combine } from 'lucide-react';
+import { Mic, FileText, Menu, Combine, Image as ImageIcon } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
@@ -42,7 +42,7 @@ export default function Home() {
         </Sheet>
       </header>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 flex-grow">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 flex-grow">
         <FeatureCard
           href="/voice-transcript"
           title={t.voiceScribe}
@@ -63,6 +63,13 @@ export default function Home() {
           description={t.combinePdfDescription}
           icon={Combine}
           gradient="from-green-400 to-blue-400"
+        />
+        <FeatureCard
+          href="/image-to-pdf"
+          title={t.imageToPdf}
+          description={t.imageToPdfDescription}
+          icon={ImageIcon}
+          gradient="from-orange-400 to-red-400"
         />
       </div>
     </div>
