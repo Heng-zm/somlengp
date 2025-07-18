@@ -144,7 +144,7 @@ export function ImageToPdfPage() {
             >
                 {files.length === 0 ? (
                     <div className="flex flex-col items-center justify-center h-full w-full cursor-pointer" onClick={() => fileInputRef.current?.click()}>
-                        <ImageUp className="w-16 h-16 text-muted-foreground/30 mb-4"/>
+                        <FileUp className="w-16 h-16 text-muted-foreground/30 mb-4"/>
                         <h3 className="text-xl font-semibold">{t.imageToPdfTitle}</h3>
                         <p className="text-muted-foreground mt-2">{t.dropImages}</p>
                     </div>
