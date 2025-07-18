@@ -26,23 +26,16 @@ const blobToBase64 = (blob: Blob): Promise<string> => {
     });
 };
 
-function downloadFile(content: string, filename: string, mimeType: string): void {
-    const blob = new Blob([content], { type: mimeType });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = filename;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
+const dataUriToBlob = (dataUri: string): Blob => {
+    const byteString = atob(dataUri.split(',')[1]);
+    const mimeString = dataUri.split(',')[0].split(':')[1].split(';')[0];
+    const ab = new ArrayBuffer(byteString.length);
+    const ia = new Uint8Array(ab);
+    for (let i = 0; i < byteString.length; i++) {
+        ia[i] = byteString.charCodeAt(i);
+    }
+    return new Blob([ab], { type: mimeString });
 }
-
-const dataUriToBuffer = (dataUri: string): Buffer => {
-    const base64 = dataUri.split(',')[1];
-    return Buffer.from(base64, 'base64');
-};
-
 
 export function CombinePdfPage() {
   const [files, setFiles] = useState<File[]>([]);
@@ -90,13 +83,7 @@ export function CombinePdfPage() {
         const fileUris = await Promise.all(files.map(file => blobToBase64(file)));
         const { combinedPdfDataUri } = await combinePdf({ pdfDataUris: fileUris });
 
-        const byteCharacters = atob(combinedPdfDataUri.split(',')[1]);
-        const byteNumbers = new Array(byteCharacters.length);
-        for (let i = 0; i < byteCharacters.length; i++) {
-            byteNumbers[i] = byteCharacters.charCodeAt(i);
-        }
-        const byteArray = new Uint8Array(byteNumbers);
-        const blob = new Blob([byteArray], {type: 'application/pdf'});
+        const blob = dataUriToBlob(combinedPdfDataUri);
         
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
