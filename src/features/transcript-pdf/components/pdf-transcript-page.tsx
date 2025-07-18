@@ -1,7 +1,8 @@
+
 "use client";
 
 import { useState, useRef, useMemo, useCallback, useContext } from 'react';
-import { FileUp, Loader2, Download, Copy, ArrowLeft } from 'lucide-react';
+import { FileUp, Loader2, Download, Copy } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
@@ -13,8 +14,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Label } from '@/components/ui/label';
 import { exportTranscript } from '@/lib/export';
 import { allTranslations } from '@/lib/translations';
-import { LanguageContext } from '@/layouts/app-layout';
-import Link from 'next/link';
+import { LanguageContext, ModelContext } from '@/layouts/feature-page-layout';
 
 const blobToBase64 = (blob: Blob): Promise<string> => {
   return new Promise((resolve, reject) => {
@@ -37,18 +37,23 @@ export function PdfTranscriptPage() {
   const [transcribedText, setTranscribedText] = useState('');
   const [isDragging, setIsDragging] = useState(false);
   const [isExportSheetOpen, setIsExportSheetOpen] = useState(false);
-  const [selectedModel, setSelectedModel] = useState('gemini-2.5-flash');
   const [exportFormat, setExportFormat] = useState('docx');
 
   const { toast } = useToast();
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
-  const context = useContext(LanguageContext);
-  if (!context) {
+  const langContext = useContext(LanguageContext);
+  if (!langContext) {
     throw new Error('PdfTranscriptPage must be used within a LanguageProvider');
   }
-  const { language } = context;
+  const { language } = langContext;
   const t = useMemo(() => allTranslations[language], [language]);
+
+  const modelContext = useContext(ModelContext);
+  if (!modelContext) {
+    throw new Error('PdfTranscriptPage must be used within a ModelProvider');
+  }
+  const { selectedModel } = modelContext;
   
   const resetState = () => {
     setPdfFile(null);
@@ -148,33 +153,8 @@ export function PdfTranscriptPage() {
 
   const isReadyForContent = !isTranscribing && transcribedText.length > 0;
   
-  const modelDisplayNames = useMemo(() => ({
-    'gemini-2.5-flash': 'Gemini 2.5 Flash',
-    'gemini-2.0-flash': 'Gemini 2.0 Flash',
-    'gemini-1.5-flash-latest': 'Gemini 1.5 Flash',
-  }), []);
-
   return (
     <div className="flex flex-col h-full bg-background text-foreground">
-        <header className="flex-shrink-0 flex items-center justify-between p-4 border-b">
-          <Link href="/" passHref>
-             <Button variant="ghost" size="icon">
-                <ArrowLeft />
-             </Button>
-          </Link>
-          <h1 className="text-xl font-bold">{t.pdfTranscript}</h1>
-          <Select value={selectedModel} onValueChange={setSelectedModel}>
-            <SelectTrigger className="w-fit md:w-[180px]">
-              <SelectValue placeholder={t.selectModel} />
-            </SelectTrigger>
-            <SelectContent>
-              {Object.entries(modelDisplayNames).map(([value, label]) => (
-                <SelectItem key={value} value={value}>{label}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </header>
-
         <main 
             className="flex-grow p-4 md:p-6 grid grid-cols-1 gap-6 relative overflow-y-auto"
             onDragEnter={handleDragEnter}

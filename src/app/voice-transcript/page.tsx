@@ -1,7 +1,13 @@
+
+"use client";
+
 import { SoundsPage } from '@/features/transcript-audio/components/sounds-page';
+import { FeaturePageLayout } from '@/layouts/feature-page-layout';
 
 export default function VoiceTranscript() {
   return (
-      <SoundsPage />
+      <FeaturePageLayout title="Voice Transcript" showModelSelector={true}>
+        <SoundsPage />
+      </FeaturePageLayout>
   );
 }
