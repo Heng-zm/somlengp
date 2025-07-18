@@ -9,13 +9,13 @@ import { cn } from '@/lib/utils';
 import { Card } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
 import { transcribePdf } from '@/ai/flows/pdf-transcript-flow';
-import { exportTranscript } from '@/lib/client-export';
 import { allTranslations } from '@/lib/translations';
 import { LanguageContext } from '@/contexts/language-context';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger, SheetDescription } from '@/components/ui/sheet';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { MAX_FILE_SIZE_BYTES, MAX_FILE_SIZE_MB } from '@/config';
+import type { exportTranscript } from '@/lib/client-export';
 
 const blobToBase64 = (blob: Blob): Promise<string> => {
   return new Promise((resolve, reject) => {
@@ -140,7 +140,7 @@ export function PdfTranscriptPage() {
     handleFileSelect(e.dataTransfer.files?.[0]);
   };
 
-  const handleExport = () => {
+  const handleExport = async () => {
     if (!transcribedText.trim()) {
         toast({
             title: t.exportFailed,
@@ -149,7 +149,8 @@ export function PdfTranscriptPage() {
         });
         return;
     }
-    exportTranscript(transcribedText, exportFormat as 'docx' | 'txt', [], toast);
+    const { exportTranscript: exportFn } = await import('@/lib/client-export');
+    exportFn(transcribedText, exportFormat as 'docx' | 'txt', [], toast);
     setIsExportSheetOpen(false);
   };
   
@@ -190,8 +191,15 @@ export function PdfTranscriptPage() {
                </div>
             ) : (
                 <Card className="shadow-sm overflow-hidden rounded-2xl">
+                    {isTranscribing && (
+                        <div className="absolute inset-0 bg-background/80 flex flex-col items-center justify-center z-10">
+                            <Loader2 className="h-12 w-12 animate-spin text-primary mb-4" />
+                            <p className="text-lg font-medium text-foreground">{t.transcribing}</p>
+                            <p className="text-muted-foreground">{pdfFile.name}</p>
+                        </div>
+                    )}
                     <Textarea
-                        value={isTranscribing ? t.transcribing + '...' : transcribedText}
+                        value={transcribedText}
                         readOnly
                         placeholder={t.transcribedTextPlaceholder}
                         className="h-[76vh] w-full resize-none text-base leading-relaxed p-6 border-0 focus-visible:ring-0 focus-visible:ring-offset-0"

@@ -1250,6 +1250,10 @@ body {
   background-color: #ffffffe6;
 }
 
+.bg-background\/80 {
+  background-color: hsl(var(--background) / .8);
+}
+
 .bg-gradient-to-br {
   background-image: linear-gradient(to bottom right, var(--tw-gradient-stops));
 }
