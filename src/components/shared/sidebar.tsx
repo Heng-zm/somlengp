@@ -82,7 +82,7 @@ export function Sidebar({ language, toggleLanguage }: SidebarProps) {
             </div>
           </SheetContent>
         </Sheet>
-        <Link href="https://github.com/0zodesigner/ozodesigner/issues" target="_blank" rel="noopener noreferrer" passHref>
+        <Link href="https://t.me/Ozo0_0" target="_blank" rel="noopener noreferrer" passHref>
           <Button variant="ghost" className="w-full justify-start mt-2">
             <FileHeart className="mr-3 h-5 w-5" />
             {t.reportBug}
