@@ -2,13 +2,13 @@
 "use client";
 
 import { createContext, useState, useMemo, useContext } from 'react';
-import { Menu } from 'lucide-react';
+import { ChevronLeft } from 'lucide-react';
+import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { allTranslations } from '@/lib/translations';
 import { LanguageContext } from '@/contexts/language-context';
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
-import { Sidebar } from '@/components/shared/sidebar';
+
 
 // Model Context
 interface ModelContextType {
@@ -45,7 +45,7 @@ export function FeaturePageLayout({ children, title, showModelSelector = false }
     if (!langContext) {
         throw new Error('FeaturePageLayout must be used within an AppLayout');
     }
-    const { language, toggleLanguage } = langContext;
+    const { language } = langContext;
     const t = useMemo(() => allTranslations[language], [language]);
 
     const modelContext = useContext(ModelContext);
@@ -62,19 +62,12 @@ export function FeaturePageLayout({ children, title, showModelSelector = false }
     return (
         <div className="flex flex-col h-full">
             <header className="flex-shrink-0 flex items-center justify-between p-2 sm:p-4 border-b">
-                <Sheet>
-                  <SheetTrigger asChild>
-                    <Button variant="ghost" size="icon">
-                      <Menu />
-                    </Button>
-                  </SheetTrigger>
-                  <SheetContent side="left" className="p-0 w-[300px]">
-                    <SheetHeader>
-                      <SheetTitle className="sr-only">Main Menu</SheetTitle>
-                    </SheetHeader>
-                    <Sidebar language={language} toggleLanguage={toggleLanguage} />
-                  </SheetContent>
-                </Sheet>
+                <Button variant="ghost" size="icon" asChild>
+                  <Link href="/">
+                    <ChevronLeft />
+                    <span className="sr-only">Back to Home</span>
+                  </Link>
+                </Button>
                 <h1 className="text-lg sm:text-xl font-bold">{title}</h1>
                 {showModelSelector ? (
                     <Select value={selectedModel} onValueChange={setSelectedModel}>
