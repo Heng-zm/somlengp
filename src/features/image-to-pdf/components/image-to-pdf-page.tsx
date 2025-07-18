@@ -2,7 +2,7 @@
 "use client";
 
 import { useState, useMemo, useContext, useRef, useEffect } from 'react';
-import { Loader2, FileUp, X, Image as ImageIcon, Download, ImagePlus } from 'lucide-react';
+import { Loader2, FileUp, X, Image as ImageIcon, ImagePlus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { Card } from '@/components/ui/card';
@@ -182,53 +182,49 @@ export function ImageToPdfPage() {
             onDragOver={handleDragEvents}
             onDragLeave={handleDragLeave}
             onDrop={handleDrop}
-            style={{minHeight: files.length === 0 ? '80vh' : 'auto' }}
         >
-            <Card 
-                className={cn(
-                    "flex flex-col items-center justify-center text-center rounded-2xl border-2 border-border bg-card h-full transition-colors p-6",
-                    isDragging && "border-primary bg-primary/10",
-                    files.length > 0 && "items-start justify-start"
-                )}
-            >
-                {files.length === 0 ? (
-                    <div className="flex flex-col items-center justify-center h-full w-full cursor-pointer" onClick={() => fileInputRef.current?.click()}>
-                        <FileUp className="w-16 h-16 text-muted-foreground/30 mb-4"/>
-                        <h3 className="text-xl font-semibold">{t.imageToPdfTitle}</h3>
-                        <p className="text-muted-foreground mt-2">{t.dropImages}</p>
-                    </div>
-                ) : (
-                    <div className="w-full h-full flex flex-col">
-                        <h3 className="text-xl font-semibold text-left mb-4">{t.imagesToConvert}</h3>
-                        <div className="flex-grow grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 overflow-y-auto pr-2">
-                           {fileObjectURLs.map((url, index) => (
-                               <div key={url} className="relative aspect-square group">
-                                   <Image 
-                                        src={url} 
-                                        alt={`Preview ${index}`} 
-                                        fill
-                                        sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, (max-width: 1024px) 25vw, 20vw"
-                                        style={{ objectFit: 'cover' }}
-                                        className="rounded-md"
-                                   />
-                                   <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
-                                    <Button variant="destructive" size="icon" onClick={() => handleRemoveFile(index)}>
-                                           <X className="w-5 h-5"/>
-                                       </Button>
-                                   </div>
+            {files.length === 0 ? (
+                <Card 
+                    className={cn(
+                        "flex flex-col items-center justify-center text-center rounded-2xl border-2 border-dashed border-border bg-card h-full transition-colors cursor-pointer p-6 min-h-[70vh]",
+                        isDragging && "border-primary bg-primary/10"
+                    )}
+                    onClick={() => fileInputRef.current?.click()}
+                >
+                    <FileUp className="w-16 h-16 text-muted-foreground/30 mb-4"/>
+                    <h3 className="text-xl font-semibold">{t.imageToPdfTitle}</h3>
+                    <p className="text-muted-foreground mt-2">{t.dropImages}</p>
+                </Card>
+            ) : (
+                 <div className="w-full h-full flex flex-col gap-4">
+                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+                       {fileObjectURLs.map((url, index) => (
+                           <Card key={url} className="relative aspect-square group overflow-hidden">
+                               <Image 
+                                    src={url} 
+                                    alt={`Preview ${index}`} 
+                                    fill
+                                    sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, (max-width: 1024px) 25vw, 20vw"
+                                    style={{ objectFit: 'cover' }}
+                                    className="transition-transform duration-300 group-hover:scale-105"
+                               />
+                               <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
+                                <Button variant="destructive" size="icon" onClick={() => handleRemoveFile(index)}>
+                                       <X className="w-5 h-5"/>
+                                   </Button>
                                </div>
-                           ))}
-                           <button
-                                onClick={() => fileInputRef.current?.click()}
-                                className="flex flex-col items-center justify-center aspect-square border-2 border-dashed rounded-md text-muted-foreground hover:bg-muted/50 hover:border-primary transition-colors"
-                            >
-                                <ImagePlus className="w-8 h-8 mb-2" />
-                                <span>{t.addMoreImages}</span>
-                            </button>
-                        </div>
+                           </Card>
+                       ))}
+                       <button
+                            onClick={() => fileInputRef.current?.click()}
+                            className="flex flex-col items-center justify-center aspect-square border-2 border-dashed rounded-lg text-muted-foreground hover:bg-muted/50 hover:border-primary transition-colors"
+                        >
+                            <ImagePlus className="w-8 h-8 mb-2" />
+                            <span>{t.addMoreImages}</span>
+                        </button>
                     </div>
-                )}
-            </Card>
+                </div>
+            )}
 
             <input
                 type="file"

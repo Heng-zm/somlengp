@@ -7,8 +7,10 @@
  * NOTE: Vercel Hobby plan has a 4.5MB body size limit for Serverless Functions.
  * Base64 encoding adds ~37% overhead. To stay safely under 4.5MB,
  * we set the raw file limit to 3MB (3MB * 1.37 ≈ 4.11MB).
+ * The user has requested to increase this to 8MB. This may cause issues on
+ * hosting platforms with smaller limits.
  */
-export const MAX_FILE_SIZE_MB = 3;
+export const MAX_FILE_SIZE_MB = 8;
 
 /**
  * The maximum file size in bytes.

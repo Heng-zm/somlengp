@@ -2,7 +2,7 @@
 "use client";
 
 import { useState, useRef, useMemo, useCallback, useContext } from 'react';
-import { FileUp, Download, Copy, Loader2 } from 'lucide-react';
+import { FileUp, Download, Copy, Loader2, FileText, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
@@ -15,7 +15,6 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger, SheetDescri
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { MAX_FILE_SIZE_BYTES, MAX_FILE_SIZE_MB } from '@/config';
-import type { exportTranscript } from '@/lib/client-export';
 
 const blobToBase64 = (blob: Blob): Promise<string> => {
   return new Promise((resolve, reject) => {
@@ -50,11 +49,6 @@ export function PdfTranscriptPage() {
   const { language } = langContext;
   const t = useMemo(() => allTranslations[language], [language]);
   
-  const resetState = () => {
-    setPdfFile(null);
-    setTranscribedText('');
-  }
-
   const handleFileSelect = useCallback(async (file: File | null | undefined) => {
     if (!file) return;
 
@@ -149,6 +143,7 @@ export function PdfTranscriptPage() {
         });
         return;
     }
+    // Lazy load for performance
     const { exportTranscript: exportFn } = await import('@/lib/client-export');
     exportFn(transcribedText, exportFormat as 'docx' | 'txt', [], toast);
     setIsExportSheetOpen(false);
@@ -167,6 +162,14 @@ export function PdfTranscriptPage() {
     docx: 'DOCX (Word Document)',
     txt: 'TXT (Plain Text)',
   }), []);
+
+  const clearFile = () => {
+    setPdfFile(null);
+    setTranscribedText('');
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  }
   
   return (
     <div 
@@ -180,7 +183,7 @@ export function PdfTranscriptPage() {
             {!pdfFile ? (
                  <div
                  className={cn(
-                   'flex cursor-pointer flex-col items-center justify-center rounded-2xl border-2 bg-card text-center transition-colors border-border h-full min-h-[70vh]',
+                   'flex cursor-pointer flex-col items-center justify-center rounded-2xl border-2 border-dashed bg-card text-center transition-colors border-border h-full min-h-[70vh]',
                    isDragging && 'border-primary bg-primary/10'
                  )}
                  onClick={() => fileInputRef.current?.click()}
@@ -190,22 +193,34 @@ export function PdfTranscriptPage() {
                  <p className="mt-2 text-muted-foreground">{t.dropPdf}</p>
                </div>
             ) : (
-                <Card className="shadow-sm overflow-hidden rounded-2xl">
-                    {isTranscribing && (
-                        <div className="absolute inset-0 bg-background/80 flex flex-col items-center justify-center z-10">
-                            <Loader2 className="h-12 w-12 animate-spin text-primary mb-4" />
-                            <p className="text-lg font-medium text-foreground">{t.transcribing}</p>
-                            <p className="text-muted-foreground">{pdfFile.name}</p>
+                <Card className="shadow-sm overflow-hidden rounded-2xl h-full flex flex-col">
+                    <div className="flex-shrink-0 flex items-center justify-between p-3 border-b bg-muted/30">
+                        <div className="flex items-center gap-2 overflow-hidden">
+                            <FileText className="w-5 h-5 text-primary"/>
+                            <span className="font-medium truncate">{pdfFile.name}</span>
+                            <span className="text-sm text-muted-foreground">{`${(pdfFile.size / 1024 / 1024).toFixed(2)} MB`}</span>
                         </div>
-                    )}
-                    <Textarea
-                        value={transcribedText}
-                        readOnly
-                        placeholder={t.transcribedTextPlaceholder}
-                        className="h-[76vh] w-full resize-none text-base leading-relaxed p-6 border-0 focus-visible:ring-0 focus-visible:ring-offset-0"
-                        aria-label="Transcribed Text"
-                        disabled={isTranscribing}
-                    />
+                        <Button onClick={clearFile} variant="ghost" size="icon" className="rounded-full">
+                            <X className="w-4 h-4" />
+                            <span className="sr-only">Clear file</span>
+                        </Button>
+                    </div>
+                    <div className="flex-grow relative">
+                        {isTranscribing && (
+                            <div className="absolute inset-0 bg-background/80 flex flex-col items-center justify-center z-10">
+                                <Loader2 className="h-12 w-12 animate-spin text-primary mb-4" />
+                                <p className="text-lg font-medium text-foreground">{t.transcribing}</p>
+                            </div>
+                        )}
+                        <Textarea
+                            value={transcribedText}
+                            readOnly
+                            placeholder={isTranscribing ? 'Transcribing...' : t.transcribedTextPlaceholder}
+                            className="h-[calc(76vh-60px)] w-full resize-none text-base leading-relaxed p-6 border-0 focus-visible:ring-0 focus-visible:ring-offset-0"
+                            aria-label="Transcribed Text"
+                            disabled={isTranscribing}
+                        />
+                    </div>
                 </Card>
             )}
 
@@ -227,7 +242,7 @@ export function PdfTranscriptPage() {
                   </Button>
                   <Sheet open={isExportSheetOpen} onOpenChange={setIsExportSheetOpen}>
                     <SheetTrigger asChild>
-                      <Button size="lg" className="h-12 px-6 rounded-full bg-accent text-accent-foreground hover:bg-accent/90 w-full" disabled={isTranscribing || !isReadyForContent}>
+                      <Button size="lg" className="h-12 px-6 rounded-full bg-accent text-accent-foreground hover:bg-accent/90 flex-1" disabled={isTranscribing || !isReadyForContent}>
                           {isTranscribing ? <Loader2 className="animate-spin h-5 w-5" /> : <Download className="h-5 w-5" />}
                           <span className="ml-2 sm:inline font-bold">{isTranscribing ? t.transcribing : t.download}</span>
                       </Button>

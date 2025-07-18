@@ -1,8 +1,8 @@
 
 "use client";
 
-import { useState, useMemo, useContext, useRef, useCallback } from 'react';
-import { Combine, Loader2, FileUp, X, File, Download } from 'lucide-react';
+import { useState, useMemo, useContext, useRef } from 'react';
+import { Combine, Loader2, FileUp, X, File, FilePlus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { Card } from '@/components/ui/card';
@@ -172,49 +172,44 @@ export function CombinePdfPage() {
             onDragOver={handleDragEvents}
             onDragLeave={handleDragLeave}
             onDrop={handleDrop}
-            style={{minHeight: files.length === 0 ? '80vh' : 'auto' }}
         >
-            <Card 
-                className={cn(
-                    "flex flex-col items-center justify-center text-center rounded-2xl border-2 border-border bg-card h-full transition-colors cursor-pointer p-6",
-                    isDragging && "border-primary bg-primary/10",
-                    files.length > 0 && "items-start justify-start"
-                )}
-                onClick={() => files.length === 0 && fileInputRef.current?.click()}
-            >
-                {files.length === 0 ? (
-                    <>
-                        <FileUp className="w-16 h-16 text-muted-foreground/30 mb-4"/>
-                        <h3 className="text-xl font-semibold">{t.combinePdfTitle}</h3>
-                        <p className="text-muted-foreground mt-2">{t.dropMultiplePdfs}</p>
-                    </>
-                ) : (
-                    <div className="w-full h-full flex flex-col">
-                        <h3 className="text-xl font-semibold text-left mb-4">{t.filesToCombine}</h3>
-                        <div className="flex-grow space-y-2 overflow-y-auto pr-2">
-                           {files.map((file, index) => (
-                               <div key={index} className="flex items-center justify-between p-2 rounded-md bg-muted/50">
-                                   <div className="flex items-center gap-2 overflow-hidden">
-                                       <File className="w-5 h-5 text-primary"/>
-                                       <span className="truncate">{file.name}</span>
-                                   </div>
-                                   <Button variant="ghost" size="icon" onClick={() => handleRemoveFile(index)}>
-                                       <X className="w-4 h-4"/>
-                                   </Button>
+            {files.length === 0 ? (
+                <Card 
+                    className={cn(
+                        "flex flex-col items-center justify-center text-center rounded-2xl border-2 border-dashed border-border bg-card h-full transition-colors cursor-pointer p-6 min-h-[70vh]",
+                        isDragging && "border-primary bg-primary/10"
+                    )}
+                    onClick={() => fileInputRef.current?.click()}
+                >
+                    <FileUp className="w-16 h-16 text-muted-foreground/30 mb-4"/>
+                    <h3 className="text-xl font-semibold">{t.combinePdfTitle}</h3>
+                    <p className="text-muted-foreground mt-2">{t.dropMultiplePdfs}</p>
+                </Card>
+            ) : (
+                <div className="w-full h-full flex flex-col gap-4">
+                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+                        {files.map((file, index) => (
+                           <Card key={index} className="relative group aspect-square flex flex-col items-center justify-center p-2 text-center">
+                               <File className="w-12 h-12 text-primary mb-2"/>
+                               <p className="text-sm font-medium truncate w-full">{file.name}</p>
+                               <p className="text-xs text-muted-foreground">{`${(file.size / 1024 / 1024).toFixed(2)} MB`}</p>
+                               <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity rounded-lg">
+                                 <Button variant="destructive" size="icon" onClick={() => handleRemoveFile(index)}>
+                                     <X className="w-5 h-5"/>
+                                 </Button>
                                </div>
-                           ))}
-                        </div>
-                        <Button 
-                            variant="outline"
-                            className="w-full mt-4"
+                           </Card>
+                        ))}
+                        <button
                             onClick={() => fileInputRef.current?.click()}
+                            className="flex flex-col items-center justify-center aspect-square border-2 border-dashed rounded-lg text-muted-foreground hover:bg-muted/50 hover:border-primary transition-colors"
                         >
-                            <FileUp className="mr-2"/>
-                            {t.addMorePdfs}
-                        </Button>
+                            <FilePlus className="w-8 h-8 mb-2" />
+                            <span>{t.addMorePdfs}</span>
+                        </button>
                     </div>
-                )}
-            </Card>
+                </div>
+            )}
 
             <input
                 type="file"
