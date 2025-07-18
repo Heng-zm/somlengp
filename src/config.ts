@@ -5,10 +5,10 @@
  * This limit is enforced on the client-side before uploading
  * and on the server-side upon receiving the file.
  * NOTE: Vercel Hobby plan has a 4.5MB body size limit for Serverless Functions.
- * Base64 encoding adds ~37% overhead, so a 4MB file becomes ~5.5MB.
- * We set this to 4MB as a safe upper limit to avoid 413 errors.
+ * Base64 encoding adds ~37% overhead. To stay safely under 4.5MB,
+ * we set the raw file limit to 3MB (3MB * 1.37 ≈ 4.11MB).
  */
-export const MAX_FILE_SIZE_MB = 4;
+export const MAX_FILE_SIZE_MB = 3;
 
 /**
  * The maximum file size in bytes.
