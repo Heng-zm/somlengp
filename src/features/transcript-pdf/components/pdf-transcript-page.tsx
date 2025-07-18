@@ -151,13 +151,13 @@ export function PdfTranscriptPage() {
   
   return (
     <div 
-        className="flex flex-col h-full bg-background text-foreground"
+        className="bg-background text-foreground"
         onDragEnter={handleDragEnter}
         onDragOver={handleDragEvents}
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
     >
-        <main className="flex-grow flex flex-col p-4 md:p-6 relative">
+        <main className="p-4 md:p-6 relative">
             {isTranscribing && (
                 <div className="absolute inset-0 bg-background/80 flex flex-col items-center justify-center z-10">
                     <Loader2 className="h-12 w-12 animate-spin text-primary" />
@@ -168,7 +168,7 @@ export function PdfTranscriptPage() {
             {!pdfFile ? (
                 <div 
                     className={cn(
-                        "flex flex-col flex-grow items-center justify-center text-center rounded-2xl border-2 border-border bg-card h-full transition-colors cursor-pointer",
+                        "flex flex-col items-center justify-center text-center rounded-2xl border-2 border-border bg-card transition-colors cursor-pointer",
                         isDragging && "border-primary bg-primary/10"
                     )}
                     onClick={() => fileInputRef.current?.click()}
@@ -180,13 +180,14 @@ export function PdfTranscriptPage() {
                 </div>
             ) : (
                 isReadyForContent && (
-                  <Card className="flex flex-col flex-grow h-full shadow-sm overflow-hidden rounded-2xl">
+                  <Card className="shadow-sm overflow-hidden rounded-2xl">
                       <Textarea
                           value={transcribedText}
                           readOnly
                           placeholder={t.transcribedTextPlaceholder}
-                          className="h-full w-full resize-none text-base leading-relaxed p-6 border-0 focus-visible:ring-0 focus-visible:ring-offset-0 flex-grow"
+                          className="h-full w-full resize-none text-base leading-relaxed p-6 border-0 focus-visible:ring-0 focus-visible:ring-offset-0"
                           aria-label="Transcribed Text"
+                          rows={15}
                       />
                   </Card>
                 )
@@ -202,7 +203,7 @@ export function PdfTranscriptPage() {
         </main>
         
         {isReadyForContent && (
-          <footer className="flex-shrink-0 flex items-center justify-center gap-2 p-4 border-t bg-background">
+          <footer className="flex items-center justify-center gap-2 p-4 bg-background">
             <div className="w-full max-w-lg flex gap-2 items-center justify-center">
                   <Button onClick={handleCopy} variant="outline" size="icon" className="h-12 w-12 rounded-full">
                       <Copy className="h-5 w-5" />
