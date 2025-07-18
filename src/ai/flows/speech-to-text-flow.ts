@@ -10,7 +10,6 @@
 
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
-import {googleAI} from '@genkit-ai/googleai';
 import { TranscribeAudioOutput, TranscribeAudioOutputSchema } from '@/lib/types';
 
 const TranscribeAudioInputSchema = z.object({
@@ -47,8 +46,7 @@ const transcribeAudioFlow = ai.defineFlow(
     outputSchema: TranscribeAudioOutputSchema,
   },
   async (input) => {
-    const model = input.model ? googleAI.model(input.model) : undefined;
-    const {output} = await prompt(input, { model });
+    const {output} = await prompt(input);
     if (!output) {
       throw new Error('Transcription failed: The model did not return any output.');
     }
