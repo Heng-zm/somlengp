@@ -33,19 +33,13 @@ export default function Home() {
             </Button>
           </SheetTrigger>
           <SheetContent side="left" className="p-0 w-[300px]">
-             <Sidebar language={language} toggleLanguage={toggleLanguage} />
+            <SheetHeader className="p-4 border-b sr-only">
+                <SheetTitle>Main Menu</SheetTitle>
+            </SheetHeader>
+            <Sidebar language={language} toggleLanguage={toggleLanguage} />
           </SheetContent>
         </Sheet>
       </header>
-
-      <div className="flex flex-col items-center justify-center text-center mb-8">
-        <h2 className="text-2xl font-semibold text-foreground">
-          {t.pageTitle}
-        </h2>
-        <p className="text-muted-foreground text-lg mt-2">
-          {t.dropAudio}
-        </p>
-      </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 flex-grow">
         <FeatureCard
