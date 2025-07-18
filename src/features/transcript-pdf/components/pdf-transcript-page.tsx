@@ -17,6 +17,9 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger, SheetDescri
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
+const MAX_FILE_SIZE_MB = 4.5;
+const MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024;
+
 const blobToBase64 = (blob: Blob): Promise<string> => {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
@@ -64,6 +67,15 @@ export function PdfTranscriptPage() {
   const handleFileSelect = useCallback(async (file: File | null | undefined) => {
     if (!file) return;
 
+    if (file.size > MAX_FILE_SIZE_BYTES) {
+        toast({
+            title: t.fileTooLargeTitle,
+            description: t.fileTooLargeDescription(MAX_FILE_SIZE_MB),
+            variant: "destructive",
+        });
+        return;
+    }
+
     if (file.type !== 'application/pdf') {
       toast({
         title: t.invalidFileType,
@@ -73,10 +85,9 @@ export function PdfTranscriptPage() {
       return;
     }
     
-    // Clear previous state and file
-    resetState();
     setPdfFile(file);
     setIsTranscribing(true);
+    setTranscribedText('');
 
     try {
       const pdfDataUri = await blobToBase64(file);
@@ -96,7 +107,10 @@ export function PdfTranscriptPage() {
       let title = t.transcriptionError;
       let description = e.message || "An error occurred while processing your PDF.";
       const errorMessage = (e.message || '').toLowerCase();
-      if (errorMessage.includes('429') || errorMessage.includes('rate limit')) {
+      if (errorMessage.includes('413') || errorMessage.includes('too large')) {
+        title = t.fileTooLargeTitle;
+        description = t.fileTooLargeDescription(MAX_FILE_SIZE_MB);
+      } else if (errorMessage.includes('429') || errorMessage.includes('rate limit')) {
           title = t.rateLimitExceeded;
           description = t.rateLimitMessage;
       }
@@ -105,6 +119,7 @@ export function PdfTranscriptPage() {
         description: description,
         variant: "destructive",
       });
+      setPdfFile(null); // Clear the file on error
     } finally {
       setIsTranscribing(false);
     }
@@ -237,9 +252,18 @@ export function PdfTranscriptPage() {
                                </SelectContent>
                            </Select>
                         </div>
-                        <Button onClick={handleExport} size="lg" className="bg-accent text-accent-foreground hover:bg-accent/90">
-                           <Download className="mr-2" />
-                           {t.exportTranscript}
+                        <Button onClick={handleExport} size="lg" className="bg-accent text-accent-foreground hover:bg-accent/90" disabled={isTranscribing}>
+                           {isTranscribing ? (
+                               <>
+                                   <Loader2 className="mr-2 animate-spin" />
+                                   {t.transcribing}
+                               </>
+                           ) : (
+                               <>
+                                   <Download className="mr-2" />
+                                   {t.exportTranscript}
+                               </>
+                           )}
                         </Button>
                       </div>
                     </SheetContent>

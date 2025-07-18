@@ -11,6 +11,9 @@ import { LanguageContext } from '@/contexts/language-context';
 import { cn } from '@/lib/utils';
 import { combinePdf } from '@/ai/flows/combine-pdf-flow';
 
+const MAX_FILE_SIZE_MB = 4.5;
+const MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024;
+
 const blobToBase64 = (blob: Blob): Promise<string> => {
     return new Promise((resolve, reject) => {
         const reader = new FileReader();
@@ -53,15 +56,40 @@ export function CombinePdfPage() {
   
   const handleFileSelect = (selectedFiles: FileList | null) => {
     if (!selectedFiles) return;
-    const newFiles = Array.from(selectedFiles).filter(file => file.type === 'application/pdf');
-    if (newFiles.length !== selectedFiles.length) {
+    
+    const validFiles: File[] = [];
+    const invalidFiles: string[] = [];
+    const oversizedFiles: string[] = [];
+
+    Array.from(selectedFiles).forEach(file => {
+        if (file.type !== 'application/pdf') {
+            invalidFiles.push(file.name);
+        } else if (file.size > MAX_FILE_SIZE_BYTES) {
+            oversizedFiles.push(file.name);
+        } else {
+            validFiles.push(file);
+        }
+    });
+
+    if (invalidFiles.length > 0) {
         toast({
             title: t.invalidFileType,
             description: t.selectPdfFile,
             variant: "destructive",
         });
     }
-    setFiles(prev => [...prev, ...newFiles]);
+
+    if (oversizedFiles.length > 0) {
+        toast({
+            title: t.fileTooLargeTitle,
+            description: `${t.fileTooLargeDescription(MAX_FILE_SIZE_MB)}: ${oversizedFiles.join(', ')}`,
+            variant: "destructive",
+        });
+    }
+
+    if (validFiles.length > 0) {
+        setFiles(prev => [...prev, ...validFiles]);
+    }
   };
   
   const handleRemoveFile = (index: number) => {

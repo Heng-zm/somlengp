@@ -30,6 +30,9 @@ import { ModelContext } from '@/layouts/feature-page-layout';
 import { LanguageContext } from '@/contexts/language-context';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
+const MAX_FILE_SIZE_MB = 4.5;
+const MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024;
+
 const blobToBase64 = (blob: Blob): Promise<string> => {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
@@ -140,7 +143,10 @@ export function SoundsPage() {
         let title = t.transcriptionError;
         let description = e.message || "An error occurred while processing your audio.";
         const errorMessage = (e.message || '').toLowerCase();
-        if (errorMessage.includes('429') || errorMessage.includes('rate limit')) {
+        if (errorMessage.includes('413') || errorMessage.includes('too large')) {
+            title = t.fileTooLargeTitle;
+            description = t.fileTooLargeDescription(MAX_FILE_SIZE_MB);
+        } else if (errorMessage.includes('429') || errorMessage.includes('rate limit')) {
             title = t.rateLimitExceeded;
             description = t.rateLimitMessage;
         }
@@ -161,9 +167,20 @@ export function SoundsPage() {
   }, [audioFile, processAudio]);
 
   const handleFileSelect = (file: File | null | undefined) => {
-    if (file && file.type.startsWith('audio/')) {
+    if (!file) return;
+
+    if (file.size > MAX_FILE_SIZE_BYTES) {
+        toast({
+            title: t.fileTooLargeTitle,
+            description: t.fileTooLargeDescription(MAX_FILE_SIZE_MB),
+            variant: "destructive",
+        });
+        return;
+    }
+
+    if (file.type.startsWith('audio/')) {
         setAudioFile(file);
-    } else if (file) {
+    } else {
         toast({
             title: t.invalidFileType,
             description: t.selectAudioFile,
@@ -267,7 +284,7 @@ export function SoundsPage() {
   return (
     <div className="flex flex-col h-full bg-background text-foreground">
         <main 
-            className="flex-grow p-4 md:p-6 grid grid-cols-1 gap-6 relative"
+            className="flex-grow p-4 md:p-6 grid grid-cols-1 gap-6"
             onDragEnter={handleDragEnter}
             onDragOver={handleDragEvents}
             onDragLeave={handleDragLeave}
@@ -376,7 +393,7 @@ export function SoundsPage() {
                                   )}
                               </div>
 
-                              <Button onClick={handleExport} size="lg" className="bg-accent text-accent-foreground hover:bg-accent/90">
+                              <Button onClick={handleExport} size="lg" className="bg-accent text-accent-foreground hover:bg-accent/90" disabled={isTranscribing}>
                                   {isTranscribing ? (
                                       <>
                                         <Loader2 className="mr-2 animate-spin" />
