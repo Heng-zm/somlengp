@@ -10,6 +10,7 @@ import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTr
 import { allTranslations } from '@/lib/translations';
 import type { Language } from '@/lib/translations';
 import { cn } from '@/lib/utils';
+import packageJson from '../../../package.json';
 
 interface SidebarProps {
   language: Language;
@@ -32,7 +33,10 @@ export function Sidebar({ language, toggleLanguage }: SidebarProps) {
       <div className="p-4 border-b">
         <Link href="/" className="flex items-center gap-2">
           <BotMessageSquare className="h-8 w-8 text-primary" />
-          <h1 className="text-xl font-bold">VoiceScribe</h1>
+          <div>
+            <h1 className="text-xl font-bold">VoiceScribe</h1>
+            <p className="text-xs text-muted-foreground">Version {packageJson.version}</p>
+          </div>
         </Link>
       </div>
 
