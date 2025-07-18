@@ -2,12 +2,14 @@
 "use client";
 
 import { createContext, useState, useMemo, useContext } from 'react';
-import { ChevronLeft } from 'lucide-react';
+import { ChevronLeft, Menu } from 'lucide-react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { allTranslations } from '@/lib/translations';
 import { LanguageContext } from '@/contexts/language-context';
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
+import { Sidebar } from '@/components/shared/sidebar';
 
 
 // Model Context
@@ -19,7 +21,7 @@ export const ModelContext = createContext<ModelContextType | undefined>(undefine
 
 // Provider for Model context
 export function FeaturePageLayoutProvider({ children }: { children: React.ReactNode }) {
-    const [selectedModel, setSelectedModel] = useState('gemini-1.5-flash-latest');
+    const [selectedModel, setSelectedModel] = useState('gemini-2.5-flash');
     
     const modelContextValue = useMemo(() => ({
         selectedModel,
@@ -45,7 +47,7 @@ export function FeaturePageLayout({ children, title, showModelSelector = false }
     if (!langContext) {
         throw new Error('FeaturePageLayout must be used within an AppLayout');
     }
-    const { language } = langContext;
+    const { language, toggleLanguage } = langContext;
     const t = useMemo(() => allTranslations[language], [language]);
 
     const modelContext = useContext(ModelContext);
@@ -55,7 +57,8 @@ export function FeaturePageLayout({ children, title, showModelSelector = false }
     const { selectedModel, setSelectedModel } = modelContext;
 
     const modelDisplayNames = useMemo(() => ({
-        'gemini-1.5-pro-latest': 'Gemini 1.5 Pro',
+        'gemini-2.5-flash': 'Gemini 2.5 Flash',
+        'gemini-2.0-flash': 'Gemini 2.0 Flash',
         'gemini-1.5-flash-latest': 'Gemini 1.5 Flash',
     }), []);
 
