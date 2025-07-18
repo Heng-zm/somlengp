@@ -12,6 +12,8 @@ import { LanguageContext } from '@/contexts/language-context';
 import { allTranslations } from '@/lib/translations';
 import { BotMessageSquare } from 'lucide-react';
 
+const VISITOR_FLAG = 'hasVisitedVoiceScribe';
+
 export default function Home() {
   const [visitorCount, setVisitorCount] = useState<number | null>(null);
   const langContext = useContext(LanguageContext);
@@ -22,14 +24,40 @@ export default function Home() {
   const t = useMemo(() => allTranslations[language], [language]);
   
   useEffect(() => {
-    fetch('/api/visit')
-        .then(res => res.json())
-        .then(data => {
+    const trackAndFetchVisitorCount = async () => {
+      const hasVisited = localStorage.getItem(VISITOR_FLAG);
+      if (!hasVisited) {
+        // This is a new visitor, so we send a POST request.
+        // This endpoint will increment the count and return the new total.
+        localStorage.setItem(VISITOR_FLAG, 'true');
+        try {
+          const res = await fetch('/api/visit', { method: 'POST' });
+          const data = await res.json();
+          if (data.success) {
+            setVisitorCount(data.count);
+          } else {
+            // If tracking fails, remove the flag to try again on the next visit.
+            localStorage.removeItem(VISITOR_FLAG);
+          }
+        } catch (error) {
+            console.error('Failed to track visitor:', error);
+            // If there's a network error, remove the flag to retry on the next visit.
+            localStorage.removeItem(VISITOR_FLAG);
+        }
+      } else {
+        // This is a returning visitor, so we just fetch the current count.
+        try {
+            const res = await fetch('/api/visit');
+            const data = await res.json();
             if (data.success) {
                 setVisitorCount(data.count);
             }
-        })
-        .catch(console.error);
+        } catch (error) {
+            console.error('Failed to fetch visitor count:', error);
+        }
+      }
+    };
+    trackAndFetchVisitorCount();
   }, []);
 
   return (
