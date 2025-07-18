@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { allTranslations } from '@/lib/translations';
 import { LanguageContext } from '@/contexts/language-context';
-import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { Sidebar } from '@/components/shared/sidebar';
 
 // Model Context
@@ -69,6 +69,9 @@ export function FeaturePageLayout({ children, title, showModelSelector = false }
                     </Button>
                   </SheetTrigger>
                   <SheetContent side="left" className="p-0 w-[300px]">
+                    <SheetHeader>
+                      <SheetTitle className="sr-only">Main Menu</SheetTitle>
+                    </SheetHeader>
                     <Sidebar language={language} toggleLanguage={toggleLanguage} />
                   </SheetContent>
                 </Sheet>
