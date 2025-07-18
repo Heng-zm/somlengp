@@ -13,6 +13,9 @@ import { exportTranscript } from '@/lib/export';
 import { allTranslations } from '@/lib/translations';
 import { ModelContext } from '@/layouts/feature-page-layout';
 import { LanguageContext } from '@/contexts/language-context';
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger, SheetDescription } from '@/components/ui/sheet';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 const blobToBase64 = (blob: Blob): Promise<string> => {
   return new Promise((resolve, reject) => {
@@ -34,6 +37,8 @@ export function PdfTranscriptPage() {
   const [isTranscribing, setIsTranscribing] = useState(false);
   const [transcribedText, setTranscribedText] = useState('');
   const [isDragging, setIsDragging] = useState(false);
+  const [isExportSheetOpen, setIsExportSheetOpen] = useState(false);
+  const [exportFormat, setExportFormat] = useState('docx');
 
   const { toast } = useToast();
   const fileInputRef = useRef<HTMLInputElement | null>(null);
@@ -137,7 +142,8 @@ export function PdfTranscriptPage() {
         });
         return;
     }
-    exportTranscript(transcribedText, 'docx', [], toast);
+    exportTranscript(transcribedText, exportFormat as 'docx' | 'txt', [], toast);
+    setIsExportSheetOpen(false);
   };
   
   const handleCopy = () => {
@@ -148,16 +154,21 @@ export function PdfTranscriptPage() {
   };
 
   const isReadyForContent = !isTranscribing && transcribedText;
+
+  const pdfExportFormats = useMemo(() => ({
+    docx: 'DOCX (Word Document)',
+    txt: 'TXT (Plain Text)',
+  }), []);
   
   return (
     <div 
-        className="bg-background text-foreground"
+        className="flex flex-col h-full bg-background text-foreground"
         onDragEnter={handleDragEnter}
         onDragOver={handleDragEvents}
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
     >
-        <main className="p-4 md:p-6">
+        <main className="flex-grow p-4 md:p-6">
             {isTranscribing ? (
                 <div className="flex flex-col items-center justify-center rounded-2xl border-border bg-card h-[76vh]">
                     <Loader2 className="h-12 w-12 animate-spin text-primary" />
@@ -166,8 +177,8 @@ export function PdfTranscriptPage() {
             ) : !pdfFile ? (
                  <div
                  className={cn(
-                   'flex cursor-pointer flex-col items-center justify-center rounded-2xl border-2 bg-card text-center transition-colors',
-                   isDragging ? 'border-primary bg-primary/10' : 'border-border'
+                   'flex cursor-pointer flex-col items-center justify-center rounded-2xl border-2 bg-card text-center transition-colors border-border',
+                   isDragging && 'border-primary bg-primary/10'
                  )}
                  style={{minHeight: '80vh'}}
                  onClick={() => fileInputRef.current?.click()}
@@ -206,14 +217,39 @@ export function PdfTranscriptPage() {
                       <Copy className="h-5 w-5" />
                       <span className="sr-only">{t.copy}</span>
                   </Button>
-                  <Button 
-                      onClick={handleExport}
-                      size="lg"
-                      className="h-12 px-6 rounded-full bg-accent text-accent-foreground hover:bg-accent/90 w-full"
-                  >
-                      <Download className="h-5 w-5" />
-                      <span className="ml-2 sm:inline font-bold">{t.download}</span>
-                  </Button>
+                  <Sheet open={isExportSheetOpen} onOpenChange={setIsExportSheetOpen}>
+                    <SheetTrigger asChild>
+                      <Button size="lg" className="h-12 px-6 rounded-full bg-accent text-accent-foreground hover:bg-accent/90 w-full">
+                          <Download className="h-5 w-5" />
+                          <span className="ml-2 sm:inline font-bold">{t.download}</span>
+                      </Button>
+                    </SheetTrigger>
+                    <SheetContent side="bottom" className="rounded-t-lg">
+                      <SheetHeader className="text-left">
+                        <SheetTitle>{t.exportSettings}</SheetTitle>
+                        <SheetDescription>{t.chooseFormat}</SheetDescription>
+                      </SheetHeader>
+                      <div className="grid gap-6 py-6">
+                        <div className="grid gap-3">
+                          <Label>{t.exportFormat}</Label>
+                           <Select value={exportFormat} onValueChange={setExportFormat}>
+                               <SelectTrigger>
+                                   <SelectValue placeholder="Select format" />
+                               </SelectTrigger>
+                               <SelectContent>
+                                   {Object.entries(pdfExportFormats).map(([value, label]) => (
+                                   <SelectItem key={value} value={value}>{label}</SelectItem>
+                                   ))}
+                               </SelectContent>
+                           </Select>
+                        </div>
+                        <Button onClick={handleExport} size="lg" className="bg-accent text-accent-foreground hover:bg-accent/90">
+                           <Download className="mr-2" />
+                           {t.exportTranscript}
+                        </Button>
+                      </div>
+                    </SheetContent>
+                  </Sheet>
             </div>
           </footer>
         )}
