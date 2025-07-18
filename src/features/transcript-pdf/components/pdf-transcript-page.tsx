@@ -2,7 +2,7 @@
 "use client";
 
 import { useState, useRef, useMemo, useCallback, useContext } from 'react';
-import { FileUp, Download, Copy } from 'lucide-react';
+import { FileUp, Download, Copy, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
@@ -73,6 +73,7 @@ export function PdfTranscriptPage() {
       return;
     }
     
+    // Clear previous state and file
     resetState();
     setPdfFile(file);
     setIsTranscribing(true);
@@ -168,7 +169,7 @@ export function PdfTranscriptPage() {
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
     >
-        <main className="flex-grow p-4 md:p-6">
+        <main className="flex-grow p-4 md:p-6 relative">
             {isTranscribing ? (
                 <div className="absolute inset-0 bg-background/80 flex flex-col items-center justify-center z-10">
                     <div className="flex space-x-2">
@@ -181,7 +182,7 @@ export function PdfTranscriptPage() {
             ) : !pdfFile ? (
                  <div
                  className={cn(
-                   'flex cursor-pointer flex-col items-center justify-center rounded-2xl border-2 bg-card text-center transition-colors border-border h-[80vh]',
+                   'flex cursor-pointer flex-col items-center justify-center rounded-2xl border-2 bg-card text-center transition-colors border-border h-full min-h-[70vh]',
                    isDragging && 'border-primary bg-primary/10'
                  )}
                  onClick={() => fileInputRef.current?.click()}
