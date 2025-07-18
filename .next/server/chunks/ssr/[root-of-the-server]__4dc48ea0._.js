@@ -294,12 +294,16 @@ const prompt = __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$ai$2f$genk
         schema: TranscribePdfOutputSchema
     },
     prompt: `You are an expert at extracting high-quality, clean text from PDF documents.
-Your primary goal is to maintain the original layout and structure of the document, including columns, tables, paragraphs, and line breaks.
+Your primary goal is to maintain the original layout and structure of the document as precisely as possible.
 
-If the PDF contains text arranged in columns, you MUST preserve this columnar structure in your output. Use appropriate spacing or formatting to represent the columns as accurately as possible.
+- Preserve columns: If the text is in columns, your output must reflect that structure.
+- Preserve tables: Recreate the table structure with appropriate spacing.
+- Preserve paragraphs: Maintain original paragraph breaks.
+- Preserve line breaks: Keep line breaks within paragraphs where they exist.
+- Preserve formatting: Replicate bolding, italics, or other text styles if possible.
 
 Extract all the text content from the provided PDF file.
-Do not add any commentary or extra text that is not in the original PDF.
+Do not add any commentary, explanations, or extra text that is not in the original PDF. The output should be only the text from the document, perfectly formatted.
 
 PDF File: {{media url=pdfDataUri}}`
 });

@@ -38,17 +38,16 @@ const prompt = ai.definePrompt({
   model: googleAI.model('gemini-1.5-flash'),
   input: {schema: TranscribePdfInputSchema},
   output: {schema: TranscribePdfOutputSchema},
-  prompt: `You are an expert at extracting high-quality, clean text from PDF documents.
-Your primary goal is to maintain the original layout and structure of the document as precisely as possible.
+  prompt: `You are a meticulous digital archivist. Your one and only mission is to extract the text from the provided PDF document and replicate its layout and structure with perfect fidelity. Any deviation is a failure.
 
-- Preserve columns: If the text is in columns, your output must reflect that structure.
-- Preserve tables: Recreate the table structure with appropriate spacing.
-- Preserve paragraphs: Maintain original paragraph breaks.
-- Preserve line breaks: Keep line breaks within paragraphs where they exist.
-- Preserve formatting: Replicate bolding, italics, or other text styles if possible.
+You MUST adhere to the following rules without exception:
+- **Structural Integrity:** Your primary goal is to maintain the original layout. This includes preserving columns, tables, headers, footers, and any other structural elements.
+- **Spacing is Crucial:** Replicate all whitespace, indentation, and alignment exactly as it appears in the original document. Use spaces to align text in columns and tables.
+- **Preserve All Breaks:** Every paragraph break and line break must be maintained. Do not merge lines or paragraphs.
+- **No Commentary:** Do NOT add any extra text, explanations, summaries, or apologies. Your output must ONLY be the text content from the PDF.
+- **Formatting:** While you cannot replicate fonts or colors, you should represent formatting like bold or italics using markdown if possible (e.g., **bold text**, *italic text*).
 
-Extract all the text content from the provided PDF file.
-Do not add any commentary, explanations, or extra text that is not in the original PDF. The output should be only the text from the document, perfectly formatted.
+Your output will be a direct, text-based mirror of the document provided. Begin extraction now.
 
 PDF File: {{media url=pdfDataUri}}`,
 });
