@@ -67,7 +67,7 @@ var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$serv
 // In a real application, this would interact with a database like Firebase Firestore
 // to increment a counter in a document.
 // For this example, we'll just log the request to the server console.
-let visitorCount = 0; // In-memory counter for demonstration
+let visitorCount = 0; // In-memory counter for demonstration. WARNING: This resets on server restart.
 async function POST() {
     try {
         // In a real app, you'd do something like:
@@ -78,7 +78,7 @@ async function POST() {
         console.log(`New visitor recorded. Total simulated visitors: ${visitorCount}`);
         return __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$server$2e$js__$5b$app$2d$route$5d$__$28$ecmascript$29$__["NextResponse"].json({
             success: true,
-            message: 'Visitor tracked.'
+            count: visitorCount
         });
     } catch (error) {
         console.error('Error tracking visitor:', error);

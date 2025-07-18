@@ -12,7 +12,7 @@ import { LanguageContext } from '@/contexts/language-context';
 import { allTranslations } from '@/lib/translations';
 import { BotMessageSquare } from 'lucide-react';
 
-const VISITOR_FLAG = 'hasVisitedVoiceScribe';
+const VISITOR_FLAG = 'hasVisitedOzoDesigner';
 
 export default function Home() {
   const [visitorCount, setVisitorCount] = useState<number | null>(null);
@@ -66,7 +66,7 @@ export default function Home() {
         <div className="flex items-center gap-3">
           <BotMessageSquare className="h-8 w-8 text-primary" />
           <div>
-            <h1 className="text-3xl font-bold text-foreground">VoiceScribe</h1>
+            <h1 className="text-3xl font-bold text-foreground">Ozo. Designer</h1>
             {visitorCount !== null && (
                 <div className="flex items-center gap-1.5 text-sm text-muted-foreground mt-1">
                     <Users className="w-4 h-4" />
