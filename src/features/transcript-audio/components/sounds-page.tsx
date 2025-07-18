@@ -56,7 +56,6 @@ export function SoundsPage() {
   const [isExportSheetOpen, setIsExportSheetOpen] = useState(false);
   const [customVocabulary, setCustomVocabulary] = useState<string[]>([]);
   const [vocabInput, setVocabInput] = useState('');
-  const [isVocabSheetOpen, setIsVocabSheetOpen] = useState(false);
   const [isRatingOpen, setIsRatingOpen] = useState(false);
   const hasRated = useRef(false);
 
@@ -95,6 +94,7 @@ export function SoundsPage() {
       if (result && result.transcript) {
         setStructuredTranscript(result.transcript);
         setEditedTranscript(result.text);
+        toast({ title: "Transcription Improved!", description: "The text has been updated with your custom vocabulary." });
       } else {
         toast({
           title: t.transcriptionFailed,
@@ -114,7 +114,6 @@ export function SoundsPage() {
       toast({ title, description, variant: "destructive" });
     } finally {
       setIsTranscribing(false);
-      setIsVocabSheetOpen(false);
     }
   }, [audioFile, customVocabulary, selectedModel, t, toast]);
   
@@ -321,45 +320,6 @@ export function SoundsPage() {
                       <Copy className="h-5 w-5" />
                       <span className="sr-only">{t.copy}</span>
                   </Button>
-                  <Sheet open={isVocabSheetOpen} onOpenChange={setIsVocabSheetOpen}>
-                      <SheetTrigger asChild>
-                          <Button variant="outline" size="icon" className="h-12 w-12 rounded-full">
-                              <Sparkles className="h-5 w-5" />
-                              <span className="sr-only">{t.improveAccuracy}</span>
-                          </Button>
-                      </SheetTrigger>
-                      <SheetContent side="bottom" className="rounded-t-lg">
-                          <SheetHeader className="text-left">
-                              <SheetTitle>{t.improveAccuracy}</SheetTitle>
-                              <SheetDescription>{t.customVocabularyHint}</SheetDescription>
-                          </SheetHeader>
-                          <div className="grid gap-4 py-4">
-                              <div className="flex gap-2">
-                                  <Input 
-                                      value={vocabInput}
-                                      onChange={(e) => setVocabInput(e.target.value)}
-                                      onKeyDown={(e) => e.key === 'Enter' && handleAddVocab()}
-                                      placeholder={t.pressEnterToAdd}
-                                  />
-                                  <Button onClick={handleAddVocab} variant="secondary">{t.addWord}</Button>
-                              </div>
-                              <div className="flex flex-wrap gap-2">
-                                  {customVocabulary.map(word => (
-                                      <Badge key={word} variant="secondary" className="text-base px-3 py-1">
-                                          {word}
-                                          <button onClick={() => handleRemoveVocab(word)} className="ml-2 rounded-full hover:bg-muted-foreground/20 p-0.5">
-                                              <XIcon className="h-3 w-3" />
-                                          </button>
-                                      </Badge>
-                                  ))}
-                              </div>
-                              <Button onClick={handleRetranscribe} disabled={isTranscribing || customVocabulary.length === 0} size="lg" className="bg-accent text-accent-foreground hover:bg-accent/90">
-                                  {isTranscribing ? <Loader2 className="animate-spin mr-2" /> : <Sparkles className="mr-2" />}
-                                  {t.retranscribe}
-                              </Button>
-                          </div>
-                      </SheetContent>
-                  </Sheet>
                   <Sheet open={isExportSheetOpen} onOpenChange={setIsExportSheetOpen}>
                       <SheetTrigger asChild>
                           <Button size="lg" className="flex-1 rounded-full h-12 px-8 bg-accent text-accent-foreground hover:bg-accent/90">
@@ -394,6 +354,37 @@ export function SoundsPage() {
                                   />
                                   <p className="text-xs text-muted-foreground text-center">{t.wordsPerSecondHint}</p>
                               </div>
+
+                              <div className="p-4 border rounded-lg">
+                                  <h4 className="font-semibold mb-2">{t.improveAccuracy}</h4>
+                                  <p className="text-sm text-muted-foreground mb-3">{t.customVocabularyHint}</p>
+                                  <div className="flex gap-2">
+                                    <Input 
+                                        value={vocabInput}
+                                        onChange={(e) => setVocabInput(e.target.value)}
+                                        onKeyDown={(e) => e.key === 'Enter' && handleAddVocab()}
+                                        placeholder={t.pressEnterToAdd}
+                                    />
+                                    <Button onClick={handleAddVocab} variant="secondary">{t.addWord}</Button>
+                                  </div>
+                                  <div className="flex flex-wrap gap-2 mt-3">
+                                      {customVocabulary.map(word => (
+                                          <Badge key={word} variant="secondary" className="text-base px-3 py-1">
+                                              {word}
+                                              <button onClick={() => handleRemoveVocab(word)} className="ml-2 rounded-full hover:bg-muted-foreground/20 p-0.5">
+                                                  <XIcon className="h-3 w-3" />
+                                              </button>
+                                          </Badge>
+                                      ))}
+                                  </div>
+                                  {customVocabulary.length > 0 && (
+                                    <Button onClick={handleRetranscribe} disabled={isTranscribing} size="sm" className="mt-3 w-full">
+                                        {isTranscribing ? <Loader2 className="animate-spin mr-2" /> : <Sparkles className="mr-2" />}
+                                        {t.retranscribe}
+                                    </Button>
+                                  )}
+                              </div>
+
                               <Button onClick={handleExport} size="lg" className="bg-accent text-accent-foreground hover:bg-accent/90">
                                   <Download className="mr-2" />
                                   {t.exportTranscript}
