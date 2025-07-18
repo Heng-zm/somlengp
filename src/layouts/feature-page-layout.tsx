@@ -19,7 +19,7 @@ export const ModelContext = createContext<ModelContextType | undefined>(undefine
 
 // Provider for Model context
 export function FeaturePageLayoutProvider({ children }: { children: React.ReactNode }) {
-    const [selectedModel, setSelectedModel] = useState('gemini-2.5-flash');
+    const [selectedModel, setSelectedModel] = useState('gemini-1.5-flash-latest');
     
     const modelContextValue = useMemo(() => ({
         selectedModel,
@@ -55,9 +55,8 @@ export function FeaturePageLayout({ children, title, showModelSelector = false }
     const { selectedModel, setSelectedModel } = modelContext;
 
     const modelOptions = useMemo(() => ([
-        { value: 'gemini-2.5-flash', label: 'Gemini 2.5 Flash' },
-        { value: 'gemini-2.0-flash', label: 'Gemini 2.0 Flash' },
         { value: 'gemini-1.5-flash-latest', label: 'Gemini 1.5 Flash' },
+        { value: 'gemini-1.5-pro-latest', label: 'Gemini 1.5 Pro' },
     ]), []);
 
     return (
