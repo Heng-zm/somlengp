@@ -14,7 +14,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Label } from '@/components/ui/label';
 import { exportTranscript } from '@/lib/export';
 import { allTranslations } from '@/lib/translations';
-import { LanguageContext, ModelContext } from '@/layouts/feature-page-layout';
+import { ModelContext } from '@/layouts/feature-page-layout';
+import { LanguageContext } from '@/contexts/language-context';
 
 const blobToBase64 = (blob: Blob): Promise<string> => {
   return new Promise((resolve, reject) => {

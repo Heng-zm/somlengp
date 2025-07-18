@@ -26,7 +26,8 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { RatingDialog } from '@/components/shared/rating-dialog';
 import { allTranslations } from '@/lib/translations';
-import { LanguageContext, ModelContext } from '@/layouts/feature-page-layout';
+import { ModelContext } from '@/layouts/feature-page-layout';
+import { LanguageContext } from '@/contexts/language-context';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 const blobToBase64 = (blob: Blob): Promise<string> => {
