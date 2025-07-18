@@ -85,9 +85,7 @@ export function FeaturePageLayout({ children, title, showModelSelector = false }
                     <div className="w-10"></div> // Placeholder for alignment
                 )}
             </header>
-            <div className="flex-1 overflow-y-auto">
-                {children}
-            </div>
+            {children}
         </div>
     );
 }
