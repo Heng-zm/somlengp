@@ -6,7 +6,7 @@ import Link from 'next/link';
 import { Mic, FileText, BotMessageSquare, Menu } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { Sidebar } from '@/components/shared/sidebar';
 import { LanguageContext } from '@/contexts/language-context';
 import { allTranslations } from '@/lib/translations';
