@@ -1,0 +1,27 @@
+{
+  "node": {
+    "4021eec7f36ae423a90a123d847a05761fe9cb9e78": {
+      "workers": {
+        "app/voice-transcript/page": {
+          "moduleId": "[project]/.next-internal/server/app/voice-transcript/page/actions.js { ACTIONS_MODULE0 => \"[project]/src/ai/flows/speech-to-text-flow.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/src/ai/flows/improve-transcription-accuracy-flow.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false
+        }
+      },
+      "layer": {
+        "app/voice-transcript/page": "action-browser"
+      }
+    },
+    "40ae144d7927c19ed0628dfaa18854e94d6edf9419": {
+      "workers": {
+        "app/voice-transcript/page": {
+          "moduleId": "[project]/.next-internal/server/app/voice-transcript/page/actions.js { ACTIONS_MODULE0 => \"[project]/src/ai/flows/speech-to-text-flow.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/src/ai/flows/improve-transcription-accuracy-flow.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false
+        }
+      },
+      "layer": {
+        "app/voice-transcript/page": "action-browser"
+      }
+    }
+  },
+  "edge": {}
+}

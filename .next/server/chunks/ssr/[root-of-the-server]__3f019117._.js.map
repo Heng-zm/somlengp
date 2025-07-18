@@ -1,0 +1,6 @@
+{
+  "version": 3,
+  "sources": [],
+  "sections": [
+    {"offset": {"line": 15, "column": 0}, "map": {"version":3,"sources":["file:///home/user/studio/src/lib/client-export.ts"],"sourcesContent":["\n'use client';\n\nimport { Document, Packer, Paragraph, TextRun } from \"docx\";\n\nexport async function exportToDocx(text: string): Promise<Blob> {\n    const doc = new Document({\n      sections: [{\n        properties: {},\n        children: text.split('\\n').map(line => \n            new Paragraph({\n                children: [new TextRun(line)]\n            })\n        ),\n      }],\n    });\n  \n    return await Packer.toBlob(doc);\n}\n"],"names":[],"mappings":";;;AAGA;AAFA;;AAIO,eAAe,aAAa,IAAY;IAC3C,MAAM,MAAM,IAAI,uIAAA,CAAA,WAAQ,CAAC;QACvB,UAAU;YAAC;gBACT,YAAY,CAAC;gBACb,UAAU,KAAK,KAAK,CAAC,MAAM,GAAG,CAAC,CAAA,OAC3B,IAAI,uIAAA,CAAA,YAAS,CAAC;wBACV,UAAU;4BAAC,IAAI,uIAAA,CAAA,UAAO,CAAC;yBAAM;oBACjC;YAEN;SAAE;IACJ;IAEA,OAAO,MAAM,uIAAA,CAAA,SAAM,CAAC,MAAM,CAAC;AAC/B","debugId":null}}]
+}
