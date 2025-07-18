@@ -1,43 +1,28 @@
 
 "use client";
 
-import { useState, useMemo } from 'react';
+import { useMemo } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { BotMessageSquare, Languages, FileText, LifeBuoy } from 'lucide-react';
-import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
+import { allTranslations } from '@/lib/translations';
+import type { Language } from '@/lib/translations';
 
-const translations = {
-  km: {
-    voiceScribe: "ប្រតិចារិកសំឡេង",
-    pdfTranscript: "ប្រតិចារិក PDF",
-    support: "គាំទ្រ",
-    supportDescription: "ប្រសិនបើអ្នកពេញចិត្តនឹងកម្មវិធីនេះ សូមពិចារណាគាំទ្រការអភិវឌ្ឍន៍របស់វា។",
-  },
-  en: {
-    voiceScribe: "Voice Transcript",
-    pdfTranscript: "PDF Transcript",
-    support: "Support",
-    supportDescription: "If you find this application useful, please consider supporting its development.",
-  }
-};
+interface SidebarProps {
+  language: Language;
+  toggleLanguage: () => void;
+}
 
-export function Sidebar() {
+export function Sidebar({ language, toggleLanguage }: SidebarProps) {
   const pathname = usePathname();
-  const [language, setLanguage] = useState<'km' | 'en'>('en');
-  const t = useMemo(() => translations[language], [language]);
+  const t = useMemo(() => allTranslations[language], [language]);
 
   const navItems = [
     { href: '/', label: t.voiceScribe, icon: BotMessageSquare },
     { href: '/pdf-transcript', label: t.pdfTranscript, icon: FileText },
   ];
-
-  const toggleLanguage = () => {
-    setLanguage(prev => (prev === 'en' ? 'km' : 'en'));
-  };
 
   return (
     <aside className="w-full h-full flex flex-col">
