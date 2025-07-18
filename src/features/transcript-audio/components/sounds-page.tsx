@@ -278,8 +278,8 @@ export function SoundsPage() {
                 <div className="absolute inset-0 bg-background/80 flex flex-col items-center justify-center z-10">
                     <div className="flex space-x-2">
                         <div className="w-4 h-4 rounded-full bg-primary animate-bounce-dot"></div>
-                        <div className="w-4 h-4 rounded-full bg-primary animate-bounce-dot animation-delay-200"></div>
-                        <div className="w-4 h-4 rounded-full bg-primary animate-bounce-dot animation-delay-400"></div>
+                        <div className="w-4 h-4 rounded-full bg-primary animate-bounce-dot [animation-delay:-0.16s]"></div>
+                        <div className="w-4 h-4 rounded-full bg-primary animate-bounce-dot [animation-delay:-0.32s]"></div>
                     </div>
                     <p className="text-muted-foreground mt-4 text-lg">{t.transcribing}</p>
                 </div>
