@@ -265,7 +265,7 @@ export function SoundsPage() {
     submit: t.ratingSubmit,
     rateLater: t.ratingLater,
     thankYou: t.ratingThankYou,
-  }), [t.ratingTitle, t.ratingDescription, t.ratingFeedbackPlaceholder, t.ratingSubmit, t.ratingLater, t.ratingThankYou]);
+  }), [t]);
   
   const handleCopy = () => {
     if (!editedTranscript) return;
@@ -293,7 +293,7 @@ export function SoundsPage() {
                         <SheetHeader>
                           <SheetTitle className="sr-only">Navigation</SheetTitle>
                         </SheetHeader>
-                        <Sidebar language={language} toggleLanguage={toggleLanguage}/>
+                        <Sidebar />
                       </SheetContent>
                   </Sheet>
                   <h1 className="text-xl font-bold">{t.voiceScribe}</h1>
@@ -339,13 +339,15 @@ export function SoundsPage() {
                       <p className="text-muted-foreground mt-2 mb-4">{t.dropAudio}</p>
                   </div>
               ) : (
-                  <Card className="flex flex-col h-full shadow-sm overflow-hidden">
-                      <EditorView
-                          transcript={editedTranscript}
-                          onTranscriptChange={setEditedTranscript}
-                          disabled={!isReadyForContent}
-                      />
-                  </Card>
+                  isReadyForContent && (
+                    <Card className="flex flex-col h-full shadow-sm overflow-hidden">
+                        <EditorView
+                            transcript={editedTranscript}
+                            onTranscriptChange={setEditedTranscript}
+                            disabled={!isReadyForContent}
+                        />
+                    </Card>
+                  )
               )}
                <input
                   type="file"
