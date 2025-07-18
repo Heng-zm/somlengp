@@ -2,13 +2,12 @@
 "use client";
 
 import { useState, useRef, useMemo, useCallback } from 'react';
-import { FileUp, Loader2, Download, Languages, Copy, Sparkles, Menu } from 'lucide-react';
+import { FileUp, Loader2, Download, Copy, Menu } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
-import { Card, CardContent } from '@/components/ui/card';
+import { Card } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
-import Link from 'next/link';
 import { transcribePdf } from '@/ai/flows/pdf-transcript-flow';
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -108,7 +107,6 @@ export function PdfTranscriptPage() {
   const [isExportSheetOpen, setIsExportSheetOpen] = useState(false);
   const [selectedModel, setSelectedModel] = useState('gemini-2.5-flash');
   const [exportFormat, setExportFormat] = useState('docx');
-  // Language state now lives in Sidebar, this is just for translations
   const [language, setLanguage] = useState<'km' | 'en'>('en');
   const [isSheetOpen, setIsSheetOpen] = useState(false);
 
@@ -194,7 +192,6 @@ export function PdfTranscriptPage() {
   };
 
   const handleExport = () => {
-    // We pass an empty array for words because PDF transcript doesn't have timings
     exportTranscript(transcribedText, exportFormat as 'txt' | 'json' | 'csv' | 'docx', [], toast);
     setIsExportSheetOpen(false);
   };
@@ -222,7 +219,7 @@ export function PdfTranscriptPage() {
   }), []);
 
   return (
-    <div className="flex flex-col h-full">
+    <div className="flex flex-col h-full bg-background text-foreground">
         <header className="flex-shrink-0 flex items-center justify-between p-4 border-b">
             <div className="flex items-center gap-4">
               <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
@@ -259,7 +256,7 @@ export function PdfTranscriptPage() {
         </header>
 
         <main 
-            className="flex-grow p-4 md:p-6 grid grid-cols-1 md:grid-cols-3 gap-6 relative bg-muted/40 overflow-y-auto"
+            className="flex-grow p-4 md:p-6 grid grid-cols-1 gap-6 relative bg-muted/40 overflow-y-auto"
             onDragEnter={handleDragEnter}
             onDragOver={handleDragEvents}
             onDragLeave={handleDragLeave}
@@ -272,85 +269,29 @@ export function PdfTranscriptPage() {
                 </div>
             )}
 
-            <div className="md:col-span-1 flex flex-col gap-6">
-                <Card 
+            {!pdfFile ? (
+                <div 
                     className={cn(
-                        "flex flex-col items-center justify-center text-center p-6 rounded-lg border-2 border-dashed border-muted-foreground/20 bg-background h-full transition-colors cursor-pointer",
+                        "flex flex-col items-center justify-center text-center rounded-lg border-2 border-dashed border-muted-foreground/20 bg-background h-full transition-colors cursor-pointer",
                         isDragging && "border-primary bg-primary/10"
                     )}
                     onClick={() => fileInputRef.current?.click()}
                 >
-                    <FileUp className="w-16 h-16 text-muted-foreground/30 mb-4"/>
-                    <h3 className="text-xl font-semibold">{t.readyToTranscribe}</h3>
-                    <p className="text-muted-foreground mt-2">{t.dropPdf}</p>
-                </Card>
-
-                <Card className="shadow-sm">
-                    <CardContent className="p-6">
-                        <h3 className="text-lg font-semibold mb-4">{t.actions}</h3>
-                        <p className="text-sm text-muted-foreground mb-4">{t.actionsDescription}</p>
-                        <div className="flex flex-col gap-3">
-                            <Button onClick={handleCopy} disabled={!isReadyForContent} variant="outline">
-                                <Copy className="mr-2" />
-                                {t.copy}
-                            </Button>
-                            <Sheet open={isExportSheetOpen} onOpenChange={setIsExportSheetOpen}>
-                                <SheetTrigger asChild>
-                                    <Button disabled={!isReadyForContent}>
-                                        <Download className="mr-2" />
-                                        {t.download}
-                                    </Button>
-                                </SheetTrigger>
-                                <SheetContent side="bottom" className="rounded-t-lg">
-                                    <SheetHeader className="text-left">
-                                        <SheetTitle>{t.exportSettings}</SheetTitle>
-                                        <SheetDescription>
-                                        {t.chooseFormat}
-                                        </SheetDescription>
-                                    </SheetHeader>
-                                    <div className="grid gap-6 py-6">
-                                    <div className="grid gap-3">
-                                            <Label>{t.exportFormat}</Label>
-                                            <Select value={exportFormat} onValueChange={setExportFormat}>
-                                                <SelectTrigger>
-                                                    <SelectValue placeholder="Select format" />
-                                                </SelectTrigger>
-                                                <SelectContent>
-                                                    {Object.entries(formatDisplayNames).map(([value, label]) => (
-                                                    <SelectItem key={value} value={value}>{label}</SelectItem>
-                                                    ))}
-                                                </SelectContent>
-                                            </Select>
-                                        </div>
-                                        <Button 
-                                            onClick={handleExport}
-                                            disabled={!isReadyForContent}
-                                            size="lg"
-                                        >
-                                            <Download className="mr-2" />
-                                            {t.exportTranscript}
-                                        </Button>
-                                    </div>
-                                </SheetContent>
-                            </Sheet>
-                        </div>
-                    </CardContent>
-                </Card>
-            </div>
-            
-            <div className="md:col-span-2">
+                    <FileUp className="w-20 h-20 text-muted-foreground/30 mb-4"/>
+                    <h3 className="text-2xl font-semibold">{t.readyToTranscribe}</h3>
+                    <p className="text-muted-foreground mt-2 mb-4">{t.dropPdf}</p>
+                </div>
+            ) : (
                 <Card className="flex flex-col h-full shadow-sm overflow-hidden">
-                    <CardContent className="p-0 flex-grow flex flex-col">
-                        <Textarea
-                            value={transcribedText}
-                            readOnly
-                            placeholder={t.transcribedTextPlaceholder}
-                            className="h-full w-full resize-none font-body text-base leading-relaxed p-6 border-0 focus-visible:ring-0 focus-visible:ring-offset-0 flex-grow"
-                            aria-label="Transcribed Text"
-                        />
-                    </CardContent>
+                    <Textarea
+                        value={transcribedText}
+                        readOnly
+                        placeholder={t.transcribedTextPlaceholder}
+                        className="h-full w-full resize-none font-body text-base leading-relaxed p-6 border-0 focus-visible:ring-0 focus-visible:ring-offset-0 flex-grow"
+                        aria-label="Transcribed Text"
+                    />
                 </Card>
-            </div>
+            )}
 
             <input
                 type="file"
@@ -360,6 +301,54 @@ export function PdfTranscriptPage() {
                 accept="application/pdf"
             />
         </main>
+        
+        <footer className="flex-shrink-0 flex items-center justify-center gap-2 p-4 border-t bg-background shadow-sm">
+            <div className="w-full max-w-lg flex gap-2 items-center">
+                <Button onClick={handleCopy} disabled={!isReadyForContent} variant="outline" size="icon" className="h-14 w-14 rounded-full">
+                    <Copy className="h-6 w-6" />
+                    <span className="sr-only">{t.copy}</span>
+                </Button>
+                <Sheet open={isExportSheetOpen} onOpenChange={setIsExportSheetOpen}>
+                    <SheetTrigger asChild>
+                        <Button variant="default" size="lg" disabled={!isReadyForContent} className="flex-1 rounded-full h-14 px-8">
+                            <Download className="h-5 w-5" />
+                            <span className="ml-2 sm:inline font-bold text-lg">{t.download}</span>
+                        </Button>
+                    </SheetTrigger>
+                    <SheetContent side="bottom" className="rounded-t-lg">
+                        <SheetHeader className="text-left">
+                            <SheetTitle>{t.exportSettings}</SheetTitle>
+                            <SheetDescription>
+                            {t.chooseFormat}
+                            </SheetDescription>
+                        </SheetHeader>
+                        <div className="grid gap-6 py-6">
+                        <div className="grid gap-3">
+                                <Label>{t.exportFormat}</Label>
+                                <Select value={exportFormat} onValueChange={setExportFormat}>
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="Select format" />
+                                    </Trigger>
+                                    <SelectContent>
+                                        {Object.entries(formatDisplayNames).map(([value, label]) => (
+                                        <SelectItem key={value} value={value}>{label}</SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                            <Button 
+                                onClick={handleExport}
+                                disabled={!isReadyForContent}
+                                size="lg"
+                            >
+                                <Download className="mr-2" />
+                                {t.exportTranscript}
+                            </Button>
+                        </div>
+                    </SheetContent>
+                </Sheet>
+            </div>
+        </footer>
     </div>
   );
 }
