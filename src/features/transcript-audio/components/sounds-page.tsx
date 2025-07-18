@@ -1,7 +1,8 @@
+
 "use client";
 
 import { useState, useEffect, useRef, useCallback, useMemo, useContext } from 'react';
-import { Download, Loader2, FileUp, Sparkles, X as XIcon, Copy, ArrowLeft } from 'lucide-react';
+import { Download, Loader2, FileUp, Sparkles, X as XIcon, Copy } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Sheet,
@@ -11,13 +12,6 @@ import {
   SheetTitle,
   SheetTrigger
 } from '@/components/ui/sheet';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
 import { useToast } from '@/hooks/use-toast';
 import { exportTranscript } from '@/lib/export';
 import type { TranscriptWord } from '@/lib/types';
@@ -32,8 +26,8 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { RatingDialog } from '@/components/shared/rating-dialog';
 import { allTranslations } from '@/lib/translations';
-import { LanguageContext } from '@/layouts/app-layout';
-import Link from 'next/link';
+import { LanguageContext, ModelContext } from '@/layouts/feature-page-layout';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 const blobToBase64 = (blob: Blob): Promise<string> => {
   return new Promise((resolve, reject) => {
@@ -56,7 +50,6 @@ export function SoundsPage() {
   const [structuredTranscript, setStructuredTranscript] = useState<TranscriptWord[]>([]);
   const [editedTranscript, setEditedTranscript] = useState('');
   const [wordsPerSecond, setWordsPerSecond] = useState<number | undefined>(10);
-  const [selectedModel, setSelectedModel] = useState('gemini-2.5-flash');
   const [exportFormat, setExportFormat] = useState('srt');
   const [isDragging, setIsDragging] = useState(false);
   const [isExportSheetOpen, setIsExportSheetOpen] = useState(false);
@@ -69,12 +62,18 @@ export function SoundsPage() {
   const { toast } = useToast();
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   
-  const context = useContext(LanguageContext);
-  if (!context) {
+  const langContext = useContext(LanguageContext);
+  if (!langContext) {
     throw new Error('SoundsPage must be used within a LanguageProvider');
   }
-  const { language } = context;
+  const { language } = langContext;
   const t = useMemo(() => allTranslations[language], [language]);
+
+  const modelContext = useContext(ModelContext);
+  if (!modelContext) {
+    throw new Error('SoundsPage must be used within a ModelProvider');
+  }
+  const { selectedModel } = modelContext;
 
   useEffect(() => {
     hasRated.current = localStorage.getItem('hasRated') === 'true';
@@ -215,12 +214,6 @@ export function SoundsPage() {
 
   const isReadyForContent = !isTranscribing && structuredTranscript.length > 0;
 
-  const modelDisplayNames = useMemo(() => ({
-    'gemini-2.5-flash': 'Gemini 2.5 Flash',
-    'gemini-2.0-flash': 'Gemini 2.0 Flash',
-    'gemini-1.5-flash-latest': 'Gemini 1.5 Flash',
-  }), []);
-
   const handleAddVocab = () => {
     if (vocabInput.trim() && !customVocabulary.includes(vocabInput.trim())) {
       setCustomVocabulary([...customVocabulary, vocabInput.trim()]);
@@ -274,25 +267,6 @@ export function SoundsPage() {
 
   return (
     <div className="flex flex-col h-full bg-background text-foreground">
-        <header className="flex-shrink-0 flex items-center justify-between p-4 border-b">
-            <Link href="/" passHref>
-               <Button variant="ghost" size="icon">
-                  <ArrowLeft />
-               </Button>
-            </Link>
-            <h1 className="text-xl font-bold">{t.voiceScribe}</h1>
-            <Select value={selectedModel} onValueChange={setSelectedModel}>
-              <SelectTrigger className="w-fit md:w-[180px]">
-                <SelectValue placeholder={t.selectModel} />
-              </SelectTrigger>
-              <SelectContent>
-                {Object.entries(modelDisplayNames).map(([value, label]) => (
-                  <SelectItem key={value} value={value}>{label}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-        </header>
-
         <main 
             className="flex-grow p-4 md:p-6 grid grid-cols-1 gap-6 relative overflow-y-auto"
             onDragEnter={handleDragEnter}
