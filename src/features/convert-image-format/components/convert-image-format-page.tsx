@@ -283,7 +283,7 @@ export function ConvertImageFormatPage() {
               <Button
                 onClick={handleConvert}
                 size="lg"
-                className="w-full"
+                className="w-full bg-accent text-accent-foreground hover:bg-accent/90"
                 disabled={isConverting || !file}
               >
                 {isConverting ? (
