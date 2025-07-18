@@ -88,6 +88,10 @@ const enTranslations: Translations = {
     selectImageFile: "Please select an image file (JPEG, PNG, etc.).",
     fileTooLargeTitle: "File Too Large",
     fileTooLargeDescription: (size: number) => `One or more files exceed the server's limit of ${size}MB. Please use smaller files.`,
+    convertImageFormat: "Convert Image Format",
+    convertImageFormatDescription: "Easily change the format of your images.",
+    convertImageFormatTitle: "Upload your image to convert",
+    dropImageToConvert: "Drop an image here or click to select.",
 };
 
 const kmTranslations: Translations = {
@@ -172,6 +176,10 @@ const kmTranslations: Translations = {
     selectImageFile: "សូមជ្រើសរើសឯកសាររូបភាព។",
     fileTooLargeTitle: "ឯកសារធំពេក",
     fileTooLargeDescription: (size: number) => `ឯកសារមួយឬច្រើនមានទំហំធំជាង ${size}MB។ សូមផ្ទុកឡើងឯកសារតូចជាងនេះ។`,
+    convertImageFormat: "បម្លែងទ្រង់ទ្រាយរូបភាព",
+    convertImageFormatDescription: "ផ្លាស់ប្តូរទ្រង់ទ្រាយរូបភាពរបស់អ្នកបានយ៉ាងងាយស្រួល។",
+    convertImageFormatTitle: "ផ្ទុកឡើងរូបភាពរបស់អ្នកដើម្បីបម្លែង",
+    dropImageToConvert: "ទម្លាក់រូបភាពនៅទីនេះ ឬចុចដើម្បីជ្រើសរើស។",
 };
 
 export const allTranslations = {

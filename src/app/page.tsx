@@ -3,7 +3,7 @@
 
 import { useContext, useMemo, useState, useEffect } from 'react';
 import Link from 'next/link';
-import { Mic, FileText, Menu, Combine, Image as ImageIcon, Users } from 'lucide-react';
+import { Mic, FileText, Menu, Combine, Image as ImageIcon, Users, Wand2 } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
@@ -11,6 +11,7 @@ import { Sidebar } from '@/components/shared/sidebar';
 import { LanguageContext } from '@/contexts/language-context';
 import { allTranslations } from '@/lib/translations';
 import { BotMessageSquare } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 const VISITOR_FLAG = 'hasVisitedOzoDesigner';
 
@@ -27,8 +28,6 @@ export default function Home() {
     const trackAndFetchVisitorCount = async () => {
       const hasVisited = localStorage.getItem(VISITOR_FLAG);
       if (!hasVisited) {
-        // This is a new visitor, so we send a POST request.
-        // This endpoint will increment the count and return the new total.
         localStorage.setItem(VISITOR_FLAG, 'true');
         try {
           const res = await fetch('/api/visit', { method: 'POST' });
@@ -36,16 +35,13 @@ export default function Home() {
           if (data.success) {
             setVisitorCount(data.count);
           } else {
-            // If tracking fails, remove the flag to try again on the next visit.
             localStorage.removeItem(VISITOR_FLAG);
           }
         } catch (error) {
             console.error('Failed to track visitor:', error);
-            // If there's a network error, remove the flag to retry on the next visit.
             localStorage.removeItem(VISITOR_FLAG);
         }
       } else {
-        // This is a returning visitor, so we just fetch the current count.
         try {
             const res = await fetch('/api/visit');
             const data = await res.json();
@@ -59,6 +55,14 @@ export default function Home() {
     };
     trackAndFetchVisitorCount();
   }, []);
+  
+  const featureCards = [
+    { href: '/voice-transcript', title: t.voiceScribe, description: t.voiceTranscriptDescription, icon: Mic, gradient: 'from-blue-400 to-teal-400' },
+    { href: '/pdf-transcript', title: t.pdfTranscript, description: t.pdfTranscriptDescription, icon: FileText, gradient: 'from-purple-400 to-pink-400' },
+    { href: '/combine-pdf', title: t.combinePdf, description: t.combinePdfDescription, icon: Combine, gradient: 'from-green-400 to-blue-400' },
+    { href: '/image-to-pdf', title: t.imageToPdf, description: t.imageToPdfDescription, icon: ImageIcon, gradient: 'from-orange-400 to-red-400' },
+    { href: '/convert-image-format', title: t.convertImageFormat, description: t.convertImageFormatDescription, icon: Wand2, gradient: 'from-yellow-400 to-orange-400' },
+  ];
 
   return (
     <div className="flex flex-col h-full bg-background text-foreground p-4 sm:p-6 md:p-8">
@@ -90,35 +94,21 @@ export default function Home() {
         </Sheet>
       </header>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 flex-grow">
-        <FeatureCard
-          href="/voice-transcript"
-          title={t.voiceScribe}
-          description={t.voiceTranscriptDescription}
-          icon={Mic}
-          gradient="from-blue-400 to-teal-400"
-        />
-        <FeatureCard
-          href="/pdf-transcript"
-          title={t.pdfTranscript}
-          description={t.pdfTranscriptDescription}
-          icon={FileText}
-          gradient="from-purple-400 to-pink-400"
-        />
-        <FeatureCard
-          href="/combine-pdf"
-          title={t.combinePdf}
-          description={t.combinePdfDescription}
-          icon={Combine}
-          gradient="from-green-400 to-blue-400"
-        />
-        <FeatureCard
-          href="/image-to-pdf"
-          title={t.imageToPdf}
-          description={t.imageToPdfDescription}
-          icon={ImageIcon}
-          gradient="from-orange-400 to-red-400"
-        />
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 flex-grow">
+        {featureCards.map((card, index) => (
+            <div key={card.href} className={cn(
+                (featureCards.length % 2 !== 0 && index === featureCards.length - 1) && 'md:col-span-2 lg:col-span-1',
+                 (featureCards.length % 3 !== 0 && index === featureCards.length - 1) && 'lg:col-span-3'
+            )}>
+                <FeatureCard
+                  href={card.href}
+                  title={card.title}
+                  description={card.description}
+                  icon={card.icon}
+                  gradient={card.gradient}
+                />
+            </div>
+        ))}
       </div>
     </div>
   );
