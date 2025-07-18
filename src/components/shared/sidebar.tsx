@@ -34,7 +34,7 @@ export function Sidebar({ language, toggleLanguage }: SidebarProps) {
         <Link href="/" className="flex items-center gap-2">
           <BotMessageSquare className="h-8 w-8 text-primary" />
           <div>
-            <h1 className="text-xl font-bold">VoiceScribe</h1>
+            <h1 className="text-xl font-bold">Ozo. Designer</h1>
             <p className="text-xs text-muted-foreground">Version {packageJson.version}</p>
           </div>
         </Link>

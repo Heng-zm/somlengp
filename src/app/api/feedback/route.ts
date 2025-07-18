@@ -15,7 +15,7 @@ export async function POST(request: Request) {
   }
 
   const message = `
-⭐️ **New VoiceScribe Feedback!** ⭐️
+⭐️ **New Ozo. Designer Feedback!** ⭐️
 
 **Rating:** ${'★'.repeat(rating)}${'☆'.repeat(5 - rating)} (${rating}/5)
 
