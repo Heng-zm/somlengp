@@ -94,6 +94,7 @@ const enTranslations: Translations = {
     dropImageToConvert: "Drop an image here or click to select.",
     modelOverloadedTitle: "AI Model Busy",
     modelOverloadedDescription: "The AI model is currently experiencing high demand. Please try again in a few moments.",
+    reportBug: "Report a Bug",
 };
 
 const kmTranslations: Translations = {
@@ -184,11 +185,10 @@ const kmTranslations: Translations = {
     dropImageToConvert: "ទម្លាក់រូបភាពនៅទីនេះ ឬចុចដើម្បីជ្រើសរើស។",
     modelOverloadedTitle: "ម៉ូដែល AI រវល់",
     modelOverloadedDescription: "ម៉ូដែល AI កំពុងមានតម្រូវការខ្ពស់។ សូមព្យាយាមម្តងទៀតក្នុងរយៈពេលពីរបីនាទីទៀត។",
+    reportBug: "រាយការណ៍បញ្ហា",
 };
 
 export const allTranslations = {
   km: kmTranslations,
   en: enTranslations
 };
-
-    

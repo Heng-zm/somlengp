@@ -25,30 +25,36 @@ export default function Home() {
   const t = useMemo(() => allTranslations[language], [language]);
   
   useEffect(() => {
-    const trackAndFetchVisitorCount = async () => {
+    const fetchVisitorCount = async () => {
       try {
-        const hasVisited = localStorage.getItem(VISITOR_FLAG);
-        let response: Response;
-
-        if (!hasVisited) {
-          localStorage.setItem(VISITOR_FLAG, 'true');
-          response = await fetch('/api/visit', { method: 'POST' });
-        } else {
-          response = await fetch('/api/visit');
+        const response = await fetch('/api/visit');
+        const data = await response.json();
+        if (data.success) {
+          setVisitorCount(data.count);
         }
-        
+      } catch (error) {
+        console.error('Failed to fetch visitor count:', error);
+      }
+    };
+  
+    const trackNewVisitor = async () => {
+      try {
+        const response = await fetch('/api/visit', { method: 'POST' });
         const data = await response.json();
         if (data.success) {
             setVisitorCount(data.count);
-        } else if (!hasVisited) {
-            // If the POST request failed, undo the flag.
-            localStorage.removeItem(VISITOR_FLAG);
         }
       } catch (error) {
-        console.error('Failed to track or fetch visitor count:', error);
+        console.error('Failed to track new visitor:', error);
       }
     };
-    trackAndFetchVisitorCount();
+
+    fetchVisitorCount();
+
+    if (!localStorage.getItem(VISITOR_FLAG)) {
+      localStorage.setItem(VISITOR_FLAG, 'true');
+      trackNewVisitor();
+    }
   }, []);
   
   const featureCards = [
