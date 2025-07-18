@@ -154,7 +154,7 @@ export function CombinePdfPage() {
         >
             <Card 
                 className={cn(
-                    "flex flex-col items-center justify-center text-center rounded-2xl border-2 border-dashed border-muted-foreground/20 bg-card h-full transition-colors cursor-pointer p-6",
+                    "flex flex-col items-center justify-center text-center rounded-2xl border-2 border-border bg-card h-full transition-colors cursor-pointer p-6",
                     isDragging && "border-primary bg-primary/10",
                     files.length > 0 && "items-start justify-start"
                 )}
