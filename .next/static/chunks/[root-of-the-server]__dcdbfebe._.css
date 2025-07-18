@@ -646,6 +646,10 @@ body {
   height: 80vh;
 }
 
+.h-\[calc\(76vh-60px\)\] {
+  height: calc(76vh - 60px);
+}
+
 .h-\[var\(--radix-select-trigger-height\)\] {
   height: var(--radix-select-trigger-height);
 }
@@ -656,10 +660,6 @@ body {
 
 .h-px {
   height: 1px;
-}
-
-.h-\[calc\(76vh-60px\)\] {
-  height: calc(76vh - 60px);
 }
 
 .max-h-96 {
@@ -808,10 +808,6 @@ body {
 
 .max-w-sm {
   max-width: 24rem;
-}
-
-.max-w-xl {
-  max-width: 36rem;
 }
 
 .flex-1 {
@@ -1202,8 +1198,8 @@ body {
   background-color: hsl(var(--background) / .8);
 }
 
-.bg-black\/50 {
-  background-color: #00000080;
+.bg-black\/60 {
+  background-color: #0009;
 }
 
 .bg-black\/80 {
@@ -1224,6 +1220,10 @@ body {
 
 .bg-muted {
   background-color: hsl(var(--muted));
+}
+
+.bg-muted\/30 {
+  background-color: hsl(var(--muted) / .3);
 }
 
 .bg-muted\/50 {
@@ -1260,14 +1260,6 @@ body {
 
 .bg-white\/90 {
   background-color: #ffffffe6;
-}
-
-.bg-black\/60 {
-  background-color: #0009;
-}
-
-.bg-muted\/30 {
-  background-color: hsl(var(--muted) / .3);
 }
 
 .bg-gradient-to-br {
@@ -1308,6 +1300,10 @@ body {
   --tw-gradient-to: #60a5fa var(--tw-gradient-to-position);
 }
 
+.to-orange-400 {
+  --tw-gradient-to: #fb923c var(--tw-gradient-to-position);
+}
+
 .to-pink-400 {
   --tw-gradient-to: #f472b6 var(--tw-gradient-to-position);
 }
@@ -1318,10 +1314,6 @@ body {
 
 .to-teal-400 {
   --tw-gradient-to: #2dd4bf var(--tw-gradient-to-position);
-}
-
-.to-orange-400 {
-  --tw-gradient-to: #fb923c var(--tw-gradient-to-position);
 }
 
 .fill-current {
@@ -1751,12 +1743,12 @@ body {
   transition-duration: .2s;
 }
 
-.duration-500 {
-  transition-duration: .5s;
-}
-
 .duration-300 {
   transition-duration: .3s;
+}
+
+.duration-500 {
+  transition-duration: .5s;
 }
 
 .ease-in-out {
@@ -1807,12 +1799,12 @@ body {
   animation-duration: .2s;
 }
 
-.duration-500 {
-  animation-duration: .5s;
-}
-
 .duration-300 {
   animation-duration: .3s;
+}
+
+.duration-500 {
+  animation-duration: .5s;
 }
 
 .ease-in-out {
@@ -2478,12 +2470,12 @@ body {
     grid-column: span 3 / span 3;
   }
 
-  .lg\:grid-cols-5 {
-    grid-template-columns: repeat(5, minmax(0, 1fr));
-  }
-
   .lg\:grid-cols-3 {
     grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .lg\:grid-cols-5 {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
   }
 }
 

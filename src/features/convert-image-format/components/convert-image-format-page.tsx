@@ -35,7 +35,7 @@ import {
 import {Label} from '@/components/ui/label';
 import JSZip from 'jszip';
 
-type TargetFormat = 'jpeg' | 'png' | 'webp';
+type TargetFormat = 'jpeg' | 'png' | 'webp' | 'bmp' | 'gif' | 'avif';
 
 const clientSideConvert = (
   file: File,
@@ -296,6 +296,9 @@ export function ConvertImageFormatPage() {
                     <SelectItem value="png">PNG</SelectItem>
                     <SelectItem value="jpeg">JPEG</SelectItem>
                     <SelectItem value="webp">WEBP</SelectItem>
+                    <SelectItem value="gif">GIF</SelectItem>
+                    <SelectItem value="bmp">BMP</SelectItem>
+                    <SelectItem value="avif">AVIF</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
