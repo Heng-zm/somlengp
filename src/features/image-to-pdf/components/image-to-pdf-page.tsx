@@ -134,6 +134,7 @@ export function ImageToPdfPage() {
             onDragOver={handleDragEvents}
             onDragLeave={handleDragLeave}
             onDrop={handleDrop}
+            style={{minHeight: files.length === 0 ? '80vh' : 'auto' }}
         >
             <Card 
                 className={cn(
