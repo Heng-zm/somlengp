@@ -168,9 +168,9 @@ export function PdfTranscriptPage() {
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
     >
-        <main className="p-4 md:p-6">
+        <main className="flex-grow p-4 md:p-6">
             {isTranscribing ? (
-                <div className="flex flex-col items-center justify-center rounded-2xl border-border bg-card h-[76vh]">
+                <div className="absolute inset-0 bg-background/80 flex flex-col items-center justify-center z-10">
                     <div className="flex space-x-2">
                         <div className="w-4 h-4 rounded-full bg-primary animate-bounce-dot"></div>
                         <div className="w-4 h-4 rounded-full bg-primary animate-bounce-dot animation-delay-200"></div>
