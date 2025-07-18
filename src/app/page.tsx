@@ -1,9 +1,9 @@
 
 'use client';
 
-import { useContext, useMemo } from 'react';
+import { useContext, useMemo, useState, useEffect } from 'react';
 import Link from 'next/link';
-import { Mic, FileText, Menu, Combine, Image as ImageIcon } from 'lucide-react';
+import { Mic, FileText, Menu, Combine, Image as ImageIcon, Users } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
@@ -13,19 +13,39 @@ import { allTranslations } from '@/lib/translations';
 import { BotMessageSquare } from 'lucide-react';
 
 export default function Home() {
+  const [visitorCount, setVisitorCount] = useState<number | null>(null);
   const langContext = useContext(LanguageContext);
   if (!langContext) {
     throw new Error('Home page must be used within a LanguageProvider');
   }
   const { language, toggleLanguage } = langContext;
   const t = useMemo(() => allTranslations[language], [language]);
+  
+  useEffect(() => {
+    fetch('/api/visit')
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                setVisitorCount(data.count);
+            }
+        })
+        .catch(console.error);
+  }, []);
 
   return (
     <div className="flex flex-col h-full bg-background text-foreground p-4 sm:p-6 md:p-8">
       <header className="mb-8 flex justify-between items-center">
         <div className="flex items-center gap-3">
           <BotMessageSquare className="h-8 w-8 text-primary" />
-          <h1 className="text-3xl font-bold text-foreground">VoiceScribe</h1>
+          <div>
+            <h1 className="text-3xl font-bold text-foreground">VoiceScribe</h1>
+            {visitorCount !== null && (
+                <div className="flex items-center gap-1.5 text-sm text-muted-foreground mt-1">
+                    <Users className="w-4 h-4" />
+                    <span>{visitorCount} Visitors</span>
+                </div>
+            )}
+          </div>
         </div>
         <Sheet>
           <SheetTrigger asChild>
