@@ -9,7 +9,6 @@
  */
 
 import {ai} from '@/ai/genkit';
-import {googleAI} from '@genkit-ai/googleai';
 import {z} from 'genkit';
 
 const TranscribePdfInputSchema = z.object({
@@ -58,8 +57,7 @@ const pdfTranscriptFlow = ai.defineFlow(
     outputSchema: TranscribePdfOutputSchema,
   },
   async input => {
-    const model = input.model ? googleAI.model(input.model) : undefined;
-    const {output} = await prompt(input, {model});
+    const {output} = await prompt(input);
     if (!output) {
       throw new Error(
         'PDF to Text transcription failed: The model did not return any output.'
