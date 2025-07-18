@@ -26,31 +26,26 @@ export default function Home() {
   
   useEffect(() => {
     const trackAndFetchVisitorCount = async () => {
-      const hasVisited = localStorage.getItem(VISITOR_FLAG);
-      if (!hasVisited) {
-        localStorage.setItem(VISITOR_FLAG, 'true');
-        try {
-          const res = await fetch('/api/visit', { method: 'POST' });
-          const data = await res.json();
-          if (data.success) {
+      try {
+        const hasVisited = localStorage.getItem(VISITOR_FLAG);
+        let response: Response;
+
+        if (!hasVisited) {
+          localStorage.setItem(VISITOR_FLAG, 'true');
+          response = await fetch('/api/visit', { method: 'POST' });
+        } else {
+          response = await fetch('/api/visit');
+        }
+        
+        const data = await response.json();
+        if (data.success) {
             setVisitorCount(data.count);
-          } else {
-            localStorage.removeItem(VISITOR_FLAG);
-          }
-        } catch (error) {
-            console.error('Failed to track visitor:', error);
+        } else if (!hasVisited) {
+            // If the POST request failed, undo the flag.
             localStorage.removeItem(VISITOR_FLAG);
         }
-      } else {
-        try {
-            const res = await fetch('/api/visit');
-            const data = await res.json();
-            if (data.success) {
-                setVisitorCount(data.count);
-            }
-        } catch (error) {
-            console.error('Failed to fetch visitor count:', error);
-        }
+      } catch (error) {
+        console.error('Failed to track or fetch visitor count:', error);
       }
     };
     trackAndFetchVisitorCount();

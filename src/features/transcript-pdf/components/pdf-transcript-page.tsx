@@ -48,6 +48,14 @@ export function PdfTranscriptPage() {
   }
   const { language } = langContext;
   const t = useMemo(() => allTranslations[language], [language]);
+
+  const clearFile = () => {
+    setPdfFile(null);
+    setTranscribedText('');
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  }
   
   const handleFileSelect = useCallback(async (file: File | null | undefined) => {
     if (!file) return;
@@ -86,6 +94,7 @@ export function PdfTranscriptPage() {
           description: t.noText,
           variant: "destructive",
         });
+        clearFile();
       }
     } catch (e: any) {
       console.error(e);
@@ -104,7 +113,7 @@ export function PdfTranscriptPage() {
         description: description,
         variant: "destructive",
       });
-      setPdfFile(null); // Clear the file on error
+      clearFile();
     } finally {
       setIsTranscribing(false);
     }
@@ -162,14 +171,6 @@ export function PdfTranscriptPage() {
     docx: 'DOCX (Word Document)',
     txt: 'TXT (Plain Text)',
   }), []);
-
-  const clearFile = () => {
-    setPdfFile(null);
-    setTranscribedText('');
-    if (fileInputRef.current) {
-      fileInputRef.current.value = '';
-    }
-  }
   
   return (
     <div 
