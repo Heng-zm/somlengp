@@ -2,7 +2,7 @@
 "use client";
 
 import { useState, useRef, useMemo, useCallback, useContext } from 'react';
-import { FileUp, Loader2, Download, Copy } from 'lucide-react';
+import { FileUp, Download, Copy } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
@@ -168,19 +168,22 @@ export function PdfTranscriptPage() {
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
     >
-        <main className="flex-grow p-4 md:p-6">
+        <main className="p-4 md:p-6">
             {isTranscribing ? (
                 <div className="flex flex-col items-center justify-center rounded-2xl border-border bg-card h-[76vh]">
-                    <Loader2 className="h-12 w-12 animate-spin text-primary" />
+                    <div className="flex space-x-2">
+                        <div className="w-4 h-4 rounded-full bg-primary animate-bounce-dot"></div>
+                        <div className="w-4 h-4 rounded-full bg-primary animate-bounce-dot animation-delay-200"></div>
+                        <div className="w-4 h-4 rounded-full bg-primary animate-bounce-dot animation-delay-400"></div>
+                    </div>
                     <p className="text-muted-foreground mt-4 text-lg">{t.transcribing}</p>
                 </div>
             ) : !pdfFile ? (
                  <div
                  className={cn(
-                   'flex cursor-pointer flex-col items-center justify-center rounded-2xl border-2 bg-card text-center transition-colors border-border',
+                   'flex cursor-pointer flex-col items-center justify-center rounded-2xl border-2 bg-card text-center transition-colors border-border h-[80vh]',
                    isDragging && 'border-primary bg-primary/10'
                  )}
-                 style={{minHeight: '80vh'}}
                  onClick={() => fileInputRef.current?.click()}
                >
                  <FileUp className="mb-4 h-16 w-16 text-muted-foreground/30" />
