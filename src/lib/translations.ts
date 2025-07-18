@@ -1,8 +1,11 @@
+
 export type Language = 'km' | 'en';
 
 export const allTranslations = {
   km: {
     voiceScribe: "ការសរសេរតាមសំឡេង",
+    voiceTranscriptDescription: "បម្លែងឯកសារអូឌីយ៉ូទៅជាអត្ថបទដែលអាចកែសម្រួលបានជាមួយនឹងពេលវេលា។",
+    startNow: "ចាប់ផ្តើមឥឡូវនេះ",
     selectModel: "ជ្រើសរើសម៉ូដែល",
     transcribing: "កំពុងបកប្រែសំឡេង សូមរង់ចាំ...",
     readyToTranscribe: "ត្រៀមខ្លួនរួចរាល់ដើម្បីបកប្រែ",
@@ -38,6 +41,7 @@ export const allTranslations = {
     feedbackError: "មិនអាចបញ្ជូនមតិកែលម្អបានទេ។ សូម​ព្យាយាម​ម្តង​ទៀត​នៅ​ពេល​ក្រោយ។",
     ratingThankYou: "សូម​អរគុណ!",
     pdfTranscript: "ប្រតិចារិក PDF",
+    pdfTranscriptDescription: "ស្រង់ចេញ និងសម្អាតអត្ថបទពីឯកសារ PDF របស់អ្នក។",
     features: "លក្ខណៈពិសេស",
     copy: "ចម្លង",
     copied: "បានចម្លង!",
@@ -45,6 +49,7 @@ export const allTranslations = {
     pageTitle: "ប្រតិចារិក PDF",
     dropPdf: "ដាក់ឯកសារ PDF នៅទីនេះ ឬចុចដើម្បីផ្ទុកឡើង។",
     noText: "ម៉ូដែលមិនបានបញ្ជូនអត្ថបទមកវិញទេ។ សូមព្យាយាមម្តងទៀត។",
+    noTextToExport: "គ្មានអត្ថបទសម្រាប់នាំចេញទេ។",
     selectPdfFile: "សូមជ្រើសរើសឯកសារ PDF។",
     transcribedTextPlaceholder: "អត្ថបទដែលបានបម្លែងនឹងបង្ហាញនៅទីនេះ។",
     uploadCardTitle: "ផ្ទុកឡើង PDF របស់អ្នក",
@@ -53,9 +58,16 @@ export const allTranslations = {
     fileSize: "ទំហំ​ឯកសារ:",
     actions: "សកម្មភាព",
     actionsDescription: "ចម្លង ឬទាញយកអត្ថបទជាទម្រង់ផ្សេងៗ។",
+    makePdf: "បង្កើត PDF",
+    makePdfDescription: "បង្កើតឯកសារ DOCX ពីអត្ថបទរបស់អ្នក។",
+    pasteTextHere: "បិទភ្ជាប់ ឬវាយអត្ថបទរបស់អ្នកនៅទីនេះ...",
+    exportAsDocx: "នាំចេញជា DOCX",
+    exportFailed: "ការនាំចេញបានបរាជ័យ",
   },
   en: {
     voiceScribe: "Voice Transcript",
+    voiceTranscriptDescription: "Transcribe audio files into editable text with timestamps.",
+    startNow: "Start Now",
     selectModel: "Select model",
     transcribing: "Transcribing audio, please wait...",
     readyToTranscribe: "Ready to Transcribe",
@@ -86,11 +98,12 @@ export const allTranslations = {
     ratingDescription: "Your feedback helps us improve. Please rate your experience.",
     ratingFeedbackPlaceholder: "Tell us more about your experience...",
     ratingSubmit: "Submit",
-    ratingLater: "Rate Later",
+    rateLater: "Rate Later",
     feedbackSuccess: "Thank you for your feedback!",
     feedbackError: "Could not submit feedback. Please try again later.",
     ratingThankYou: "Thank you!",
     pdfTranscript: "PDF Transcript",
+    pdfTranscriptDescription: "Extract and clean up text from your PDF documents.",
     features: "Features",
     copy: "COPY",
     copied: "Copied!",
@@ -98,6 +111,7 @@ export const allTranslations = {
     pageTitle: "PDF Transcript",
     dropPdf: "Drop a PDF file here or click to upload.",
     noText: "The model did not return any text. Please try again.",
+    noTextToExport: "There is no text to export.",
     selectPdfFile: "Please select a PDF file.",
     transcribedTextPlaceholder: "Transcribed text will appear here.",
     uploadCardTitle: "Upload your PDF",
@@ -106,5 +120,10 @@ export const allTranslations = {
     fileSize: "File Size:",
     actions: "Actions",
     actionsDescription: "Copy or download the text in various formats.",
+    makePdf: "Make PDF",
+    makePdfDescription: "Create a DOCX document from your text.",
+    pasteTextHere: "Paste or type your text here...",
+    exportAsDocx: "Export as DOCX",
+    exportFailed: "Export Failed",
   }
 };

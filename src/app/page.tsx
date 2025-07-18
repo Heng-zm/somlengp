@@ -3,13 +3,14 @@
 
 import { useContext, useMemo } from 'react';
 import Link from 'next/link';
-import { Mic, FileText, BotMessageSquare, Menu } from 'lucide-react';
+import { Mic, FileText, Menu, FilePlus } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { Sidebar } from '@/components/shared/sidebar';
 import { LanguageContext } from '@/contexts/language-context';
 import { allTranslations } from '@/lib/translations';
+import { BotMessageSquare } from 'lucide-react';
 
 export default function Home() {
   const langContext = useContext(LanguageContext);
@@ -41,20 +42,27 @@ export default function Home() {
         </Sheet>
       </header>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 flex-grow">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 flex-grow">
         <FeatureCard
           href="/voice-transcript"
           title={t.voiceScribe}
-          description={t.transcriptionSuccess}
+          description={t.voiceTranscriptDescription}
           icon={Mic}
           gradient="from-blue-400 to-teal-400"
         />
         <FeatureCard
           href="/pdf-transcript"
           title={t.pdfTranscript}
-          description={t.actionsDescription}
+          description={t.pdfTranscriptDescription}
           icon={FileText}
           gradient="from-purple-400 to-pink-400"
+        />
+        <FeatureCard
+          href="/make-pdf"
+          title={t.makePdf}
+          description={t.makePdfDescription}
+          icon={FilePlus}
+          gradient="from-green-400 to-blue-400"
         />
       </div>
     </div>
@@ -82,7 +90,7 @@ function FeatureCard({ href, title, description, icon: Icon, gradient }: Feature
           </div>
           <div className="flex justify-end z-10">
             <Button variant="secondary" className="bg-white/90 text-foreground hover:bg-white">
-              Start Now
+              {allTranslations.en.startNow}
             </Button>
           </div>
       </Card>
