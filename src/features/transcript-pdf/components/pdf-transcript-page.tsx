@@ -166,18 +166,18 @@ export function PdfTranscriptPage() {
             )}
 
             {!pdfFile ? (
-                <div 
-                    className={cn(
-                        "flex flex-col items-center justify-center text-center rounded-2xl border-2 border-border bg-card transition-colors cursor-pointer",
-                        isDragging && "border-primary bg-primary/10"
-                    )}
-                    onClick={() => fileInputRef.current?.click()}
-                    style={{minHeight: '80vh'}}
-                >
-                    <FileUp className="w-16 h-16 text-muted-foreground/30 mb-4"/>
-                    <h3 className="text-xl font-semibold">{t.chooseFile}</h3>
-                    <p className="text-muted-foreground mt-2">{t.dropPdf}</p>
-                </div>
+                 <div
+                 className={cn(
+                   'flex cursor-pointer flex-col items-center justify-center rounded-2xl border-2 border-border bg-card text-center transition-colors',
+                   isDragging && 'border-primary bg-primary/10'
+                 )}
+                 onClick={() => fileInputRef.current?.click()}
+                 style={{minHeight: '80vh'}}
+               >
+                 <FileUp className="mb-4 h-16 w-16 text-muted-foreground/30" />
+                 <h3 className="text-xl font-semibold">{t.chooseFile}</h3>
+                 <p className="mt-2 text-muted-foreground">{t.dropPdf}</p>
+               </div>
             ) : (
                 isReadyForContent && (
                   <Card className="shadow-sm overflow-hidden rounded-2xl flex-grow flex flex-col">
@@ -185,9 +185,8 @@ export function PdfTranscriptPage() {
                           value={transcribedText}
                           readOnly
                           placeholder={t.transcribedTextPlaceholder}
-                          className="h-full w-full resize-none text-base leading-relaxed p-6 border-0 focus-visible:ring-0 focus-visible:ring-offset-0"
+                          className="h-[85vh] w-full resize-none text-base leading-relaxed p-6 border-0 focus-visible:ring-0 focus-visible:ring-offset-0"
                           aria-label="Transcribed Text"
-                          style={{ height: '85vh' }}
                       />
                   </Card>
                 )
