@@ -1,3 +1,5 @@
 {
+  "/combine-pdf/page": "app/combine-pdf/page.js",
+  "/image-to-pdf/page": "app/image-to-pdf/page.js",
   "/page": "app/page.js"
 }

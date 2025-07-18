@@ -57,13 +57,10 @@ export function CombinePdfPage() {
     
     const validFiles: File[] = [];
     const invalidFiles: string[] = [];
-    const oversizedFiles: string[] = [];
 
     Array.from(selectedFiles).forEach(file => {
         if (file.type !== 'application/pdf') {
             invalidFiles.push(file.name);
-        } else if (file.size > MAX_FILE_SIZE_BYTES) {
-            oversizedFiles.push(file.name);
         } else {
             validFiles.push(file);
         }
@@ -73,14 +70,6 @@ export function CombinePdfPage() {
         toast({
             title: t.invalidFileType,
             description: t.selectPdfFile,
-            variant: "destructive",
-        });
-    }
-
-    if (oversizedFiles.length > 0) {
-        toast({
-            title: t.fileTooLargeTitle,
-            description: `${t.fileTooLargeDescription(MAX_FILE_SIZE_MB)}: ${oversizedFiles.join(', ')}`,
             variant: "destructive",
         });
     }

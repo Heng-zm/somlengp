@@ -67,13 +67,10 @@ export function ImageToPdfPage() {
     
     const validFiles: File[] = [];
     const invalidFiles: string[] = [];
-    const oversizedFiles: string[] = [];
 
     Array.from(selectedFiles).forEach(file => {
         if (!file.type.startsWith('image/')) {
             invalidFiles.push(file.name);
-        } else if (file.size > MAX_FILE_SIZE_BYTES) {
-            oversizedFiles.push(file.name);
         } else {
             validFiles.push(file);
         }
@@ -83,14 +80,6 @@ export function ImageToPdfPage() {
         toast({
             title: t.invalidFileType,
             description: t.selectImageFile,
-            variant: "destructive",
-        });
-    }
-
-    if (oversizedFiles.length > 0) {
-        toast({
-            title: t.fileTooLargeTitle,
-            description: `${t.fileTooLargeDescription(MAX_FILE_SIZE_MB)}: ${oversizedFiles.join(', ')}`,
             variant: "destructive",
         });
     }
