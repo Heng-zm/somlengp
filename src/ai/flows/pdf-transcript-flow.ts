@@ -11,8 +11,7 @@
 import {ai} from '@/ai/genkit';
 import {googleAI} from '@genkit-ai/googleai';
 import {z} from 'genkit';
-
-const MAX_BASE64_SIZE_BYTES = 4.5 * 1024 * 1024 * 1.37; // 4.5MB with 37% overhead for base64
+import { MAX_BASE64_SIZE_BYTES } from '@/config';
 
 const TranscribePdfInputSchema = z.object({
   pdfDataUri: z

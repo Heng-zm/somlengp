@@ -13,8 +13,7 @@ import {googleAI} from '@genkit-ai/googleai';
 import {z} from 'genkit';
 import type {TranscribeAudioOutput} from '@/lib/types';
 import {TranscribeAudioOutputSchema} from '@/lib/types';
-
-const MAX_BASE64_SIZE_BYTES = 4.5 * 1024 * 1024 * 1.37; // 4.5MB with 37% overhead for base64
+import { MAX_BASE64_SIZE_BYTES } from '@/config';
 
 const ImproveTranscriptionAccuracyInputSchema = z.object({
   audioDataUri: z

@@ -11,8 +11,7 @@
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
 import {PDFDocument} from 'pdf-lib';
-
-const MAX_BASE64_SIZE_BYTES = 4.5 * 1024 * 1024 * 1.37; // 4.5MB with 37% overhead for base64
+import { MAX_BASE64_SIZE_BYTES } from '@/config';
 
 const CombinePdfInputSchema = z.object({
   pdfDataUris: z

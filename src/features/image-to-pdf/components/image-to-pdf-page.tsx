@@ -11,9 +11,7 @@ import { LanguageContext } from '@/contexts/language-context';
 import { cn } from '@/lib/utils';
 import { imageToPdf } from '@/ai/flows/image-to-pdf-flow';
 import Image from 'next/image';
-
-const MAX_FILE_SIZE_MB = 4.5;
-const MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024;
+import { MAX_FILE_SIZE_BYTES, MAX_FILE_SIZE_MB } from '@/config';
 
 const blobToBase64 = (blob: Blob): Promise<string> => {
     return new Promise((resolve, reject) => {
