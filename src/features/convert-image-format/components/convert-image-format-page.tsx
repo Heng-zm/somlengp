@@ -16,7 +16,6 @@ import {Card} from '@/components/ui/card';
 import {allTranslations} from '@/lib/translations';
 import {LanguageContext} from '@/contexts/language-context';
 import {cn} from '@/lib/utils';
-import {convertImageFormat} from '@/ai/flows/convert-image-format-flow';
 import Image from 'next/image';
 import {
   Sheet,
@@ -38,18 +37,31 @@ import {MAX_FILE_SIZE_BYTES, MAX_FILE_SIZE_MB} from '@/config';
 
 type TargetFormat = 'jpeg' | 'png' | 'webp';
 
-const blobToBase64 = (blob: Blob): Promise<string> => {
+const clientSideConvert = (
+  file: File,
+  targetFormat: TargetFormat
+): Promise<string> => {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
-    reader.onloadend = () => {
-      if (typeof reader.result === 'string') {
-        resolve(reader.result);
-      } else {
-        reject(new Error('Failed to convert blob to Base64.'));
-      }
+    reader.onload = event => {
+      const img = document.createElement('img');
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        canvas.width = img.width;
+        canvas.height = img.height;
+        const ctx = canvas.getContext('2d');
+        if (!ctx) {
+          return reject(new Error('Could not get canvas context.'));
+        }
+        ctx.drawImage(img, 0, 0);
+        const dataUrl = canvas.toDataURL(`image/${targetFormat}`);
+        resolve(dataUrl);
+      };
+      img.onerror = reject;
+      img.src = event.target?.result as string;
     };
     reader.onerror = reject;
-    reader.readAsDataURL(blob);
+    reader.readAsDataURL(file);
   });
 };
 
@@ -120,11 +132,7 @@ export function ConvertImageFormatPage() {
 
     setIsConverting(true);
     try {
-      const imageDataUri = await blobToBase64(file);
-      const {convertedImageDataUri} = await convertImageFormat({
-        imageDataUri,
-        targetFormat,
-      });
+      const convertedImageDataUri = await clientSideConvert(file, targetFormat);
 
       const a = document.createElement('a');
       a.href = convertedImageDataUri;
@@ -140,17 +148,9 @@ export function ConvertImageFormatPage() {
       });
       setIsDrawerOpen(false); // Close drawer on success
     } catch (e: any) {
-      let title = t.conversionError;
-      let description = e.message || 'An unknown error occurred.';
-      const errorMessage = (e.message || '').toLowerCase();
-
-      if (errorMessage.includes('413') || errorMessage.includes('too large')) {
-        title = t.fileTooLargeTitle;
-        description = t.fileTooLargeDescription(MAX_FILE_SIZE_MB);
-      }
       toast({
-        title,
-        description,
+        title: t.conversionError,
+        description: e.message || 'An unknown error occurred during conversion.',
         variant: 'destructive',
       });
     } finally {
