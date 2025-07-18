@@ -1,5 +1,28 @@
 {
-  "node": {},
+  "node": {
+    "40f24016ea303258f56732dc409dd7d4a17ebd3af9": {
+      "workers": {
+        "app/image-to-pdf/page": {
+          "moduleId": "[project]/.next-internal/server/app/image-to-pdf/page/actions.js { ACTIONS_MODULE0 => \"[project]/src/ai/flows/image-to-pdf-flow.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false
+        }
+      },
+      "layer": {
+        "app/image-to-pdf/page": "action-browser"
+      }
+    },
+    "405ebf3000873dc89fbbe3b2bebc56418e42ba171a": {
+      "workers": {
+        "app/combine-pdf/page": {
+          "moduleId": "[project]/.next-internal/server/app/combine-pdf/page/actions.js { ACTIONS_MODULE0 => \"[project]/src/ai/flows/combine-pdf-flow.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false
+        }
+      },
+      "layer": {
+        "app/combine-pdf/page": "action-browser"
+      }
+    }
+  },
   "edge": {},
   "encryptionKey": "Wpu4M2c6p4TZhFXdbsr+UB39pbwJ3IIKdTYJ5Rc92vo="
 }

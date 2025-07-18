@@ -11,7 +11,6 @@
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
 import {PDFDocument, PDFImage} from 'pdf-lib';
-import { MAX_BASE64_SIZE_BYTES } from '@/config';
 
 const ImageToPdfInputSchema = z.object({
   imageDataUris: z
@@ -44,11 +43,6 @@ const imageToPdfFlow = ai.defineFlow(
   async ({imageDataUris}) => {
     if (imageDataUris.length === 0) {
       throw new Error('No image files provided to convert.');
-    }
-
-    const totalSize = imageDataUris.reduce((acc, uri) => acc + uri.length, 0);
-    if (totalSize > MAX_BASE64_SIZE_BYTES) {
-        throw new Error('413: Payload Too Large. Combined image size exceeds the server limit.');
     }
 
     const pdfDoc = await PDFDocument.create();
