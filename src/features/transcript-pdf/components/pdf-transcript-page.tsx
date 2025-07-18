@@ -157,7 +157,7 @@ export function PdfTranscriptPage() {
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
     >
-        <main className="p-4 md:p-6 relative flex-grow flex flex-col">
+        <main className="p-4 md:p-6">
             {isTranscribing && (
                 <div className="absolute inset-0 bg-background/80 flex flex-col items-center justify-center z-10">
                     <Loader2 className="h-12 w-12 animate-spin text-primary" />
@@ -171,8 +171,8 @@ export function PdfTranscriptPage() {
                    'flex cursor-pointer flex-col items-center justify-center rounded-2xl border-2 border-border bg-card text-center transition-colors',
                    isDragging && 'border-primary bg-primary/10'
                  )}
-                 onClick={() => fileInputRef.current?.click()}
                  style={{minHeight: '80vh'}}
+                 onClick={() => fileInputRef.current?.click()}
                >
                  <FileUp className="mb-4 h-16 w-16 text-muted-foreground/30" />
                  <h3 className="text-xl font-semibold">{t.chooseFile}</h3>
@@ -180,7 +180,7 @@ export function PdfTranscriptPage() {
                </div>
             ) : (
                 isReadyForContent && (
-                  <Card className="shadow-sm overflow-hidden rounded-2xl flex-grow flex flex-col">
+                  <Card className="shadow-sm overflow-hidden rounded-2xl">
                       <Textarea
                           value={transcribedText}
                           readOnly
