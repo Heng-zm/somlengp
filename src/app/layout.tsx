@@ -3,6 +3,7 @@ import {Toaster} from '@/components/ui/toaster';
 import './globals.css';
 import { AppLayout } from '@/layouts/app-layout';
 import { Kantumruy_Pro } from 'next/font/google';
+import { VisitorTracker } from '@/components/shared/visitor-tracker';
 
 const kantumruy = Kantumruy_Pro({ subsets: ['latin', 'khmer'] });
 
@@ -23,6 +24,7 @@ export default function RootLayout({
           {children}
         </AppLayout>
         <Toaster />
+        <VisitorTracker />
       </body>
     </html>
   );
