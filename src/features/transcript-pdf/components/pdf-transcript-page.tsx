@@ -151,13 +151,13 @@ export function PdfTranscriptPage() {
   
   return (
     <div 
-        className="bg-background text-foreground"
+        className="flex flex-col bg-background text-foreground h-full"
         onDragEnter={handleDragEnter}
         onDragOver={handleDragEvents}
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
     >
-        <main className="p-4 md:p-6 relative">
+        <main className="p-4 md:p-6 relative flex-grow flex flex-col">
             {isTranscribing && (
                 <div className="absolute inset-0 bg-background/80 flex flex-col items-center justify-center z-10">
                     <Loader2 className="h-12 w-12 animate-spin text-primary" />
@@ -180,14 +180,14 @@ export function PdfTranscriptPage() {
                 </div>
             ) : (
                 isReadyForContent && (
-                  <Card className="shadow-sm overflow-hidden rounded-2xl">
+                  <Card className="shadow-sm overflow-hidden rounded-2xl flex-grow flex flex-col">
                       <Textarea
                           value={transcribedText}
                           readOnly
                           placeholder={t.transcribedTextPlaceholder}
                           className="h-full w-full resize-none text-base leading-relaxed p-6 border-0 focus-visible:ring-0 focus-visible:ring-offset-0"
                           aria-label="Transcribed Text"
-                          rows={15}
+                          style={{ height: '85vh' }}
                       />
                   </Card>
                 )
@@ -203,7 +203,7 @@ export function PdfTranscriptPage() {
         </main>
         
         {isReadyForContent && (
-          <footer className="flex items-center justify-center gap-2 p-4 bg-background">
+          <footer className="flex-shrink-0 flex items-center justify-center gap-2 p-4 bg-background border-t">
             <div className="w-full max-w-lg flex gap-2 items-center justify-center">
                   <Button onClick={handleCopy} variant="outline" size="icon" className="h-12 w-12 rounded-full">
                       <Copy className="h-5 w-5" />
