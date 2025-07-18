@@ -150,15 +150,14 @@ export function PdfTranscriptPage() {
   const isReadyForContent = !isTranscribing && transcribedText.length > 0;
   
   return (
-    <div className="flex flex-col h-full bg-background text-foreground">
-        <main 
-            className="flex-grow flex flex-col p-4 md:p-6 relative"
-            onDragEnter={handleDragEnter}
-            onDragOver={handleDragEvents}
-            onDragLeave={handleDragLeave}
-            onDrop={handleDrop}
-            style={{minHeight: !pdfFile ? '80vh' : 'auto' }}
-        >
+    <div 
+        className="flex flex-col h-full bg-background text-foreground"
+        onDragEnter={handleDragEnter}
+        onDragOver={handleDragEvents}
+        onDragLeave={handleDragLeave}
+        onDrop={handleDrop}
+    >
+        <main className="flex-grow flex flex-col p-4 md:p-6 relative">
             {isTranscribing && (
                 <div className="absolute inset-0 bg-background/80 flex flex-col items-center justify-center z-10">
                     <Loader2 className="h-12 w-12 animate-spin text-primary" />
@@ -173,6 +172,7 @@ export function PdfTranscriptPage() {
                         isDragging && "border-primary bg-primary/10"
                     )}
                     onClick={() => fileInputRef.current?.click()}
+                    style={{minHeight: '80vh'}}
                 >
                     <FileUp className="w-16 h-16 text-muted-foreground/30 mb-4"/>
                     <h3 className="text-xl font-semibold">{t.chooseFile}</h3>
