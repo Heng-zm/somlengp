@@ -9,7 +9,7 @@ import { cn } from '@/lib/utils';
 import { Card } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
 import { transcribePdf } from '@/ai/flows/pdf-transcript-flow';
-import { exportTranscript } from '@/lib/export';
+import { exportTranscript } from '@/lib/client-export';
 import { allTranslations } from '@/lib/translations';
 import { ModelContext } from '@/layouts/feature-page-layout';
 import { LanguageContext } from '@/contexts/language-context';
@@ -80,7 +80,7 @@ export function PdfTranscriptPage() {
 
     try {
       const pdfDataUri = await blobToBase64(file);
-      const result = await transcribePdf({ pdfDataUri, model: selectedModel });
+      const result = await transcribePdf({ pdfDataUri });
 
       if (result && result.text) {
         setTranscribedText(result.text);
@@ -108,7 +108,7 @@ export function PdfTranscriptPage() {
     } finally {
       setIsTranscribing(false);
     }
-  }, [t, toast, selectedModel]);
+  }, [t, toast]);
 
 
   const handleDragEvents = (e: React.DragEvent<HTMLDivElement>) => {

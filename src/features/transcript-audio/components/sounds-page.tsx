@@ -13,7 +13,7 @@ import {
   SheetTrigger
 } from '@/components/ui/sheet';
 import { useToast } from '@/hooks/use-toast';
-import { exportTranscript } from '@/lib/export';
+import { exportTranscript } from '@/lib/client-export';
 import type { TranscriptWord } from '@/lib/types';
 import { transcribeAudio } from '@/ai/flows/speech-to-text-flow';
 import { improveTranscriptionAccuracy } from '@/ai/flows/improve-transcription-accuracy-flow';
@@ -87,7 +87,6 @@ export function SoundsPage() {
       const audioDataUri = await blobToBase64(audioFile);
       const result = await improveTranscriptionAccuracy({
         audioDataUri,
-        model: selectedModel,
         customVocabulary,
       });
   
@@ -115,7 +114,7 @@ export function SoundsPage() {
     } finally {
       setIsTranscribing(false);
     }
-  }, [audioFile, customVocabulary, selectedModel, t, toast]);
+  }, [audioFile, customVocabulary, t, toast]);
   
   const processAudio = useCallback(async (file: File) => {
     setIsTranscribing(true);
@@ -124,7 +123,7 @@ export function SoundsPage() {
 
     try {
         const audioDataUri = await blobToBase64(file);
-        const result = await transcribeAudio({ audioDataUri, model: selectedModel });
+        const result = await transcribeAudio({ audioDataUri });
         
         if (result && result.transcript) {
             setStructuredTranscript(result.transcript);
@@ -153,7 +152,7 @@ export function SoundsPage() {
     } finally {
         setIsTranscribing(false);
     }
-  }, [selectedModel, t, toast]);
+  }, [t, toast]);
 
   useEffect(() => {
     if (audioFile) {
