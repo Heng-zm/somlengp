@@ -6,15 +6,20 @@ import path from 'path';
 // Define the path to the file where the visitor count will be stored.
 // Using path.join with process.cwd() ensures a correct, absolute path 
 // that works reliably in different environments.
-const countFilePath = path.join(process.cwd(), 'visitor_count.txt');
+const countFilePath = path.join(process.cwd(), 'visitor_data.json');
+
+interface VisitorData {
+  count: number;
+}
 
 async function getCount(): Promise<number> {
   try {
     const data = await fs.readFile(countFilePath, 'utf-8');
-    return parseInt(data, 10);
+    const jsonData: VisitorData = JSON.parse(data);
+    return jsonData.count || 0;
   } catch (error: any) {
-    // If the file doesn't exist, it's the first run.
-    if (error.code === 'ENOENT') {
+    // If the file doesn't exist or is invalid JSON, it's the first run.
+    if (error.code === 'ENOENT' || error instanceof SyntaxError) {
       return 0;
     }
     // For any other errors, re-throw them.
@@ -23,7 +28,8 @@ async function getCount(): Promise<number> {
 }
 
 async function setCount(count: number): Promise<void> {
-  await fs.writeFile(countFilePath, count.toString(), 'utf-8');
+  const data: VisitorData = { count };
+  await fs.writeFile(countFilePath, JSON.stringify(data, null, 2), 'utf-8');
 }
 
 export async function POST() {
