@@ -4,7 +4,7 @@
 import { useMemo } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { BotMessageSquare, Languages, FileText, LifeBuoy, Mic, Home } from 'lucide-react';
+import { BotMessageSquare, Languages, FileText, LifeBuoy, Mic } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { allTranslations } from '@/lib/translations';
@@ -21,7 +21,6 @@ export function Sidebar({ language, toggleLanguage }: SidebarProps) {
   const t = useMemo(() => allTranslations[language], [language]);
 
   const navItems = [
-    { href: '/', label: 'Home', icon: Home },
     { href: '/voice-transcript', label: t.voiceScribe, icon: Mic },
     { href: '/pdf-transcript', label: t.pdfTranscript, icon: FileText },
   ];
