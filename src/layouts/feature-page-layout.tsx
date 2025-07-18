@@ -2,12 +2,13 @@
 "use client";
 
 import { createContext, useState, useMemo, useContext } from 'react';
-import Link from 'next/link';
-import { ArrowLeft } from 'lucide-react';
+import { Menu } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { allTranslations } from '@/lib/translations';
 import { LanguageContext } from '@/contexts/language-context';
+import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
+import { Sidebar } from '@/components/shared/sidebar';
 
 // Model Context
 interface ModelContextType {
@@ -44,7 +45,7 @@ export function FeaturePageLayout({ children, title, showModelSelector = false }
     if (!langContext) {
         throw new Error('FeaturePageLayout must be used within an AppLayout');
     }
-    const { language } = langContext;
+    const { language, toggleLanguage } = langContext;
     const t = useMemo(() => allTranslations[language], [language]);
 
     const modelContext = useContext(ModelContext);
@@ -60,16 +61,21 @@ export function FeaturePageLayout({ children, title, showModelSelector = false }
 
     return (
         <div className="flex flex-col h-full">
-            <header className="flex-shrink-0 flex items-center justify-between p-4 border-b">
-                <Link href="/" passHref>
-                   <Button variant="ghost" size="icon">
-                      <ArrowLeft />
-                   </Button>
-                </Link>
-                <h1 className="text-xl font-bold">{title}</h1>
+            <header className="flex-shrink-0 flex items-center justify-between p-2 sm:p-4 border-b">
+                <Sheet>
+                  <SheetTrigger asChild>
+                    <Button variant="ghost" size="icon">
+                      <Menu />
+                    </Button>
+                  </SheetTrigger>
+                  <SheetContent side="left" className="p-0 w-[300px]">
+                    <Sidebar language={language} toggleLanguage={toggleLanguage} />
+                  </SheetContent>
+                </Sheet>
+                <h1 className="text-lg sm:text-xl font-bold">{title}</h1>
                 {showModelSelector ? (
                     <Select value={selectedModel} onValueChange={setSelectedModel}>
-                        <SelectTrigger className="w-fit md:w-[180px]">
+                        <SelectTrigger className="w-fit md:w-[180px] text-xs sm:text-sm">
                             <SelectValue placeholder={t.selectModel} />
                         </SelectTrigger>
                         <SelectContent>
