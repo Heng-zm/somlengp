@@ -87,11 +87,13 @@ const enTranslations: Translations = {
     conversionErrorDescription: "Please upload at least one image to convert.",
     selectImageFile: "Please select an image file (JPEG, PNG, etc.).",
     fileTooLargeTitle: "File Too Large",
-    fileTooLargeDescription: (size: number) => `One or more files exceed the server's limit of ${size}MB. Please use smaller files.`,
+    fileTooLargeDescription: (size: number) => `The file exceeds the server's limit of ${size}MB. Please use a smaller file.`,
     convertImageFormat: "Convert Image Format",
     convertImageFormatDescription: "Easily change the format of your images.",
     convertImageFormatTitle: "Upload your image to convert",
     dropImageToConvert: "Drop an image here or click to select.",
+    modelOverloadedTitle: "AI Model Busy",
+    modelOverloadedDescription: "The AI model is currently experiencing high demand. Please try again in a few moments.",
 };
 
 const kmTranslations: Translations = {
@@ -175,14 +177,18 @@ const kmTranslations: Translations = {
     conversionErrorDescription: "សូមផ្ទុកឡើងយ៉ាងហោចណាស់រូបភាពមួយ។",
     selectImageFile: "សូមជ្រើសរើសឯកសាររូបភាព។",
     fileTooLargeTitle: "ឯកសារធំពេក",
-    fileTooLargeDescription: (size: number) => `ឯកសារមួយឬច្រើនមានទំហំធំជាង ${size}MB។ សូមផ្ទុកឡើងឯកសារតូចជាងនេះ។`,
+    fileTooLargeDescription: (size: number) => `ឯកសារមានទំហំធំជាង ${size}MB។ សូមផ្ទុកឡើងឯកសារតូចជាងនេះ។`,
     convertImageFormat: "បម្លែងទ្រង់ទ្រាយរូបភាព",
     convertImageFormatDescription: "ផ្លាស់ប្តូរទ្រង់ទ្រាយរូបភាពរបស់អ្នកបានយ៉ាងងាយស្រួល។",
     convertImageFormatTitle: "ផ្ទុកឡើងរូបភាពរបស់អ្នកដើម្បីបម្លែង",
     dropImageToConvert: "ទម្លាក់រូបភាពនៅទីនេះ ឬចុចដើម្បីជ្រើសរើស។",
+    modelOverloadedTitle: "ម៉ូដែល AI រវល់",
+    modelOverloadedDescription: "ម៉ូដែល AI កំពុងមានតម្រូវការខ្ពស់។ សូមព្យាយាមម្តងទៀតក្នុងរយៈពេលពីរបីនាទីទៀត។",
 };
 
 export const allTranslations = {
   km: kmTranslations,
   en: enTranslations
 };
+
+    
