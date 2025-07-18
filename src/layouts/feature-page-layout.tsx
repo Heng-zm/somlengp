@@ -2,14 +2,12 @@
 "use client";
 
 import { createContext, useState, useMemo, useContext } from 'react';
-import { ChevronLeft, Menu } from 'lucide-react';
+import { ChevronLeft } from 'lucide-react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { allTranslations } from '@/lib/translations';
 import { LanguageContext } from '@/contexts/language-context';
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
-import { Sidebar } from '@/components/shared/sidebar';
 
 
 // Model Context
@@ -47,7 +45,7 @@ export function FeaturePageLayout({ children, title, showModelSelector = false }
     if (!langContext) {
         throw new Error('FeaturePageLayout must be used within an AppLayout');
     }
-    const { language, toggleLanguage } = langContext;
+    const { language } = langContext;
     const t = useMemo(() => allTranslations[language], [language]);
 
     const modelContext = useContext(ModelContext);
@@ -56,11 +54,11 @@ export function FeaturePageLayout({ children, title, showModelSelector = false }
     }
     const { selectedModel, setSelectedModel } = modelContext;
 
-    const modelDisplayNames = useMemo(() => ({
-        'gemini-2.5-flash': 'Gemini 2.5 Flash',
-        'gemini-2.0-flash': 'Gemini 2.0 Flash',
-        'gemini-1.5-flash-latest': 'Gemini 1.5 Flash',
-    }), []);
+    const modelOptions = useMemo(() => ([
+        { value: 'gemini-2.5-flash', label: 'Gemini 2.5 Flash' },
+        { value: 'gemini-2.0-flash', label: 'Gemini 2.0 Flash' },
+        { value: 'gemini-1.5-flash-latest', label: 'Gemini 1.5 Flash' },
+    ]), []);
 
     return (
         <div className="flex flex-col h-full">
@@ -78,8 +76,8 @@ export function FeaturePageLayout({ children, title, showModelSelector = false }
                             <SelectValue placeholder={t.selectModel} />
                         </SelectTrigger>
                         <SelectContent>
-                            {Object.entries(modelDisplayNames).map(([value, label]) => (
-                                <SelectItem key={value} value={value}>{label}</SelectItem>
+                            {modelOptions.map((option) => (
+                                <SelectItem key={option.value} value={option.value}>{option.label}</SelectItem>
                             ))}
                         </SelectContent>
                     </Select>
