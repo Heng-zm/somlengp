@@ -1,7 +1,5 @@
-
 "use client";
 
-import { Sidebar } from '@/components/shared/sidebar';
 import { createContext, useState, useMemo } from 'react';
 import type { Language } from '@/lib/translations';
 
@@ -26,14 +24,8 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
 
   return (
     <LanguageContext.Provider value={contextValue}>
-      <div className="flex h-screen bg-background">
-        {/* Desktop Sidebar */}
-        <div className="hidden md:flex md:w-64 flex-shrink-0 bg-sidebar text-sidebar-foreground border-r border-sidebar-border">
-          <Sidebar language={language} toggleLanguage={toggleLanguage} />
-        </div>
-
+      <div className="flex flex-col h-screen bg-background">
         <main className="flex-1 flex flex-col h-screen overflow-hidden">
-          {/* Main Content */}
           {children}
         </main>
       </div>

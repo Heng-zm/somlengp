@@ -1,8 +1,7 @@
-
 "use client";
 
 import { useState, useEffect, useRef, useCallback, useMemo, useContext } from 'react';
-import { Download, Loader2, FileUp, Sparkles, X as XIcon, Menu, Copy } from 'lucide-react';
+import { Download, Loader2, FileUp, Sparkles, X as XIcon, Copy, ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Sheet,
@@ -32,9 +31,9 @@ import { NumberPicker } from '@/components/ui/number-picker';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { RatingDialog } from '@/components/shared/rating-dialog';
-import { Sidebar } from '@/components/shared/sidebar';
 import { allTranslations } from '@/lib/translations';
 import { LanguageContext } from '@/layouts/app-layout';
+import Link from 'next/link';
 
 const blobToBase64 = (blob: Blob): Promise<string> => {
   return new Promise((resolve, reject) => {
@@ -66,7 +65,6 @@ export function SoundsPage() {
   const [isVocabSheetOpen, setIsVocabSheetOpen] = useState(false);
   const [isRatingOpen, setIsRatingOpen] = useState(false);
   const hasRated = useRef(false);
-  const [isSheetOpen, setIsSheetOpen] = useState(false);
 
   const { toast } = useToast();
   const fileInputRef = useRef<HTMLInputElement | null>(null);
@@ -75,7 +73,7 @@ export function SoundsPage() {
   if (!context) {
     throw new Error('SoundsPage must be used within a LanguageProvider');
   }
-  const { language, toggleLanguage } = context;
+  const { language } = context;
   const t = useMemo(() => allTranslations[language], [language]);
 
   useEffect(() => {
@@ -275,99 +273,83 @@ export function SoundsPage() {
   };
 
   return (
-    <>
-      <div className="flex flex-col h-full bg-background text-foreground">
-          <header className="flex-shrink-0 flex items-center justify-between p-4 border-b">
-              <div className="flex items-center gap-4">
-                  <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
-                      <SheetTrigger asChild>
-                      <Button variant="outline" size="icon" className="md:hidden">
-                          <Menu className="h-6 w-6" />
-                          <span className="sr-only">Toggle navigation menu</span>
-                      </Button>
-                      </SheetTrigger>
-                      <SheetContent 
-                      side="left" 
-                      className="p-0 w-64 bg-sidebar text-sidebar-foreground border-r border-sidebar-border flex flex-col"
-                      >
-                        <SheetHeader>
-                          <SheetTitle className="sr-only">Navigation</SheetTitle>
-                        </SheetHeader>
-                        <Sidebar />
-                      </SheetContent>
-                  </Sheet>
-                  <h1 className="text-xl font-bold">{t.voiceScribe}</h1>
-              </div>
-              <div className="flex items-center gap-2">
-                <Select value={selectedModel} onValueChange={setSelectedModel}>
-                  <SelectTrigger className="w-[180px]">
-                    <SelectValue placeholder={t.selectModel} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {Object.entries(modelDisplayNames).map(([value, label]) => (
-                      <SelectItem key={value} value={value}>{label}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-          </header>
+    <div className="flex flex-col h-full bg-background text-foreground">
+        <header className="flex-shrink-0 flex items-center justify-between p-4 border-b">
+            <Link href="/" passHref>
+               <Button variant="ghost" size="icon">
+                  <ArrowLeft />
+               </Button>
+            </Link>
+            <h1 className="text-xl font-bold">{t.voiceScribe}</h1>
+            <Select value={selectedModel} onValueChange={setSelectedModel}>
+              <SelectTrigger className="w-fit md:w-[180px]">
+                <SelectValue placeholder={t.selectModel} />
+              </SelectTrigger>
+              <SelectContent>
+                {Object.entries(modelDisplayNames).map(([value, label]) => (
+                  <SelectItem key={value} value={value}>{label}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+        </header>
 
-          <main 
-              className="flex-grow p-4 md:p-6 grid grid-cols-1 gap-6 relative bg-muted/40 overflow-y-auto"
-              onDragEnter={handleDragEnter}
-              onDragOver={handleDragEvents}
-              onDragLeave={handleDragLeave}
-              onDrop={handleDrop}
-          >
-              {isTranscribing ? (
-                  <div className="absolute inset-0 bg-background/80 flex flex-col items-center justify-center z-10">
-                      <Loader2 className="h-12 w-12 animate-spin text-primary" />
-                      <p className="text-muted-foreground mt-4 text-lg">{t.transcribing}</p>
-                  </div>
-              ) : null}
+        <main 
+            className="flex-grow p-4 md:p-6 grid grid-cols-1 gap-6 relative overflow-y-auto"
+            onDragEnter={handleDragEnter}
+            onDragOver={handleDragEvents}
+            onDragLeave={handleDragLeave}
+            onDrop={handleDrop}
+        >
+            {isTranscribing && (
+                <div className="absolute inset-0 bg-background/80 flex flex-col items-center justify-center z-10">
+                    <Loader2 className="h-12 w-12 animate-spin text-primary" />
+                    <p className="text-muted-foreground mt-4 text-lg">{t.transcribing}</p>
+                </div>
+            )}
 
-              {!audioFile ? (
-                  <div 
-                      className={cn(
-                          "flex flex-col items-center justify-center text-center rounded-lg border-2 border-dashed border-muted-foreground/20 bg-background h-full transition-colors cursor-pointer",
-                          isDragging && "border-primary bg-primary/10"
-                      )}
-                      onClick={() => fileInputRef.current?.click()}
-                  >
-                      <FileUp className="w-20 h-20 text-muted-foreground/30 mb-4"/>
-                      <h3 className="text-2xl font-semibold">{t.readyToTranscribe}</h3>
-                      <p className="text-muted-foreground mt-2 mb-4">{t.dropAudio}</p>
-                  </div>
-              ) : (
-                  isReadyForContent && (
-                    <Card className="flex flex-col h-full shadow-sm overflow-hidden">
-                        <EditorView
-                            transcript={editedTranscript}
-                            onTranscriptChange={setEditedTranscript}
-                            disabled={!isReadyForContent}
-                        />
-                    </Card>
-                  )
-              )}
-               <input
-                  type="file"
-                  ref={fileInputRef}
-                  onChange={(e) => handleFileSelect(e.target.files?.[0])}
-                  className="hidden"
-                  accept="audio/mp3,audio/wav,audio/ogg,audio/m4a,audio/*"
-              />
-          </main>
-          
-          <footer className="flex-shrink-0 flex items-center justify-center gap-2 p-4 border-t bg-background shadow-sm">
+            {!audioFile ? (
+                <div 
+                    className={cn(
+                        "flex flex-col items-center justify-center text-center rounded-2xl border-2 border-dashed border-muted-foreground/20 bg-card h-full transition-colors cursor-pointer",
+                        isDragging && "border-primary bg-primary/10"
+                    )}
+                    onClick={() => fileInputRef.current?.click()}
+                >
+                    <FileUp className="w-16 h-16 text-muted-foreground/30 mb-4"/>
+                    <h3 className="text-xl font-semibold">{t.readyToTranscribe}</h3>
+                    <p className="text-muted-foreground mt-2">{t.dropAudio}</p>
+                </div>
+            ) : (
+                isReadyForContent && (
+                  <Card className="flex flex-col h-full shadow-sm overflow-hidden rounded-2xl">
+                      <EditorView
+                          transcript={editedTranscript}
+                          onTranscriptChange={setEditedTranscript}
+                          disabled={!isReadyForContent}
+                      />
+                  </Card>
+                )
+            )}
+             <input
+                type="file"
+                ref={fileInputRef}
+                onChange={(e) => handleFileSelect(e.target.files?.[0])}
+                className="hidden"
+                accept="audio/mp3,audio/wav,audio/ogg,audio/m4a,audio/*"
+            />
+        </main>
+        
+        {isReadyForContent && (
+          <footer className="flex-shrink-0 flex items-center justify-center gap-2 p-4 border-t bg-background">
               <div className="w-full max-w-lg flex gap-2 items-center">
-                  <Button onClick={handleCopy} disabled={!isReadyForContent} variant="outline" size="icon" className="h-14 w-14 rounded-full">
-                      <Copy className="h-6 w-6" />
+                  <Button onClick={handleCopy} variant="outline" size="icon" className="h-12 w-12 rounded-full">
+                      <Copy className="h-5 w-5" />
                       <span className="sr-only">{t.copy}</span>
                   </Button>
                   <Sheet open={isVocabSheetOpen} onOpenChange={setIsVocabSheetOpen}>
                       <SheetTrigger asChild>
-                          <Button variant="outline" size="icon" disabled={!isReadyForContent} className="h-14 w-14 rounded-full">
-                              <Sparkles className="h-6 w-6" />
+                          <Button variant="outline" size="icon" className="h-12 w-12 rounded-full">
+                              <Sparkles className="h-5 w-5" />
                               <span className="sr-only">{t.improveAccuracy}</span>
                           </Button>
                       </SheetTrigger>
@@ -384,7 +366,7 @@ export function SoundsPage() {
                                       onKeyDown={(e) => e.key === 'Enter' && handleAddVocab()}
                                       placeholder={t.pressEnterToAdd}
                                   />
-                                  <Button onClick={handleAddVocab}>{t.addWord}</Button>
+                                  <Button onClick={handleAddVocab} variant="secondary">{t.addWord}</Button>
                               </div>
                               <div className="flex flex-wrap gap-2">
                                   {customVocabulary.map(word => (
@@ -396,7 +378,7 @@ export function SoundsPage() {
                                       </Badge>
                                   ))}
                               </div>
-                              <Button onClick={handleRetranscribe} disabled={isTranscribing || customVocabulary.length === 0} size="lg">
+                              <Button onClick={handleRetranscribe} disabled={isTranscribing || customVocabulary.length === 0} size="lg" className="bg-accent text-accent-foreground hover:bg-accent/90">
                                   {isTranscribing ? <Loader2 className="animate-spin mr-2" /> : <Sparkles className="mr-2" />}
                                   {t.retranscribe}
                               </Button>
@@ -405,20 +387,15 @@ export function SoundsPage() {
                   </Sheet>
                   <Sheet open={isExportSheetOpen} onOpenChange={setIsExportSheetOpen}>
                       <SheetTrigger asChild>
-                          <Button variant="default" size="lg" disabled={!isReadyForContent} className="flex-1 rounded-full h-14 px-8">
+                          <Button size="lg" className="flex-1 rounded-full h-12 px-8 bg-accent text-accent-foreground hover:bg-accent/90">
                               <Download className="h-5 w-5" />
-                              <span className="ml-2 sm:inline font-bold text-lg">{t.download}</span>
+                              <span className="ml-2 sm:inline font-bold">{t.download}</span>
                           </Button>
                       </SheetTrigger>
                       <SheetContent side="bottom" className="rounded-t-lg">
                         <SheetHeader className="text-left">
-                            <SheetTitle>
-                                {t.exportSettings}
-                                <span className="sr-only">Export Settings</span>
-                            </SheetTitle>
-                            <SheetDescription>
-                            {t.chooseFormat}
-                            </SheetDescription>
+                            <SheetTitle>{t.exportSettings}</SheetTitle>
+                            <SheetDescription>{t.chooseFormat}</SheetDescription>
                         </SheetHeader>
                           <div className="grid gap-6 py-6">
                               <div className="grid gap-3">
@@ -442,11 +419,7 @@ export function SoundsPage() {
                                   />
                                   <p className="text-xs text-muted-foreground text-center">{t.wordsPerSecondHint}</p>
                               </div>
-                              <Button 
-                                  onClick={handleExport}
-                                  disabled={!isReadyForContent}
-                                  size="lg"
-                              >
+                              <Button onClick={handleExport} size="lg" className="bg-accent text-accent-foreground hover:bg-accent/90">
                                   <Download className="mr-2" />
                                   {t.exportTranscript}
                               </Button>
@@ -455,13 +428,13 @@ export function SoundsPage() {
                   </Sheet>
               </div>
           </footer>
-          <RatingDialog
-              open={isRatingOpen}
-              onOpenChange={setIsRatingOpen}
-              onSubmit={handleRatingSubmit}
-              translations={ratingTranslations}
-          />
-      </div>
-    </>
+        )}
+        <RatingDialog
+            open={isRatingOpen}
+            onOpenChange={setIsRatingOpen}
+            onSubmit={handleRatingSubmit}
+            translations={ratingTranslations}
+        />
+    </div>
   );
 }
