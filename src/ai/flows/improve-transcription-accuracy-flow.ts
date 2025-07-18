@@ -19,7 +19,6 @@ const ImproveTranscriptionAccuracyInputSchema = z.object({
     .describe(
       "A recording of spoken audio, as a data URI that must include a MIME type and use Base64 encoding. Expected format: 'data:<mimetype>;base64,<encoded_data>'."
     ),
-  model: z.string().optional().describe("The AI model to use for transcription."),
   customVocabulary: z.array(z.string()).describe("A list of custom words or phrases to improve recognition accuracy."),
 });
 export type ImproveTranscriptionAccuracyInput = z.infer<typeof ImproveTranscriptionAccuracyInputSchema>;
