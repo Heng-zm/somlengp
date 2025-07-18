@@ -147,7 +147,7 @@ export function PdfTranscriptPage() {
     });
   };
 
-  const isReadyForContent = !isTranscribing && transcribedText.length > 0;
+  const isReadyForContent = !isTranscribing && transcribedText;
   
   return (
     <div 
@@ -157,19 +157,17 @@ export function PdfTranscriptPage() {
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
     >
-        <main className="p-4 md:p-6">
-            {isTranscribing && (
-                <div className="absolute inset-0 bg-background/80 flex flex-col items-center justify-center z-10">
+        <main className="p-4 md:p-6 flex-grow">
+            {isTranscribing ? (
+                <div className="flex flex-col items-center justify-center rounded-2xl border-border bg-card h-full">
                     <Loader2 className="h-12 w-12 animate-spin text-primary" />
                     <p className="text-muted-foreground mt-4 text-lg">{t.transcribing}</p>
                 </div>
-            )}
-
-            {!pdfFile ? (
+            ) : !pdfFile ? (
                  <div
                  className={cn(
-                   'flex cursor-pointer flex-col items-center justify-center rounded-2xl border-2 border-border bg-card text-center transition-colors',
-                   isDragging && 'border-primary bg-primary/10'
+                   'flex cursor-pointer flex-col items-center justify-center rounded-2xl border-2 border-border bg-card text-center transition-colors h-full',
+                   isDragging ? 'border-primary bg-primary/10' : 'border-border'
                  )}
                  style={{minHeight: '80vh'}}
                  onClick={() => fileInputRef.current?.click()}
@@ -180,12 +178,12 @@ export function PdfTranscriptPage() {
                </div>
             ) : (
                 isReadyForContent && (
-                  <Card className="shadow-sm overflow-hidden rounded-2xl">
+                  <Card className="shadow-sm overflow-hidden rounded-2xl h-full">
                       <Textarea
                           value={transcribedText}
                           readOnly
                           placeholder={t.transcribedTextPlaceholder}
-                          className="h-[85vh] w-full resize-none text-base leading-relaxed p-6 border-0 focus-visible:ring-0 focus-visible:ring-offset-0"
+                          className="h-[80vh] w-full resize-none text-base leading-relaxed p-6 border-0 focus-visible:ring-0 focus-visible:ring-offset-0"
                           aria-label="Transcribed Text"
                       />
                   </Card>
