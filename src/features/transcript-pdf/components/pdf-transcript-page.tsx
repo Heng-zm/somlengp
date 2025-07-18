@@ -328,7 +328,7 @@ export function PdfTranscriptPage() {
                                 <Select value={exportFormat} onValueChange={setExportFormat}>
                                     <SelectTrigger>
                                         <SelectValue placeholder="Select format" />
-                                    </Trigger>
+                                    </SelectTrigger>
                                     <SelectContent>
                                         {Object.entries(formatDisplayNames).map(([value, label]) => (
                                         <SelectItem key={value} value={value}>{label}</SelectItem>
