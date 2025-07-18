@@ -189,7 +189,7 @@ export function PdfTranscriptPage() {
                           value={transcribedText}
                           readOnly
                           placeholder={t.transcribedTextPlaceholder}
-                          className="h-full w-full resize-none font-mono text-base leading-relaxed p-6 border-0 focus-visible:ring-0 focus-visible:ring-offset-0 flex-grow"
+                          className="h-full w-full resize-none text-base leading-relaxed p-6 border-0 focus-visible:ring-0 focus-visible:ring-offset-0 flex-grow"
                           aria-label="Transcribed Text"
                       />
                   </Card>
