@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState, useMemo, useContext, useRef } from 'react';
+import { useState, useMemo, useContext, useRef, useEffect } from 'react';
 import { Loader2, FileUp, X, Image as ImageIcon, Download, ImagePlus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
@@ -27,6 +27,18 @@ const blobToBase64 = (blob: Blob): Promise<string> => {
     });
 };
 
+const dataUriToBlob = (dataUri: string): Blob => {
+    const byteString = atob(dataUri.split(',')[1]);
+    const mimeString = dataUri.split(',')[0].split(':')[1].split(';')[0];
+    const ab = new ArrayBuffer(byteString.length);
+    const ia = new Uint8Array(ab);
+    for (let i = 0; i < byteString.length; i++) {
+        ia[i] = byteString.charCodeAt(i);
+    }
+    return new Blob([ab], { type: mimeString });
+}
+
+
 export function ImageToPdfPage() {
   const [files, setFiles] = useState<File[]>([]);
   const [isConverting, setIsConverting] = useState(false);
@@ -40,6 +52,14 @@ export function ImageToPdfPage() {
   }
   const { language } = langContext;
   const t = useMemo(() => allTranslations[language], [language]);
+
+  const fileObjectURLs = useMemo(() => files.map(file => URL.createObjectURL(file)), [files]);
+
+  useEffect(() => {
+    return () => {
+        fileObjectURLs.forEach(url => URL.revokeObjectURL(url));
+    };
+  }, [fileObjectURLs]);
   
   const handleFileSelect = (selectedFiles: FileList | null) => {
     if (!selectedFiles) return;
@@ -73,13 +93,7 @@ export function ImageToPdfPage() {
         const fileUris = await Promise.all(files.map(file => blobToBase64(file)));
         const { pdfDataUri } = await imageToPdf({ imageDataUris: fileUris });
 
-        const byteCharacters = atob(pdfDataUri.split(',')[1]);
-        const byteNumbers = new Array(byteCharacters.length);
-        for (let i = 0; i < byteCharacters.length; i++) {
-            byteNumbers[i] = byteCharacters.charCodeAt(i);
-        }
-        const byteArray = new Uint8Array(byteNumbers);
-        const blob = new Blob([byteArray], {type: 'application/pdf'});
+        const blob = dataUriToBlob(pdfDataUri);
         
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
@@ -153,13 +167,14 @@ export function ImageToPdfPage() {
                     <div className="w-full h-full flex flex-col">
                         <h3 className="text-xl font-semibold text-left mb-4">{t.imagesToConvert}</h3>
                         <div className="flex-grow grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 overflow-y-auto pr-2">
-                           {files.map((file, index) => (
-                               <div key={index} className="relative aspect-square group">
+                           {fileObjectURLs.map((url, index) => (
+                               <div key={url} className="relative aspect-square group">
                                    <Image 
-                                        src={URL.createObjectURL(file)} 
+                                        src={url} 
                                         alt={`Preview ${index}`} 
-                                        layout="fill"
-                                        objectFit="cover"
+                                        fill
+                                        sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, (max-width: 1024px) 25vw, 20vw"
+                                        style={{ objectFit: 'cover' }}
                                         className="rounded-md"
                                    />
                                    <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
