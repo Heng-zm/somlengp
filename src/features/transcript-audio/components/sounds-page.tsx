@@ -1,8 +1,8 @@
 
 "use client";
 
-import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
-import { Download, Loader2, FileUp, Languages, Sparkles, X as XIcon, Menu, Copy } from 'lucide-react';
+import { useState, useEffect, useRef, useCallback, useMemo, useContext } from 'react';
+import { Download, Loader2, FileUp, Sparkles, X as XIcon, Menu, Copy } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Sheet,
@@ -27,13 +27,14 @@ import { improveTranscriptionAccuracy } from '@/ai/flows/improve-transcription-a
 import { EditorView } from '@/components/shared/editor-view';
 import { cn } from '@/lib/utils';
 import { Label } from '@/components/ui/label';
-import { Card, CardContent } from '@/components/ui/card';
+import { Card } from '@/components/ui/card';
 import { NumberPicker } from '@/components/ui/number-picker';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { RatingDialog } from '@/components/shared/rating-dialog';
-import Link from 'next/link';
 import { Sidebar } from '@/components/shared/sidebar';
+import { allTranslations } from '@/lib/translations';
+import { LanguageContext } from '@/layouts/app-layout';
 
 const blobToBase64 = (blob: Blob): Promise<string> => {
   return new Promise((resolve, reject) => {
@@ -50,94 +51,6 @@ const blobToBase64 = (blob: Blob): Promise<string> => {
   });
 };
 
-const translations = {
-  km: {
-    voiceScribe: "ការសរសេរតាមសំឡេង",
-    selectModel: "ជ្រើសរើសម៉ូដែល",
-    transcribing: "កំពុងបកប្រែសំឡេង សូមរង់ចាំ...",
-    readyToTranscribe: "ត្រៀមខ្លួនរួចរាល់ដើម្បីបកប្រែ",
-    dropAudio: "ដាក់ឯកសារសំឡេងនៅទីនេះ ឬចុចដើម្បីផ្ទុកឡើង។",
-    download: "ទាញយក",
-    exportSettings: "ការកំណត់ការនាំចេញ",
-    chooseFormat: "ជ្រើសរើសទម្រង់ និងការកំណត់របស់អ្នក បន្ទាប់មកចុចនាំចេញ។",
-    exportFormat: "ទ្រង់ទ្រាយនាំចេញ",
-    wordsPerSecond: "ពាក្យក្នុងមួយវិនាទី",
-    wordsPerSecondHint: "សម្រាប់ SRT/VTT។ បដិសេធពេលវេលា AI ។",
-    exportTranscript: "ទាញយក",
-    invalidFileType: "ប្រភេទឯកសារមិនត្រឹមត្រូវ",
-    selectAudioFile: "សូមជ្រើសរើសឯកសារអូឌីយ៉ូ។",
-    transcriptionFailed: "ការបកប្រែបានបរាជ័យ",
-    noTranscript: "ម៉ូដែលមិនបានបញ្ជូនប្រតិចារិកមកវិញទេ។ សូមព្យាយាមម្តងទៀត។",
-    transcriptionError: "កំហុសក្នុងការបកប្រែ",
-    rateLimitExceeded: "លើសកម្រិតកំណត់",
-    rateLimitMessage: "អ្នកបានធ្វើការស្នើសុំច្រើនពេក។ សូមរង់ចាំមួយភ្លែត ឬពិនិត្យមើលផែនការ API និងព័ត៌មានលម្អិតអំពីការចេញវិក្កយប័ត្ររបស់អ្នក។",
-    support: "គាំទ្រ",
-    supportDescription: "ប្រសិនបើអ្នកពេញចិត្តនឹងកម្មវិធីនេះ សូមពិចារណាគាំទ្រការអភិវឌ្ឍន៍របស់វា។",
-    improveAccuracy: "កែលម្អ",
-    customVocabulary: "វាក្យសព្ទផ្ទាល់ខ្លួន",
-    customVocabularyHint: "បន្ថែមពាក្យ ឬឃ្លាដែលពិបាកបកប្រែ ដើម្បីបង្កើនភាពត្រឹមត្រូវ។",
-    addWord: "បន្ថែមពាក្យ",
-    pressEnterToAdd: "ចុច Enter ដើម្បីបន្ថែម",
-    retranscribe: "បកប្រែឡើងវិញ",
-    ratingTitle: "តើអ្នកពេញចិត្តនឹងការបកប្រែទេ?",
-    ratingDescription: "មតិកែលម្អរបស់អ្នកជួយយើងក្នុងការកែលម្អ។ សូមវាយតម្លៃបទពិសោធន៍របស់អ្នក។",
-    ratingFeedbackPlaceholder: "ប្រាប់យើងបន្ថែមអំពីបទពិសោធន៍របស់អ្នក...",
-    ratingSubmit: "បញ្ជូន",
-    ratingLater: "វាយតម្លៃពេលក្រោយ",
-    feedbackSuccess: "សូមអរគុណសម្រាប់មតិកែលម្អរបស់អ្នក!",
-    feedbackError: "មិនអាចបញ្ជូនមតិកែលម្អបានទេ។ សូម​ព្យាយាម​ម្តង​ទៀត​នៅ​ពេល​ក្រោយ។",
-    ratingThankYou: "សូម​អរគុណ!",
-    pdfTranscript: "ប្រតិចារិក PDF",
-    features: "លក្ខណៈពិសេស",
-    copy: "ចម្លង",
-    copied: "បានចម្លង!",
-    chooseFile: "Choose File",
-  },
-  en: {
-    voiceScribe: "Voice Transcript",
-    selectModel: "Select model",
-    transcribing: "Transcribing audio, please wait...",
-    readyToTranscribe: "Ready to Transcribe",
-    dropAudio: "Drop an audio file here or click to upload.",
-    download: "DOWNLOAD",
-    exportSettings: "Export Settings",
-    chooseFormat: "Choose your format and settings, then click export.",
-    exportFormat: "Export Format",
-    wordsPerSecond: "Words per second",
-    wordsPerSecondHint: "For SRT/VTT. Overrides AI timing.",
-    exportTranscript: "Export Transcript",
-    invalidFileType: "Invalid file type",
-    selectAudioFile: "Please select an audio file.",
-    transcriptionFailed: "Transcription failed",
-    noTranscript: "The model did not return a transcript. Please try again.",
-    transcriptionError: "Transcription Error",
-    rateLimitExceeded: "Rate Limit Exceeded",
-    rateLimitMessage: "You've made too many requests. Please wait a moment or check your API plan and billing details.",
-    support: "Support",
-    supportDescription: "If you find this application useful, please consider supporting its development.",
-    improveAccuracy: "IMPROVE",
-    customVocabulary: "Custom Vocabulary",
-    customVocabularyHint: "Add difficult-to-transcribe words or phrases to improve accuracy.",
-    addWord: "Add Word",
-    pressEnterToAdd: "Press Enter to add",
-    retranscribe: "Retranscribe",
-    ratingTitle: "How was the transcription?",
-    ratingDescription: "Your feedback helps us improve. Please rate your experience.",
-    ratingFeedbackPlaceholder: "Tell us more about your experience...",
-    ratingSubmit: "Submit",
-    ratingLater: "Rate Later",
-    feedbackSuccess: "Thank you for your feedback!",
-    feedbackError: "Could not submit feedback. Please try again later.",
-    ratingThankYou: "Thank you!",
-    pdfTranscript: "PDF Transcript",
-    features: "Features",
-    copy: "COPY",
-    copied: "Copied!",
-    chooseFile: "Choose File",
-  }
-};
-
-
 export function SoundsPage() {
   const [audioFile, setAudioFile] = useState<File | null>(null);
   const [isTranscribing, setIsTranscribing] = useState(false);
@@ -148,8 +61,6 @@ export function SoundsPage() {
   const [exportFormat, setExportFormat] = useState('srt');
   const [isDragging, setIsDragging] = useState(false);
   const [isExportSheetOpen, setIsExportSheetOpen] = useState(false);
-  // Language state now lives in Sidebar, this is just for translations
-  const [language, setLanguage] = useState<'km' | 'en'>('en');
   const [customVocabulary, setCustomVocabulary] = useState<string[]>([]);
   const [vocabInput, setVocabInput] = useState('');
   const [isVocabSheetOpen, setIsVocabSheetOpen] = useState(false);
@@ -159,7 +70,13 @@ export function SoundsPage() {
 
   const { toast } = useToast();
   const fileInputRef = useRef<HTMLInputElement | null>(null);
-  const t = useMemo(() => translations[language], [language]);
+  
+  const context = useContext(LanguageContext);
+  if (!context) {
+    throw new Error('SoundsPage must be used within a LanguageProvider');
+  }
+  const { language, toggleLanguage } = context;
+  const t = useMemo(() => allTranslations[language], [language]);
 
   useEffect(() => {
     hasRated.current = localStorage.getItem('hasRated') === 'true';
@@ -376,7 +293,7 @@ export function SoundsPage() {
                         <SheetHeader>
                           <SheetTitle className="sr-only">Navigation</SheetTitle>
                         </SheetHeader>
-                        <Sidebar />
+                        <Sidebar language={language} toggleLanguage={toggleLanguage}/>
                       </SheetContent>
                   </Sheet>
                   <h1 className="text-xl font-bold">{t.voiceScribe}</h1>

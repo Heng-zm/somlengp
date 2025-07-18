@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState, useRef, useMemo, useCallback } from 'react';
+import { useState, useRef, useMemo, useCallback, useContext } from 'react';
 import { FileUp, Loader2, Download, Copy, Menu } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
@@ -14,6 +14,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Label } from '@/components/ui/label';
 import { exportTranscript } from '@/lib/export';
 import { Sidebar } from '@/components/shared/sidebar';
+import { allTranslations } from '@/lib/translations';
+import { LanguageContext } from '@/layouts/app-layout';
 
 const blobToBase64 = (blob: Blob): Promise<string> => {
   return new Promise((resolve, reject) => {
@@ -30,75 +32,6 @@ const blobToBase64 = (blob: Blob): Promise<string> => {
   });
 };
 
-const translations = {
-  km: {
-    pageTitle: "ប្រតិចារិក PDF",
-    selectModel: "ជ្រើសរើសម៉ូដែល",
-    transcribing: "កំពុងបម្លែង PDF សូមរង់ចាំ...",
-    readyToTranscribe: "ត្រៀមខ្លួនដើម្បីបម្លែង",
-    dropPdf: "ដាក់ឯកសារ PDF នៅទីនេះ ឬចុចដើម្បីផ្ទុកឡើង។",
-    transcriptionFailed: "ការបម្លែងបានបរាជ័យ",
-    noText: "ម៉ូដែលមិនបានបញ្ជូនអត្ថបទមកវិញទេ។ សូមព្យាយាមម្តងទៀត។",
-    transcriptionError: "កំហុសក្នុងការបម្លែង",
-    invalidFileType: "ប្រភេទឯកសារមិនត្រឹមត្រូវ",
-    selectPdfFile: "សូមជ្រើសរើសឯកសារ PDF។",
-    transcribedTextPlaceholder: "អត្ថបទដែលបានបម្លែងនឹងបង្ហាញនៅទីនេះ។",
-    download: "ទាញយក",
-    copy: "ចម្លង",
-    copied: "បានចម្លង!",
-    rateLimitExceeded: "លើសកម្រិតកំណត់",
-    rateLimitMessage: "អ្នកបានធ្វើការស្នើសុំច្រើនពេក។ សូមរង់ចាំមួយភ្លែត ឬពិនិត្យមើលផែនការ API និងព័ត៌មានលម្អិតអំពីការចេញវិក្កយប័ត្ររបស់អ្នក។",
-    uploadCardTitle: "ផ្ទុកឡើង PDF របស់អ្នក",
-    transcriptionSuccess: "ការបម្លែងបានជោគជ័យ!",
-    fileName: "ឈ្មោះ​ឯកសារ:",
-    fileSize: "ទំហំ​ឯកសារ:",
-    voiceScribe: "ប្រតិចារិកសំឡេង",
-    pdfTranscript: "ប្រតិចារិក PDF",
-    features: "លក្ខណៈពិសេស",
-    support: "គាំទ្រ",
-    supportDescription: "ប្រសិនបើអ្នកពេញចិត្តនឹងកម្មវិធីនេះ សូមពិចារណាគាំទ្រការអភិវឌ្ឍន៍របស់វា។",
-    actions: "សកម្មភាព",
-    actionsDescription: "ចម្លង ឬទាញយកអត្ថបទជាទម្រង់ផ្សេងៗ។",
-    exportSettings: "ការកំណត់ការនាំចេញ",
-    chooseFormat: "ជ្រើសរើសទម្រង់ និងការកំណត់របស់អ្នក បន្ទាប់មកចុចនាំចេញ។",
-    exportFormat: "ទ្រង់ទ្រាយនាំចេញ",
-    exportTranscript: "នាំចេញប្រតិចារិក",
-  },
-  en: {
-    pageTitle: "PDF Transcript",
-    selectModel: "Select model",
-    transcribing: "Transcribing PDF, please wait...",
-    readyToTranscribe: "Ready to Transcribe",
-    dropPdf: "Drop a PDF file here or click to upload.",
-    transcriptionFailed: "Transcription failed",
-    noText: "The model did not return any text. Please try again.",
-    transcriptionError: "Transcription Error",
-    invalidFileType: "Invalid file type",
-    selectPdfFile: "Please select a PDF file.",
-    transcribedTextPlaceholder: "Transcribed text will appear here.",
-    download: "DOWNLOAD",
-    copy: "COPY",
-    copied: "Copied!",
-    rateLimitExceeded: "Rate Limit Exceeded",
-    rateLimitMessage: "You've made too many requests. Please wait a moment or check your API plan and billing details.",
-    uploadCardTitle: "Upload your PDF",
-    transcriptionSuccess: "Transcription Successful!",
-    fileName: "File Name:",
-    fileSize: "File Size:",
-    voiceScribe: "Voice Transcript",
-    pdfTranscript: "PDF Transcript",
-    features: "Features",
-    support: "Support",
-    supportDescription: "If you find this application useful, please consider supporting its development.",
-    actions: "Actions",
-    actionsDescription: "Copy or download the text in various formats.",
-    exportSettings: "Export Settings",
-    chooseFormat: "Choose your format and settings, then click export.",
-    exportFormat: "Export Format",
-    exportTranscript: "Export Transcript",
-  }
-};
-
 export function PdfTranscriptPage() {
   const [pdfFile, setPdfFile] = useState<File | null>(null);
   const [isTranscribing, setIsTranscribing] = useState(false);
@@ -107,12 +40,17 @@ export function PdfTranscriptPage() {
   const [isExportSheetOpen, setIsExportSheetOpen] = useState(false);
   const [selectedModel, setSelectedModel] = useState('gemini-2.5-flash');
   const [exportFormat, setExportFormat] = useState('docx');
-  const [language, setLanguage] = useState<'km' | 'en'>('en');
   const [isSheetOpen, setIsSheetOpen] = useState(false);
 
   const { toast } = useToast();
   const fileInputRef = useRef<HTMLInputElement | null>(null);
-  const t = useMemo(() => translations[language], [language]);
+
+  const context = useContext(LanguageContext);
+  if (!context) {
+    throw new Error('PdfTranscriptPage must be used within a LanguageProvider');
+  }
+  const { language, toggleLanguage } = context;
+  const t = useMemo(() => allTranslations[language], [language]);
   
   const resetState = () => {
     setPdfFile(null);
@@ -236,7 +174,7 @@ export function PdfTranscriptPage() {
                   <SheetHeader>
                     <SheetTitle className="sr-only">Navigation</SheetTitle>
                   </SheetHeader>
-                  <Sidebar />
+                  <Sidebar language={language} toggleLanguage={toggleLanguage} />
                 </SheetContent>
               </Sheet>
               <h1 className="text-xl font-bold">{t.pdfTranscript}</h1>
