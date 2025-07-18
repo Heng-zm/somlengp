@@ -22,7 +22,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
     <LanguageContext.Provider value={contextValue}>
       <FeaturePageLayoutProvider>
         <div className="flex flex-col min-h-screen bg-background">
-          <main className="flex-grow">
+          <main className="flex-grow flex flex-col">
             {children}
           </main>
         </div>

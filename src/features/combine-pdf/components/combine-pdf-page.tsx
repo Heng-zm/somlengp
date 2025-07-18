@@ -146,7 +146,7 @@ export function CombinePdfPage() {
   return (
     <div className="flex flex-col h-full bg-background text-foreground">
         <main 
-            className="flex-grow p-4 md:p-6 grid grid-cols-1 gap-6 relative overflow-y-auto"
+            className="flex-grow p-4 md:p-6 grid grid-cols-1 gap-6 relative"
             onDragEnter={handleDragEnter}
             onDragOver={handleDragEvents}
             onDragLeave={handleDragLeave}
