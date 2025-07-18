@@ -412,20 +412,14 @@ export function SoundsPage() {
               {!audioFile ? (
                   <div 
                       className={cn(
-                          "flex flex-col items-center justify-center text-center rounded-lg border-2 border-dashed border-muted-foreground/20 bg-background h-full transition-colors",
+                          "flex flex-col items-center justify-center text-center rounded-lg border-2 border-dashed border-muted-foreground/20 bg-background h-full transition-colors cursor-pointer",
                           isDragging && "border-primary bg-primary/10"
                       )}
+                      onClick={() => fileInputRef.current?.click()}
                   >
-                      <div className="flex-grow flex flex-col items-center justify-center cursor-pointer w-full" onClick={() => fileInputRef.current?.click()}>
-                        <FileUp className="w-20 h-20 text-muted-foreground/30 mb-4"/>
-                        <h3 className="text-2xl font-semibold">{t.readyToTranscribe}</h3>
-                        <p className="text-muted-foreground mt-2 mb-4">{t.dropAudio}</p>
-                      </div>
-                      <div className="w-full p-4 border-t border-dashed">
-                        <Button onClick={() => fileInputRef.current?.click()} className="w-full" variant="ghost">
-                            {t.chooseFile}
-                        </Button>
-                      </div>
+                      <FileUp className="w-20 h-20 text-muted-foreground/30 mb-4"/>
+                      <h3 className="text-2xl font-semibold">{t.readyToTranscribe}</h3>
+                      <p className="text-muted-foreground mt-2 mb-4">{t.dropAudio}</p>
                   </div>
               ) : (
                   <Card className="flex flex-col h-full shadow-sm overflow-hidden">
@@ -447,15 +441,15 @@ export function SoundsPage() {
           
           <footer className="flex-shrink-0 flex items-center justify-center gap-2 p-4 border-t bg-background shadow-sm">
               <div className="w-full max-w-lg flex gap-2 items-center">
-                  <Button onClick={handleCopy} disabled={!isReadyForContent} variant="outline" size="lg" className="rounded-full h-14 px-8">
-                      <Copy className="h-5 w-5" />
-                      <span className="ml-2 sm:inline font-bold text-lg">{t.copy}</span>
+                  <Button onClick={handleCopy} disabled={!isReadyForContent} variant="outline" size="icon" className="rounded-full h-14 w-14">
+                      <Copy className="h-6 w-6" />
+                      <span className="sr-only">{t.copy}</span>
                   </Button>
                   <Sheet open={isVocabSheetOpen} onOpenChange={setIsVocabSheetOpen}>
                       <SheetTrigger asChild>
-                          <Button variant="outline" size="lg" disabled={!isReadyForContent} className="rounded-full h-14 px-8">
-                              <Sparkles className="h-5 w-5" />
-                              <span className="ml-2 sm:inline font-bold text-lg">{t.improveAccuracy}</span>
+                          <Button variant="outline" size="icon" disabled={!isReadyForContent} className="rounded-full h-14 w-14">
+                              <Sparkles className="h-6 w-6" />
+                              <span className="sr-only">{t.improveAccuracy}</span>
                           </Button>
                       </SheetTrigger>
                       <SheetContent side="bottom" className="rounded-t-lg">
@@ -552,5 +546,3 @@ export function SoundsPage() {
     </>
   );
 }
-
-    
