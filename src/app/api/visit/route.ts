@@ -1,16 +1,51 @@
-import { NextResponse } from 'next/server';
 
-// This is an in-memory counter. It will reset whenever the server instance restarts.
-// In a serverless environment, this means the count is not persistent or shared
-// across different instances. It's used here only to provide a base number
-// for the client-side counting logic.
-let visitorCount = 0; 
+import { NextResponse } from 'next/server';
+import { promises as fs } from 'fs';
+import path from 'path';
+
+// Define the path to the file where the visitor count will be stored.
+// Using path.join with process.cwd() ensures a correct, absolute path 
+// that works reliably in different environments.
+const countFilePath = path.join(process.cwd(), 'visitor_count.txt');
+
+async function getCount(): Promise<number> {
+  try {
+    const data = await fs.readFile(countFilePath, 'utf-8');
+    return parseInt(data, 10);
+  } catch (error: any) {
+    // If the file doesn't exist, it's the first run.
+    if (error.code === 'ENOENT') {
+      return 0;
+    }
+    // For any other errors, re-throw them.
+    throw error;
+  }
+}
+
+async function setCount(count: number): Promise<void> {
+  await fs.writeFile(countFilePath, count.toString(), 'utf-8');
+}
+
+export async function POST() {
+  try {
+    let currentCount = await getCount();
+    currentCount++;
+    await setCount(currentCount);
+    return NextResponse.json({ success: true, count: currentCount });
+  } catch (error) {
+    console.error('Error processing visitor count:', error);
+    // If there's an error, we can't guarantee the count, so return an error response.
+    return NextResponse.json(
+      { success: false, message: 'An internal error occurred while updating the count.' },
+      { status: 500 }
+    );
+  }
+}
 
 export async function GET() {
     try {
-        // The count is not incremented here. The GET endpoint's only job is to
-        // provide a starting number to new clients.
-        return NextResponse.json({ success: true, count: visitorCount });
+        const count = await getCount();
+        return NextResponse.json({ success: true, count: count });
     } catch (error) {
         console.error('Error fetching visitor count:', error);
         return NextResponse.json(
