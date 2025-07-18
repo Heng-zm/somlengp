@@ -3,7 +3,7 @@
 @tailwind utilities;
 
 body {
-  font-family: 'Inter', sans-serif;
+  /* The font is now handled by next/font in layout.tsx */
 }
 
 @layer base {

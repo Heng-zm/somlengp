@@ -2,9 +2,9 @@ import type {Metadata} from 'next';
 import {Toaster} from '@/components/ui/toaster';
 import './globals.css';
 import { AppLayout } from '@/layouts/app-layout';
-import { Inter } from 'next/font/google';
+import { Kantumruy_Pro } from 'next/font/google';
 
-const inter = Inter({ subsets: ['latin'] });
+const kantumruy = Kantumruy_Pro({ subsets: ['latin', 'khmer'] });
 
 export const metadata: Metadata = {
   title: 'VoiceScribe',
@@ -18,7 +18,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${inter.className} antialiased`}>
+      <body className={`${kantumruy.className} antialiased`}>
         <AppLayout>
           {children}
         </AppLayout>
