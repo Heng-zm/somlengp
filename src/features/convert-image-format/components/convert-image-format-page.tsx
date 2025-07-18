@@ -19,6 +19,14 @@ import {cn} from '@/lib/utils';
 import {convertImageFormat} from '@/ai/flows/convert-image-format-flow';
 import Image from 'next/image';
 import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from '@/components/ui/sheet';
+import {
   Select,
   SelectContent,
   SelectItem,
@@ -49,6 +57,7 @@ export function ConvertImageFormatPage() {
   const [file, setFile] = useState<File | null>(null);
   const [filePreview, setFilePreview] = useState<string | null>(null);
   const [isConverting, setIsConverting] = useState(false);
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
   const [targetFormat, setTargetFormat] = useState<TargetFormat>('png');
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -129,6 +138,7 @@ export function ConvertImageFormatPage() {
         title: 'Conversion Successful!',
         description: `Your image has been converted to ${targetFormat.toUpperCase()}.`,
       });
+      setIsDrawerOpen(false); // Close drawer on success
     } catch (e: any) {
       let title = t.conversionError;
       let description = e.message || 'An unknown error occurred.';
@@ -221,24 +231,6 @@ export function ConvertImageFormatPage() {
                 </Button>
               </div>
             </Card>
-            <div className="w-full max-w-sm space-y-4">
-              <div className="grid w-full items-center gap-1.5">
-                <Label htmlFor="format-select">Target Format</Label>
-                <Select
-                  value={targetFormat}
-                  onValueChange={v => setTargetFormat(v as TargetFormat)}
-                >
-                  <SelectTrigger id="format-select">
-                    <SelectValue placeholder="Select format..." />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="png">PNG</SelectItem>
-                    <SelectItem value="jpeg">JPEG</SelectItem>
-                    <SelectItem value="webp">WEBP</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
           </div>
         )}
 
@@ -252,23 +244,60 @@ export function ConvertImageFormatPage() {
       </main>
 
       <footer className="flex-shrink-0 flex items-center justify-center gap-2 p-4 border-t bg-background">
-        <div className="w-full max-w-lg flex gap-2 items-center">
-          <Button
-            onClick={handleConvert}
-            size="lg"
-            className="flex-1 rounded-full h-12 px-8 bg-accent text-accent-foreground hover:bg-accent/90"
-            disabled={isConverting || !file}
-          >
-            {isConverting ? (
-              <Loader2 className="animate-spin" />
-            ) : (
-              <Wand2 className="h-5 w-5" />
-            )}
-            <span className="ml-2 sm:inline font-bold">
-              {t.convertAndDownload}
-            </span>
-          </Button>
-        </div>
+        <Sheet open={isDrawerOpen} onOpenChange={setIsDrawerOpen}>
+          <SheetTrigger asChild>
+            <Button
+              size="lg"
+              className="w-full max-w-lg rounded-full h-12 px-8 bg-accent text-accent-foreground hover:bg-accent/90"
+              disabled={isConverting || !file}
+            >
+                <Wand2 className="h-5 w-5" />
+                <span className="ml-2 sm:inline font-bold">
+                  {t.exportSettings}
+                </span>
+            </Button>
+          </SheetTrigger>
+          <SheetContent side="bottom" className="rounded-t-lg">
+            <SheetHeader className="text-left">
+              <SheetTitle>{t.exportSettings}</SheetTitle>
+              <SheetDescription>{t.chooseFormat}</SheetDescription>
+            </SheetHeader>
+            <div className="grid gap-6 py-6">
+              <div className="grid w-full items-center gap-1.5">
+                <Label htmlFor="format-select">Target Format</Label>
+                <Select
+                  value={targetFormat}
+                  onValueChange={v => setTargetFormat(v as TargetFormat)}
+                  disabled={isConverting}
+                >
+                  <SelectTrigger id="format-select">
+                    <SelectValue placeholder="Select format..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="png">PNG</SelectItem>
+                    <SelectItem value="jpeg">JPEG</SelectItem>
+                    <SelectItem value="webp">WEBP</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <Button
+                onClick={handleConvert}
+                size="lg"
+                className="w-full"
+                disabled={isConverting || !file}
+              >
+                {isConverting ? (
+                  <Loader2 className="animate-spin" />
+                ) : (
+                  <Download className="h-5 w-5" />
+                )}
+                <span className="ml-2 sm:inline font-bold">
+                  {t.convertAndDownload}
+                </span>
+              </Button>
+            </div>
+          </SheetContent>
+        </Sheet>
       </footer>
     </div>
   );
