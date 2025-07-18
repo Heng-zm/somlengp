@@ -506,7 +506,7 @@ const enTranslations = {
     noText: "The model did not return any text. Please try again.",
     noTextToExport: "There is no text to export.",
     selectPdfFile: "Please select a PDF file.",
-    transcribedTextPlaceholder: "Transcribed text will appear here.",
+    transcribedTextPlaceholder: "Your transcribed text will appear here. You can edit it directly.",
     uploadCardTitle: "Upload your PDF",
     transcriptionSuccess: "Transcription Successful!",
     fileName: "File Name:",
@@ -538,7 +538,7 @@ const enTranslations = {
     conversionErrorDescription: "Please upload at least one image to convert.",
     selectImageFile: "Please select an image file (JPEG, PNG, etc.).",
     fileTooLargeTitle: "File Too Large",
-    fileTooLargeDescription: (size)=>`The file exceeds the server's limit of ${size}MB. Please use a smaller file.`
+    fileTooLargeDescription: (size)=>`One or more files exceed the server's limit of ${size}MB. Please use smaller files.`
 };
 const kmTranslations = {
     voiceScribe: "ការសរសេរតាមសំឡេង",
@@ -621,7 +621,7 @@ const kmTranslations = {
     conversionErrorDescription: "សូមផ្ទុកឡើងយ៉ាងហោចណាស់រូបភាពមួយ។",
     selectImageFile: "សូមជ្រើសរើសឯកសាររូបភាព។",
     fileTooLargeTitle: "ឯកសារធំពេក",
-    fileTooLargeDescription: (size)=>`ឯកសារនេះមានទំហំធំជាង ${size}MB។ សូមផ្ទុកឡើងឯកសារតូចជាងនេះ។`
+    fileTooLargeDescription: (size)=>`ឯកសារមួយឬច្រើនមានទំហំធំជាង ${size}MB។ សូមផ្ទុកឡើងឯកសារតូចជាងនេះ។`
 };
 const allTranslations = {
     km: kmTranslations,

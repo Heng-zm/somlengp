@@ -587,14 +587,14 @@ var { g: global, __dirname, k: __turbopack_refresh__, m: module } = __turbopack_
  * This limit is enforced on the client-side before uploading
  * and on the server-side upon receiving the file.
  * NOTE: Vercel Hobby plan has a 4.5MB body size limit for Serverless Functions.
- * Base64 encoding adds ~37% overhead, so a 4MB file becomes ~5.5MB.
- * We set this to 4MB as a safe upper limit to avoid 413 errors.
+ * Base64 encoding adds ~37% overhead. To stay safely under 4.5MB,
+ * we set the raw file limit to 3MB (3MB * 1.37 ≈ 4.11MB).
  */ __turbopack_context__.s({
     "MAX_BASE64_SIZE_BYTES": (()=>MAX_BASE64_SIZE_BYTES),
     "MAX_FILE_SIZE_BYTES": (()=>MAX_FILE_SIZE_BYTES),
     "MAX_FILE_SIZE_MB": (()=>MAX_FILE_SIZE_MB)
 });
-const MAX_FILE_SIZE_MB = 4;
+const MAX_FILE_SIZE_MB = 3;
 const MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024;
 const MAX_BASE64_SIZE_BYTES = MAX_FILE_SIZE_BYTES * 1.37;
 if (typeof globalThis.$RefreshHelpers$ === 'object' && globalThis.$RefreshHelpers !== null) {

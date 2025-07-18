@@ -2,7 +2,7 @@
 "use client";
 
 import { useState, useMemo, useContext } from 'react';
-import { Download, FilePlus } from 'lucide-react';
+import { Download } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { Card } from '@/components/ui/card';
@@ -30,6 +30,7 @@ export function MakePdfPage() {
         });
         return;
     }
+    // Lazy load the export function for better performance
     const { exportTranscript } = await import('@/lib/client-export');
     exportTranscript(text, 'docx', [], toast);
   };
