@@ -26,7 +26,6 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { RatingDialog } from '@/components/shared/rating-dialog';
 import { allTranslations } from '@/lib/translations';
-import { ModelContext } from '@/layouts/feature-page-layout';
 import { LanguageContext } from '@/contexts/language-context';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
@@ -71,12 +70,6 @@ export function SoundsPage() {
   }
   const { language } = langContext;
   const t = useMemo(() => allTranslations[language], [language]);
-
-  const modelContext = useContext(ModelContext);
-  if (!modelContext) {
-    throw new Error('SoundsPage must be used within a ModelProvider');
-  }
-  const { selectedModel } = modelContext;
 
   useEffect(() => {
     hasRated.current = localStorage.getItem('hasRated') === 'true';

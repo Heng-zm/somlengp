@@ -11,7 +11,6 @@ import { Textarea } from '@/components/ui/textarea';
 import { transcribePdf } from '@/ai/flows/pdf-transcript-flow';
 import { exportTranscript } from '@/lib/client-export';
 import { allTranslations } from '@/lib/translations';
-import { ModelContext } from '@/layouts/feature-page-layout';
 import { LanguageContext } from '@/contexts/language-context';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger, SheetDescription } from '@/components/ui/sheet';
 import { Label } from '@/components/ui/label';
@@ -52,12 +51,6 @@ export function PdfTranscriptPage() {
   }
   const { language } = langContext;
   const t = useMemo(() => allTranslations[language], [language]);
-
-  const modelContext = useContext(ModelContext);
-  if (!modelContext) {
-    throw new Error('PdfTranscriptPage must be used within a ModelProvider');
-  }
-  const { selectedModel } = modelContext;
   
   const resetState = () => {
     setPdfFile(null);
