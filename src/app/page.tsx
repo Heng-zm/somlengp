@@ -13,7 +13,7 @@ import { allTranslations } from '@/lib/translations';
 import { BotMessageSquare } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
-const VISITOR_FLAG = 'hasVisitedOzoDesigner';
+const VISITOR_COUNT_KEY = 'ozoDesignerVisitorCount';
 
 export default function Home() {
   const [visitorCount, setVisitorCount] = useState<number | null>(null);
@@ -26,25 +26,34 @@ export default function Home() {
   
   useEffect(() => {
     const manageVisitorCount = async () => {
-      try {
-        let response;
-        const isNewVisitor = !localStorage.getItem(VISITOR_FLAG);
+      let storedCount = localStorage.getItem(VISITOR_COUNT_KEY);
 
-        if (isNewVisitor) {
-          // For new visitors, track and get the new count in one call.
-          response = await fetch('/api/visit', { method: 'POST' });
-          localStorage.setItem(VISITOR_FLAG, 'true');
-        } else {
-          // For returning visitors, just get the current count.
-          response = await fetch('/api/visit');
+      if (storedCount) {
+        // User has visited before, use the stored count.
+        setVisitorCount(parseInt(storedCount, 10));
+      } else {
+        // First visit for this browser.
+        try {
+          // Fetch a base count from the server.
+          const response = await fetch('/api/visit');
+          const data = await response.json();
+          
+          if (data.success) {
+            // Increment the base count for this new visitor and store it.
+            const newCount = (data.count || 0) + 1;
+            setVisitorCount(newCount);
+            localStorage.setItem(VISITOR_COUNT_KEY, newCount.toString());
+          } else {
+            // Fallback if API fails on first visit.
+            setVisitorCount(1);
+            localStorage.setItem(VISITOR_COUNT_KEY, '1');
+          }
+        } catch (error) {
+          console.error('Failed to fetch initial visitor count:', error);
+          // Fallback if API is unreachable.
+          setVisitorCount(1);
+          localStorage.setItem(VISITOR_COUNT_KEY, '1');
         }
-
-        const data = await response.json();
-        if (data.success) {
-          setVisitorCount(data.count);
-        }
-      } catch (error) {
-        console.error('Failed to manage visitor count:', error);
       }
     };
 
