@@ -59,39 +59,19 @@ module.exports = mod;
 var { g: global, __dirname } = __turbopack_context__;
 {
 __turbopack_context__.s({
-    "GET": (()=>GET),
-    "POST": (()=>POST)
+    "GET": (()=>GET)
 });
 var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$server$2e$js__$5b$app$2d$route$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/next/server.js [app-route] (ecmascript)");
 ;
-// In a real application, this would interact with a database like Firebase Firestore
-// to increment a counter in a document.
-// For this example, we'll just log the request to the server console.
-let visitorCount = 0; // In-memory counter for demonstration. WARNING: This resets on server restart.
-async function POST() {
-    try {
-        // In a real app, you'd do something like:
-        // const db = getFirestore();
-        // const docRef = doc(db, 'analytics', 'visitors');
-        // await updateDoc(docRef, { count: increment(1) });
-        visitorCount++;
-        console.log(`New visitor recorded. Total simulated visitors: ${visitorCount}`);
-        return __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$server$2e$js__$5b$app$2d$route$5d$__$28$ecmascript$29$__["NextResponse"].json({
-            success: true,
-            count: visitorCount
-        });
-    } catch (error) {
-        console.error('Error tracking visitor:', error);
-        return __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$server$2e$js__$5b$app$2d$route$5d$__$28$ecmascript$29$__["NextResponse"].json({
-            success: false,
-            message: 'An internal error occurred.'
-        }, {
-            status: 500
-        });
-    }
-}
+// This is an in-memory counter. It will reset whenever the server instance restarts.
+// In a serverless environment, this means the count is not persistent or shared
+// across different instances. It's used here only to provide a base number
+// for the client-side counting logic.
+let visitorCount = 0;
 async function GET() {
     try {
+        // The count is not incremented here. The GET endpoint's only job is to
+        // provide a starting number to new clients.
         return __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$server$2e$js__$5b$app$2d$route$5d$__$28$ecmascript$29$__["NextResponse"].json({
             success: true,
             count: visitorCount
