@@ -4,7 +4,7 @@ import { NextResponse } from 'next/server';
 // to increment a counter in a document.
 // For this example, we'll just log the request to the server console.
 
-let visitorCount = 0; // In-memory counter for demonstration
+let visitorCount = 0; // In-memory counter for demonstration. WARNING: This resets on server restart.
 
 export async function POST() {
   try {
@@ -16,7 +16,7 @@ export async function POST() {
     visitorCount++;
     console.log(`New visitor recorded. Total simulated visitors: ${visitorCount}`);
 
-    return NextResponse.json({ success: true, message: 'Visitor tracked.' });
+    return NextResponse.json({ success: true, count: visitorCount });
   } catch (error) {
     console.error('Error tracking visitor:', error);
     return NextResponse.json(
