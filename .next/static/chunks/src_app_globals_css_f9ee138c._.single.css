@@ -2384,11 +2384,6 @@ body {
     text-align: left;
   }
 
-  .sm\:text-sm {
-    font-size: .875rem;
-    line-height: 1.25rem;
-  }
-
   .sm\:text-xl {
     font-size: 1.25rem;
     line-height: 1.75rem;
@@ -2400,10 +2395,6 @@ body {
 }
 
 @media (width >= 768px) {
-  .md\:w-\[180px\] {
-    width: 180px;
-  }
-
   .md\:max-w-\[420px\] {
     max-width: 420px;
   }

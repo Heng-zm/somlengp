@@ -9,6 +9,7 @@
  */
 
 import {ai} from '@/ai/genkit';
+import {googleAI} from '@genkit-ai/googleai';
 import {z} from 'genkit';
 
 const TranscribePdfInputSchema = z.object({
@@ -33,6 +34,7 @@ export async function transcribePdf(
 
 const prompt = ai.definePrompt({
   name: 'pdfTranscriptPrompt',
+  model: googleAI.model('gemini-1.5-flash'),
   input: {schema: TranscribePdfInputSchema},
   output: {schema: TranscribePdfOutputSchema},
   prompt: `You are an expert at extracting high-quality, clean text from PDF documents.
