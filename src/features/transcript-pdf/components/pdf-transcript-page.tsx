@@ -151,13 +151,13 @@ export function PdfTranscriptPage() {
   
   return (
     <div 
-        className="flex flex-col bg-background text-foreground h-full"
+        className="bg-background text-foreground"
         onDragEnter={handleDragEnter}
         onDragOver={handleDragEvents}
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
     >
-        <main className="p-4 md:p-6 flex-grow">
+        <main className="p-4 md:p-6">
             {isTranscribing ? (
                 <div className="flex flex-col items-center justify-center rounded-2xl border-border bg-card h-full">
                     <Loader2 className="h-12 w-12 animate-spin text-primary" />
@@ -166,7 +166,7 @@ export function PdfTranscriptPage() {
             ) : !pdfFile ? (
                  <div
                  className={cn(
-                   'flex cursor-pointer flex-col items-center justify-center rounded-2xl border-2 border-border bg-card text-center transition-colors h-full',
+                   'flex cursor-pointer flex-col items-center justify-center rounded-2xl border-2 border-border bg-card text-center transition-colors',
                    isDragging ? 'border-primary bg-primary/10' : 'border-border'
                  )}
                  style={{minHeight: '80vh'}}
@@ -178,12 +178,12 @@ export function PdfTranscriptPage() {
                </div>
             ) : (
                 isReadyForContent && (
-                  <Card className="shadow-sm overflow-hidden rounded-2xl h-full">
+                  <Card className="shadow-sm overflow-hidden rounded-2xl">
                       <Textarea
                           value={transcribedText}
                           readOnly
                           placeholder={t.transcribedTextPlaceholder}
-                          className="h-[80vh] w-full resize-none text-base leading-relaxed p-6 border-0 focus-visible:ring-0 focus-visible:ring-offset-0"
+                          className="h-[76vh] w-full resize-none text-base leading-relaxed p-6 border-0 focus-visible:ring-0 focus-visible:ring-offset-0"
                           aria-label="Transcribed Text"
                       />
                   </Card>
