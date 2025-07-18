@@ -273,9 +273,8 @@ export function SoundsPage() {
             onDragOver={handleDragEvents}
             onDragLeave={handleDragLeave}
             onDrop={handleDrop}
-            style={{minHeight: !audioFile ? '80vh' : 'auto' }}
         >
-            {isTranscribing && (
+            {isTranscribing ? (
                 <div className="absolute inset-0 bg-background/80 flex flex-col items-center justify-center z-10">
                     <div className="flex space-x-2">
                         <div className="w-4 h-4 rounded-full bg-primary animate-bounce-dot"></div>
@@ -284,15 +283,14 @@ export function SoundsPage() {
                     </div>
                     <p className="text-muted-foreground mt-4 text-lg">{t.transcribing}</p>
                 </div>
-            )}
-
-            {!audioFile ? (
+            ) : !audioFile ? (
                 <div 
                     className={cn(
                         "flex flex-col items-center justify-center text-center rounded-2xl border-2 border-border bg-card h-full transition-colors cursor-pointer",
                         isDragging && "border-primary bg-primary/10"
                     )}
                     onClick={() => fileInputRef.current?.click()}
+                    style={{minHeight: '80vh' }}
                 >
                     <FileUp className="w-16 h-16 text-muted-foreground/30 mb-4"/>
                     <h3 className="text-xl font-semibold">{t.chooseFile}</h3>
