@@ -73,6 +73,25 @@ export function SoundsPage() {
   useEffect(() => {
     hasRated.current = localStorage.getItem('hasRated') === 'true';
   }, []);
+
+  const handleError = (error: any) => {
+    console.error(error);
+    const errorMessage = (error.message || '').toLowerCase();
+    let title = t.transcriptionError;
+    let description = error.message || "An error occurred while processing your audio.";
+
+    if (errorMessage.includes('503') || errorMessage.includes('model is overloaded')) {
+        title = t.modelOverloadedTitle;
+        description = t.modelOverloadedDescription;
+    } else if (errorMessage.includes('413') || errorMessage.includes('too large')) {
+      title = t.fileTooLargeTitle;
+      description = t.fileTooLargeDescription(MAX_FILE_SIZE_MB);
+    } else if (errorMessage.includes('429') || errorMessage.includes('rate limit')) {
+      title = t.rateLimitExceeded;
+      description = t.rateLimitMessage;
+    }
+    toast({ title, description, variant: "destructive" });
+  };
   
   const handleRetranscribe = useCallback(async () => {
     if (!audioFile) return;
@@ -103,18 +122,7 @@ export function SoundsPage() {
         });
       }
     } catch (e: any) {
-      console.error(e);
-      let title = t.transcriptionError;
-      let description = e.message || "An error occurred while processing your audio.";
-      const errorMessage = (e.message || '').toLowerCase();
-      if (errorMessage.includes('413') || errorMessage.includes('too large')) {
-        title = t.fileTooLargeTitle;
-        description = t.fileTooLargeDescription(MAX_FILE_SIZE_MB);
-      } else if (errorMessage.includes('429') || errorMessage.includes('rate limit')) {
-        title = t.rateLimitExceeded;
-        description = t.rateLimitMessage;
-      }
-      toast({ title, description, variant: "destructive" });
+        handleError(e);
     } finally {
       setIsTranscribing(false);
     }
@@ -141,22 +149,7 @@ export function SoundsPage() {
             });
         }
     } catch (e: any) {
-        console.error(e);
-        let title = t.transcriptionError;
-        let description = e.message || "An error occurred while processing your audio.";
-        const errorMessage = (e.message || '').toLowerCase();
-        if (errorMessage.includes('413') || errorMessage.includes('too large')) {
-            title = t.fileTooLargeTitle;
-            description = t.fileTooLargeDescription(MAX_FILE_SIZE_MB);
-        } else if (errorMessage.includes('429') || errorMessage.includes('rate limit')) {
-            title = t.rateLimitExceeded;
-            description = t.rateLimitMessage;
-        }
-        toast({
-            title: title,
-            description: description,
-            variant: "destructive",
-        });
+        handleError(e);
     } finally {
         setIsTranscribing(false);
     }
@@ -431,3 +424,5 @@ export function SoundsPage() {
     </div>
   );
 }
+
+    

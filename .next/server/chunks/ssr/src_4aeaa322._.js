@@ -1200,7 +1200,9 @@ var __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$translations$2
 var __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$contexts$2f$language$2d$context$2e$ts__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/src/contexts/language-context.ts [app-ssr] (ecmascript)");
 var __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$select$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/src/components/ui/select.tsx [app-ssr] (ecmascript)");
 var __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$config$2e$ts__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/src/config.ts [app-ssr] (ecmascript)");
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lodash$2e$isequal$2f$index$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/lodash.isequal/index.js [app-ssr] (ecmascript)");
 "use client";
+;
 ;
 ;
 ;
@@ -1248,6 +1250,7 @@ function SoundsPage() {
     const [vocabInput, setVocabInput] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useState"])('');
     const [isRatingOpen, setIsRatingOpen] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useState"])(false);
     const hasRated = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useRef"])(false);
+    const prevCustomVocabulary = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useRef"])([]);
     const { toast } = (0, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$hooks$2f$use$2d$toast$2e$ts__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useToast"])();
     const fileInputRef = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useRef"])(null);
     const langContext = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useContext"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$contexts$2f$language$2d$context$2e$ts__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["LanguageContext"]);
@@ -1263,6 +1266,13 @@ function SoundsPage() {
     }, []);
     const handleRetranscribe = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useCallback"])(async ()=>{
         if (!audioFile) return;
+        if ((0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lodash$2e$isequal$2f$index$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["default"])(prevCustomVocabulary.current, customVocabulary)) {
+            toast({
+                title: "No Changes",
+                description: "Your custom vocabulary hasn't changed. No need to re-transcribe."
+            });
+            return;
+        }
         setIsTranscribing(true);
         try {
             const audioDataUri = await blobToBase64(audioFile);
@@ -1273,6 +1283,9 @@ function SoundsPage() {
             if (result && result.transcript) {
                 setStructuredTranscript(result.transcript);
                 setEditedTranscript(result.text);
+                prevCustomVocabulary.current = [
+                    ...customVocabulary
+                ];
                 toast({
                     title: "Transcription Improved!",
                     description: "The text has been updated with your custom vocabulary."
@@ -1322,6 +1335,9 @@ function SoundsPage() {
             if (result && result.transcript) {
                 setStructuredTranscript(result.transcript);
                 setEditedTranscript(result.text);
+                prevCustomVocabulary.current = [
+                    ...customVocabulary
+                ];
             } else {
                 toast({
                     title: t.transcriptionFailed,
@@ -1351,7 +1367,8 @@ function SoundsPage() {
         }
     }, [
         t,
-        toast
+        toast,
+        customVocabulary
     ]);
     (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useEffect"])(()=>{
         if (audioFile) {
@@ -1507,7 +1524,7 @@ function SoundsPage() {
                                 className: "w-16 h-16 text-muted-foreground/30 mb-4"
                             }, void 0, false, {
                                 fileName: "[project]/src/features/transcript-audio/components/sounds-page.tsx",
-                                lineNumber: 296,
+                                lineNumber: 305,
                                 columnNumber: 21
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("h3", {
@@ -1515,7 +1532,7 @@ function SoundsPage() {
                                 children: t.chooseFile
                             }, void 0, false, {
                                 fileName: "[project]/src/features/transcript-audio/components/sounds-page.tsx",
-                                lineNumber: 297,
+                                lineNumber: 306,
                                 columnNumber: 21
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -1523,13 +1540,13 @@ function SoundsPage() {
                                 children: t.dropAudio
                             }, void 0, false, {
                                 fileName: "[project]/src/features/transcript-audio/components/sounds-page.tsx",
-                                lineNumber: 298,
+                                lineNumber: 307,
                                 columnNumber: 21
                             }, this)
                         ]
                     }, void 0, true, {
                         fileName: "[project]/src/features/transcript-audio/components/sounds-page.tsx",
-                        lineNumber: 288,
+                        lineNumber: 297,
                         columnNumber: 17
                     }, this) : /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$card$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["Card"], {
                         className: "flex flex-col h-full shadow-sm overflow-hidden rounded-2xl",
@@ -1541,7 +1558,7 @@ function SoundsPage() {
                                         className: "h-12 w-12 animate-spin text-primary mb-4"
                                     }, void 0, false, {
                                         fileName: "[project]/src/features/transcript-audio/components/sounds-page.tsx",
-                                        lineNumber: 304,
+                                        lineNumber: 313,
                                         columnNumber: 29
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -1549,7 +1566,7 @@ function SoundsPage() {
                                         children: t.transcribing
                                     }, void 0, false, {
                                         fileName: "[project]/src/features/transcript-audio/components/sounds-page.tsx",
-                                        lineNumber: 305,
+                                        lineNumber: 314,
                                         columnNumber: 29
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -1557,13 +1574,13 @@ function SoundsPage() {
                                         children: audioFile.name
                                     }, void 0, false, {
                                         fileName: "[project]/src/features/transcript-audio/components/sounds-page.tsx",
-                                        lineNumber: 306,
+                                        lineNumber: 315,
                                         columnNumber: 29
                                     }, this)
                                 ]
                             }, void 0, true, {
                                 fileName: "[project]/src/features/transcript-audio/components/sounds-page.tsx",
-                                lineNumber: 303,
+                                lineNumber: 312,
                                 columnNumber: 25
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$shared$2f$editor$2d$view$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["EditorView"], {
@@ -1572,13 +1589,13 @@ function SoundsPage() {
                                 disabled: isTranscribing
                             }, void 0, false, {
                                 fileName: "[project]/src/features/transcript-audio/components/sounds-page.tsx",
-                                lineNumber: 309,
+                                lineNumber: 318,
                                 columnNumber: 21
                             }, this)
                         ]
                     }, void 0, true, {
                         fileName: "[project]/src/features/transcript-audio/components/sounds-page.tsx",
-                        lineNumber: 301,
+                        lineNumber: 310,
                         columnNumber: 17
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("input", {
@@ -1589,13 +1606,13 @@ function SoundsPage() {
                         accept: "audio/mp3,audio/wav,audio/ogg,audio/m4a,audio/*"
                     }, void 0, false, {
                         fileName: "[project]/src/features/transcript-audio/components/sounds-page.tsx",
-                        lineNumber: 316,
+                        lineNumber: 325,
                         columnNumber: 14
                     }, this)
                 ]
             }, void 0, true, {
                 fileName: "[project]/src/features/transcript-audio/components/sounds-page.tsx",
-                lineNumber: 280,
+                lineNumber: 289,
                 columnNumber: 9
             }, this),
             audioFile && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("footer", {
@@ -1614,7 +1631,7 @@ function SoundsPage() {
                                     className: "h-5 w-5"
                                 }, void 0, false, {
                                     fileName: "[project]/src/features/transcript-audio/components/sounds-page.tsx",
-                                    lineNumber: 329,
+                                    lineNumber: 338,
                                     columnNumber: 23
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
@@ -1622,13 +1639,13 @@ function SoundsPage() {
                                     children: t.copy
                                 }, void 0, false, {
                                     fileName: "[project]/src/features/transcript-audio/components/sounds-page.tsx",
-                                    lineNumber: 330,
+                                    lineNumber: 339,
                                     columnNumber: 23
                                 }, this)
                             ]
                         }, void 0, true, {
                             fileName: "[project]/src/features/transcript-audio/components/sounds-page.tsx",
-                            lineNumber: 328,
+                            lineNumber: 337,
                             columnNumber: 19
                         }, this),
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$sheet$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["Sheet"], {
@@ -1646,13 +1663,13 @@ function SoundsPage() {
                                                 className: "animate-spin h-5 w-5"
                                             }, void 0, false, {
                                                 fileName: "[project]/src/features/transcript-audio/components/sounds-page.tsx",
-                                                lineNumber: 335,
+                                                lineNumber: 344,
                                                 columnNumber: 49
                                             }, this) : /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$download$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__$3c$export__default__as__Download$3e$__["Download"], {
                                                 className: "h-5 w-5"
                                             }, void 0, false, {
                                                 fileName: "[project]/src/features/transcript-audio/components/sounds-page.tsx",
-                                                lineNumber: 335,
+                                                lineNumber: 344,
                                                 columnNumber: 96
                                             }, this),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
@@ -1660,18 +1677,18 @@ function SoundsPage() {
                                                 children: isTranscribing ? t.transcribing : t.download
                                             }, void 0, false, {
                                                 fileName: "[project]/src/features/transcript-audio/components/sounds-page.tsx",
-                                                lineNumber: 336,
+                                                lineNumber: 345,
                                                 columnNumber: 31
                                             }, this)
                                         ]
                                     }, void 0, true, {
                                         fileName: "[project]/src/features/transcript-audio/components/sounds-page.tsx",
-                                        lineNumber: 334,
+                                        lineNumber: 343,
                                         columnNumber: 27
                                     }, this)
                                 }, void 0, false, {
                                     fileName: "[project]/src/features/transcript-audio/components/sounds-page.tsx",
-                                    lineNumber: 333,
+                                    lineNumber: 342,
                                     columnNumber: 23
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$sheet$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["SheetContent"], {
@@ -1685,20 +1702,20 @@ function SoundsPage() {
                                                     children: t.exportSettings
                                                 }, void 0, false, {
                                                     fileName: "[project]/src/features/transcript-audio/components/sounds-page.tsx",
-                                                    lineNumber: 341,
+                                                    lineNumber: 350,
                                                     columnNumber: 29
                                                 }, this),
                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$sheet$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["SheetDescription"], {
                                                     children: t.chooseFormat
                                                 }, void 0, false, {
                                                     fileName: "[project]/src/features/transcript-audio/components/sounds-page.tsx",
-                                                    lineNumber: 342,
+                                                    lineNumber: 351,
                                                     columnNumber: 29
                                                 }, this)
                                             ]
                                         }, void 0, true, {
                                             fileName: "[project]/src/features/transcript-audio/components/sounds-page.tsx",
-                                            lineNumber: 340,
+                                            lineNumber: 349,
                                             columnNumber: 25
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1711,7 +1728,7 @@ function SoundsPage() {
                                                             children: t.exportFormat
                                                         }, void 0, false, {
                                                             fileName: "[project]/src/features/transcript-audio/components/sounds-page.tsx",
-                                                            lineNumber: 346,
+                                                            lineNumber: 355,
                                                             columnNumber: 35
                                                         }, this),
                                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$select$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["Select"], {
@@ -1723,12 +1740,12 @@ function SoundsPage() {
                                                                         placeholder: "Select format"
                                                                     }, void 0, false, {
                                                                         fileName: "[project]/src/features/transcript-audio/components/sounds-page.tsx",
-                                                                        lineNumber: 349,
+                                                                        lineNumber: 358,
                                                                         columnNumber: 43
                                                                     }, this)
                                                                 }, void 0, false, {
                                                                     fileName: "[project]/src/features/transcript-audio/components/sounds-page.tsx",
-                                                                    lineNumber: 348,
+                                                                    lineNumber: 357,
                                                                     columnNumber: 39
                                                                 }, this),
                                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$select$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["SelectContent"], {
@@ -1737,24 +1754,24 @@ function SoundsPage() {
                                                                             children: label
                                                                         }, value, false, {
                                                                             fileName: "[project]/src/features/transcript-audio/components/sounds-page.tsx",
-                                                                            lineNumber: 353,
+                                                                            lineNumber: 362,
                                                                             columnNumber: 43
                                                                         }, this))
                                                                 }, void 0, false, {
                                                                     fileName: "[project]/src/features/transcript-audio/components/sounds-page.tsx",
-                                                                    lineNumber: 351,
+                                                                    lineNumber: 360,
                                                                     columnNumber: 39
                                                                 }, this)
                                                             ]
                                                         }, void 0, true, {
                                                             fileName: "[project]/src/features/transcript-audio/components/sounds-page.tsx",
-                                                            lineNumber: 347,
+                                                            lineNumber: 356,
                                                             columnNumber: 35
                                                         }, this)
                                                     ]
                                                 }, void 0, true, {
                                                     fileName: "[project]/src/features/transcript-audio/components/sounds-page.tsx",
-                                                    lineNumber: 345,
+                                                    lineNumber: 354,
                                                     columnNumber: 31
                                                 }, this),
                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1766,7 +1783,7 @@ function SoundsPage() {
                                                             children: t.wordsPerSecond
                                                         }, void 0, false, {
                                                             fileName: "[project]/src/features/transcript-audio/components/sounds-page.tsx",
-                                                            lineNumber: 359,
+                                                            lineNumber: 368,
                                                             columnNumber: 35
                                                         }, this),
                                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$number$2d$picker$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["NumberPicker"], {
@@ -1774,7 +1791,7 @@ function SoundsPage() {
                                                             onChange: setWordsPerSecond
                                                         }, void 0, false, {
                                                             fileName: "[project]/src/features/transcript-audio/components/sounds-page.tsx",
-                                                            lineNumber: 360,
+                                                            lineNumber: 369,
                                                             columnNumber: 35
                                                         }, this),
                                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -1782,13 +1799,13 @@ function SoundsPage() {
                                                             children: t.wordsPerSecondHint
                                                         }, void 0, false, {
                                                             fileName: "[project]/src/features/transcript-audio/components/sounds-page.tsx",
-                                                            lineNumber: 364,
+                                                            lineNumber: 373,
                                                             columnNumber: 35
                                                         }, this)
                                                     ]
                                                 }, void 0, true, {
                                                     fileName: "[project]/src/features/transcript-audio/components/sounds-page.tsx",
-                                                    lineNumber: 358,
+                                                    lineNumber: 367,
                                                     columnNumber: 31
                                                 }, this),
                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1799,7 +1816,7 @@ function SoundsPage() {
                                                             children: t.improveAccuracy
                                                         }, void 0, false, {
                                                             fileName: "[project]/src/features/transcript-audio/components/sounds-page.tsx",
-                                                            lineNumber: 368,
+                                                            lineNumber: 377,
                                                             columnNumber: 35
                                                         }, this),
                                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -1807,7 +1824,7 @@ function SoundsPage() {
                                                             children: t.customVocabularyHint
                                                         }, void 0, false, {
                                                             fileName: "[project]/src/features/transcript-audio/components/sounds-page.tsx",
-                                                            lineNumber: 369,
+                                                            lineNumber: 378,
                                                             columnNumber: 35
                                                         }, this),
                                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1820,7 +1837,7 @@ function SoundsPage() {
                                                                     placeholder: t.pressEnterToAdd
                                                                 }, void 0, false, {
                                                                     fileName: "[project]/src/features/transcript-audio/components/sounds-page.tsx",
-                                                                    lineNumber: 371,
+                                                                    lineNumber: 380,
                                                                     columnNumber: 37
                                                                 }, this),
                                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$button$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["Button"], {
@@ -1829,13 +1846,13 @@ function SoundsPage() {
                                                                     children: t.addWord
                                                                 }, void 0, false, {
                                                                     fileName: "[project]/src/features/transcript-audio/components/sounds-page.tsx",
-                                                                    lineNumber: 377,
+                                                                    lineNumber: 386,
                                                                     columnNumber: 37
                                                                 }, this)
                                                             ]
                                                         }, void 0, true, {
                                                             fileName: "[project]/src/features/transcript-audio/components/sounds-page.tsx",
-                                                            lineNumber: 370,
+                                                            lineNumber: 379,
                                                             columnNumber: 35
                                                         }, this),
                                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1852,23 +1869,23 @@ function SoundsPage() {
                                                                                 className: "h-3 w-3"
                                                                             }, void 0, false, {
                                                                                 fileName: "[project]/src/features/transcript-audio/components/sounds-page.tsx",
-                                                                                lineNumber: 384,
+                                                                                lineNumber: 393,
                                                                                 columnNumber: 51
                                                                             }, this)
                                                                         }, void 0, false, {
                                                                             fileName: "[project]/src/features/transcript-audio/components/sounds-page.tsx",
-                                                                            lineNumber: 383,
+                                                                            lineNumber: 392,
                                                                             columnNumber: 47
                                                                         }, this)
                                                                     ]
                                                                 }, word, true, {
                                                                     fileName: "[project]/src/features/transcript-audio/components/sounds-page.tsx",
-                                                                    lineNumber: 381,
+                                                                    lineNumber: 390,
                                                                     columnNumber: 43
                                                                 }, this))
                                                         }, void 0, false, {
                                                             fileName: "[project]/src/features/transcript-audio/components/sounds-page.tsx",
-                                                            lineNumber: 379,
+                                                            lineNumber: 388,
                                                             columnNumber: 35
                                                         }, this),
                                                         customVocabulary.length > 0 && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$button$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["Button"], {
@@ -1881,26 +1898,26 @@ function SoundsPage() {
                                                                     className: "animate-spin mr-2"
                                                                 }, void 0, false, {
                                                                     fileName: "[project]/src/features/transcript-audio/components/sounds-page.tsx",
-                                                                    lineNumber: 391,
+                                                                    lineNumber: 400,
                                                                     columnNumber: 59
                                                                 }, this) : /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$sparkles$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__$3c$export__default__as__Sparkles$3e$__["Sparkles"], {
                                                                     className: "mr-2"
                                                                 }, void 0, false, {
                                                                     fileName: "[project]/src/features/transcript-audio/components/sounds-page.tsx",
-                                                                    lineNumber: 391,
+                                                                    lineNumber: 400,
                                                                     columnNumber: 103
                                                                 }, this),
                                                                 t.retranscribe
                                                             ]
                                                         }, void 0, true, {
                                                             fileName: "[project]/src/features/transcript-audio/components/sounds-page.tsx",
-                                                            lineNumber: 390,
+                                                            lineNumber: 399,
                                                             columnNumber: 37
                                                         }, this)
                                                     ]
                                                 }, void 0, true, {
                                                     fileName: "[project]/src/features/transcript-audio/components/sounds-page.tsx",
-                                                    lineNumber: 367,
+                                                    lineNumber: 376,
                                                     columnNumber: 31
                                                 }, this),
                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$button$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["Button"], {
@@ -1914,7 +1931,7 @@ function SoundsPage() {
                                                                 className: "mr-2 animate-spin"
                                                             }, void 0, false, {
                                                                 fileName: "[project]/src/features/transcript-audio/components/sounds-page.tsx",
-                                                                lineNumber: 400,
+                                                                lineNumber: 409,
                                                                 columnNumber: 41
                                                             }, this),
                                                             t.transcribing
@@ -1925,7 +1942,7 @@ function SoundsPage() {
                                                                 className: "mr-2"
                                                             }, void 0, false, {
                                                                 fileName: "[project]/src/features/transcript-audio/components/sounds-page.tsx",
-                                                                lineNumber: 405,
+                                                                lineNumber: 414,
                                                                 columnNumber: 41
                                                             }, this),
                                                             t.exportTranscript
@@ -1933,36 +1950,36 @@ function SoundsPage() {
                                                     }, void 0, true)
                                                 }, void 0, false, {
                                                     fileName: "[project]/src/features/transcript-audio/components/sounds-page.tsx",
-                                                    lineNumber: 397,
+                                                    lineNumber: 406,
                                                     columnNumber: 31
                                                 }, this)
                                             ]
                                         }, void 0, true, {
                                             fileName: "[project]/src/features/transcript-audio/components/sounds-page.tsx",
-                                            lineNumber: 344,
+                                            lineNumber: 353,
                                             columnNumber: 27
                                         }, this)
                                     ]
                                 }, void 0, true, {
                                     fileName: "[project]/src/features/transcript-audio/components/sounds-page.tsx",
-                                    lineNumber: 339,
+                                    lineNumber: 348,
                                     columnNumber: 23
                                 }, this)
                             ]
                         }, void 0, true, {
                             fileName: "[project]/src/features/transcript-audio/components/sounds-page.tsx",
-                            lineNumber: 332,
+                            lineNumber: 341,
                             columnNumber: 19
                         }, this)
                     ]
                 }, void 0, true, {
                     fileName: "[project]/src/features/transcript-audio/components/sounds-page.tsx",
-                    lineNumber: 327,
+                    lineNumber: 336,
                     columnNumber: 15
                 }, this)
             }, void 0, false, {
                 fileName: "[project]/src/features/transcript-audio/components/sounds-page.tsx",
-                lineNumber: 326,
+                lineNumber: 335,
                 columnNumber: 11
             }, this),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$shared$2f$rating$2d$dialog$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["RatingDialog"], {
@@ -1972,13 +1989,13 @@ function SoundsPage() {
                 translations: ratingTranslations
             }, void 0, false, {
                 fileName: "[project]/src/features/transcript-audio/components/sounds-page.tsx",
-                lineNumber: 416,
+                lineNumber: 425,
                 columnNumber: 9
             }, this)
         ]
     }, void 0, true, {
         fileName: "[project]/src/features/transcript-audio/components/sounds-page.tsx",
-        lineNumber: 279,
+        lineNumber: 288,
         columnNumber: 5
     }, this);
 }
