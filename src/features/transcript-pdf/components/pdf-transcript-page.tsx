@@ -170,16 +170,7 @@ export function PdfTranscriptPage() {
         onDrop={handleDrop}
     >
         <main className="flex-grow p-4 md:p-6 relative">
-            {isTranscribing ? (
-                <div className="absolute inset-0 bg-background/80 flex flex-col items-center justify-center z-10">
-                    <div className="flex space-x-2">
-                        <div className="w-4 h-4 rounded-full bg-primary animate-bounce-dot"></div>
-                        <div className="w-4 h-4 rounded-full bg-primary animate-bounce-dot [animation-delay:-0.16s]"></div>
-                        <div className="w-4 h-4 rounded-full bg-primary animate-bounce-dot [animation-delay:-0.32s]"></div>
-                    </div>
-                    <p className="text-muted-foreground mt-4 text-lg">{t.transcribing}</p>
-                </div>
-            ) : !pdfFile ? (
+            {!pdfFile ? (
                  <div
                  className={cn(
                    'flex cursor-pointer flex-col items-center justify-center rounded-2xl border-2 bg-card text-center transition-colors border-border h-full min-h-[70vh]',
@@ -192,17 +183,16 @@ export function PdfTranscriptPage() {
                  <p className="mt-2 text-muted-foreground">{t.dropPdf}</p>
                </div>
             ) : (
-                isReadyForContent && (
-                  <Card className="shadow-sm overflow-hidden rounded-2xl">
-                      <Textarea
-                          value={transcribedText}
-                          readOnly
-                          placeholder={t.transcribedTextPlaceholder}
-                          className="h-[76vh] w-full resize-none text-base leading-relaxed p-6 border-0 focus-visible:ring-0 focus-visible:ring-offset-0"
-                          aria-label="Transcribed Text"
-                      />
-                  </Card>
-                )
+                <Card className="shadow-sm overflow-hidden rounded-2xl">
+                    <Textarea
+                        value={isTranscribing ? t.transcribing + '...' : transcribedText}
+                        readOnly
+                        placeholder={t.transcribedTextPlaceholder}
+                        className="h-[76vh] w-full resize-none text-base leading-relaxed p-6 border-0 focus-visible:ring-0 focus-visible:ring-offset-0"
+                        aria-label="Transcribed Text"
+                        disabled={isTranscribing}
+                    />
+                </Card>
             )}
 
             <input
@@ -214,18 +204,18 @@ export function PdfTranscriptPage() {
             />
         </main>
         
-        {isReadyForContent && (
+        {pdfFile && (
           <footer className="flex-shrink-0 flex items-center justify-center gap-2 p-4 bg-background border-t">
             <div className="w-full max-w-lg flex gap-2 items-center justify-center">
-                  <Button onClick={handleCopy} variant="outline" size="icon" className="h-12 w-12 rounded-full">
+                  <Button onClick={handleCopy} variant="outline" size="icon" className="h-12 w-12 rounded-full" disabled={isTranscribing || !isReadyForContent}>
                       <Copy className="h-5 w-5" />
                       <span className="sr-only">{t.copy}</span>
                   </Button>
                   <Sheet open={isExportSheetOpen} onOpenChange={setIsExportSheetOpen}>
                     <SheetTrigger asChild>
-                      <Button size="lg" className="h-12 px-6 rounded-full bg-accent text-accent-foreground hover:bg-accent/90 w-full">
-                          <Download className="h-5 w-5" />
-                          <span className="ml-2 sm:inline font-bold">{t.download}</span>
+                      <Button size="lg" className="h-12 px-6 rounded-full bg-accent text-accent-foreground hover:bg-accent/90 w-full" disabled={isTranscribing || !isReadyForContent}>
+                          {isTranscribing ? <Loader2 className="animate-spin h-5 w-5" /> : <Download className="h-5 w-5" />}
+                          <span className="ml-2 sm:inline font-bold">{isTranscribing ? t.transcribing : t.download}</span>
                       </Button>
                     </SheetTrigger>
                     <SheetContent side="bottom" className="rounded-t-lg">
