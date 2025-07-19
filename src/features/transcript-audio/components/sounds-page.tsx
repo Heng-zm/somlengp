@@ -406,10 +406,7 @@ export function SoundsPage() {
 
                               <Button onClick={handleExport} size="lg" className="bg-accent text-accent-foreground hover:bg-accent/90" disabled={isTranscribing}>
                                   {isTranscribing ? (
-                                      <>
-                                        <ThreeDotsLoader />
-                                        {t.transcribing}
-                                      </>
+                                      <ThreeDotsLoader />
                                   ) : (
                                       <>
                                         <Download className="mr-2" />
