@@ -1,10 +1,4 @@
 {
   "/api/visit/route": "app/api/visit/route.js",
-  "/combine-pdf/page": "app/combine-pdf/page.js",
-  "/convert-image-format/page": "app/convert-image-format/page.js",
-  "/image-to-pdf/page": "app/image-to-pdf/page.js",
-  "/page": "app/page.js",
-  "/pdf-transcript/page": "app/pdf-transcript/page.js",
-  "/text-to-speech/page": "app/text-to-speech/page.js",
-  "/voice-transcript/page": "app/voice-transcript/page.js"
+  "/page": "app/page.js"
 }

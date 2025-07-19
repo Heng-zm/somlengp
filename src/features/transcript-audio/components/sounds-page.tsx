@@ -2,7 +2,7 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback, useMemo, useContext } from 'react';
-import { Download, Loader2, FileUp, Sparkles, X as XIcon, Copy } from 'lucide-react';
+import { Download, FileUp, Sparkles, X as XIcon, Copy } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Sheet,
@@ -29,6 +29,7 @@ import { LanguageContext } from '@/contexts/language-context';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { MAX_FILE_SIZE_BYTES, MAX_FILE_SIZE_MB } from '@/config';
 import isEqual from 'lodash.isequal';
+import { ThreeDotsLoader } from '@/components/shared/three-dots-loader';
 
 const blobToBase64 = (blob: Blob): Promise<string> => {
   return new Promise((resolve, reject) => {
@@ -310,8 +311,8 @@ export function SoundsPage() {
                 <Card className="flex flex-col h-full shadow-sm overflow-hidden rounded-2xl">
                     {isTranscribing && (
                         <div className="absolute inset-0 bg-background/80 flex flex-col items-center justify-center z-10">
-                            <Loader2 className="h-12 w-12 animate-spin text-primary mb-4" />
-                            <p className="text-lg font-medium text-foreground">{t.transcribing}</p>
+                            <ThreeDotsLoader />
+                            <p className="text-lg font-medium text-foreground mt-4">{t.transcribing}</p>
                             <p className="text-muted-foreground">{audioFile.name}</p>
                         </div>
                     )}
@@ -341,7 +342,7 @@ export function SoundsPage() {
                   <Sheet open={isExportSheetOpen} onOpenChange={setIsExportSheetOpen}>
                       <SheetTrigger asChild>
                           <Button size="lg" className="flex-1 rounded-full h-12 px-8 bg-accent text-accent-foreground hover:bg-accent/90" disabled={isTranscribing || !isReadyForContent}>
-                              {isTranscribing ? <Loader2 className="animate-spin h-5 w-5" /> : <Download className="h-5 w-5" />}
+                              {isTranscribing ? <ThreeDotsLoader /> : <Download className="h-5 w-5" />}
                               <span className="ml-2 sm:inline font-bold">{isTranscribing ? t.transcribing : t.download}</span>
                           </Button>
                       </SheetTrigger>
@@ -397,7 +398,7 @@ export function SoundsPage() {
                                   </div>
                                   {customVocabulary.length > 0 && (
                                     <Button onClick={handleRetranscribe} disabled={isTranscribing} size="sm" className="mt-3 w-full">
-                                        {isTranscribing ? <Loader2 className="animate-spin mr-2" /> : <Sparkles className="mr-2" />}
+                                        {isTranscribing ? <ThreeDotsLoader /> : <Sparkles className="mr-2" />}
                                         {t.retranscribe}
                                     </Button>
                                   )}
@@ -406,7 +407,7 @@ export function SoundsPage() {
                               <Button onClick={handleExport} size="lg" className="bg-accent text-accent-foreground hover:bg-accent/90" disabled={isTranscribing}>
                                   {isTranscribing ? (
                                       <>
-                                        <Loader2 className="mr-2 animate-spin" />
+                                        <ThreeDotsLoader />
                                         {t.transcribing}
                                       </>
                                   ) : (

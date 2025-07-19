@@ -646,6 +646,10 @@ body {
   height: 76vh;
 }
 
+.h-\[78vh\] {
+  height: 78vh;
+}
+
 .h-\[80vh\] {
   height: 80vh;
 }
@@ -664,10 +668,6 @@ body {
 
 .h-px {
   height: 1px;
-}
-
-.h-\[78vh\] {
-  height: 78vh;
 }
 
 .max-h-96 {
@@ -891,6 +891,20 @@ body {
   transform: translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y));
 }
 
+@keyframes bounce-dot {
+  0%, 80%, 100% {
+    transform: scale(0);
+  }
+
+  40% {
+    transform: scale(1);
+  }
+}
+
+.animate-bounce-dot {
+  animation: 1.4s ease-in-out infinite both bounce-dot;
+}
+
 @keyframes pulse {
   50% {
     opacity: .5;
@@ -899,16 +913,6 @@ body {
 
 .animate-pulse {
   animation: 2s cubic-bezier(.4, 0, .6, 1) infinite pulse;
-}
-
-@keyframes spin {
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-.animate-spin {
-  animation: 1s linear infinite spin;
 }
 
 .cursor-default {
@@ -1027,6 +1031,12 @@ body {
   --tw-space-x-reverse: 0;
   margin-right: calc(.25rem * var(--tw-space-x-reverse));
   margin-left: calc(.25rem * calc(1 - var(--tw-space-x-reverse)));
+}
+
+.space-x-2 > :not([hidden]) ~ :not([hidden]) {
+  --tw-space-x-reverse: 0;
+  margin-right: calc(.5rem * var(--tw-space-x-reverse));
+  margin-left: calc(.5rem * calc(1 - var(--tw-space-x-reverse)));
 }
 
 .space-x-4 > :not([hidden]) ~ :not([hidden]) {
@@ -1228,6 +1238,10 @@ body {
 
 .bg-destructive {
   background-color: hsl(var(--destructive));
+}
+
+.bg-foreground {
+  background-color: hsl(var(--foreground));
 }
 
 .bg-muted {
@@ -1840,6 +1854,14 @@ body {
 .no-scrollbar {
   -ms-overflow-style: none;
   scrollbar-width: none;
+}
+
+.\[animation-delay\:-0\.15s\] {
+  animation-delay: -.15s;
+}
+
+.\[animation-delay\:-0\.3s\] {
+  animation-delay: -.3s;
 }
 
 .file\:border-0::file-selector-button {

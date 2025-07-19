@@ -2,7 +2,7 @@
 "use client";
 
 import { useState } from 'react';
-import { Star, MessageSquare, Loader2 } from 'lucide-react';
+import { Star, MessageSquare } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -15,6 +15,7 @@ import {
 import { Textarea } from '../ui/textarea';
 import { cn } from '@/lib/utils';
 import { FeedbackSuccess } from './feedback-success';
+import { ThreeDotsLoader } from './three-dots-loader';
 
 interface RatingDialogProps {
   open: boolean;
@@ -112,7 +113,7 @@ export function RatingDialog({ open, onOpenChange, onSubmit, translations }: Rat
               <Button variant="ghost" onClick={() => handleClose(false)} disabled={isSubmitting}>{translations.rateLater}</Button>
               <Button onClick={handleSubmit} disabled={rating === 0 || isSubmitting}>
                 {isSubmitting ? (
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    <ThreeDotsLoader />
                 ) : (
                     <Star className="mr-2 h-4 w-4" />
                 )}
