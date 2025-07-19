@@ -666,6 +666,10 @@ body {
   height: 1px;
 }
 
+.h-\[78vh\] {
+  height: 78vh;
+}
+
 .max-h-96 {
   max-height: 24rem;
 }

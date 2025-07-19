@@ -80,7 +80,7 @@ export function TextToSpeechPage() {
 
   return (
     <div className="flex flex-col h-full bg-background text-foreground p-4 md:p-6">
-      <Card className="flex-grow flex flex-col p-6 rounded-2xl shadow-sm">
+      <Card className="flex-grow flex flex-col p-6 rounded-2xl shadow-sm h-[78vh]">
         <div className="flex-grow relative">
           <Textarea
             value={text}
