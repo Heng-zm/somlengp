@@ -54,6 +54,24 @@ async function toWav(
   });
 }
 
+const ttsPrompt = ai.definePrompt(
+  {
+    name: 'textToSpeechPrompt',
+    model: googleAI.model('gemini-2.5-flash-preview-tts'),
+    input: { schema: TextToSpeechInputSchema },
+    config: {
+      responseModalities: ['AUDIO'],
+      speechConfig: {
+        voiceConfig: {
+          prebuiltVoiceConfig: { voiceName: 'Algenib' },
+        },
+      },
+    },
+    prompt: `{{{input}}}`,
+  }
+);
+
+
 const textToSpeechFlow = ai.defineFlow(
   {
     name: 'textToSpeechFlow',
@@ -61,18 +79,8 @@ const textToSpeechFlow = ai.defineFlow(
     outputSchema: TextToSpeechOutputSchema,
   },
   async query => {
-    const {media} = await ai.generate({
-      model: googleAI.model('gemini-2.5-flash-preview-tts'),
-      config: {
-        responseModalities: ['AUDIO'],
-        speechConfig: {
-          voiceConfig: {
-            prebuiltVoiceConfig: {voiceName: 'Algenib'},
-          },
-        },
-      },
-      prompt: query,
-    });
+    const {media} = await ttsPrompt(query);
+
     if (!media) {
       throw new Error('No media returned from TTS model.');
     }
