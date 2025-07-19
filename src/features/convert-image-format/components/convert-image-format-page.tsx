@@ -9,7 +9,7 @@ import {
   useCallback,
   useEffect,
 } from 'react';
-import {Loader2, FileUp, X, Download, Wand2, ImagePlus} from 'lucide-react';
+import {FileUp, X, Download, Wand2, ImagePlus} from 'lucide-react';
 import {Button} from '@/components/ui/button';
 import {useToast} from '@/hooks/use-toast';
 import {Card} from '@/components/ui/card';
@@ -34,6 +34,7 @@ import {
 } from '@/components/ui/select';
 import {Label} from '@/components/ui/label';
 import JSZip from 'jszip';
+import { ThreeDotsLoader } from '@/components/shared/three-dots-loader';
 
 type TargetFormat = 'jpeg' | 'png' | 'webp' | 'bmp' | 'gif' | 'avif';
 
@@ -309,7 +310,7 @@ export function ConvertImageFormatPage() {
                 disabled={isConverting || files.length === 0}
               >
                 {isConverting ? (
-                  <Loader2 className="animate-spin" />
+                  <ThreeDotsLoader />
                 ) : (
                   <Download className="h-5 w-5" />
                 )}

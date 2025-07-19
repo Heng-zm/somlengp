@@ -2,7 +2,7 @@
 "use client";
 
 import { useState, useMemo, useContext } from 'react';
-import { Loader2, Wand2, Volume2, Download, X } from 'lucide-react';
+import { Wand2, Volume2, Download, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { Card } from '@/components/ui/card';
@@ -10,6 +10,7 @@ import { allTranslations } from '@/lib/translations';
 import { LanguageContext } from '@/contexts/language-context';
 import { Textarea } from '@/components/ui/textarea';
 import { textToSpeech } from '@/ai/flows/text-to-speech-flow';
+import { ThreeDotsLoader } from '@/components/shared/three-dots-loader';
 
 export function TextToSpeechPage() {
   const [text, setText] = useState('');
@@ -130,7 +131,7 @@ export function TextToSpeechPage() {
             disabled={isGenerating || !text.trim()}
           >
             {isGenerating ? (
-              <Loader2 className="animate-spin" />
+              <ThreeDotsLoader />
             ) : (
               <Wand2 className="h-5 w-5" />
             )}

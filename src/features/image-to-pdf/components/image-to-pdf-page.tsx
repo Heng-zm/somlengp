@@ -2,7 +2,7 @@
 "use client";
 
 import { useState, useMemo, useContext, useRef, useEffect } from 'react';
-import { Loader2, FileUp, X, Image as ImageIcon, ImagePlus } from 'lucide-react';
+import { FileUp, X, Image as ImageIcon, ImagePlus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { Card } from '@/components/ui/card';
@@ -12,6 +12,7 @@ import { cn } from '@/lib/utils';
 import { imageToPdf } from '@/ai/flows/image-to-pdf-flow';
 import Image from 'next/image';
 import { MAX_FILE_SIZE_BYTES, MAX_FILE_SIZE_MB } from '@/config';
+import { ThreeDotsLoader } from '@/components/shared/three-dots-loader';
 
 const blobToBase64 = (blob: Blob): Promise<string> => {
     return new Promise((resolve, reject) => {
@@ -234,7 +235,7 @@ export function ImageToPdfPage() {
                     disabled={isConverting || files.length === 0}
                 >
                     {isConverting ? (
-                        <Loader2 className="animate-spin" />
+                        <ThreeDotsLoader />
                     ) : (
                         <ImageIcon className="h-5 w-5" />
                     )}

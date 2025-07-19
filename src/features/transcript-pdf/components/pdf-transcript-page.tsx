@@ -2,7 +2,7 @@
 "use client";
 
 import { useState, useRef, useMemo, useCallback, useContext } from 'react';
-import { FileUp, Download, Copy, Loader2, FileText, X } from 'lucide-react';
+import { FileUp, Download, Copy, FileText, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
@@ -15,6 +15,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger, SheetDescri
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { MAX_FILE_SIZE_BYTES, MAX_FILE_SIZE_MB } from '@/config';
+import { ThreeDotsLoader } from '@/components/shared/three-dots-loader';
 
 const blobToBase64 = (blob: Blob): Promise<string> => {
   return new Promise((resolve, reject) => {
@@ -209,8 +210,8 @@ export function PdfTranscriptPage() {
                     <div className="flex-grow relative">
                         {isTranscribing && (
                             <div className="absolute inset-0 bg-background/80 flex flex-col items-center justify-center z-10">
-                                <Loader2 className="h-12 w-12 animate-spin text-primary mb-4" />
-                                <p className="text-lg font-medium text-foreground">{t.transcribing}</p>
+                                <ThreeDotsLoader />
+                                <p className="text-lg font-medium text-foreground mt-4">{t.transcribing}</p>
                             </div>
                         )}
                         <Textarea
@@ -244,7 +245,7 @@ export function PdfTranscriptPage() {
                   <Sheet open={isExportSheetOpen} onOpenChange={setIsExportSheetOpen}>
                     <SheetTrigger asChild>
                       <Button size="lg" className="h-12 px-6 rounded-full bg-accent text-accent-foreground hover:bg-accent/90 flex-1" disabled={isTranscribing || !isReadyForContent}>
-                          {isTranscribing ? <Loader2 className="animate-spin h-5 w-5" /> : <Download className="h-5 w-5" />}
+                          {isTranscribing ? <ThreeDotsLoader /> : <Download className="h-5 w-5" />}
                           <span className="ml-2 sm:inline font-bold">{isTranscribing ? t.transcribing : t.download}</span>
                       </Button>
                     </SheetTrigger>
@@ -270,7 +271,7 @@ export function PdfTranscriptPage() {
                         <Button onClick={handleExport} size="lg" className="bg-accent text-accent-foreground hover:bg-accent/90" disabled={isTranscribing}>
                            {isTranscribing ? (
                                <>
-                                   <Loader2 className="mr-2 animate-spin" />
+                                   <ThreeDotsLoader />
                                    {t.transcribing}
                                </>
                            ) : (

@@ -2,7 +2,7 @@
 "use client";
 
 import { useState, useMemo, useContext, useRef } from 'react';
-import { Combine, Loader2, FileUp, X, File, FilePlus } from 'lucide-react';
+import { Combine, FileUp, X, File, FilePlus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { Card } from '@/components/ui/card';
@@ -11,6 +11,7 @@ import { LanguageContext } from '@/contexts/language-context';
 import { cn } from '@/lib/utils';
 import { combinePdf } from '@/ai/flows/combine-pdf-flow';
 import { MAX_FILE_SIZE_BYTES, MAX_FILE_SIZE_MB } from '@/config';
+import { ThreeDotsLoader } from '@/components/shared/three-dots-loader';
 
 const blobToBase64 = (blob: Blob): Promise<string> => {
     return new Promise((resolve, reject) => {
@@ -219,7 +220,7 @@ export function CombinePdfPage() {
                     disabled={isCombining || files.length < 2}
                 >
                     {isCombining ? (
-                        <Loader2 className="animate-spin" />
+                        <ThreeDotsLoader />
                     ) : (
                         <Combine className="h-5 w-5" />
                     )}
