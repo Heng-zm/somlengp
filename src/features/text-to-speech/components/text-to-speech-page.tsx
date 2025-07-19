@@ -54,7 +54,7 @@ export function TextToSpeechPage() {
       if (errorMessage.includes('503') || errorMessage.includes('model is overloaded')) {
           title = t.modelOverloadedTitle;
           description = t.modelOverloadedDescription;
-      } else if (errorMessage.includes('429') || errorMessage.includes('rate limit')) {
+      } else if (errorMessage.includes('429') || errorMessage.includes('rate limit') || errorMessage.includes('quota')) {
           title = t.rateLimitExceeded;
           description = t.rateLimitMessage;
       }
