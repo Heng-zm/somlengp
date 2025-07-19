@@ -11,8 +11,8 @@ import { LanguageContext } from '@/contexts/language-context';
 import { Textarea } from '@/components/ui/textarea';
 import { textToSpeech } from '@/ai/flows/text-to-speech-flow';
 import { ThreeDotsLoader } from '@/components/shared/three-dots-loader';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
+import { VoicePicker } from '@/components/ui/voice-picker';
 
 const availableVoices = [
   'achernar', 'achird', 'algenib', 'algieba', 'alnilam', 'aoede', 'autonoe', 
@@ -24,7 +24,7 @@ const availableVoices = [
 
 export function TextToSpeechPage() {
   const [text, setText] = useState('');
-  const [voice, setVoice] = useState('Algenib');
+  const [voice, setVoice] = useState('algenib');
   const [audioDataUri, setAudioDataUri] = useState<string | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
   const { toast } = useToast();
@@ -115,21 +115,13 @@ export function TextToSpeechPage() {
             )}
           </div>
            <div className="grid w-full items-center gap-1.5">
-             <Label htmlFor="voice-select">Voice</Label>
-             <Select
+             <Label htmlFor="voice-select" className="text-center">Voice</Label>
+             <VoicePicker
+                voices={availableVoices}
                 value={voice}
-                onValueChange={setVoice}
+                onChange={setVoice}
                 disabled={isGenerating}
-              >
-                <SelectTrigger id="voice-select">
-                  <SelectValue placeholder="Select voice..." />
-                </SelectTrigger>
-                <SelectContent>
-                  {availableVoices.map(v => (
-                    <SelectItem key={v} value={v} className="capitalize">{v}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              />
            </div>
         </div>
         
