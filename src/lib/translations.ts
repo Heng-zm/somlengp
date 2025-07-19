@@ -83,7 +83,7 @@ const enTranslations: Translations = {
     conversionErrorDescription: "Please upload at least one image to convert.",
     selectImageFile: "Please select an image file (JPEG, PNG, etc.).",
     fileTooLargeTitle: "File Too Large",
-    fileTooLargeDescription: (size: number) => `The file exceeds the server's limit of ${size}MB. Please use a smaller file.`,
+    fileToLargeDescription: (size: number) => `The file exceeds the server's limit of ${size}MB. Please use a smaller file.`,
     convertImageFormat: "Convert Image Format",
     convertImageFormatDescription: "Easily change the format of your images.",
     convertImageFormatTitle: "Upload your image to convert",
@@ -91,6 +91,14 @@ const enTranslations: Translations = {
     modelOverloadedTitle: "AI Model Busy",
     modelOverloadedDescription: "The AI model is currently experiencing high demand. Please try again in a few moments.",
     reportBug: "Report a Bug",
+    textToSpeech: "Text to Speech",
+    textToSpeechDescription: "Convert text into high-quality spoken audio.",
+    textToSpeechTitle: "Text to Speech Converter",
+    pasteTextHere: "Paste your text here...",
+    generateAudio: "Generate Audio",
+    generatingAudio: "Generating Audio...",
+    audioPlayback: "Audio Playback",
+    errorGeneratingAudio: "Error Generating Audio",
 };
 
 const kmTranslations: Translations = {
@@ -170,7 +178,7 @@ const kmTranslations: Translations = {
     conversionErrorDescription: "សូមផ្ទុកឡើងយ៉ាងហោចណាស់រូបភាពមួយ។",
     selectImageFile: "សូមជ្រើសរើសឯកសាររូបភាព។",
     fileTooLargeTitle: "ឯកសារធំពេក",
-    fileTooLargeDescription: (size: number) => `ឯកសារមានទំហំធំជាង ${size}MB។ សូមផ្ទុកឡើងឯកសារតូចជាងនេះ។`,
+    fileToLargeDescription: (size: number) => `ឯកសារមានទំហំធំជាង ${size}MB។ សូមផ្ទុកឡើងឯកសារតូចជាងនេះ។`,
     convertImageFormat: "បម្លែងទ្រង់ទ្រាយរូបភាព",
     convertImageFormatDescription: "ផ្លាស់ប្តូរទ្រង់ទ្រាយរូបភាពរបស់អ្នកបានយ៉ាងងាយស្រួល។",
     convertImageFormatTitle: "ផ្ទុកឡើងរូបភាពរបស់អ្នកដើម្បីបម្លែង",
@@ -178,6 +186,14 @@ const kmTranslations: Translations = {
     modelOverloadedTitle: "ម៉ូដែល AI រវល់",
     modelOverloadedDescription: "ម៉ូដែល AI កំពុងមានតម្រូវការខ្ពស់។ សូមព្យាយាមម្តងទៀតក្នុងរយៈពេលពីរបីនាទីទៀត។",
     reportBug: "រាយការណ៍បញ្ហា",
+    textToSpeech: "អត្ថបទទៅជាសំឡេង",
+    textToSpeechDescription: "បំប្លែងអត្ថបទទៅជាសំឡេងនិយាយដែលមានគុណភាពខ្ពស់។",
+    textToSpeechTitle: "កម្មវិធីបម្លែងអត្ថបទទៅជាសំឡេង",
+    pasteTextHere: "បិទភ្ជាប់អត្ថបទរបស់អ្នកនៅទីនេះ...",
+    generateAudio: "បង្កើតសំឡេង",
+    generatingAudio: "កំពុងបង្កើតសំឡេង...",
+    audioPlayback: "ការចាក់សំឡេង",
+    errorGeneratingAudio: "កំហុសក្នុងការបង្កើតសំឡេង",
 };
 
 export const allTranslations = {
