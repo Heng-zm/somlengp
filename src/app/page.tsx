@@ -42,11 +42,17 @@ export default function Home() {
             sessionStorage.setItem(VISITOR_SESSION_KEY, 'true');
           }
         } else {
-          setVisitorCount(null);
+          // Fallback in case the API fails, try to get the count anyway
+          // This prevents showing nothing if POST fails but GET would work.
+          const getResponse = await fetch('/api/visit');
+          const getData = await getResponse.json();
+          if (getData.success) {
+            setVisitorCount(getData.count);
+          }
         }
       } catch (error) {
         console.error('Failed to fetch visitor count:', error);
-        setVisitorCount(null);
+        setVisitorCount(null); // Explicitly set to null on error
       }
     };
 
