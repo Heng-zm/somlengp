@@ -79,7 +79,7 @@ const textToSpeechFlow = ai.defineFlow(
     outputSchema: TextToSpeechOutputSchema,
   },
   async query => {
-    const {media} = await ttsPrompt(query);
+    const {media} = await ttsPrompt({input: query});
 
     if (!media) {
       throw new Error('No media returned from TTS model.');
