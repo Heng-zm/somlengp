@@ -1,4 +1,6 @@
 {
   "/api/visit/route": "app/api/visit/route.js",
+  "/image-to-pdf/page": "app/image-to-pdf/page.js",
+  "/make-pdf/page": "app/make-pdf/page.js",
   "/page": "app/page.js"
 }
