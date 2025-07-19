@@ -77,7 +77,7 @@ async function POST(request) {
         });
     }
     const message = `
-⭐️ **New VoiceScribe Feedback!** ⭐️
+⭐️ **New Ozo. Designer Feedback!** ⭐️
 
 **Rating:** ${'★'.repeat(rating)}${'☆'.repeat(5 - rating)} (${rating}/5)
 
@@ -98,13 +98,13 @@ ${feedback || 'No feedback provided.'}
             })
         });
         const result = await response.json();
-        if (!result.ok) {
+        if (!response.ok || !result.ok) {
             console.error('Telegram API Error:', result);
             return __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$server$2e$js__$5b$app$2d$route$5d$__$28$ecmascript$29$__["NextResponse"].json({
                 success: false,
-                message: 'Failed to send feedback.'
+                message: 'Failed to send feedback to Telegram.'
             }, {
-                status: 500
+                status: response.status
             });
         }
         return __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$server$2e$js__$5b$app$2d$route$5d$__$28$ecmascript$29$__["NextResponse"].json({
