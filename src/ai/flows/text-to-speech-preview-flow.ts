@@ -70,7 +70,7 @@ const textToSpeechPreviewFlow = ai.defineFlow(
         responseModalities: ['AUDIO'],
         speechConfig: {
           voiceConfig: {
-            prebuiltVoiceConfig: { voiceName: voice || 'Algenib' },
+            prebuiltVoiceConfig: { voiceName: voice || 'Achernar' },
           },
         },
       },

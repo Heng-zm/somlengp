@@ -24,7 +24,7 @@ const availableVoices = [
 
 export function TextToSpeechPage() {
   const [text, setText] = useState('');
-  const [voice, setVoice] = useState('algenib');
+  const [voice, setVoice] = useState('achernar');
   const [audioDataUri, setAudioDataUri] = useState<string | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
   const { toast } = useToast();
