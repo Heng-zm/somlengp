@@ -13,7 +13,10 @@ import {googleAI} from '@genkit-ai/googleai';
 import {z} from 'genkit';
 import wav from 'wav';
 
-const TextToSpeechInputSchema = z.string();
+const TextToSpeechInputSchema = z.object({
+  text: z.string().describe('The text to convert to speech.'),
+  voice: z.string().describe('The voice to use for the speech synthesis.'),
+});
 export type TextToSpeechInput = z.infer<typeof TextToSpeechInputSchema>;
 
 const TextToSpeechOutputSchema = z.object({
@@ -54,32 +57,25 @@ async function toWav(
   });
 }
 
-const ttsPrompt = ai.definePrompt(
-  {
-    name: 'textToSpeechPrompt',
-    model: googleAI.model('gemini-2.5-flash-preview-tts'),
-    input: { schema: TextToSpeechInputSchema },
-    config: {
-      responseModalities: ['AUDIO'],
-      speechConfig: {
-        voiceConfig: {
-          prebuiltVoiceConfig: { voiceName: 'Algenib' },
-        },
-      },
-    },
-    prompt: `{{{input}}}`,
-  }
-);
-
-
 const textToSpeechFlow = ai.defineFlow(
   {
     name: 'textToSpeechFlow',
     inputSchema: TextToSpeechInputSchema,
     outputSchema: TextToSpeechOutputSchema,
   },
-  async query => {
-    const {media} = await ttsPrompt({input: query});
+  async ({ text, voice }) => {
+    const {media} = await ai.generate({
+      model: googleAI.model('gemini-2.5-flash-preview-tts'),
+      prompt: text,
+      config: {
+        responseModalities: ['AUDIO'],
+        speechConfig: {
+          voiceConfig: {
+            prebuiltVoiceConfig: { voiceName: voice || 'Algenib' },
+          },
+        },
+      },
+    });
 
     if (!media) {
       throw new Error('No media returned from TTS model.');
