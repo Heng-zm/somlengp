@@ -3,6 +3,9 @@
 
 import { cn } from "@/lib/utils";
 import React, { useEffect, useRef, useState } from "react";
+import { textToSpeechPreview } from "@/ai/flows/text-to-speech-preview-flow";
+import { Loader2, Volume2 } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 
 interface VoicePickerProps {
   voices: string[];
@@ -18,8 +21,12 @@ export function VoicePicker({
   disabled = false,
 }: VoicePickerProps) {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const audioRef = useRef<HTMLAudioElement>(null);
   const [internalValue, setInternalValue] = useState(value);
+  const [previewAudio, setPreviewAudio] = useState<string | null>(null);
+  const [isPreviewLoading, setIsPreviewLoading] = useState(false);
   const isInteracting = useRef(false);
+  const { toast } = useToast();
 
   const scrollToValue = (val: string) => {
     const container = scrollContainerRef.current;
@@ -40,6 +47,13 @@ export function VoicePicker({
       setTimeout(() => scrollToValue(value), 100);
     }
   }, [value]);
+  
+  useEffect(() => {
+    if (previewAudio && audioRef.current) {
+        audioRef.current.src = previewAudio;
+        audioRef.current.play().catch(e => console.error("Audio playback failed:", e));
+    }
+  }, [previewAudio]);
 
   const handleScroll = () => {
     if (!isInteracting.current) return;
@@ -73,10 +87,28 @@ export function VoicePicker({
     }
   };
 
+  const generatePreview = async (voice: string) => {
+    if (isPreviewLoading) return;
+    setIsPreviewLoading(true);
+    setPreviewAudio(null);
+    try {
+        const result = await textToSpeechPreview({ voice });
+        setPreviewAudio(result.audioDataUri);
+    } catch (e: any) {
+        toast({ title: "Preview Error", description: "Could not generate voice preview.", variant: "destructive" });
+        console.error("Preview error:", e);
+    } finally {
+        setIsPreviewLoading(false);
+    }
+  };
+
   const handleInteractionEnd = () => {
     isInteracting.current = false;
      if (internalValue !== undefined) {
-        onChange(internalValue);
+        if (internalValue !== value) { // only trigger change and preview if voice is different
+            onChange(internalValue);
+            generatePreview(internalValue);
+        }
         scrollToValue(internalValue);
      }
   }
@@ -88,8 +120,11 @@ export function VoicePicker({
 
   const handleClick = (voice: string) => {
     if (disabled) return;
+    if (voice !== value) {
+        onChange(voice);
+        generatePreview(voice);
+    }
     setInternalValue(voice);
-    onChange(voice);
     scrollToValue(voice);
   }
 
@@ -119,11 +154,16 @@ export function VoicePicker({
                 internalValue === voice ? "text-primary scale-100" : "text-muted-foreground/30 scale-75"
             )}
           >
-            {voice.replace(/_/g, ' ')}
+            <div className="flex items-center gap-2">
+                <span>{voice.replace(/_/g, ' ')}</span>
+                {internalValue === voice && isPreviewLoading && <Loader2 className="h-4 w-4 animate-spin" />}
+                {internalValue === voice && !isPreviewLoading && previewAudio && <Volume2 className="h-4 w-4" />}
+            </div>
           </div>
         ))}
       </div>
       <div className="absolute inset-y-0 left-1/2 -translate-x-1/2 w-0.5 bg-primary/20" aria-hidden="true" />
+      <audio ref={audioRef} className="hidden" />
     </div>
   );
 }
