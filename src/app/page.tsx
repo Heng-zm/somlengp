@@ -12,6 +12,7 @@ import { LanguageContext } from '@/contexts/language-context';
 import { allTranslations } from '@/lib/translations';
 import { BotMessageSquare } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { Skeleton } from '@/components/ui/skeleton';
 
 const VISITOR_SESSION_KEY = 'ozo-designer-session-visited';
 
@@ -29,9 +30,7 @@ export default function Home() {
       try {
         const hasVisited = sessionStorage.getItem(VISITOR_SESSION_KEY);
         
-        // Determine which endpoint to call. If the user has already visited in this
-        // session, just get the count. Otherwise, increment it.
-        const url = hasVisited ? '/api/visit' : '/api/visit';
+        const url = '/api/visit';
         const method = hasVisited ? 'GET' : 'POST';
 
         const response = await fetch(url, { method });
@@ -39,12 +38,10 @@ export default function Home() {
 
         if (data.success) {
           setVisitorCount(data.count);
-          // Mark that this session has been counted to prevent re-incrementing on refresh.
           if (!hasVisited) {
             sessionStorage.setItem(VISITOR_SESSION_KEY, 'true');
           }
         } else {
-          // If the API fails, fall back to showing nothing.
           setVisitorCount(null);
         }
       } catch (error) {
@@ -67,15 +64,17 @@ export default function Home() {
   return (
     <div className="flex flex-col h-full bg-background text-foreground p-4 sm:p-6 md:p-8">
       <header className="mb-8 flex justify-between items-center">
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-4">
           <BotMessageSquare className="h-8 w-8 text-primary" />
-          <div>
+          <div className="flex flex-col gap-2">
             <h1 className="text-3xl font-bold text-foreground">Ozo. Designer</h1>
-            {visitorCount !== null && (
-                <div className="flex items-center gap-1.5 text-sm text-muted-foreground mt-1">
-                    <Users className="w-4 h-4" />
-                    <span>{visitorCount} Visitors</span>
+            {visitorCount !== null ? (
+                <div className="flex items-center gap-2 bg-muted/50 px-3 py-1 rounded-full w-fit">
+                    <Users className="w-4 h-4 text-muted-foreground" />
+                    <span className="text-sm font-medium text-muted-foreground">{visitorCount} Visitors</span>
                 </div>
+            ) : (
+                <Skeleton className="h-7 w-32 rounded-full" />
             )}
           </div>
         </div>
