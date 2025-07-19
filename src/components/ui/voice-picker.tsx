@@ -2,10 +2,12 @@
 "use client";
 
 import { cn } from "@/lib/utils";
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState, useMemo, useContext } from "react";
 import { textToSpeechPreview } from "@/ai/flows/text-to-speech-preview-flow";
 import { Loader2, Volume2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { LanguageContext } from "@/contexts/language-context";
+import { allTranslations } from "@/lib/translations";
 
 interface VoicePickerProps {
   voices: string[];
@@ -27,6 +29,13 @@ export function VoicePicker({
   const [isPreviewLoading, setIsPreviewLoading] = useState(false);
   const isInteracting = useRef(false);
   const { toast } = useToast();
+
+  const langContext = useContext(LanguageContext);
+  if (!langContext) {
+    throw new Error('VoicePicker must be used within a LanguageProvider');
+  }
+  const { language } = langContext;
+  const t = useMemo(() => allTranslations[language], [language]);
 
   const scrollToValue = (val: string) => {
     const container = scrollContainerRef.current;
@@ -95,7 +104,16 @@ export function VoicePicker({
         const result = await textToSpeechPreview({ voice });
         setPreviewAudio(result.audioDataUri);
     } catch (e: any) {
-        toast({ title: "Preview Error", description: "Could not generate voice preview.", variant: "destructive" });
+        const errorMessage = (e.message || '').toLowerCase();
+        let title = "Preview Error";
+        let description = "Could not generate voice preview.";
+
+        if (errorMessage.includes('429') || errorMessage.includes('rate limit') || errorMessage.includes('quota')) {
+            title = t.rateLimitExceeded;
+            description = t.rateLimitMessage;
+        }
+        
+        toast({ title, description, variant: "destructive" });
         console.error("Preview error:", e);
     } finally {
         setIsPreviewLoading(false);
@@ -105,9 +123,8 @@ export function VoicePicker({
   const handleInteractionEnd = () => {
     isInteracting.current = false;
      if (internalValue !== undefined) {
-        if (internalValue !== value) { // only trigger change and preview if voice is different
+        if (internalValue !== value) {
             onChange(internalValue);
-            generatePreview(internalValue);
         }
         scrollToValue(internalValue);
      }
@@ -120,10 +137,9 @@ export function VoicePicker({
 
   const handleClick = (voice: string) => {
     if (disabled) return;
-    if (voice !== value) {
-        onChange(voice);
-        generatePreview(voice);
-    }
+    // Set the voice and trigger preview
+    onChange(voice); 
+    generatePreview(voice);
     setInternalValue(voice);
     scrollToValue(voice);
   }
