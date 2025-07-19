@@ -23,8 +23,8 @@ export function Sidebar({ language, toggleLanguage }: SidebarProps) {
 
   const navItems = [
     { href: '/voice-transcript', label: t.voiceScribe, icon: Mic },
-    { href: '/text-to-speech', label: t.textToSpeech, icon: AudioLines },
     { href: '/pdf-transcript', label: t.pdfTranscript, icon: FileText },
+    { href: '/text-to-speech', label: t.textToSpeech, icon: AudioLines },
     { href: '/combine-pdf', label: t.combinePdf, icon: Combine },
     { href: '/image-to-pdf', label: t.imageToPdf, icon: ImageIcon },
     { href: '/convert-image-format', label: t.convertImageFormat, icon: Wand2 },

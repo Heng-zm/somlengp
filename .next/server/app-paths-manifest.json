@@ -1,4 +1,6 @@
 {
   "/api/visit/route": "app/api/visit/route.js",
-  "/page": "app/page.js"
+  "/page": "app/page.js",
+  "/text-to-speech/page": "app/text-to-speech/page.js",
+  "/voice-transcript/page": "app/voice-transcript/page.js"
 }
