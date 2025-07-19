@@ -74,6 +74,15 @@ export function SoundsPage() {
     hasRated.current = localStorage.getItem('hasRated') === 'true';
   }, []);
 
+  const clearFile = () => {
+    setAudioFile(null);
+    setStructuredTranscript([]);
+    setEditedTranscript('');
+    if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+    }
+  };
+
   const handleError = (error: any) => {
     console.error(error);
     const errorMessage = (error.message || '').toLowerCase();
@@ -91,6 +100,7 @@ export function SoundsPage() {
       description = t.rateLimitMessage;
     }
     toast({ title, description, variant: "destructive" });
+    clearFile();
   };
   
   const handleRetranscribe = useCallback(async () => {
@@ -155,12 +165,6 @@ export function SoundsPage() {
     }
   }, [t, toast, customVocabulary]);
 
-  useEffect(() => {
-    if (audioFile) {
-      processAudio(audioFile);
-    }
-  }, [audioFile, processAudio]);
-
   const handleFileSelect = (file: File | null | undefined) => {
     if (!file) return;
 
@@ -175,6 +179,7 @@ export function SoundsPage() {
 
     if (file.type.startsWith('audio/')) {
         setAudioFile(file);
+        processAudio(file);
     } else {
         toast({
             title: t.invalidFileType,
