@@ -244,18 +244,8 @@ export function SoundsPage() {
 
   const handleRatingSubmit = useCallback(async (rating: number, feedback: string): Promise<boolean> => {
     try {
-      const response = await fetch('/api/feedback', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ rating, feedback }),
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({ message: t.feedbackError }));
-        console.error('API Error:', errorData);
-        throw new Error(errorData.message);
-      }
-      
+      console.log('Feedback Submitted:', { rating, feedback });
+      // The API endpoint is removed, so we just simulate a successful submission.
       localStorage.setItem('hasRated', 'true');
       hasRated.current = true;
       return true;
