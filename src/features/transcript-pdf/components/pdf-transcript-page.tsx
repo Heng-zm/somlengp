@@ -69,6 +69,15 @@ export function PdfTranscriptPage() {
       return;
     }
     
+    if (file.size > MAX_FILE_SIZE_BYTES) {
+        toast({
+            title: t.fileTooLargeTitle,
+            description: t.fileTooLargeDescription(MAX_FILE_SIZE_MB),
+            variant: "destructive",
+        });
+        return;
+    }
+    
     setPdfFile(file);
     setIsTranscribing(true);
     setTranscribedText('');
