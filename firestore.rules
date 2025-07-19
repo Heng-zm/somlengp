@@ -1,0 +1,11 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Allow public read and write access to the visitor count document.
+    // This allows anyone to view and increment the counter.
+    match /visitors/global {
+      allow read, write: if true;
+    }
+  }
+}
