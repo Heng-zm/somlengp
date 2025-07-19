@@ -58,17 +58,22 @@ module.exports = mod;
 
 var { g: global, __dirname } = __turbopack_context__;
 {
-__turbopack_context__.s({
+/* __next_internal_action_entry_do_not_use__ [{"40358350a7b17385205ce81c31b3b717c45b3f8e76":"POST"},"",""] */ __turbopack_context__.s({
     "POST": (()=>POST)
 });
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$build$2f$webpack$2f$loaders$2f$next$2d$flight$2d$loader$2f$server$2d$reference$2e$js__$5b$app$2d$route$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/next/dist/build/webpack/loaders/next-flight-loader/server-reference.js [app-route] (ecmascript)");
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$app$2d$render$2f$encryption$2e$js__$5b$app$2d$route$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/next/dist/server/app-render/encryption.js [app-route] (ecmascript)");
 var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$server$2e$js__$5b$app$2d$route$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/next/server.js [app-route] (ecmascript)");
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$build$2f$webpack$2f$loaders$2f$next$2d$flight$2d$loader$2f$action$2d$validate$2e$js__$5b$app$2d$route$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/next/dist/build/webpack/loaders/next-flight-loader/action-validate.js [app-route] (ecmascript)");
+;
+;
 ;
 async function POST(request) {
     const { rating, feedback } = await request.json();
     const botToken = process.env.TELEGRAM_BOT_TOKEN;
     const chatId = process.env.TELEGRAM_CHAT_ID;
     if (!botToken || !chatId) {
-        console.error('Telegram Bot Token or Chat ID is not configured in .env file.');
+        console.error('Telegram bot token or chat ID is not configured.');
         return __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$server$2e$js__$5b$app$2d$route$5d$__$28$ecmascript$29$__["NextResponse"].json({
             success: false,
             message: 'Server configuration error.'
@@ -77,12 +82,13 @@ async function POST(request) {
         });
     }
     const message = `
-⭐️ **New Ozo. Designer Feedback!** ⭐️
-
-**Rating:** ${'★'.repeat(rating)}${'☆'.repeat(5 - rating)} (${rating}/5)
-
-**Feedback:**
-${feedback || 'No feedback provided.'}
+*New Feedback Received!* ⭐️
+-------------------------
+*Rating:* ${'★'.repeat(rating)}${'☆'.repeat(5 - rating)} (${rating}/5)
+*Feedback:*
+\`\`\`
+${feedback || 'No comment provided.'}
+\`\`\`
   `;
     const url = `https://api.telegram.org/bot${botToken}/sendMessage`;
     try {
@@ -97,12 +103,12 @@ ${feedback || 'No feedback provided.'}
                 parse_mode: 'Markdown'
             })
         });
-        const result = await response.json();
-        if (!response.ok || !result.ok) {
-            console.error('Telegram API Error:', result);
+        if (!response.ok) {
+            const errorData = await response.json();
+            console.error('Failed to send message to Telegram:', errorData);
             return __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$server$2e$js__$5b$app$2d$route$5d$__$28$ecmascript$29$__["NextResponse"].json({
                 success: false,
-                message: 'Failed to send feedback to Telegram.'
+                message: 'Failed to send message.'
             }, {
                 status: response.status
             });
@@ -120,6 +126,11 @@ ${feedback || 'No feedback provided.'}
         });
     }
 }
+;
+(0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$build$2f$webpack$2f$loaders$2f$next$2d$flight$2d$loader$2f$action$2d$validate$2e$js__$5b$app$2d$route$5d$__$28$ecmascript$29$__["ensureServerEntryExports"])([
+    POST
+]);
+(0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$build$2f$webpack$2f$loaders$2f$next$2d$flight$2d$loader$2f$server$2d$reference$2e$js__$5b$app$2d$route$5d$__$28$ecmascript$29$__["registerServerReference"])(POST, "40358350a7b17385205ce81c31b3b717c45b3f8e76", null);
 }}),
 
 };
