@@ -11,9 +11,20 @@ import { LanguageContext } from '@/contexts/language-context';
 import { Textarea } from '@/components/ui/textarea';
 import { textToSpeech } from '@/ai/flows/text-to-speech-flow';
 import { ThreeDotsLoader } from '@/components/shared/three-dots-loader';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Label } from '@/components/ui/label';
+
+const availableVoices = [
+  'achernar', 'achird', 'algenib', 'algieba', 'alnilam', 'aoede', 'autonoe', 
+  'callirrhoe', 'charon', 'despina', 'enceladus', 'erinome', 'fenrir', 
+  'gacrux', 'iapetus', 'kore', 'laomedeia', 'leda', 'orus', 'puck', 
+  'pulcherrima', 'rasalgethi', 'sadachbia', 'sadaltager', 'schedar', 
+  'sulafat', 'umbriel', 'vindemiatrix', 'zephyr', 'zubenelgenubi'
+];
 
 export function TextToSpeechPage() {
   const [text, setText] = useState('');
+  const [voice, setVoice] = useState('Algenib');
   const [audioDataUri, setAudioDataUri] = useState<string | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
   const { toast } = useToast();
@@ -39,7 +50,7 @@ export function TextToSpeechPage() {
     setAudioDataUri(null);
 
     try {
-      const result = await textToSpeech(text);
+      const result = await textToSpeech({ text, voice });
       if (result.audioDataUri) {
         setAudioDataUri(result.audioDataUri);
       } else {
@@ -82,25 +93,44 @@ export function TextToSpeechPage() {
   return (
     <div className="flex flex-col h-full bg-background text-foreground p-4 md:p-6">
       <Card className="flex-grow flex flex-col p-6 rounded-2xl shadow-sm h-[78vh]">
-        <div className="flex-grow relative">
-          <Textarea
-            value={text}
-            onChange={(e) => setText(e.target.value)}
-            placeholder={t.pasteTextHere}
-            className="h-full w-full resize-none text-base leading-relaxed p-4 border-0 focus-visible:ring-0 focus-visible:ring-offset-0 bg-muted/30"
-            disabled={isGenerating}
-          />
-           {text && (
-             <Button
-                variant="ghost"
-                size="icon"
-                onClick={handleClear}
-                className="absolute top-2 right-2 rounded-full"
+        <div className="flex-grow relative flex flex-col gap-4">
+          <div className="flex-grow relative">
+            <Textarea
+              value={text}
+              onChange={(e) => setText(e.target.value)}
+              placeholder={t.pasteTextHere}
+              className="h-full w-full resize-none text-base leading-relaxed p-4 border-0 focus-visible:ring-0 focus-visible:ring-offset-0 bg-muted/30"
+              disabled={isGenerating}
+            />
+            {text && (
+              <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={handleClear}
+                  className="absolute top-2 right-2 rounded-full"
+                  disabled={isGenerating}
+                >
+                  <X className="h-4 w-4" />
+              </Button>
+            )}
+          </div>
+           <div className="grid w-full items-center gap-1.5">
+             <Label htmlFor="voice-select">Voice</Label>
+             <Select
+                value={voice}
+                onValueChange={setVoice}
                 disabled={isGenerating}
               >
-                <X className="h-4 w-4" />
-             </Button>
-           )}
+                <SelectTrigger id="voice-select">
+                  <SelectValue placeholder="Select voice..." />
+                </SelectTrigger>
+                <SelectContent>
+                  {availableVoices.map(v => (
+                    <SelectItem key={v} value={v} className="capitalize">{v}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+           </div>
         </div>
         
         {audioDataUri && (
