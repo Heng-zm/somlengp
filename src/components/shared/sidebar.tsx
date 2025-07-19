@@ -27,7 +27,6 @@ export function Sidebar({ language, toggleLanguage }: SidebarProps) {
     { href: '/combine-pdf', label: t.combinePdf, icon: Combine },
     { href: '/image-to-pdf', label: t.imageToPdf, icon: ImageIcon },
     { href: '/convert-image-format', label: t.convertImageFormat, icon: Wand2 },
-    { href: '/make-pdf', label: t.makePdf, icon: FilePlus },
   ];
 
   return (
