@@ -40,7 +40,7 @@ const enTranslations: Translations = {
     ratingDescription: "Your feedback helps us improve. Please rate your experience.",
     ratingFeedbackPlaceholder: "Tell us more about your experience...",
     ratingSubmit: "Submit",
-    rateLater: "Rate Later",
+    ratingLater: "Rate Later",
     feedbackSuccess: "Thank you for your feedback!",
     feedbackError: "Could not submit feedback. Please try again later.",
     ratingThankYou: "Thank you!",
