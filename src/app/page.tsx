@@ -3,7 +3,7 @@
 
 import { useContext, useMemo, useState, useEffect } from 'react';
 import Link from 'next/link';
-import { Mic, FileText, Menu, Combine, Image as ImageIcon, Users, Wand2 } from 'lucide-react';
+import { Mic, FileText, Menu, Combine, Image as ImageIcon, Users, Wand2, FilePlus } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
@@ -65,6 +65,7 @@ export default function Home() {
     { href: '/combine-pdf', title: t.combinePdf, description: t.combinePdfDescription, icon: Combine, gradient: 'from-green-400 to-blue-400' },
     { href: '/image-to-pdf', title: t.imageToPdf, description: t.imageToPdfDescription, icon: ImageIcon, gradient: 'from-orange-400 to-red-400' },
     { href: '/convert-image-format', title: t.convertImageFormat, description: t.convertImageFormatDescription, icon: Wand2, gradient: 'from-yellow-400 to-orange-400' },
+    { href: '/make-pdf', title: t.makePdf, description: t.makePdfDescription, icon: FilePlus, gradient: 'from-red-400 to-rose-400' },
   ];
 
   return (
@@ -102,8 +103,12 @@ export default function Home() {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 flex-grow">
         {featureCards.map((card, index) => (
             <div key={card.href} className={cn(
-                (featureCards.length % 2 !== 0 && index === featureCards.length - 1) && 'md:col-span-2 lg:col-span-1',
-                 (featureCards.length % 3 !== 0 && index === featureCards.length - 1) && 'lg:col-span-3'
+                 (featureCards.length % 2 !== 0 && (index === featureCards.length - 1 || index === featureCards.length - 2)) && 'md:col-span-1',
+                 (featureCards.length % 2 === 0) && 'md:col-span-1',
+                 (index === featureCards.length - 1 && featureCards.length % 2 !== 0) ? 'md:col-span-2 lg:col-span-1' : '',
+                 (index === featureCards.length - 1 && featureCards.length % 3 === 1) ? 'lg:col-span-3' : '',
+                 (index === featureCards.length - 1 && featureCards.length % 3 === 2) ? 'lg:col-span-1' : '',
+                 (index === featureCards.length - 2 && featureCards.length % 3 === 2) ? 'lg:col-span-1' : ''
             )}>
                 <FeatureCard
                   href={card.href}
