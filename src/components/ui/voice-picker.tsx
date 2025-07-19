@@ -26,7 +26,8 @@ export function VoicePicker({
   const audioRef = useRef<HTMLAudioElement>(null);
   const [internalValue, setInternalValue] = useState(value);
   const [previewAudio, setPreviewAudio] = useState<string | null>(null);
-  const [isPreviewLoading, setIsPreviewLoading] = useState(false);
+  const [previewCache, setPreviewCache] = useState<Record<string, string>>({});
+  const [loadingVoice, setLoadingVoice] = useState<string | null>(null);
   const isInteracting = useRef(false);
   const { toast } = useToast();
 
@@ -97,12 +98,19 @@ export function VoicePicker({
   };
 
   const generatePreview = async (voice: string) => {
-    if (isPreviewLoading) return;
-    setIsPreviewLoading(true);
+    if (loadingVoice) return;
+
+    if (previewCache[voice]) {
+        setPreviewAudio(previewCache[voice]);
+        return;
+    }
+
+    setLoadingVoice(voice);
     setPreviewAudio(null);
     try {
         const result = await textToSpeechPreview({ voice });
         setPreviewAudio(result.audioDataUri);
+        setPreviewCache(prev => ({...prev, [voice]: result.audioDataUri}));
     } catch (e: any) {
         const errorMessage = (e.message || '').toLowerCase();
         let title = "Preview Error";
@@ -116,7 +124,7 @@ export function VoicePicker({
         toast({ title, description, variant: "destructive" });
         console.error("Preview error:", e);
     } finally {
-        setIsPreviewLoading(false);
+        setLoadingVoice(null);
     }
   };
 
@@ -136,11 +144,13 @@ export function VoicePicker({
   }
 
   const handleClick = (voice: string) => {
-    if (disabled) return;
-    // Set the voice and trigger preview
-    onChange(voice); 
-    generatePreview(voice);
+    if (disabled || loadingVoice) return;
+    
     setInternalValue(voice);
+    if(voice !== value) {
+        onChange(voice); 
+    }
+    generatePreview(voice);
     scrollToValue(voice);
   }
 
@@ -166,14 +176,14 @@ export function VoicePicker({
             onClick={() => handleClick(voice)}
             className={cn(
                 "snap-center shrink-0 w-40 h-16 flex items-center justify-center text-xl font-bold transition-all duration-150 ease-in-out capitalize",
-                disabled ? "cursor-not-allowed" : "cursor-pointer",
+                disabled || loadingVoice ? "cursor-not-allowed" : "cursor-pointer",
                 internalValue === voice ? "text-primary scale-100" : "text-muted-foreground/30 scale-75"
             )}
           >
             <div className="flex items-center gap-2">
                 <span>{voice.replace(/_/g, ' ')}</span>
-                {internalValue === voice && isPreviewLoading && <Loader2 className="h-4 w-4 animate-spin" />}
-                {internalValue === voice && !isPreviewLoading && previewAudio && <Volume2 className="h-4 w-4" />}
+                {loadingVoice === voice && <Loader2 className="h-4 w-4 animate-spin" />}
+                {internalValue === voice && !loadingVoice && (previewCache[voice] || previewAudio) && <Volume2 className="h-4 w-4" />}
             </div>
           </div>
         ))}
