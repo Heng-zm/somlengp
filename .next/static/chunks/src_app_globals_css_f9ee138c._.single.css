@@ -798,6 +798,10 @@ body {
   width: 100%;
 }
 
+.w-40 {
+  width: 10rem;
+}
+
 .min-w-0 {
   min-width: 0;
 }
@@ -925,6 +929,10 @@ body {
 
 .cursor-pointer {
   cursor: pointer;
+}
+
+.cursor-not-allowed {
+  cursor: not-allowed;
 }
 
 .touch-none {
@@ -1451,6 +1459,11 @@ body {
 .py-6 {
   padding-top: 1.5rem;
   padding-bottom: 1.5rem;
+}
+
+.px-\[calc\(50\%-5rem\)\] {
+  padding-left: calc(50% - 5rem);
+  padding-right: calc(50% - 5rem);
 }
 
 .pb-3 {
