@@ -1,46 +1,58 @@
 
 import { NextResponse } from 'next/server';
-import { promises as fs } from 'fs';
-import path from 'path';
-
-// Define the path to the file where the visitor count will be stored.
-// Using path.join with process.cwd() ensures a correct, absolute path 
-// that works reliably in different environments.
-const countFilePath = path.join(process.cwd(), 'visitor_data.json');
+import { db } from '@/lib/firebase';
+import { doc, getDoc, setDoc, runTransaction, DocumentReference } from 'firebase/firestore';
 
 interface VisitorData {
   count: number;
 }
 
+const visitorDocRef: DocumentReference<VisitorData> = doc(db, 'visitors', 'global') as DocumentReference<VisitorData>;
+
 async function getCount(): Promise<number> {
   try {
-    const data = await fs.readFile(countFilePath, 'utf-8');
-    const jsonData: VisitorData = JSON.parse(data);
-    return jsonData.count || 0;
-  } catch (error: any) {
-    // If the file doesn't exist or is invalid JSON, it's the first run.
-    if (error.code === 'ENOENT' || error instanceof SyntaxError) {
-      return 0;
+    const docSnap = await getDoc(visitorDocRef);
+    if (docSnap.exists()) {
+      return docSnap.data().count || 0;
     }
-    // For any other errors, re-throw them.
-    throw error;
+    // If the document doesn't exist, initialize it.
+    await setDoc(visitorDocRef, { count: 0 });
+    return 0;
+  } catch (error) {
+    console.error("Error getting visitor count from Firestore: ", error);
+    // In case of error, return 0 to avoid breaking the client.
+    return 0;
   }
 }
 
-async function setCount(count: number): Promise<void> {
-  const data: VisitorData = { count };
-  await fs.writeFile(countFilePath, JSON.stringify(data, null, 2), 'utf-8');
+async function incrementCount(): Promise<number> {
+    try {
+        const newCount = await runTransaction(db, async (transaction) => {
+            const visitorDoc = await transaction.get(visitorDocRef);
+            if (!visitorDoc.exists()) {
+                transaction.set(visitorDocRef, { count: 1 });
+                return 1;
+            }
+            const currentCount = visitorDoc.data().count || 0;
+            const newCount = currentCount + 1;
+            transaction.update(visitorDocRef, { count: newCount });
+            return newCount;
+        });
+        return newCount;
+    } catch (error) {
+        console.error("Error incrementing visitor count in Firestore: ", error);
+        // Fallback to just getting the count if transaction fails.
+        return getCount();
+    }
 }
+
 
 export async function POST() {
   try {
-    let currentCount = await getCount();
-    currentCount++;
-    await setCount(currentCount);
-    return NextResponse.json({ success: true, count: currentCount });
+    const newCount = await incrementCount();
+    return NextResponse.json({ success: true, count: newCount });
   } catch (error) {
-    console.error('Error processing visitor count:', error);
-    // If there's an error, we can't guarantee the count, so return an error response.
+    console.error('Error in POST /api/visit:', error);
     return NextResponse.json(
       { success: false, message: 'An internal error occurred while updating the count.' },
       { status: 500 }
@@ -53,7 +65,7 @@ export async function GET() {
         const count = await getCount();
         return NextResponse.json({ success: true, count: count });
     } catch (error) {
-        console.error('Error fetching visitor count:', error);
+        console.error('Error in GET /api/visit:', error);
         return NextResponse.json(
             { success: false, message: 'An internal error occurred.' },
             { status: 500 }
