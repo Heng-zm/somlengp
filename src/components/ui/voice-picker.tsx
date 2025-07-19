@@ -113,7 +113,7 @@ export function VoicePicker({
         setPreviewCache(prev => ({...prev, [voice]: result.audioDataUri}));
     } catch (e: any) {
         const errorMessage = (e.message || '').toLowerCase();
-        let title = "Preview Error";
+        let title = t.errorGeneratingAudio;
         let description = "Could not generate voice preview.";
 
         if (errorMessage.includes('429') || errorMessage.includes('rate limit') || errorMessage.includes('quota')) {
