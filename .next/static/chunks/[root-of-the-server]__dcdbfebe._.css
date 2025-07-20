@@ -758,6 +758,10 @@ body {
   width: 1rem;
 }
 
+.w-40 {
+  width: 10rem;
+}
+
 .w-5 {
   width: 1.25rem;
 }
@@ -796,10 +800,6 @@ body {
 
 .w-full {
   width: 100%;
-}
-
-.w-40 {
-  width: 10rem;
 }
 
 .min-w-0 {
@@ -937,12 +937,12 @@ body {
   cursor: grab;
 }
 
-.cursor-pointer {
-  cursor: pointer;
-}
-
 .cursor-not-allowed {
   cursor: not-allowed;
+}
+
+.cursor-pointer {
+  cursor: pointer;
 }
 
 .touch-none {
@@ -1441,6 +1441,11 @@ body {
   padding-right: calc(50% - 2rem);
 }
 
+.px-\[calc\(50\%-5rem\)\] {
+  padding-left: calc(50% - 5rem);
+  padding-right: calc(50% - 5rem);
+}
+
 .py-0\.5 {
   padding-top: .125rem;
   padding-bottom: .125rem;
@@ -1469,11 +1474,6 @@ body {
 .py-6 {
   padding-top: 1.5rem;
   padding-bottom: 1.5rem;
-}
-
-.px-\[calc\(50\%-5rem\)\] {
-  padding-left: calc(50% - 5rem);
-  padding-right: calc(50% - 5rem);
 }
 
 .pb-3 {

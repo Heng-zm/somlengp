@@ -116,7 +116,7 @@ export function VoicePicker({
         let title = t.errorGeneratingAudio;
         let description = "Could not generate voice preview.";
 
-        if (errorMessage.includes('429') || errorMessage.includes('rate limit') || errorMessage.includes('quota')) {
+        if (errorMessage.includes('rate limit') || errorMessage.includes('quota')) {
             title = t.rateLimitExceeded;
             description = t.rateLimitMessage;
         }
