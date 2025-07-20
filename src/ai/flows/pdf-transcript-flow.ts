@@ -35,7 +35,7 @@ export async function transcribePdf(
 
 const prompt = ai.definePrompt({
   name: 'pdfTranscriptPrompt',
-  model: 'gemini-1.5-flash',
+  model: 'gemini-1.5-pro',
   input: {schema: TranscribePdfInputSchema},
   output: {schema: TranscribePdfOutputSchema},
   prompt: `You are a meticulous digital archivist. Your one and only mission is to extract the text from the provided PDF document and replicate its layout and structure with perfect fidelity. Any deviation is a failure.
