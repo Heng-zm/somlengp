@@ -45,12 +45,13 @@ export function ChatPage() {
     if (!input.trim() || isLoading) return;
 
     const newUserMessage: Message = {role: 'user', content: input};
-    setMessages(prev => [...prev, newUserMessage]);
+    const currentMessages = [...messages, newUserMessage];
+    setMessages(currentMessages);
     setInput('');
     setIsLoading(true);
 
     // Prepare history for the API call
-    const history = messages.map(msg => ({
+    const history = currentMessages.slice(0, -1).map(msg => ({
       role: msg.role,
       content: [{text: msg.content}],
     }));
@@ -86,7 +87,7 @@ export function ChatPage() {
         variant: 'destructive',
       });
 
-      // Remove the last empty model message on error
+      // On error, remove the user message that caused the error to allow retry
       setMessages(prev => prev.slice(0, prev.length - 1));
     } finally {
       setIsLoading(false);
