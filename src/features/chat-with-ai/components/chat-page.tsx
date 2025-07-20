@@ -23,6 +23,7 @@ export function ChatPage() {
   const [isLoading, setIsLoading] = useState(false);
   const {toast} = useToast();
   const scrollAreaRef = useRef<HTMLDivElement>(null);
+  const isMounted = useRef(true);
 
   const langContext = useContext(LanguageContext);
   if (!langContext) {
@@ -30,6 +31,13 @@ export function ChatPage() {
   }
   const {language} = langContext;
   const t = useMemo(() => allTranslations[language], [language]);
+
+  useEffect(() => {
+    isMounted.current = true;
+    return () => {
+      isMounted.current = false;
+    };
+  }, []);
 
   useEffect(() => {
     if (scrollAreaRef.current) {
@@ -45,23 +53,25 @@ export function ChatPage() {
     if (!input.trim() || isLoading) return;
 
     const newUserMessage: Message = {role: 'user', content: input};
-    const currentMessages = [...messages, newUserMessage];
-    setMessages(currentMessages);
+    setMessages(prev => [...prev, newUserMessage]);
     setInput('');
     setIsLoading(true);
 
     // Prepare history for the API call
-    const history = currentMessages.slice(0, -1).map(msg => ({
+    const history = [...messages, newUserMessage].slice(0, -1).map(msg => ({
       role: msg.role,
       content: [{text: msg.content}],
     }));
 
     try {
       const stream = await chat({history, message: input});
+      if (!isMounted.current) return;
+
       let streamedResponse = '';
       setMessages(prev => [...prev, {role: 'model', content: ''}]);
 
       for await (const chunk of stream) {
+        if (!isMounted.current) return;
         streamedResponse += chunk;
         setMessages(prev => {
           const newMessages = [...prev];
@@ -70,6 +80,7 @@ export function ChatPage() {
         });
       }
     } catch (error: any) {
+      if (!isMounted.current) return;
       console.error('Chat error:', error);
       const errorMessage =
         error.message?.toLowerCase() || 'an unknown error occurred.';
@@ -90,7 +101,9 @@ export function ChatPage() {
       // On error, remove the user message that caused the error to allow retry
       setMessages(prev => prev.slice(0, prev.length - 1));
     } finally {
-      setIsLoading(false);
+      if (isMounted.current) {
+        setIsLoading(false);
+      }
     }
   };
 
