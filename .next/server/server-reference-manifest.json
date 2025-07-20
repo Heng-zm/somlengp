@@ -1,25 +1,36 @@
 {
   "node": {
-    "4050ac54cf9201e45356f56398fcd7f2aac0735f7e": {
+    "404e7f9a1b53c619250992f00f30e177053aa089a2": {
       "workers": {
-        "app/text-to-speech/page": {
-          "moduleId": "[project]/.next-internal/server/app/text-to-speech/page/actions.js { ACTIONS_MODULE0 => \"[project]/src/ai/flows/text-to-speech-flow.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/src/ai/flows/text-to-speech-preview-flow.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+        "app/pdf-transcript/page": {
+          "moduleId": "[project]/.next-internal/server/app/pdf-transcript/page/actions.js { ACTIONS_MODULE0 => \"[project]/src/ai/flows/pdf-transcript-flow.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
           "async": false
         }
       },
       "layer": {
-        "app/text-to-speech/page": "action-browser"
+        "app/pdf-transcript/page": "action-browser"
       }
     },
-    "40fbf3f54273d62b95edc692cc5defb655fad4d3cb": {
+    "4021eec7f36ae423a90a123d847a05761fe9cb9e78": {
       "workers": {
-        "app/text-to-speech/page": {
-          "moduleId": "[project]/.next-internal/server/app/text-to-speech/page/actions.js { ACTIONS_MODULE0 => \"[project]/src/ai/flows/text-to-speech-flow.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/src/ai/flows/text-to-speech-preview-flow.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+        "app/voice-transcript/page": {
+          "moduleId": "[project]/.next-internal/server/app/voice-transcript/page/actions.js { ACTIONS_MODULE0 => \"[project]/src/ai/flows/speech-to-text-flow.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/src/ai/flows/improve-transcription-accuracy-flow.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
           "async": false
         }
       },
       "layer": {
-        "app/text-to-speech/page": "action-browser"
+        "app/voice-transcript/page": "action-browser"
+      }
+    },
+    "40ae144d7927c19ed0628dfaa18854e94d6edf9419": {
+      "workers": {
+        "app/voice-transcript/page": {
+          "moduleId": "[project]/.next-internal/server/app/voice-transcript/page/actions.js { ACTIONS_MODULE0 => \"[project]/src/ai/flows/speech-to-text-flow.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/src/ai/flows/improve-transcription-accuracy-flow.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false
+        }
+      },
+      "layer": {
+        "app/voice-transcript/page": "action-browser"
       }
     }
   },
