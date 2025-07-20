@@ -66,23 +66,23 @@ export function ChatPage() {
 
     (async () => {
       try {
-        const stream = await chat({ history: historyForApi });
+        const stream = chat({ history: historyForApi });
         if (!isMounted.current) return;
 
         let streamedResponse = '';
         setMessages(prev => [...prev, {role: 'model', content: ''}]);
 
-        for await (const chunk of stream) {
-          if (!isMounted.current) return;
-          streamedResponse += chunk;
-          setMessages(prev => {
-            const updatedMessages = [...prev];
-            const lastMessage = updatedMessages[updatedMessages.length - 1];
-            if (lastMessage.role === 'model') {
-                lastMessage.content = streamedResponse;
-            }
-            return updatedMessages;
-          });
+        for await (const chunk of await stream) {
+            if (!isMounted.current) return;
+            streamedResponse += chunk;
+            setMessages(prev => {
+                const updatedMessages = [...prev];
+                const lastMessage = updatedMessages[updatedMessages.length - 1];
+                if (lastMessage.role === 'model') {
+                    lastMessage.content = streamedResponse;
+                }
+                return updatedMessages;
+            });
         }
       } catch (error: any) {
         if (!isMounted.current) return;

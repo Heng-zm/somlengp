@@ -10,7 +10,7 @@
 import {ai} from '@/ai/genkit';
 import {googleAI} from '@genkit-ai/googleai';
 import {z} from 'genkit';
-import {MessageData, Role} from 'genkit';
+import {MessageData, Role, Stream} from 'genkit';
 
 const ChatInputSchema = z.object({
   history: z
@@ -24,7 +24,7 @@ const ChatInputSchema = z.object({
 });
 export type ChatInput = z.infer<typeof ChatInputSchema>;
 
-export async function chat(input: ChatInput) {
+export function chat(input: ChatInput): Promise<Stream<string>> {
   return chatFlow(input);
 }
 
