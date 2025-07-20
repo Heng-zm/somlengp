@@ -20,8 +20,7 @@ const ChatInputSchema = z.object({
         content: z.array(z.object({text: z.string()})),
       })
     )
-    .describe('The chat history.'),
-  message: z.string().describe('The latest user message.'),
+    .describe('The complete chat history, including the latest user message.'),
 });
 export type ChatInput = z.infer<typeof ChatInputSchema>;
 
@@ -35,15 +34,12 @@ const chatFlow = ai.defineFlow(
     inputSchema: ChatInputSchema,
     stream: true,
   },
-  async ({history, message}) => {
-    // Combine the previous history with the new user message.
-    const messages: MessageData[] = [
-      ...history.map(msg => ({
-        role: msg.role as Role,
-        content: msg.content.map(c => ({text: c.text})),
-      })),
-      {role: 'user', content: [{text: message}]},
-    ];
+  async ({history}) => {
+    // The history from the client already includes the latest user message.
+    const messages: MessageData[] = history.map(msg => ({
+      role: msg.role as Role,
+      content: msg.content.map(c => ({text: c.text})),
+    }));
 
     const {stream} = await ai.generate({
       model: googleAI.model('gemini-1.5-flash-latest'),
