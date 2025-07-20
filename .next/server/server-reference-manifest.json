@@ -32,6 +32,17 @@
       "layer": {
         "app/voice-transcript/page": "action-browser"
       }
+    },
+    "4058bad2008c6dbea65020a154ea6d5484d5a70871": {
+      "workers": {
+        "app/chat-with-ai/page": {
+          "moduleId": "[project]/.next-internal/server/app/chat-with-ai/page/actions.js { ACTIONS_MODULE0 => \"[project]/src/ai/flows/chat-flow.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false
+        }
+      },
+      "layer": {
+        "app/chat-with-ai/page": "action-browser"
+      }
     }
   },
   "edge": {},
