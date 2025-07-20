@@ -57,9 +57,8 @@ export function ChatPage() {
     setInput('');
     setIsLoading(true);
 
-    // Prepare history for the API call
-    const history = [...messages, newUserMessage].slice(0, -1).map(msg => ({
-      role: msg.role,
+    const history = messages.map(msg => ({
+      role: msg.role as 'user' | 'model',
       content: [{text: msg.content}],
     }));
 
@@ -71,7 +70,7 @@ export function ChatPage() {
       setMessages(prev => [...prev, {role: 'model', content: ''}]);
 
       for await (const chunk of stream) {
-        if (!isMounted.current) return; // FIX: Add check inside the loop
+        if (!isMounted.current) return;
         streamedResponse += chunk;
         setMessages(prev => {
           const newMessages = [...prev];
@@ -81,6 +80,7 @@ export function ChatPage() {
       }
     } catch (error: any) {
       if (!isMounted.current) return;
+      
       console.error('Chat error:', error);
       const errorMessage =
         error.message?.toLowerCase() || 'an unknown error occurred.';
@@ -98,7 +98,6 @@ export function ChatPage() {
         variant: 'destructive',
       });
 
-      // On error, remove the user message that caused the error to allow retry
       setMessages(prev => prev.slice(0, prev.length - 1));
     } finally {
       if (isMounted.current) {
