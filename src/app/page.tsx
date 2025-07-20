@@ -29,30 +29,26 @@ export default function Home() {
     const fetchAndIncrementCount = async () => {
       try {
         const hasVisited = sessionStorage.getItem(VISITOR_SESSION_KEY);
+        let count = 0;
         
-        const url = '/api/visit';
-        const method = hasVisited ? 'GET' : 'POST';
-
-        const response = await fetch(url, { method });
-        const data = await response.json();
-
-        if (data.success) {
-          setVisitorCount(data.count);
-          if (!hasVisited) {
-            sessionStorage.setItem(VISITOR_SESSION_KEY, 'true');
+        if (hasVisited) {
+          const response = await fetch('/api/visit');
+          const data = await response.json();
+          if (data.success) {
+            count = data.count;
           }
         } else {
-          // Fallback in case the API fails, try to get the count anyway
-          // This prevents showing nothing if POST fails but GET would work.
-          const getResponse = await fetch('/api/visit');
-          const getData = await getResponse.json();
-          if (getData.success) {
-            setVisitorCount(getData.count);
+          const response = await fetch('/api/visit', { method: 'POST' });
+          const data = await response.json();
+          if (data.success) {
+            count = data.count;
+            sessionStorage.setItem(VISITOR_SESSION_KEY, 'true');
           }
         }
+        setVisitorCount(count);
       } catch (error) {
         console.error('Failed to fetch visitor count:', error);
-        setVisitorCount(null); // Explicitly set to null on error
+        setVisitorCount(null);
       }
     };
 

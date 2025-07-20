@@ -63,7 +63,7 @@ const pdfTranscriptFlow = ai.defineFlow(
         throw new Error('413: Payload Too Large. PDF file size exceeds the server limit.');
     }
     const {output} = await prompt(input);
-    if (!output) {
+    if (!output || !output.text) {
       throw new Error(
         'PDF to Text transcription failed: The model did not return any output.'
       );

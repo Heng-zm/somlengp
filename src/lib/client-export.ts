@@ -35,30 +35,31 @@ function groupWordsIntoSegments(words: TranscriptWord[], segmentDuration: number
     if (!words.length || segmentDuration <= 0) return [];
 
     const segments = [];
-    let currentSegment: TranscriptWord[] = [];
-    let segmentStartTime = 0;
+    let currentSegmentWords: TranscriptWord[] = [];
+    let segmentStartTime = words[0]?.start ?? 0;
     
-    if (words.length > 0) {
-        segmentStartTime = words[0].start;
-    }
-
     for (const word of words) {
-        if (word.start >= segmentStartTime + segmentDuration) {
-            if (currentSegment.length > 0) {
-                const segmentText = currentSegment.map(w => w.text).join(' ').trim();
-                const segmentEndTime = currentSegment[currentSegment.length - 1].end;
-                segments.push({ text: segmentText, start: segmentStartTime, end: segmentEndTime });
-            }
-            currentSegment = [word];
+        // If the current word starts after the segment time limit, finalize the previous segment.
+        if (currentSegmentWords.length > 0 && word.start >= segmentStartTime + segmentDuration) {
+            const segmentText = currentSegmentWords.map(w => w.text).join(' ').trim();
+            const segmentEndTime = currentSegmentWords[currentSegmentWords.length - 1].end;
+            segments.push({ text: segmentText, start: segmentStartTime, end: segmentEndTime });
+            
+            // Start a new segment
+            currentSegmentWords = [word];
             segmentStartTime = word.start;
         } else {
-            currentSegment.push(word);
+            if (currentSegmentWords.length === 0) {
+                segmentStartTime = word.start; // Set start time for the very first word of a new segment
+            }
+            currentSegmentWords.push(word);
         }
     }
 
-    if (currentSegment.length > 0) {
-        const segmentText = currentSegment.map(w => w.text).join(' ').trim();
-        const segmentEndTime = currentSegment[currentSegment.length - 1].end;
+    // Add the last segment if it has any words.
+    if (currentSegmentWords.length > 0) {
+        const segmentText = currentSegmentWords.map(w => w.text).join(' ').trim();
+        const segmentEndTime = currentSegmentWords[currentSegmentWords.length - 1].end;
         segments.push({ text: segmentText, start: segmentStartTime, end: segmentEndTime });
     }
 
@@ -69,9 +70,10 @@ function exportToSrt(text: string, words: TranscriptWord[], wordsPerSecond?: num
     if ((!words || words.length === 0)) return null;
 
     let srtContent = '';
+    const segmentDuration = wordsPerSecond ? 60 / wordsPerSecond : 0;
     
-    if (wordsPerSecond && wordsPerSecond > 0) {
-        const segments = groupWordsIntoSegments(words, wordsPerSecond);
+    if (segmentDuration > 0) {
+        const segments = groupWordsIntoSegments(words, segmentDuration);
         segments.forEach((segment, i) => {
             srtContent += `${i + 1}\n`;
             srtContent += `${formatSrtTime(segment.start)} --> ${formatSrtTime(segment.end)}\n`;
@@ -92,9 +94,10 @@ function exportToVtt(text: string, words: TranscriptWord[], wordsPerSecond?: num
     if (!words || words.length === 0) return null;
 
     let vttContent = 'WEBVTT\n\n';
+    const segmentDuration = wordsPerSecond ? 60 / wordsPerSecond : 0;
     
-    if (wordsPerSecond && wordsPerSecond > 0) {
-        const segments = groupWordsIntoSegments(words, wordsPerSecond);
+    if (segmentDuration > 0) {
+        const segments = groupWordsIntoSegments(words, segmentDuration);
         segments.forEach((segment, i) => {
             vttContent += `${formatVttTime(segment.start)} --> ${formatVttTime(segment.end)}\n`;
             vttContent += `${segment.text}\n\n`;
