@@ -54,16 +54,16 @@ export function ChatPage() {
 
     const newUserMessage: Message = {role: 'user', content: input};
     
-    // Optimistically update the UI
-    setMessages(prev => [...prev, newUserMessage]);
-    setInput('');
-    setIsLoading(true);
-
-    // Create history *before* the async call
+    // Correctly create history *before* async calls, including the new message
     const history = [...messages, newUserMessage].map(msg => ({
       role: msg.role as 'user' | 'model',
       content: [{text: msg.content}],
     }));
+    
+    // Optimistically update the UI
+    setMessages(prev => [...prev, newUserMessage]);
+    setInput('');
+    setIsLoading(true);
 
     // Define and immediately call the async function
     (async () => {
