@@ -91,11 +91,13 @@ export function ChatPage() {
         const errorMessage =
           error.message?.toLowerCase() || 'an unknown error occurred.';
         let title = t.chatError;
-        let description = errorMessage;
+        let description = error.message;
 
         if (errorMessage.includes('rate limit')) {
           title = t.rateLimitExceeded;
           description = t.rateLimitMessage;
+        } else if (error.message) {
+            description = error.message;
         }
 
         toast({
