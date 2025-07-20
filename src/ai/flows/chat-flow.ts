@@ -45,7 +45,7 @@ const chatFlow = ai.defineFlow(
     ];
 
     const {stream} = await ai.generate({
-      model: 'gemini-1.5-pro',
+      model: 'gemini-pro',
       messages: messages,
       stream: true,
     });

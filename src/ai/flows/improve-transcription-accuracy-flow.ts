@@ -31,7 +31,7 @@ export async function improveTranscriptionAccuracy(input: ImproveTranscriptionAc
 
 const prompt = ai.definePrompt({
   name: 'improveTranscriptionAccuracyPrompt',
-  model: 'gemini-1.5-pro',
+  model: 'gemini-pro',
   input: {schema: ImproveTranscriptionAccuracyInputSchema},
   output: {schema: TranscribeAudioOutputSchema},
   prompt: `You are a highly accurate audio transcription service that can understand both English and Khmer.
