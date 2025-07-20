@@ -59,15 +59,15 @@ export function ChatPage() {
     setInput('');
     setIsLoading(true);
     
-    // Correctly create history for the API call
-    const history = newMessages.map(msg => ({
-      role: msg.role as 'user' | 'model',
+    // The history for the API call should include the new user message.
+    const historyForApi = newMessages.map(msg => ({
+      role: msg.role,
       content: [{text: msg.content}],
     }));
 
     (async () => {
       try {
-        const stream = await chat({history, message: input});
+        const stream = await chat({ history: historyForApi });
         if (!isMounted.current) return;
 
         let streamedResponse = '';
@@ -105,6 +105,7 @@ export function ChatPage() {
           variant: 'destructive',
         });
         
+        // Remove the optimistically added user message on error
         setMessages(prev => prev.slice(0, -1));
 
       } finally {
