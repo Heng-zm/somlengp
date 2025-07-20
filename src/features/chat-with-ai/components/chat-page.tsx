@@ -54,18 +54,17 @@ export function ChatPage() {
 
     const newUserMessage: Message = {role: 'user', content: input};
     
-    // Correctly create history *before* async calls, including the new message
-    const history = [...messages, newUserMessage].map(msg => ({
+    const currentMessages = [...messages, newUserMessage];
+
+    const history = currentMessages.map(msg => ({
       role: msg.role as 'user' | 'model',
       content: [{text: msg.content}],
     }));
-    
-    // Optimistically update the UI
-    setMessages(prev => [...prev, newUserMessage]);
+
+    setMessages(currentMessages);
     setInput('');
     setIsLoading(true);
 
-    // Define and immediately call the async function
     (async () => {
       try {
         const stream = await chat({history, message: input});
@@ -106,7 +105,6 @@ export function ChatPage() {
           variant: 'destructive',
         });
         
-        // On error, remove the user message that was added optimistically
         setMessages(prev => prev.filter(m => m !== newUserMessage));
 
       } finally {
