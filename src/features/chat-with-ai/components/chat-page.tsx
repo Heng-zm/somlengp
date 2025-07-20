@@ -53,17 +53,17 @@ export function ChatPage() {
     if (!input.trim() || isLoading) return;
 
     const newUserMessage: Message = {role: 'user', content: input};
+    const newMessages = [...messages, newUserMessage];
     
-    const currentMessages = [...messages, newUserMessage];
-
-    const history = currentMessages.map(msg => ({
+    setMessages(newMessages);
+    setInput('');
+    setIsLoading(true);
+    
+    // Correctly create history for the API call
+    const history = newMessages.map(msg => ({
       role: msg.role as 'user' | 'model',
       content: [{text: msg.content}],
     }));
-
-    setMessages(currentMessages);
-    setInput('');
-    setIsLoading(true);
 
     (async () => {
       try {
@@ -77,12 +77,12 @@ export function ChatPage() {
           if (!isMounted.current) return;
           streamedResponse += chunk;
           setMessages(prev => {
-            const newMessages = [...prev];
-            const lastMessage = newMessages[newMessages.length - 1];
+            const updatedMessages = [...prev];
+            const lastMessage = updatedMessages[updatedMessages.length - 1];
             if (lastMessage.role === 'model') {
                 lastMessage.content = streamedResponse;
             }
-            return newMessages;
+            return updatedMessages;
           });
         }
       } catch (error: any) {
@@ -105,7 +105,7 @@ export function ChatPage() {
           variant: 'destructive',
         });
         
-        setMessages(prev => prev.filter(m => m !== newUserMessage));
+        setMessages(prev => prev.slice(0, -1));
 
       } finally {
         if (isMounted.current) {
