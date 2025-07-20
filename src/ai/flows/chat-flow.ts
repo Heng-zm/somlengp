@@ -42,7 +42,7 @@ const chatFlow = ai.defineFlow(
       content: msg.content.map(c => ({text: c.text})),
     }));
 
-    const {stream} = ai.generate({
+    const {stream} = await ai.generate({
       model: googleAI.model('gemini-1.5-flash-latest'),
       messages: messages,
       stream: true,
