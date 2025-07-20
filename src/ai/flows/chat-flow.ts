@@ -37,15 +37,15 @@ const chatFlow = ai.defineFlow(
   async ({history, message}) => {
     // Combine the previous history with the new user message.
     const messages: MessageData[] = [
-        ...history.map(msg => ({
-            role: msg.role as Role,
-            content: msg.content.map(c => ({text: c.text})),
-        })),
-        { role: 'user', content: [{ text: message }] },
+      ...history.map(msg => ({
+        role: msg.role as Role,
+        content: msg.content.map(c => ({text: c.text})),
+      })),
+      {role: 'user', content: [{text: message}]},
     ];
 
     const {stream} = await ai.generate({
-      model: 'gemini-pro',
+      model: 'gemini-2.5-flash',
       messages: messages,
       stream: true,
     });
