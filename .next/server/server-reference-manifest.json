@@ -1,5 +1,28 @@
 {
-  "node": {},
+  "node": {
+    "4050ac54cf9201e45356f56398fcd7f2aac0735f7e": {
+      "workers": {
+        "app/text-to-speech/page": {
+          "moduleId": "[project]/.next-internal/server/app/text-to-speech/page/actions.js { ACTIONS_MODULE0 => \"[project]/src/ai/flows/text-to-speech-flow.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/src/ai/flows/text-to-speech-preview-flow.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false
+        }
+      },
+      "layer": {
+        "app/text-to-speech/page": "action-browser"
+      }
+    },
+    "40fbf3f54273d62b95edc692cc5defb655fad4d3cb": {
+      "workers": {
+        "app/text-to-speech/page": {
+          "moduleId": "[project]/.next-internal/server/app/text-to-speech/page/actions.js { ACTIONS_MODULE0 => \"[project]/src/ai/flows/text-to-speech-flow.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/src/ai/flows/text-to-speech-preview-flow.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false
+        }
+      },
+      "layer": {
+        "app/text-to-speech/page": "action-browser"
+      }
+    }
+  },
   "edge": {},
   "encryptionKey": "Wpu4M2c6p4TZhFXdbsr+UB39pbwJ3IIKdTYJ5Rc92vo="
 }
