@@ -32,7 +32,8 @@ const chatFlow = ai.defineFlow(
   {
     name: 'chatFlow',
     inputSchema: ChatInputSchema,
-    outputSchema: z.string(),
+    // The outputSchema is removed because the flow directly returns a stream.
+    // The type of the streamed chunks is implicitly a string.
     stream: true,
   },
   async ({history, message}) => {
@@ -47,7 +48,7 @@ const chatFlow = ai.defineFlow(
 
     const {stream} = await ai.generate({
       model: 'googleai/gemini-2.5-flash',
-      messages: messages, // Use the 'messages' parameter for the full conversation
+      messages: messages,
       stream: true,
     });
 
