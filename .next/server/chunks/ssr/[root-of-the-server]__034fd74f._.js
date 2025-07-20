@@ -217,7 +217,7 @@ var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$genkit$2d$
 const ai = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$genkit$2f$lib$2f$genkit$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["genkit"])({
     plugins: [
         (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$genkit$2d$ai$2f$googleai$2f$lib$2f$index$2e$mjs__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__$3c$locals$3e$__["googleAI"])({
-            model: 'gemini-1.5-pro'
+            model: 'gemini-pro'
         })
     ]
 });
@@ -302,7 +302,7 @@ async function transcribeAudio(input) {
 }
 const prompt = __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$ai$2f$genkit$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["ai"].definePrompt({
     name: 'transcribeAudioPrompt',
-    model: 'gemini-1.5-pro',
+    model: 'gemini-pro',
     input: {
         schema: TranscribeAudioInputSchema
     },
@@ -382,7 +382,7 @@ async function improveTranscriptionAccuracy(input) {
 }
 const prompt = __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$ai$2f$genkit$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["ai"].definePrompt({
     name: 'improveTranscriptionAccuracyPrompt',
-    model: 'gemini-1.5-pro',
+    model: 'gemini-pro',
     input: {
         schema: ImproveTranscriptionAccuracyInputSchema
     },
