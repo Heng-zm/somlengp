@@ -59,7 +59,6 @@ export function ChatPage() {
     setInput('');
     setIsLoading(true);
     
-    // The history for the API call should include the new user message.
     const historyForApi = newMessages.map(msg => ({
       role: msg.role,
       content: [{text: msg.content}],
@@ -105,7 +104,6 @@ export function ChatPage() {
           variant: 'destructive',
         });
         
-        // Remove the optimistically added user message on error
         setMessages(prev => prev.slice(0, -1));
 
       } finally {
