@@ -66,13 +66,13 @@ export function ChatPage() {
 
     (async () => {
       try {
-        const stream = chat({ history: historyForApi });
+        const stream = await chat({ history: historyForApi });
         if (!isMounted.current) return;
 
         let streamedResponse = '';
         setMessages(prev => [...prev, {role: 'model', content: ''}]);
 
-        for await (const chunk of await stream) {
+        for await (const chunk of stream) {
             if (!isMounted.current) return;
             streamedResponse += chunk;
             setMessages(prev => {
@@ -104,7 +104,8 @@ export function ChatPage() {
           variant: 'destructive',
         });
         
-        setMessages(prev => prev.slice(0, -1));
+        // Remove the empty model message placeholder on error
+        setMessages(prev => prev.filter(m => m.role !== 'model' || m.content !== ''));
 
       } finally {
         if (isMounted.current) {
@@ -139,7 +140,7 @@ export function ChatPage() {
                     : 'bg-muted'
                 )}
               >
-                <p className="whitespace-pre-wrap">{message.content}</p>
+                <p className="whitespace-pre-wrap">{message.content || '...'}</p>
               </div>
               {message.role === 'user' && (
                 <div className="p-2 bg-muted rounded-full">

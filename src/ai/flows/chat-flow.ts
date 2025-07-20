@@ -32,6 +32,7 @@ const chatFlow = ai.defineFlow(
   {
     name: 'chatFlow',
     inputSchema: ChatInputSchema,
+    outputSchema: z.string(),
     stream: true,
   },
   async ({history}) => {
