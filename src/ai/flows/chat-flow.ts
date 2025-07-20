@@ -8,6 +8,7 @@
  */
 
 import {ai} from '@/ai/genkit';
+import {googleAI} from '@genkit-ai/googleai';
 import {z} from 'genkit';
 import {MessageData, Role} from 'genkit';
 
@@ -45,7 +46,7 @@ const chatFlow = ai.defineFlow(
     ];
 
     const {stream} = await ai.generate({
-      model: 'gemini-pro',
+      model: googleAI.model('gemini-pro'),
       messages: messages,
       stream: true,
     });

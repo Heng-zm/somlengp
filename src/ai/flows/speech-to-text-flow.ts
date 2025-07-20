@@ -30,7 +30,7 @@ export async function transcribeAudio(input: TranscribeAudioInput): Promise<Tran
 
 const prompt = ai.definePrompt({
   name: 'transcribeAudioPrompt',
-  model: 'gemini-pro',
+  model: googleAI.model('gemini-pro'),
   input: {schema: TranscribeAudioInputSchema},
   output: {schema: TranscribeAudioOutputSchema},
   prompt: `You are a highly accurate audio transcription service that can understand both English and Khmer.
