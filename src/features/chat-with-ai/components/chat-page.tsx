@@ -107,7 +107,7 @@ export function ChatPage() {
         });
         
         // Remove the empty model message placeholder on error
-        setMessages(prev => prev.filter(m => m.role !== 'model' || m.content !== ''));
+        setMessages(prev => prev.slice(0, prev.length - 1));
 
       } finally {
         if (isMounted.current) {
