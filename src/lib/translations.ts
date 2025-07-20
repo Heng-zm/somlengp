@@ -91,14 +91,10 @@ const enTranslations: Translations = {
     modelOverloadedTitle: "AI Model Busy",
     modelOverloadedDescription: "The AI model is currently experiencing high demand. Please try again in a few moments.",
     reportBug: "Report a Bug",
-    textToSpeech: "Text to Speech",
-    textToSpeechDescription: "Convert text into high-quality spoken audio.",
-    textToSpeechTitle: "Text to Speech Converter",
-    pasteTextHere: "Paste your text here...",
-    generateAudio: "Generate Audio",
-    generatingAudio: "Generating Audio...",
-    audioPlayback: "Audio Playback",
-    errorGeneratingAudio: "Error Generating Audio",
+    chatWithAi: "Chat With AI",
+    chatWithAiDescription: "Have a conversation with an intelligent AI assistant.",
+    askAnything: "Ask anything...",
+    chatError: "Chat Error",
 };
 
 const kmTranslations: Translations = {
@@ -186,14 +182,10 @@ const kmTranslations: Translations = {
     modelOverloadedTitle: "ម៉ូដែល AI រវល់",
     modelOverloadedDescription: "ម៉ូដែល AI កំពុងមានតម្រូវការខ្ពស់។ សូមព្យាយាមម្តងទៀតក្នុងរយៈពេលពីរបីនាទីទៀត។",
     reportBug: "រាយការណ៍បញ្ហា",
-    textToSpeech: "អត្ថបទទៅជាសំឡេង",
-    textToSpeechDescription: "បំប្លែងអត្ថបទទៅជាសំឡេងនិយាយដែលមានគុណភាពខ្ពស់។",
-    textToSpeechTitle: "កម្មវិធីបម្លែងអត្ថបទទៅជាសំឡេង",
-    pasteTextHere: "បិទភ្ជាប់អត្ថបទរបស់អ្នកនៅទីនេះ...",
-    generateAudio: "បង្កើតសំឡេង",
-    generatingAudio: "កំពុងបង្កើតសំឡេង...",
-    audioPlayback: "ការចាក់សំឡេង",
-    errorGeneratingAudio: "កំហុសក្នុងការបង្កើតសំឡេង",
+    chatWithAi: "ជជែកជាមួយ AI",
+    chatWithAiDescription: "ជជែកជាមួយជំនួយការ AI ដ៏ឆ្លាតវៃ។",
+    askAnything: "សួរអ្វីក៏បាន...",
+    chatError: "កំហុសក្នុងការជជែក",
 };
 
 export const allTranslations = {
