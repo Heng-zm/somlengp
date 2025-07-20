@@ -71,7 +71,7 @@ export function ChatPage() {
       setMessages(prev => [...prev, {role: 'model', content: ''}]);
 
       for await (const chunk of stream) {
-        if (!isMounted.current) return;
+        if (!isMounted.current) return; // FIX: Add check inside the loop
         streamedResponse += chunk;
         setMessages(prev => {
           const newMessages = [...prev];
