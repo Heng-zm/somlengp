@@ -48,62 +48,73 @@ export function ChatPage() {
     }
   }, [messages]);
 
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!input.trim() || isLoading) return;
 
     const newUserMessage: Message = {role: 'user', content: input};
+    
+    // Optimistically update the UI
     setMessages(prev => [...prev, newUserMessage]);
     setInput('');
     setIsLoading(true);
 
-    const history = messages.map(msg => ({
+    // Create history *before* the async call
+    const history = [...messages, newUserMessage].map(msg => ({
       role: msg.role as 'user' | 'model',
       content: [{text: msg.content}],
     }));
 
-    try {
-      const stream = await chat({history, message: input});
-      if (!isMounted.current) return;
-
-      let streamedResponse = '';
-      setMessages(prev => [...prev, {role: 'model', content: ''}]);
-
-      for await (const chunk of stream) {
+    // Define and immediately call the async function
+    (async () => {
+      try {
+        const stream = await chat({history, message: input});
         if (!isMounted.current) return;
-        streamedResponse += chunk;
-        setMessages(prev => {
-          const newMessages = [...prev];
-          newMessages[newMessages.length - 1].content = streamedResponse;
-          return newMessages;
+
+        let streamedResponse = '';
+        setMessages(prev => [...prev, {role: 'model', content: ''}]);
+
+        for await (const chunk of stream) {
+          if (!isMounted.current) return;
+          streamedResponse += chunk;
+          setMessages(prev => {
+            const newMessages = [...prev];
+            const lastMessage = newMessages[newMessages.length - 1];
+            if (lastMessage.role === 'model') {
+                lastMessage.content = streamedResponse;
+            }
+            return newMessages;
+          });
+        }
+      } catch (error: any) {
+        if (!isMounted.current) return;
+        
+        console.error('Chat error:', error);
+        const errorMessage =
+          error.message?.toLowerCase() || 'an unknown error occurred.';
+        let title = t.chatError;
+        let description = errorMessage;
+
+        if (errorMessage.includes('rate limit')) {
+          title = t.rateLimitExceeded;
+          description = t.rateLimitMessage;
+        }
+
+        toast({
+          title,
+          description,
+          variant: 'destructive',
         });
-      }
-    } catch (error: any) {
-      if (!isMounted.current) return;
-      
-      console.error('Chat error:', error);
-      const errorMessage =
-        error.message?.toLowerCase() || 'an unknown error occurred.';
-      let title = t.chatError;
-      let description = errorMessage;
+        
+        // On error, remove the user message that was added optimistically
+        setMessages(prev => prev.filter(m => m !== newUserMessage));
 
-      if (errorMessage.includes('rate limit')) {
-        title = t.rateLimitExceeded;
-        description = t.rateLimitMessage;
+      } finally {
+        if (isMounted.current) {
+          setIsLoading(false);
+        }
       }
-
-      toast({
-        title,
-        description,
-        variant: 'destructive',
-      });
-
-      setMessages(prev => prev.slice(0, prev.length - 1));
-    } finally {
-      if (isMounted.current) {
-        setIsLoading(false);
-      }
-    }
+    })();
   };
 
   return (
