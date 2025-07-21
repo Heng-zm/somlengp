@@ -159,7 +159,7 @@ export function ChatPage() {
 
   return (
     <div className="flex h-full flex-col bg-background">
-        <ScrollArea className="flex-1" viewportRef={viewportRef}>
+        <ScrollArea className="flex-1" ref={viewportRef}>
             <AnimatePresence>
                 <div className="mx-auto w-full max-w-3xl p-4 sm:p-6 lg:p-8 space-y-4">
                     {messages.length > 0 ? (
