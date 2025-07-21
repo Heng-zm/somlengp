@@ -10,26 +10,26 @@
 import {ai} from '@/ai/genkit';
 import {googleAI} from '@genkit-ai/googleai';
 import {z} from 'genkit';
-import {MessageData, Role, Stream} from 'genkit';
+import {MessageData} from 'genkit';
 
-// The input is now a simple string for the latest user message.
+// The input is a simple string for the latest user message.
 const ChatInputSchema = z.string();
 export type ChatInput = z.infer<typeof ChatInputSchema>;
 
-export async function chat(input: ChatInput): Promise<Stream<string>> {
+export async function chat(input: ChatInput): Promise<ReadableStream<string>> {
   return chatFlow(input);
 }
 
 const chatFlow = ai.defineFlow(
   {
     name: 'chatFlow',
-    // The input schema is now a string.
     inputSchema: ChatInputSchema,
     outputSchema: z.string(),
     stream: true,
   },
   async (userMessage) => {
-    // The flow receives the user message directly.
+    // The flow receives the user message directly and creates the message history.
+    // NOTE: This implementation does not maintain conversation history across requests.
     const messages: MessageData[] = [
         { role: 'user', content: [{ text: userMessage }] }
     ];
