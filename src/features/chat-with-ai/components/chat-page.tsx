@@ -55,7 +55,9 @@ export function ChatPage() {
         let streamedResponse = '';
         setMessages(prev => [...prev, {role: 'model', content: ''}]);
 
-        for await (const chunk of await chat(currentInput)) {
+        const stream = chat(currentInput);
+
+        for await (const chunk of stream) {
             streamedResponse += chunk;
             setMessages(prev => {
                 const updatedMessages = [...prev];
