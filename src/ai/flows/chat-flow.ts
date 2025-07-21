@@ -48,6 +48,12 @@ const chatFlow = ai.defineFlow(
       stream: true,
     });
 
-    return stream;
+    return stream.pipeThrough(
+      new TransformStream<any, string>({
+        transform(chunk, controller) {
+          controller.enqueue(chunk.text());
+        },
+      })
+    );
   }
 );
