@@ -8,7 +8,7 @@ import {ai} from '@/ai/genkit';
 import {googleAI} from '@genkit-ai/googleai';
 
 export async function chat(userMessage: string): Promise<ReadableStream<string>> {
-  const {stream: llmStream} = await ai.generate({
+  const {stream: llmStream} = ai.generate({
     model: googleAI.model('gemini-1.5-flash-latest'),
     messages: [{role: 'user', content: [{text: userMessage}]}],
     stream: true,
