@@ -17,6 +17,7 @@ const ChatInputSchema = z.string();
 export type ChatInput = z.infer<typeof ChatInputSchema>;
 
 export async function chat(input: ChatInput): Promise<ReadableStream<string>> {
+  // This now correctly invokes the flow and returns its result.
   return chatFlow(input);
 }
 
@@ -39,7 +40,7 @@ const chatFlow = ai.defineFlow(
       messages: messages,
     });
     
-    // Bridge the Genkit async iterator to a ReadableStream
+    // Bridge the Genkit async iterator to a ReadableStream that the client can use.
     return new ReadableStream({
         async start(controller) {
             try {
