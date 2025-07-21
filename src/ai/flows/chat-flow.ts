@@ -35,7 +35,7 @@ const chatFlow = ai.defineFlow(
     outputSchema: z.string(),
     stream: true,
   },
-  async ({history}) => {
+  ({history}) => {
     // The history from the client already includes the latest user message.
     const messages: MessageData[] = history.map(msg => ({
       role: msg.role as Role,
