@@ -37,7 +37,7 @@ const chatFlow = ai.defineFlow(
 
     const {stream: genkitStream} = ai.generateStream({
       model: googleAI.model('gemini-1.5-flash-latest'),
-      messages: messages,
+      messages: messages, // Correctly pass the constructed messages array
     });
     
     // Bridge the Genkit async iterator to a ReadableStream that the client can use.
