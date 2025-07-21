@@ -36,23 +36,33 @@ const chatFlow = ai.defineFlow(
     stream: true,
   },
   async ({history}) => {
-    // The history from the client already includes the latest user message.
     const messages: MessageData[] = history.map(msg => ({
       role: msg.role as Role,
       content: msg.content.map(c => ({text: c.text})),
     }));
 
-    const {stream} = ai.generateStream({
+    const {stream: genkitStream} = ai.generateStream({
       model: googleAI.model('gemini-1.5-flash-latest'),
       messages: messages,
     });
-
-    return stream.pipeThrough(
-      new TransformStream<any, string>({
-        transform(chunk, controller) {
-          controller.enqueue(chunk.text());
-        },
-      })
-    );
+    
+    // Bridge the Genkit async iterator to a ReadableStream
+    return new ReadableStream({
+        async start(controller) {
+            try {
+                for await (const chunk of genkitStream) {
+                    const text = chunk.text();
+                    if (text) {
+                        controller.enqueue(text);
+                    }
+                }
+            } catch (err) {
+                console.error("Error in chat stream", err);
+                controller.error(err);
+            } finally {
+                controller.close();
+            }
+        }
+    });
   }
 );
