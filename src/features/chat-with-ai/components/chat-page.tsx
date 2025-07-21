@@ -106,8 +106,8 @@ export function ChatPage() {
           variant: 'destructive',
         });
         
-        // Remove the empty model message placeholder on error
-        setMessages(prev => prev.slice(0, prev.length - 1));
+        // Remove the user message and empty model message placeholder on error
+        setMessages(prev => prev.slice(0, prev.length - 2));
 
       } finally {
         if (isMounted.current) {
