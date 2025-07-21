@@ -25,7 +25,7 @@ const chatFlow = ai.defineFlow(
   {
     name: 'chatFlow',
     inputSchema: ChatInputSchema,
-    outputSchema: z.string(),
+    outputSchema: z.string(), // The schema for the final, non-streamed output, though we use the stream.
     stream: true,
   },
   async (userMessage) => {
