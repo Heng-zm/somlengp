@@ -55,10 +55,18 @@ export function ChatPage() {
         let streamedResponse = '';
         setMessages(prev => [...prev, {role: 'model', content: ''}]);
 
-        const stream = chat(currentInput);
+        const stream = await chat(currentInput);
+        const reader = stream.getReader();
+        const decoder = new TextDecoder();
 
-        for await (const chunk of stream) {
-            streamedResponse += chunk;
+        while (true) {
+            const { done, value } = await reader.read();
+            if (done) {
+                break;
+            }
+            
+            streamedResponse += decoder.decode(value, { stream: true });
+            
             setMessages(prev => {
                 const updatedMessages = [...prev];
                 const lastMessage = updatedMessages[updatedMessages.length - 1];
