@@ -56,25 +56,30 @@ export function ChatPage() {
     const newMessages = [...messages, newUserMessage];
     
     setMessages(newMessages);
+    const currentInput = input;
     setInput('');
     setIsLoading(true);
-    
-    const historyForApi = newMessages.map(msg => ({
-      role: msg.role,
-      content: [{text: msg.content}],
-    }));
 
     (async () => {
       try {
-        const stream = await chat({ history: historyForApi });
+        // Send only the current user input string to the AI flow.
+        const stream = await chat(currentInput);
         if (!isMounted.current) return;
 
         let streamedResponse = '';
         setMessages(prev => [...prev, {role: 'model', content: ''}]);
 
-        for await (const chunk of stream) {
-            if (!isMounted.current) return;
-            streamedResponse += chunk;
+        const reader = stream.getReader();
+        const decoder = new TextDecoder();
+
+        while (true) {
+            const { value, done } = await reader.read();
+            if (done) break;
+            if (!isMounted.current) {
+                reader.cancel();
+                break;
+            }
+            streamedResponse += decoder.decode(value, { stream: true });
             setMessages(prev => {
                 const updatedMessages = [...prev];
                 const lastMessage = updatedMessages[updatedMessages.length - 1];
@@ -84,6 +89,7 @@ export function ChatPage() {
                 return updatedMessages;
             });
         }
+
       } catch (error: any) {
         if (!isMounted.current) return;
         
@@ -106,8 +112,8 @@ export function ChatPage() {
           variant: 'destructive',
         });
         
-        // Remove the user message and empty model message placeholder on error
-        setMessages(prev => prev.slice(0, prev.length - 2));
+        // Remove the user message that caused the error
+        setMessages(prev => prev.filter(msg => msg.content !== currentInput));
 
       } finally {
         if (isMounted.current) {
