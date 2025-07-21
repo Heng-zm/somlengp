@@ -11,6 +11,7 @@ import {cn} from '@/lib/utils';
 import {useToast} from '@/hooks/use-toast';
 import {allTranslations} from '@/lib/translations';
 import {LanguageContext} from '@/contexts/language-context';
+import { ThreeDotsLoader } from '@/components/shared/three-dots-loader';
 
 type Message = {
   role: 'user' | 'model';
@@ -53,16 +54,14 @@ export function ChatPage() {
     if (!input.trim() || isLoading) return;
 
     const newUserMessage: Message = {role: 'user', content: input};
-    const newMessages = [...messages, newUserMessage];
+    setMessages(prev => [...prev, newUserMessage]);
     
-    setMessages(newMessages);
     const currentInput = input;
     setInput('');
     setIsLoading(true);
 
     (async () => {
       try {
-        // Send only the current user input string to the AI flow.
         const stream = await chat(currentInput);
         if (!isMounted.current) return;
 
@@ -112,8 +111,8 @@ export function ChatPage() {
           variant: 'destructive',
         });
         
-        // Remove the user message that caused the error
-        setMessages(prev => prev.filter(msg => msg.content !== currentInput));
+        // Revert the UI by removing the optimistic user message and any pending model message
+        setMessages(prev => prev.filter(msg => msg.content !== currentInput && msg.role !== 'model' || msg.content !== ''));
 
       } finally {
         if (isMounted.current) {
@@ -157,13 +156,13 @@ export function ChatPage() {
               )}
             </div>
           ))}
-          {isLoading && messages[messages.length - 1]?.role !== 'model' && (
+          {isLoading && messages[messages.length - 1]?.role === 'user' && (
              <div className="flex items-start gap-3 justify-start">
                 <div className="p-2 bg-primary/10 rounded-full">
                   <Bot className="w-6 h-6 text-primary" />
                 </div>
-                <div className="p-3 rounded-lg bg-muted">
-                    <div className="h-2 w-2 bg-foreground rounded-full animate-bounce-dot [animation-delay:-0.3s]"></div>
+                <div className="p-3 rounded-lg bg-muted flex items-center">
+                  <ThreeDotsLoader />
                 </div>
              </div>
           )}
