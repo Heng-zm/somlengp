@@ -46,9 +46,9 @@ function ChatBubble({ message }: { message: Message }) {
                 "rounded-xl p-3 shadow-sm",
                 isUser ? 'rounded-br-none bg-primary text-primary-foreground' : 'rounded-bl-none bg-muted'
             )}>
-                <p className="whitespace-pre-wrap text-sm leading-relaxed">
+                <div className="whitespace-pre-wrap text-sm leading-relaxed">
                   {message.content === '...' ? <ThreeDotsLoader /> : message.content}
-                </p>
+                </div>
             </div>
         </motion.div>
     );
