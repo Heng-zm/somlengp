@@ -112,7 +112,7 @@ export function ChatPage() {
         });
         
         // Revert the UI by removing the optimistic user message and any pending model message
-        setMessages(prev => prev.filter(msg => msg.content !== currentInput && msg.role !== 'model' || msg.content !== ''));
+        setMessages(prev => prev.filter(msg => msg.content !== currentInput && (msg.role !== 'model' || msg.content !== '')));
 
       } finally {
         if (isMounted.current) {
