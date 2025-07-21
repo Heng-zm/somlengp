@@ -1,7 +1,8 @@
+
 'use client';
 
 import {useState, useRef, useEffect, useContext, useMemo} from 'react';
-import {SendHorizontal, Bot, User} from 'lucide-react';
+import {SendHorizontal, Bot, User, Sparkles} from 'lucide-react';
 import {Button} from '@/components/ui/button';
 import {Input} from '@/components/ui/input';
 import {ScrollArea} from '@/components/ui/scroll-area';
@@ -10,19 +11,69 @@ import {cn} from '@/lib/utils';
 import {useToast} from '@/hooks/use-toast';
 import {allTranslations} from '@/lib/translations';
 import {LanguageContext} from '@/contexts/language-context';
-import { ThreeDotsLoader } from '@/components/shared/three-dots-loader';
+import {ThreeDotsLoader} from '@/components/shared/three-dots-loader';
+import {Avatar, AvatarFallback, AvatarImage} from '@/components/ui/avatar';
+import { AnimatePresence, motion } from 'framer-motion';
 
 type Message = {
+  id: string;
   role: 'user' | 'model';
   content: string;
 };
+
+function ChatBubble({ message }: { message: Message }) {
+    const isUser = message.role === 'user';
+    const Icon = isUser ? User : Bot;
+    
+    return (
+        <motion.div
+            layout
+            initial={{ opacity: 0, scale: 0.8, y: 50 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.8, y: 50 }}
+            transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+            className={cn(
+                'flex w-full max-w-lg items-start gap-3',
+                isUser ? 'ml-auto flex-row-reverse' : 'mr-auto'
+            )}
+        >
+            <Avatar className={cn("h-8 w-8", isUser ? 'bg-primary/10 text-primary' : 'bg-muted')}>
+                <AvatarFallback>
+                    <Icon className="h-5 w-5" />
+                </AvatarFallback>
+            </Avatar>
+            <div className={cn(
+                "rounded-xl p-3 shadow-sm",
+                isUser ? 'rounded-br-none bg-primary text-primary-foreground' : 'rounded-bl-none bg-muted'
+            )}>
+                <p className="whitespace-pre-wrap text-sm leading-relaxed">
+                  {message.content === '...' ? <ThreeDotsLoader /> : message.content}
+                </p>
+            </div>
+        </motion.div>
+    );
+}
+
+function EmptyState({ t }: { t: any }) {
+    return (
+        <div className="flex flex-col items-center justify-center h-full text-center p-4">
+            <div className="mb-4 rounded-full bg-primary/10 p-4 text-primary">
+                <Sparkles className="h-10 w-10" />
+            </div>
+            <h2 className="text-2xl font-bold">AI Assistant</h2>
+            <p className="mt-2 max-w-md text-muted-foreground">{t.chatWithAiDescription}</p>
+        </div>
+    );
+}
+
 
 export function ChatPage() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const {toast} = useToast();
-  const scrollAreaRef = useRef<HTMLDivElement>(null);
+  const viewportRef = useRef<HTMLDivElement>(null);
+  const formRef = useRef<HTMLFormElement>(null);
 
   const langContext = useContext(LanguageContext);
   if (!langContext) {
@@ -32,11 +83,11 @@ export function ChatPage() {
   const t = useMemo(() => allTranslations[language], [language]);
 
   useEffect(() => {
-    if (scrollAreaRef.current) {
-      scrollAreaRef.current.scrollTo({
-        top: scrollAreaRef.current.scrollHeight,
-        behavior: 'smooth',
-      });
+    if (viewportRef.current) {
+        viewportRef.current.scrollTo({
+            top: viewportRef.current.scrollHeight,
+            behavior: 'smooth',
+        });
     }
   }, [messages]);
 
@@ -44,7 +95,10 @@ export function ChatPage() {
     e.preventDefault();
     if (!input.trim() || isLoading) return;
 
-    const newUserMessage: Message = {role: 'user', content: input};
+    const userMessageId = `user-${Date.now()}`;
+    const modelMessageId = `model-${Date.now()}`;
+
+    const newUserMessage: Message = {id: userMessageId, role: 'user', content: input};
     setMessages(prev => [...prev, newUserMessage]);
     
     const currentInput = input;
@@ -53,7 +107,7 @@ export function ChatPage() {
 
     try {
         let streamedResponse = '';
-        setMessages(prev => [...prev, {role: 'model', content: ''}]);
+        setMessages(prev => [...prev, {id: modelMessageId, role: 'model', content: '...'}]);
 
         const stream = await chat(currentInput);
         const reader = stream.getReader();
@@ -67,14 +121,13 @@ export function ChatPage() {
             
             streamedResponse += decoder.decode(value, { stream: true });
             
-            setMessages(prev => {
-                const updatedMessages = [...prev];
-                const lastMessage = updatedMessages[updatedMessages.length - 1];
-                if (lastMessage.role === 'model') {
-                    lastMessage.content = streamedResponse;
-                }
-                return updatedMessages;
-            });
+            setMessages(prev =>
+                prev.map(msg =>
+                    msg.id === modelMessageId
+                        ? { ...msg, content: streamedResponse || '...' }
+                        : msg
+                )
+            );
         }
       } catch (error: any) {
         console.error('Chat error:', error);
@@ -96,8 +149,8 @@ export function ChatPage() {
           variant: 'destructive',
         });
         
-        // Revert the UI by removing the optimistic user message and any pending model message
-        setMessages(prev => prev.filter(msg => msg.content !== currentInput && (msg.role !== 'model' || msg.content !== '')));
+        // Revert the UI by removing the optimistic messages
+        setMessages(prev => prev.filter(msg => msg.id !== userMessageId && msg.id !== modelMessageId));
 
       } finally {
         setIsLoading(false);
@@ -105,66 +158,47 @@ export function ChatPage() {
   };
 
   return (
-    <div className="flex flex-col h-full bg-background">
-      <ScrollArea className="flex-grow p-4" ref={scrollAreaRef}>
-        <div className="flex flex-col gap-4">
-          {messages.map((message, index) => (
-            <div
-              key={index}
-              className={cn(
-                'flex items-start gap-3',
-                message.role === 'user' ? 'justify-end' : 'justify-start'
-              )}
-            >
-              {message.role === 'model' && (
-                <div className="p-2 bg-primary/10 rounded-full">
-                  <Bot className="w-6 h-6 text-primary" />
+    <div className="flex h-full flex-col bg-background">
+        <ScrollArea className="flex-1" viewportRef={viewportRef}>
+            <AnimatePresence>
+                <div className="mx-auto w-full max-w-3xl p-4 sm:p-6 lg:p-8 space-y-4">
+                    {messages.length > 0 ? (
+                        messages.map((message) => (
+                            <ChatBubble key={message.id} message={message} />
+                        ))
+                    ) : (
+                        <EmptyState t={t} />
+                    )}
                 </div>
-              )}
-              <div
-                className={cn(
-                  'p-3 rounded-lg max-w-sm',
-                  message.role === 'user'
-                    ? 'bg-primary text-primary-foreground'
-                    : 'bg-muted'
-                )}
-              >
-                <p className="whitespace-pre-wrap">{message.content || '...'}</p>
-              </div>
-              {message.role === 'user' && (
-                <div className="p-2 bg-muted rounded-full">
-                  <User className="w-6 h-6 text-foreground" />
-                </div>
-              )}
+            </AnimatePresence>
+        </ScrollArea>
+        <div className="border-t bg-background px-4 py-3">
+            <div className="mx-auto w-full max-w-3xl">
+                <form
+                    ref={formRef}
+                    onSubmit={handleSubmit}
+                    className="flex items-center gap-2"
+                >
+                    <Input
+                        value={input}
+                        onChange={e => setInput(e.target.value)}
+                        placeholder={t.askAnything}
+                        className="flex-grow rounded-full"
+                        disabled={isLoading}
+                        onKeyDown={(e) => {
+                            if (e.key === 'Enter' && !e.shiftKey) {
+                                e.preventDefault();
+                                formRef.current?.requestSubmit();
+                            }
+                        }}
+                    />
+                    <Button type="submit" size="icon" className="rounded-full" disabled={isLoading || !input.trim()}>
+                        <SendHorizontal className="h-5 w-5" />
+                        <span className="sr-only">Send</span>
+                    </Button>
+                </form>
             </div>
-          ))}
-          {isLoading && messages[messages.length - 1]?.role === 'user' && (
-             <div className="flex items-start gap-3 justify-start">
-                <div className="p-2 bg-primary/10 rounded-full">
-                  <Bot className="w-6 h-6 text-primary" />
-                </div>
-                <div className="p-3 rounded-lg bg-muted flex items-center">
-                  <ThreeDotsLoader />
-                </div>
-             </div>
-          )}
         </div>
-      </ScrollArea>
-      <div className="p-4 border-t bg-background">
-        <form onSubmit={handleSubmit} className="flex items-center gap-2">
-          <Input
-            value={input}
-            onChange={e => setInput(e.target.value)}
-            placeholder={t.askAnything}
-            className="flex-grow"
-            disabled={isLoading}
-          />
-          <Button type="submit" size="icon" disabled={isLoading || !input.trim()}>
-            <SendHorizontal className="h-5 w-5" />
-            <span className="sr-only">Send</span>
-          </Button>
-        </form>
-      </div>
     </div>
   );
 }
