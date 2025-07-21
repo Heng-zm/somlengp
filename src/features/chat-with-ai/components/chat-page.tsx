@@ -1,4 +1,3 @@
-
 'use client';
 
 import {useState, useRef, useEffect, useContext, useMemo} from 'react';
@@ -24,7 +23,6 @@ export function ChatPage() {
   const [isLoading, setIsLoading] = useState(false);
   const {toast} = useToast();
   const scrollAreaRef = useRef<HTMLDivElement>(null);
-  const isMounted = useRef(true);
 
   const langContext = useContext(LanguageContext);
   if (!langContext) {
@@ -32,13 +30,6 @@ export function ChatPage() {
   }
   const {language} = langContext;
   const t = useMemo(() => allTranslations[language], [language]);
-
-  useEffect(() => {
-    isMounted.current = true;
-    return () => {
-      isMounted.current = false;
-    };
-  }, []);
 
   useEffect(() => {
     if (scrollAreaRef.current) {
@@ -49,7 +40,7 @@ export function ChatPage() {
     }
   }, [messages]);
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!input.trim() || isLoading) return;
 
@@ -60,25 +51,12 @@ export function ChatPage() {
     setInput('');
     setIsLoading(true);
 
-    (async () => {
-      try {
-        const stream = await chat(currentInput);
-        if (!isMounted.current) return;
-
+    try {
         let streamedResponse = '';
         setMessages(prev => [...prev, {role: 'model', content: ''}]);
 
-        const reader = stream.getReader();
-        const decoder = new TextDecoder();
-
-        while (true) {
-            const { value, done } = await reader.read();
-            if (done) break;
-            if (!isMounted.current) {
-                reader.cancel();
-                break;
-            }
-            streamedResponse += decoder.decode(value, { stream: true });
+        for await (const chunk of await chat(currentInput)) {
+            streamedResponse += chunk;
             setMessages(prev => {
                 const updatedMessages = [...prev];
                 const lastMessage = updatedMessages[updatedMessages.length - 1];
@@ -88,10 +66,7 @@ export function ChatPage() {
                 return updatedMessages;
             });
         }
-
       } catch (error: any) {
-        if (!isMounted.current) return;
-        
         console.error('Chat error:', error);
         const errorMessage =
           error.message?.toLowerCase() || 'an unknown error occurred.';
@@ -115,11 +90,8 @@ export function ChatPage() {
         setMessages(prev => prev.filter(msg => msg.content !== currentInput && (msg.role !== 'model' || msg.content !== '')));
 
       } finally {
-        if (isMounted.current) {
-          setIsLoading(false);
-        }
+        setIsLoading(false);
       }
-    })();
   };
 
   return (
