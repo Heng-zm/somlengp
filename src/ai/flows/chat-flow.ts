@@ -35,17 +35,16 @@ const chatFlow = ai.defineFlow(
     outputSchema: z.string(),
     stream: true,
   },
-  ({history}) => {
+  async ({history}) => {
     // The history from the client already includes the latest user message.
     const messages: MessageData[] = history.map(msg => ({
       role: msg.role as Role,
       content: msg.content.map(c => ({text: c.text})),
     }));
 
-    const {stream} = ai.generate({
+    const {stream} = ai.generateStream({
       model: googleAI.model('gemini-1.5-flash-latest'),
       messages: messages,
-      stream: true,
     });
 
     return stream.pipeThrough(
