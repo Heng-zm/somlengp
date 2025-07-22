@@ -1,4 +1,6 @@
+
 'use server';
+require('dotenv').config({ path: '.env' });
 
 import { ai } from '@/ai/genkit';
 import { googleAI } from '@genkit-ai/googleai';
