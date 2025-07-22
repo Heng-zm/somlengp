@@ -47,7 +47,7 @@ export async function chat(
         const promptText = lastMessage.content[0].text;
         const historyMessages = messages.slice(0, -1);
 
-        const { stream, response } = await ai.generate({
+        const { stream, response } = ai.generate({
           model: googleAI.model('gemini-1.5-flash-latest'),
           history: historyMessages,
           prompt: promptText,
