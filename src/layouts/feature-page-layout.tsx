@@ -1,12 +1,14 @@
 
 "use client";
 
-import { createContext, useState, useMemo, useContext } from 'react';
+import { createContext, useState, useMemo, useContext, useEffect } from 'react';
 import { ChevronLeft } from 'lucide-react';
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { allTranslations } from '@/lib/translations';
 import { LanguageContext } from '@/contexts/language-context';
+import { useHistory } from '@/hooks/use-history';
 
 export function FeaturePageLayoutProvider({ children }: { children: React.ReactNode }) {
     return <>{children}</>;
@@ -21,11 +23,20 @@ interface FeaturePageLayoutProps {
 
 export function FeaturePageLayout({ children, title, showModelSelector = false }: FeaturePageLayoutProps) {
     const langContext = useContext(LanguageContext);
+    const pathname = usePathname();
+    const { addHistoryItem } = useHistory();
+
     if (!langContext) {
         throw new Error('FeaturePageLayout must be used within an AppLayout');
     }
     const { language } = langContext;
     const t = useMemo(() => allTranslations[language], [language]);
+
+    useEffect(() => {
+        if (title && pathname) {
+            addHistoryItem({ href: pathname, label: title, timestamp: Date.now() });
+        }
+    }, [title, pathname, addHistoryItem]);
 
     return (
         <div className="flex flex-col h-full">
