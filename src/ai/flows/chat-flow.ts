@@ -16,8 +16,8 @@ const ChatInputSchema = z.array(
   })
 );
 
-export async function chat(messages: MessageData[]): Promise<ReadableStream<string>> {
-  const {stream: modelStream} = ai.generate({
+export function chat(messages: MessageData[]): ReadableStream<string> {
+  const { stream: modelStream } = ai.generate({
     model: 'gemini-1.5-flash-latest',
     history: messages.slice(0, -1),
     prompt: messages[messages.length - 1].content[0].text!,
