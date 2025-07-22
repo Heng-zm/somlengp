@@ -181,50 +181,52 @@ export function PdfTranscriptPage() {
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
     >
-        <main className="flex-grow p-4 md:p-6 relative">
-            {!pdfFile ? (
-                 <div
-                 className={cn(
-                   'flex cursor-pointer flex-col items-center justify-center rounded-2xl border-2 border-dashed bg-card text-center transition-colors border-border h-full min-h-[70vh]',
-                   isDragging && 'border-primary bg-primary/10'
-                 )}
-                 onClick={() => fileInputRef.current?.click()}
-               >
-                 <FileUp className="mb-4 h-16 w-16 text-muted-foreground/30" />
-                 <h3 className="text-xl font-semibold">{t.chooseFile}</h3>
-                 <p className="mt-2 text-muted-foreground">{t.dropPdf}</p>
-               </div>
-            ) : (
-                <Card className="shadow-sm overflow-hidden rounded-2xl h-full flex flex-col">
-                    <div className="flex-shrink-0 flex items-center justify-between p-3 border-b bg-muted/30">
-                        <div className="flex items-center gap-2 overflow-hidden">
-                            <FileText className="w-5 h-5 text-primary"/>
-                            <span className="font-medium truncate">{pdfFile.name}</span>
-                            <span className="text-sm text-muted-foreground">{`${(pdfFile.size / 1024 / 1024).toFixed(2)} MB`}</span>
-                        </div>
-                        <Button onClick={clearFile} variant="ghost" size="icon" className="rounded-full">
-                            <X className="w-4 h-4" />
-                            <span className="sr-only">Clear file</span>
-                        </Button>
-                    </div>
-                    <div className="flex-grow relative">
-                        {isTranscribing && (
-                            <div className="absolute inset-0 bg-background/80 flex flex-col items-center justify-center z-10">
-                                <ThreeDotsLoader />
-                                <p className="text-lg font-medium text-foreground mt-4">{t.transcribing}</p>
-                            </div>
+        <main className="flex-grow p-4 md:p-6 flex flex-col items-center">
+            <Card className="w-full max-w-4xl flex-grow flex flex-col rounded-2xl shadow-sm">
+                {!pdfFile ? (
+                    <div
+                        className={cn(
+                        'flex cursor-pointer flex-col items-center justify-center rounded-2xl border-2 border-dashed bg-card text-center transition-colors border-border h-full',
+                        isDragging && 'border-primary bg-primary/10'
                         )}
-                        <Textarea
-                            value={transcribedText}
-                            readOnly
-                            placeholder={isTranscribing ? 'Transcribing...' : t.transcribedTextPlaceholder}
-                            className="h-[calc(76vh-60px)] w-full resize-none text-base leading-relaxed p-6 border-0 focus-visible:ring-0 focus-visible:ring-offset-0"
-                            aria-label="Transcribed Text"
-                            disabled={isTranscribing}
-                        />
+                        onClick={() => fileInputRef.current?.click()}
+                    >
+                        <FileUp className="mb-4 h-16 w-16 text-muted-foreground/30" />
+                        <h3 className="text-xl font-semibold">{t.chooseFile}</h3>
+                        <p className="mt-2 text-muted-foreground">{t.dropPdf}</p>
                     </div>
-                </Card>
-            )}
+                ) : (
+                    <div className="h-full flex flex-col">
+                        <div className="flex-shrink-0 flex items-center justify-between p-3 border-b bg-muted/30">
+                            <div className="flex items-center gap-2 overflow-hidden">
+                                <FileText className="w-5 h-5 text-primary"/>
+                                <span className="font-medium truncate">{pdfFile.name}</span>
+                                <span className="text-sm text-muted-foreground">{`${(pdfFile.size / 1024 / 1024).toFixed(2)} MB`}</span>
+                            </div>
+                            <Button onClick={clearFile} variant="ghost" size="icon" className="rounded-full">
+                                <X className="w-4 h-4" />
+                                <span className="sr-only">Clear file</span>
+                            </Button>
+                        </div>
+                        <div className="flex-grow relative">
+                            {isTranscribing && (
+                                <div className="absolute inset-0 bg-background/80 flex flex-col items-center justify-center z-10">
+                                    <ThreeDotsLoader />
+                                    <p className="text-lg font-medium text-foreground mt-4">{t.transcribing}</p>
+                                </div>
+                            )}
+                            <Textarea
+                                value={transcribedText}
+                                readOnly
+                                placeholder={isTranscribing ? 'Transcribing...' : t.transcribedTextPlaceholder}
+                                className="h-full w-full resize-none text-base leading-relaxed p-6 border-0 focus-visible:ring-0 focus-visible:ring-offset-0"
+                                aria-label="Transcribed Text"
+                                disabled={isTranscribing}
+                            />
+                        </div>
+                    </div>
+                )}
+            </Card>
 
             <input
                 type="file"
