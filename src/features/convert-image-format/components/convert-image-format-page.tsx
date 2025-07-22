@@ -96,9 +96,12 @@ export function ConvertImageFormatPage() {
   const fileObjectURLs = useMemo(() => files.map(file => URL.createObjectURL(file)), [files]);
 
   useEffect(() => {
+    // This effect will run when the component unmounts or when fileObjectURLs changes.
+    // It's crucial for preventing memory leaks.
     return () => {
         fileObjectURLs.forEach(url => URL.revokeObjectURL(url));
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [fileObjectURLs]);
 
   const handleFileSelect = useCallback(
@@ -149,12 +152,13 @@ export function ConvertImageFormatPage() {
 
       const zipBlob = await zip.generateAsync({type: 'blob'});
       const a = document.createElement('a');
-      a.href = URL.createObjectURL(zipBlob);
+      const url = URL.createObjectURL(zipBlob);
+      a.href = url;
       a.download = `converted_images.zip`;
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
-      URL.revokeObjectURL(a.href);
+      URL.revokeObjectURL(url);
 
       toast({
         title: 'Conversion Successful!',
@@ -196,10 +200,13 @@ export function ConvertImageFormatPage() {
   };
 
   const handleRemoveFile = (index: number) => {
-    setFiles(prev => prev.filter((_, i) => i !== index));
-    if (files.length === 1 && fileInputRef.current) {
-        fileInputRef.current.value = '';
-    }
+    setFiles(prev => {
+        const newFiles = prev.filter((_, i) => i !== index);
+        if (newFiles.length === 0 && fileInputRef.current) {
+            fileInputRef.current.value = ''; // Reset the input so the same file can be selected again
+        }
+        return newFiles;
+    });
   };
 
   return (
