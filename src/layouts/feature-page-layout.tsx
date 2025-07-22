@@ -29,7 +29,7 @@ export function FeaturePageLayout({ children, title, showModelSelector = false }
 
     return (
         <div className="flex flex-col h-full">
-            <header className="flex-shrink-0 flex items-center justify-between p-2 sm:p-4 border-b">
+            <header className="flex-shrink-0 flex items-center justify-between p-2 sm:p-4 border-b border-white/10">
                 <Button variant="ghost" size="icon" asChild>
                   <Link href="/">
                     <ChevronLeft />

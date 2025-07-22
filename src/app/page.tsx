@@ -4,7 +4,6 @@
 import { useContext, useMemo, useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Mic, FileText, Menu, Combine, Image as ImageIcon, Users, Wand2, BotMessageSquare, AudioLines } from 'lucide-react';
-import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { Sidebar } from '@/components/shared/sidebar';
@@ -55,23 +54,23 @@ export default function Home() {
   }, []);
   
   const featureCards = [
-    { href: '/voice-transcript', title: t.voiceScribe, description: t.voiceTranscriptDescription, icon: Mic, gradient: 'from-blue-400 to-teal-400' },
-    { href: '/pdf-transcript', title: t.pdfTranscript, description: t.pdfTranscriptDescription, icon: FileText, gradient: 'from-purple-400 to-pink-400' },
-    { href: '/text-to-speech', title: 'Text to Speech', description: 'Convert text into natural-sounding speech.', icon: AudioLines, gradient: 'from-red-400 to-yellow-400' },
-    { href: '/combine-pdf', title: t.combinePdf, description: t.combinePdfDescription, icon: Combine, gradient: 'from-green-400 to-blue-400' },
-    { href: '/image-to-pdf', title: t.imageToPdf, description: t.imageToPdfDescription, icon: ImageIcon, gradient: 'from-orange-400 to-red-400' },
-    { href: '/convert-image-format', title: t.convertImageFormat, description: t.convertImageFormatDescription, icon: Wand2, gradient: 'from-yellow-400 to-orange-400' },
+    { href: '/voice-transcript', title: t.voiceScribe, description: t.voiceTranscriptDescription, icon: Mic },
+    { href: '/pdf-transcript', title: t.pdfTranscript, description: t.pdfTranscriptDescription, icon: FileText },
+    { href: '/text-to-speech', title: 'Text to Speech', description: 'Convert text into natural-sounding speech.', icon: AudioLines },
+    { href: '/combine-pdf', title: t.combinePdf, description: t.combinePdfDescription, icon: Combine },
+    { href: '/image-to-pdf', title: t.imageToPdf, description: t.imageToPdfDescription, icon: ImageIcon },
+    { href: '/convert-image-format', title: t.convertImageFormat, description: t.convertImageFormatDescription, icon: Wand2 },
   ];
 
   return (
-    <div className="flex flex-col h-full bg-background text-foreground">
+    <div className="flex flex-col h-full text-foreground">
       <header className="flex-shrink-0 flex items-center justify-between p-4 sm:p-6 md:p-8">
         <div className="flex items-center gap-4">
           <BotMessageSquare className="h-8 w-8 text-primary" />
           <div className="flex flex-col gap-2">
             <h1 className="text-3xl font-bold text-foreground">Ozo. Designer</h1>
             {visitorCount !== null ? (
-                <div className="flex items-center gap-2 bg-muted/50 px-3 py-1 rounded-full w-fit">
+                <div className="flex items-center gap-2 bg-background/50 backdrop-blur-sm px-3 py-1 rounded-full w-fit">
                     <Users className="w-4 h-4 text-muted-foreground" />
                     <span className="text-sm font-medium text-muted-foreground">{visitorCount} Visitors</span>
                 </div>
@@ -86,7 +85,7 @@ export default function Home() {
                     <Menu className="h-6 w-6" />
                 </Button>
             </SheetTrigger>
-            <SheetContent side="left" className="p-0 w-[300px]">
+            <SheetContent side="left" className="p-0 w-[300px] bg-background/80 backdrop-blur-lg">
               <SheetHeader className="p-4 border-b sr-only">
                   <SheetTitle>Main Menu</SheetTitle>
               </SheetHeader>
@@ -104,7 +103,6 @@ export default function Home() {
                     title={card.title}
                     description={card.description}
                     icon={card.icon}
-                    gradient={card.gradient}
                 />
             ))}
         </div>
@@ -118,31 +116,29 @@ interface FeatureCardProps {
   title: string;
   description: string;
   icon: React.ElementType;
-  gradient: string;
 }
 
-function FeatureCard({ href, title, description, icon: Icon, gradient }: FeatureCardProps) {
+function FeatureCard({ href, title, description, icon: Icon }: FeatureCardProps) {
   return (
     <Link href={href} passHref>
-      <Card className={cn(
-        "relative w-full h-full min-h-[220px] flex flex-col justify-between p-6 rounded-2xl overflow-hidden transition-all duration-300 ease-in-out shadow-lg text-white",
-        "hover:scale-[1.03] hover:shadow-2xl",
-        "bg-gradient-to-br",
-        gradient
+      <div className={cn(
+        "relative w-full h-full min-h-[220px] flex flex-col justify-between p-6 overflow-hidden transition-all duration-300 ease-in-out text-foreground",
+        "glass-card",
+        "hover:scale-[1.03] hover:shadow-2xl hover:border-white/20"
       )}>
           <div className="relative z-10">
-            <div className="mb-4 p-3 bg-white/20 rounded-full w-fit backdrop-blur-sm">
-              <Icon className="w-6 h-6" />
+            <div className="mb-4 p-3 bg-white/10 rounded-full w-fit backdrop-blur-sm border border-white/5">
+              <Icon className="w-6 h-6 text-primary" />
             </div>
             <h2 className="text-2xl font-bold">{title}</h2>
             <p className="opacity-80 mt-1">{description}</p>
           </div>
           <div className="flex justify-end z-10">
-            <Button variant="secondary" className="bg-white/90 text-foreground hover:bg-white rounded-lg">
+            <Button variant="secondary" className="bg-background/80 hover:bg-background rounded-lg">
               {allTranslations.en.startNow}
             </Button>
           </div>
-      </Card>
+      </div>
     </Link>
   );
 }

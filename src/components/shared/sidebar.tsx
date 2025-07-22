@@ -31,7 +31,7 @@ export function Sidebar({ language, toggleLanguage }: SidebarProps) {
   ];
 
   return (
-    <aside className="w-full h-full flex flex-col bg-background">
+    <aside className="w-full h-full flex flex-col bg-transparent">
       <div className="p-4 border-b">
         <Link href="/" className="flex items-center gap-2">
           <BotMessageSquare className="h-8 w-8 text-primary" />
@@ -64,7 +64,7 @@ export function Sidebar({ language, toggleLanguage }: SidebarProps) {
               {t.support}
             </Button>
           </SheetTrigger>
-          <SheetContent side="bottom" className="rounded-t-lg h-[80vh] flex flex-col">
+          <SheetContent side="bottom" className="rounded-t-lg h-[80vh] flex flex-col bg-background/80 backdrop-blur-xl">
             <SheetHeader className="text-center mb-4">
               <SheetTitle>
                 <div className="flex items-center justify-center gap-2">
