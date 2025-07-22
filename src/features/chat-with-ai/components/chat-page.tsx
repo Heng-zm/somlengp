@@ -126,7 +126,7 @@ export function ChatPage() {
     }));
 
     try {
-      const stream = chat([...history, {role: 'user', content: [{text: input}]}]);
+      const stream = await chat([...history, {role: 'user', content: [{text: input}]}]);
       const reader = stream.getReader();
       const decoder = new TextDecoder();
       let streamedResponse = '';
