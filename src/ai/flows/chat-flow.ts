@@ -13,9 +13,9 @@ const ChatInputSchema = z.array(
   })
 );
 
-export function chat(
+export async function chat(
   messages: MessageData[]
-): ReadableStream<Uint8Array> {
+): Promise<ReadableStream<Uint8Array>> {
   const encoder = new TextEncoder();
 
   const readableStream = new ReadableStream({
