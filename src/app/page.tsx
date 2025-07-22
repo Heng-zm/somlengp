@@ -124,16 +124,21 @@ interface FeatureCardProps {
 function FeatureCard({ href, title, description, icon: Icon, gradient }: FeatureCardProps) {
   return (
     <Link href={href} passHref>
-      <Card className={`relative w-full h-full min-h-[220px] flex flex-col justify-between p-6 rounded-2xl overflow-hidden transition-transform hover:scale-[1.02] shadow-lg text-white bg-gradient-to-br ${gradient}`}>
+      <Card className={cn(
+        "relative w-full h-full min-h-[220px] flex flex-col justify-between p-6 rounded-2xl overflow-hidden transition-all duration-300 ease-in-out shadow-lg text-white",
+        "hover:scale-[1.03] hover:shadow-2xl",
+        "bg-gradient-to-br",
+        gradient
+      )}>
           <div className="relative z-10">
-            <div className="mb-4 p-3 bg-white/20 rounded-full w-fit">
+            <div className="mb-4 p-3 bg-white/20 rounded-full w-fit backdrop-blur-sm">
               <Icon className="w-6 h-6" />
             </div>
             <h2 className="text-2xl font-bold">{title}</h2>
             <p className="opacity-80 mt-1">{description}</p>
           </div>
           <div className="flex justify-end z-10">
-            <Button variant="secondary" className="bg-white/90 text-foreground hover:bg-white">
+            <Button variant="secondary" className="bg-white/90 text-foreground hover:bg-white rounded-lg">
               {allTranslations.en.startNow}
             </Button>
           </div>

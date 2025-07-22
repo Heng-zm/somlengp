@@ -286,29 +286,28 @@ export function SoundsPage() {
   };
 
   return (
-    <div className="flex flex-col h-full bg-background text-foreground">
-        <main 
-            className="flex-grow p-4 md:p-6 grid grid-cols-1 gap-6"
-            onDragEnter={handleDragEnter}
-            onDragOver={handleDragEvents}
-            onDragLeave={handleDragLeave}
-            onDrop={handleDrop}
-        >
+    <div 
+        className="flex flex-col h-full bg-background text-foreground"
+        onDragEnter={handleDragEnter}
+        onDragOver={handleDragEvents}
+        onDragLeave={handleDragLeave}
+        onDrop={handleDrop}
+    >
+        <main className="flex-grow p-4 md:p-6 flex flex-col items-center">
             {!audioFile ? (
-                <div 
+                <Card 
                     className={cn(
-                        "flex flex-col items-center justify-center text-center rounded-2xl border-2 border-border bg-card h-full transition-colors cursor-pointer",
+                        "w-full max-w-4xl flex-grow flex flex-col items-center justify-center text-center rounded-2xl border-2 border-dashed border-border bg-card transition-colors cursor-pointer p-6",
                         isDragging && "border-primary bg-primary/10"
                     )}
                     onClick={() => fileInputRef.current?.click()}
-                    style={{minHeight: '80vh' }}
                 >
                     <FileUp className="w-16 h-16 text-muted-foreground/30 mb-4"/>
                     <h3 className="text-xl font-semibold">{t.chooseFile}</h3>
                     <p className="text-muted-foreground mt-2">{t.dropAudio}</p>
-                </div>
+                </Card>
             ) : (
-                <Card className="flex flex-col h-full shadow-sm overflow-hidden rounded-2xl">
+                <Card className="w-full max-w-4xl flex-grow flex flex-col shadow-sm overflow-hidden rounded-2xl">
                     {isTranscribing && (
                         <div className="absolute inset-0 bg-background/80 flex flex-col items-center justify-center z-10">
                             <ThreeDotsLoader />
