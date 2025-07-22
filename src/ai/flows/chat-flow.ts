@@ -17,7 +17,7 @@ const ChatInputSchema = z.array(
 );
 
 export async function chat(messages: MessageData[]): Promise<ReadableStream<string>> {
-  const {stream: llmStream} = ai.generate({
+  const {stream: modelStream} = ai.generate({
     model: 'gemini-1.5-flash-latest',
     history: messages.slice(0, -1),
     prompt: messages[messages.length - 1].content[0].text!,
@@ -27,7 +27,7 @@ export async function chat(messages: MessageData[]): Promise<ReadableStream<stri
   return new ReadableStream({
     async start(controller) {
       try {
-        for await (const chunk of llmStream) {
+        for await (const chunk of modelStream) {
           const text = chunk.text;
           if (text) {
             controller.enqueue(text);
