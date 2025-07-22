@@ -4,7 +4,7 @@
   "version": "1.0.2",
   "private": true,
   "scripts": {
-    "dev": "next dev --turbopack -r dotenv/config",
+    "dev": "next dev --turbopack",
     "genkit:dev": "genkit start -- tsx src/ai/dev.ts",
     "genkit:watch": "genkit start -- tsx --watch src/ai/dev.ts",
     "build": "next build",
