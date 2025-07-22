@@ -3,7 +3,6 @@
 
 import { ai } from '@/ai/genkit';
 import { googleAI } from '@genkit-ai/googleai';
-import { toByteStream } from '@genkit-ai/next/server';
 import type { MessageData } from 'genkit';
 import { z } from 'zod';
 
@@ -28,22 +27,34 @@ export async function chat(
 
   const promptText = lastMessage.content[0].text;
   const historyMessages = messages.slice(0, -1);
+  
+  const { stream, response } = ai.generate({
+    model: googleAI.model('gemini-1.5-flash-latest'),
+    history: historyMessages,
+    prompt: promptText,
+    stream: true,
+  });
 
-  // 2. Generate and Stream Response using Genkit's built-in helper
-  try {
-    const { stream } = await ai.generate({
-      model: googleAI.model('gemini-1.5-flash-latest'),
-      history: historyMessages,
-      prompt: promptText,
-      stream: true,
-    });
+  const encoder = new TextEncoder();
 
-    // 3. Convert Genkit stream to a browser-compatible byte stream
-    return toByteStream(stream);
-    
-  } catch (error) {
-    console.error('Error during AI stream generation:', error);
-    // Re-throw the error to be handled by the client
-    throw new Error('Failed to generate AI response. See server logs for details.');
-  }
+  const readableStream = new ReadableStream({
+    async start(controller) {
+      try {
+        for await (const chunk of stream) {
+          const text = chunk.text;
+          if (text) {
+            controller.enqueue(encoder.encode(text));
+          }
+        }
+        await response;
+      } catch(e) {
+        console.error("Error in AI stream", e);
+        controller.error(e);
+      } finally {
+        controller.close();
+      }
+    }
+  });
+
+  return readableStream;
 }
