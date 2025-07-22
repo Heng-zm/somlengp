@@ -3,12 +3,12 @@ import { Analytics } from "@vercel/analytics/next"
 import {Toaster} from '@/components/ui/toaster';
 import './globals.css';
 import { AppLayout } from '@/layouts/app-layout';
-import { Kantumruy_Pro } from 'next/font/google';
+import { Inter } from 'next/font/google';
 
-const kantumruy = Kantumruy_Pro({ subsets: ['latin', 'khmer'] });
+const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
-  title: 'Ozo. Designer',
+  title: 'VoiceScribe',
   description: 'An all-in-one toolkit for audio transcription, text-to-speech, and PDF utilities.',
 };
 
@@ -19,7 +19,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${kantumruy.className} antialiased`}>
+      <body className={`${inter.className} antialiased`}>
         <AppLayout>
           {children}
         </AppLayout>

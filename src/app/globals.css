@@ -11,14 +11,14 @@ body {
     --background: 220 20% 97%; /* Light Gray (#F0F4F7) */
     --foreground: 224 10% 10%;
     
-    /* Glassmorphism card styles */
-    --card: 220 20% 100%; /* More opaque for readability */
+    /* Solid card styles for a cleaner look */
+    --card: 0 0% 100%;
     --card-foreground: 224 10% 10%;
 
     --popover: 0 0% 100%;
     --popover-foreground: 224 10% 10%;
     
-    --primary: 207 90% 55%; /* Slightly more saturated blue */
+    --primary: 207 90% 61%; /* Soft Blue (#64B5F6) */
     --primary-foreground: 0 0% 100%;
 
     --secondary: 210 40% 96.1%;
@@ -27,7 +27,7 @@ body {
     --muted: 210 40% 96.1%;
     --muted-foreground: 215.4 16.3% 46.9%;
     
-    --accent: 175 60% 45%; /* Slightly adjusted teal */
+    --accent: 175 65% 42%; /* Teal (#26A69A) */
     --accent-foreground: 0 0% 100%;
 
     --destructive: 0 84.2% 60.2%;
@@ -35,23 +35,22 @@ body {
 
     --border: 214.3 31.8% 91.4%;
     --input: 214.3 31.8% 91.4%;
-    --ring: 207 90% 55%;
+    --ring: 207 90% 61%;
     
-    --radius: 0.8rem;
+    --radius: 0.8rem; /* Increased for a softer, more iOS-like feel */
   }
 
   .dark {
     --background: 222 47% 11%;
     --foreground: 210 40% 98%;
 
-    /* Glassmorphism card styles for dark mode */
-    --card: 222 47% 15%; /* A slightly lighter dark shade for the card */
+    --card: 222 47% 15%;
     --card-foreground: 210 40% 98%;
 
     --popover: 222 47% 11%;
     --popover-foreground: 210 40% 98%;
 
-    --primary: 207 90% 69%;
+    --primary: 207 90% 55%;
     --primary-foreground: 224 10% 10%;
 
     --secondary: 217.2 32.6% 17.5%;
@@ -60,15 +59,15 @@ body {
     --muted: 217.2 32.6% 17.5%;
     --muted-foreground: 215 20.2% 65.1%;
 
-    --accent: 175 60% 50%; /* Brighter accent for dark mode */
+    --accent: 175 60% 45%;
     --accent-foreground: 0 0% 100%;
     
     --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 0 0% 98%;
 
-    --border: 217.2 32.6% 25%; /* Slightly lighter border for visibility */
+    --border: 217.2 32.6% 25%;
     --input: 217.2 32.6% 17.5%;
-    --ring: 207 90% 69%;
+    --ring: 207 90% 55%;
   }
 }
 
@@ -77,8 +76,7 @@ body {
     @apply border-border;
   }
   body {
-    /* Updated background */
-    @apply bg-gradient-to-br from-blue-100 via-purple-100 to-teal-100 dark:from-gray-900 dark:via-blue-900/40 dark:to-gray-900 text-foreground;
+    @apply bg-background text-foreground;
   }
 }
 
@@ -91,8 +89,9 @@ body {
         scrollbar-width: none;  /* Firefox */
     }
 
+    /* Keep glass-card for potential future use, but default to solid cards */
     .glass-card {
-        @apply bg-card/50 backdrop-blur-xl border border-white/10 rounded-2xl shadow-lg;
+       @apply bg-card/95 backdrop-blur-sm border rounded-2xl shadow-lg;
     }
 
     .glass-button {

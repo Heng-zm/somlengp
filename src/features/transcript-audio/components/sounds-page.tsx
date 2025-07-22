@@ -295,20 +295,19 @@ export function SoundsPage() {
     >
         <main className="flex-grow p-4 md:p-6 flex flex-col items-center">
             {!audioFile ? (
-                <div 
+                <Card 
                     className={cn(
-                        "w-full max-w-4xl flex-grow flex flex-col items-center justify-center text-center border-2 border-dashed border-white/20 transition-colors cursor-pointer p-6",
-                        "glass-card",
-                        isDragging && "border-primary bg-primary/10"
+                        "w-full max-w-4xl flex-grow flex flex-col items-center justify-center text-center border-2 border-dashed transition-colors cursor-pointer p-6",
+                        isDragging ? "border-primary bg-primary/10" : "border-border"
                     )}
                     onClick={() => fileInputRef.current?.click()}
                 >
-                    <FileUp className="w-16 h-16 text-white/30 mb-4"/>
+                    <FileUp className="w-16 h-16 text-muted-foreground mb-4"/>
                     <h3 className="text-xl font-semibold">{t.chooseFile}</h3>
-                    <p className="text-white/70 mt-2">{t.dropAudio}</p>
-                </div>
+                    <p className="text-muted-foreground mt-2">{t.dropAudio}</p>
+                </Card>
             ) : (
-                <Card className="w-full max-w-4xl flex-grow flex flex-col shadow-sm overflow-hidden glass-card">
+                <Card className="w-full max-w-4xl flex-grow flex flex-col shadow-sm overflow-hidden">
                     {isTranscribing && (
                         <div className="absolute inset-0 bg-background/80 flex flex-col items-center justify-center z-10 backdrop-blur-sm">
                             <ThreeDotsLoader />
@@ -333,20 +332,20 @@ export function SoundsPage() {
         </main>
         
         {audioFile && (
-          <footer className="flex-shrink-0 flex items-center justify-center gap-2 p-4 border-t border-white/10 bg-transparent">
+          <footer className="flex-shrink-0 flex items-center justify-center gap-2 p-4 border-t bg-background">
               <div className="w-full max-w-lg flex gap-2 items-center">
-                  <Button onClick={handleCopy} variant="outline" size="icon" className="h-12 w-12 rounded-full glass-button" disabled={isTranscribing || !isReadyForContent}>
+                  <Button onClick={handleCopy} variant="outline" size="icon" className="h-12 w-12" disabled={isTranscribing || !isReadyForContent}>
                       <Copy className="h-5 w-5" />
                       <span className="sr-only">{t.copy}</span>
                   </Button>
                   <Sheet open={isExportSheetOpen} onOpenChange={setIsExportSheetOpen}>
                       <SheetTrigger asChild>
-                          <Button size="lg" className="flex-1 rounded-full h-12 px-8 glass-button" disabled={isTranscribing || !isReadyForContent}>
+                          <Button size="lg" className="flex-1 h-12" disabled={isTranscribing || !isReadyForContent}>
                               {isTranscribing ? <ThreeDotsLoader /> : <Download className="h-5 w-5" />}
                               <span className="ml-2 sm:inline font-bold">{isTranscribing ? t.transcribing : t.download}</span>
                           </Button>
                       </SheetTrigger>
-                      <SheetContent side="bottom" className="rounded-t-lg bg-background/80 backdrop-blur-xl border-t border-white/10">
+                      <SheetContent side="bottom" className="rounded-t-lg bg-background border-t">
                         <SheetHeader className="text-left">
                             <SheetTitle>{t.exportSettings}</SheetTitle>
                             <SheetDescription>{t.chooseFormat}</SheetDescription>
@@ -374,7 +373,7 @@ export function SoundsPage() {
                                   <p className="text-xs text-muted-foreground text-center">{t.wordsPerSecondHint}</p>
                               </div>
 
-                              <div className="p-4 border rounded-lg border-white/10 bg-white/5">
+                              <div className="p-4 border rounded-lg bg-muted/30">
                                   <h4 className="font-semibold mb-2">{t.improveAccuracy}</h4>
                                   <p className="text-sm text-muted-foreground mb-3">{t.customVocabularyHint}</p>
                                   <div className="flex gap-2">
@@ -404,7 +403,7 @@ export function SoundsPage() {
                                   )}
                               </div>
 
-                              <Button onClick={handleExport} size="lg" className="glass-button" disabled={isTranscribing}>
+                              <Button onClick={handleExport} size="lg" disabled={isTranscribing}>
                                   {isTranscribing ? (
                                       <ThreeDotsLoader />
                                   ) : (

@@ -11,6 +11,7 @@ import { LanguageContext } from '@/contexts/language-context';
 import { allTranslations } from '@/lib/translations';
 import { cn } from '@/lib/utils';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Card } from '@/components/ui/card';
 
 const VISITOR_SESSION_KEY = 'ozo-designer-session-visited';
 
@@ -68,7 +69,7 @@ export default function Home() {
         <div className="flex items-center gap-4">
           <BotMessageSquare className="h-8 w-8 text-primary" />
           <div className="flex flex-col gap-2">
-            <h1 className="text-3xl font-bold text-foreground">Ozo. Designer</h1>
+            <h1 className="text-3xl font-bold text-foreground">VoiceScribe</h1>
             {visitorCount !== null ? (
                 <div className="flex items-center gap-2 bg-background/50 backdrop-blur-sm px-3 py-1 rounded-full w-fit">
                     <Users className="w-4 h-4 text-muted-foreground" />
@@ -121,24 +122,24 @@ interface FeatureCardProps {
 function FeatureCard({ href, title, description, icon: Icon }: FeatureCardProps) {
   return (
     <Link href={href} passHref>
-      <div className={cn(
-        "relative w-full h-full min-h-[220px] flex flex-col justify-between p-6 overflow-hidden transition-all duration-300 ease-in-out text-foreground",
-        "glass-card",
-        "hover:scale-[1.03] hover:shadow-2xl hover:border-white/20"
+      <Card as="div" className={cn(
+        "w-full h-full min-h-[220px] flex flex-col justify-between p-6 overflow-hidden transition-all duration-300 ease-in-out",
+        "bg-card text-card-foreground",
+        "hover:scale-[1.03] hover:shadow-2xl hover:border-primary/20"
       )}>
           <div className="relative z-10">
-            <div className="mb-4 p-3 bg-white/10 rounded-full w-fit backdrop-blur-sm border border-white/5">
+            <div className="mb-4 p-3 bg-primary/10 rounded-full w-fit border border-primary/20">
               <Icon className="w-6 h-6 text-primary" />
             </div>
             <h2 className="text-2xl font-bold">{title}</h2>
-            <p className="opacity-80 mt-1">{description}</p>
+            <p className="text-muted-foreground mt-1">{description}</p>
           </div>
           <div className="flex justify-end z-10">
-            <Button variant="secondary" className="bg-background/80 hover:bg-background rounded-lg">
+            <Button variant="secondary">
               {allTranslations.en.startNow}
             </Button>
           </div>
-      </div>
+      </Card>
     </Link>
   );
 }
