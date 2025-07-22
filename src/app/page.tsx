@@ -60,7 +60,6 @@ export default function Home() {
     { href: '/combine-pdf', title: t.combinePdf, description: t.combinePdfDescription, icon: Combine, gradient: 'from-green-400 to-blue-400' },
     { href: '/image-to-pdf', title: t.imageToPdf, description: t.imageToPdfDescription, icon: ImageIcon, gradient: 'from-orange-400 to-red-400' },
     { href: '/convert-image-format', title: t.convertImageFormat, description: t.convertImageFormatDescription, icon: Wand2, gradient: 'from-yellow-400 to-orange-400' },
-    { href: '/chat-with-ai', title: t.chatWithAi, description: t.chatWithAiDescription, icon: BotMessageSquare, gradient: 'from-rose-400 to-red-400' },
   ];
 
   return (
