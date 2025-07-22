@@ -23,6 +23,7 @@ export function Sidebar({ language, toggleLanguage }: SidebarProps) {
 
   const navItems = [
     { href: '/voice-transcript', label: t.voiceScribe, icon: Mic },
+    { href: '/text-to-speech', label: "Text to Speech", icon: AudioLines },
     { href: '/pdf-transcript', label: t.pdfTranscript, icon: FileText },
     { href: '/combine-pdf', label: t.combinePdf, icon: Combine },
     { href: '/image-to-pdf', label: t.imageToPdf, icon: ImageIcon },
