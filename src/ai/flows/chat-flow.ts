@@ -6,9 +6,9 @@
  * - chat - A function that handles a single chat turn.
  */
 import {ai} from '@/ai/genkit';
+import {googleAI} from '@genkit-ai/googleai';
 import {MessageData} from 'genkit';
 import {z} from 'zod';
-import { googleAI } from '@genkit-ai/googleai';
 
 const ChatInputSchema = z.array(
   z.object({
@@ -17,18 +17,20 @@ const ChatInputSchema = z.array(
   })
 );
 
-export async function chat(messages: MessageData[]): Promise<ReadableStream<string>> {
+export async function chat(
+  messages: MessageData[]
+): Promise<ReadableStream<string>> {
   return new ReadableStream({
     async start(controller) {
       try {
-        const response = await ai.generate({
+        const {stream} = ai.generate({
           model: googleAI.model('gemini-1.5-flash-latest'),
           history: messages.slice(0, -1),
           prompt: messages[messages.length - 1].content[0].text!,
           stream: true,
         });
 
-        for await (const chunk of response.stream) {
+        for await (const chunk of stream) {
           const text = chunk.text;
           if (text) {
             controller.enqueue(text);
