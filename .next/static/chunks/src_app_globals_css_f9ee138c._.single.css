@@ -623,6 +623,10 @@ body {
   height: 1.5rem;
 }
 
+.h-64 {
+  height: 16rem;
+}
+
 .h-7 {
   height: 1.75rem;
 }
@@ -637,10 +641,6 @@ body {
 
 .h-\[1px\] {
   height: 1px;
-}
-
-.h-\[76vh\] {
-  height: 76vh;
 }
 
 .h-\[78vh\] {
@@ -661,10 +661,6 @@ body {
 
 .h-px {
   height: 1px;
-}
-
-.h-64 {
-  height: 16rem;
 }
 
 .max-h-96 {
@@ -1323,6 +1319,10 @@ body {
   padding: .25rem;
 }
 
+.p-10 {
+  padding: 2.5rem;
+}
+
 .p-2 {
   padding: .5rem;
 }
@@ -1341,10 +1341,6 @@ body {
 
 .p-\[1px\] {
   padding: 1px;
-}
-
-.p-10 {
-  padding: 2.5rem;
 }
 
 .px-2 {

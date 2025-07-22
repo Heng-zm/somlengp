@@ -7,6 +7,7 @@ type Translations = {
 };
 
 const enTranslations: Translations = {
+    home: "Home",
     voiceScribe: "Voice Transcript",
     voiceTranscriptDescription: "Transcribe audio files into editable text with timestamps.",
     startNow: "Start Now",
@@ -97,6 +98,7 @@ const enTranslations: Translations = {
 };
 
 const kmTranslations: Translations = {
+    home: "ទំព័រដើម",
     voiceScribe: "ការសរសេរតាមសំឡេង",
     voiceTranscriptDescription: "បម្លែងឯកសារអូឌីយ៉ូទៅជាអត្ថបទដែលអាចកែសម្រួលបានជាមួយនឹងពេលវេលា។",
     startNow: "ចាប់ផ្តើមឥឡូវនេះ",
