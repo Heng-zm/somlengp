@@ -61,14 +61,27 @@ export function Sidebar({ language, toggleLanguage }: { language: Language, togg
       </div>
 
       <nav className="flex-grow p-4 space-y-1">
+          {navItems.map(item => (
+            <Link key={item.href} href={item.href} passHref>
+              <Button
+                variant={pathname === item.href ? 'secondary' : 'ghost'}
+                className="w-full justify-start text-base py-6"
+              >
+                <item.icon className="mr-3 h-5 w-5" />
+                {item.label}
+              </Button>
+            </Link>
+          ))}
+
           {history.length > 0 && (
-            <div className='mb-4'>
+            <div className='mt-4'>
+                <Separator className="my-4" />
                 <h2 className="mb-2 px-2 text-lg font-semibold tracking-tight flex items-center">{t.history}</h2>
                 <div className="space-y-1">
                     {recentHistory.map(item => (
                         <Link key={`history-${item.href}`} href={item.href} passHref>
                             <Button
-                                variant={pathname === item.href ? 'secondary' : 'ghost'}
+                                variant='ghost'
                                 className="w-full justify-start text-base py-6"
                             >
                                 <item.icon className="mr-3 h-5 w-5" />
@@ -85,21 +98,8 @@ export function Sidebar({ language, toggleLanguage }: { language: Language, togg
                         </Button>
                      </Link>
                 )}
-                <Separator className="my-4" />
             </div>
           )}
-
-          {navItems.map(item => (
-            <Link key={item.href} href={item.href} passHref>
-              <Button
-                variant={pathname === item.href ? 'secondary' : 'ghost'}
-                className="w-full justify-start text-base py-6"
-              >
-                <item.icon className="mr-3 h-5 w-5" />
-                {item.label}
-              </Button>
-            </Link>
-          ))}
       </nav>
 
       <div className="p-4 border-t">
