@@ -1,11 +1,11 @@
 
 "use client";
 
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Card, CardContent } from "@/components/ui/card";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
 import { cn } from "@/lib/utils";
-import { User } from "lucide-react";
+import { User, UserRound } from "lucide-react";
 
 export const voices = [
     { value: 'Algenib', label: 'Algenib', gender: 'Female' },
@@ -50,8 +50,9 @@ export function VoicePicker({ selectedValue, onValueChange, disabled }: VoicePic
                             >
                                 <CardContent className="flex flex-col items-center justify-center p-4 gap-2 aspect-square">
                                     <Avatar className="w-16 h-16">
-                                        <AvatarImage src={`https://placehold.co/128x128.png`} data-ai-hint={`${voice.gender === 'Male' ? 'man' : 'woman'} portrait`} />
-                                        <AvatarFallback><User /></AvatarFallback>
+                                        <AvatarFallback className="bg-muted/50 text-muted-foreground text-4xl">
+                                            {voice.gender === 'Male' ? <User /> : <UserRound />}
+                                        </AvatarFallback>
                                     </Avatar>
                                     <div className="text-center">
                                         <p className="text-sm font-semibold">{voice.label}</p>

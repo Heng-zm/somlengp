@@ -217,9 +217,10 @@ var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$genkit$2d$
 const ai = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$genkit$2f$lib$2f$genkit$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["genkit"])({
     plugins: [
         (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$genkit$2d$ai$2f$googleai$2f$lib$2f$index$2e$mjs__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__$3c$locals$3e$__["googleAI"])({
-            model: __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$genkit$2d$ai$2f$googleai$2f$lib$2f$index$2e$mjs__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__$3c$locals$3e$__["googleAI"].model('gemini-1.5-flash-latest')
+            apiKey: process.env.GOOGLE_API_KEY
         })
-    ]
+    ],
+    logLevel: 'debug'
 });
 }}),
 "[project]/src/lib/types.ts [app-rsc] (ecmascript)": ((__turbopack_context__) => {
