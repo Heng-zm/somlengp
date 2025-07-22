@@ -126,8 +126,9 @@ export function ChatPage() {
     }));
 
     try {
-      const stream = await chat([...history, {role: 'user', content: [{text: input}]}]);
+      const stream = chat([...history, {role: 'user', content: [{text: input}]}]);
       const reader = stream.getReader();
+      const decoder = new TextDecoder();
       let streamedResponse = '';
       
       const read = async () => {
@@ -143,7 +144,7 @@ export function ChatPage() {
           setIsStreaming(false);
           return;
         }
-        streamedResponse += value;
+        streamedResponse += decoder.decode(value, { stream: true });
         setMessages(prev => {
           const updated = [...prev];
           const lastMessage = updated[updated.length - 1];
