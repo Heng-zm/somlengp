@@ -5,7 +5,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Card, CardContent } from "@/components/ui/card";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
 import { cn } from "@/lib/utils";
-import { User, UserRound, Play, LoaderCircle, Square } from "lucide-react";
+import { User, UserRound, Play, LoaderCircle, Pause } from "lucide-react";
 import { useState, useRef } from "react";
 import { textToSpeech } from "@/ai/flows/text-to-speech-flow";
 import { useToast } from "@/hooks/use-toast";
@@ -120,7 +120,7 @@ export function VoicePicker({ selectedValue, onValueChange, disabled }: VoicePic
                                             {loadingPreview === voice.value ? (
                                                 <LoaderCircle className="animate-spin" />
                                             ) : playingPreview === voice.value ? (
-                                                <Square className="w-5 h-5 fill-current" />
+                                                <Pause className="w-5 h-5 fill-current" />
                                             ) : (
                                                 <Play className="w-5 h-5 fill-current" />
                                             )}
