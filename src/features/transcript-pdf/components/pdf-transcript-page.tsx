@@ -186,7 +186,8 @@ export function PdfTranscriptPage() {
                 {!pdfFile ? (
                     <div
                         className={cn(
-                        'flex cursor-pointer flex-col items-center justify-center border-2 border-dashed border-white/20 text-center transition-colors h-full glass-card',
+                        'flex cursor-pointer flex-col items-center justify-center border-2 border-dashed border-white/20 text-center transition-colors h-full p-6',
+                        'glass-card',
                         isDragging && 'border-primary bg-primary/10'
                         )}
                         onClick={() => fileInputRef.current?.click()}
@@ -196,7 +197,7 @@ export function PdfTranscriptPage() {
                         <p className="mt-2 text-white/70">{t.dropPdf}</p>
                     </div>
                 ) : (
-                    <Card className="h-full flex flex-col glass-card overflow-hidden">
+                    <div className="h-full flex flex-col glass-card overflow-hidden">
                         <div className="flex-shrink-0 flex items-center justify-between p-3 border-b border-white/10 bg-black/10">
                             <div className="flex items-center gap-2 overflow-hidden">
                                 <FileText className="w-5 h-5 text-primary"/>
@@ -224,7 +225,7 @@ export function PdfTranscriptPage() {
                                 disabled={isTranscribing}
                             />
                         </div>
-                    </Card>
+                    </div>
                 )}
             </div>
 

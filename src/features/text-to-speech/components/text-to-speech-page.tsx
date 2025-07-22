@@ -11,7 +11,6 @@ import { LanguageContext } from '@/contexts/language-context';
 import { textToSpeech } from '@/ai/flows/text-to-speech-flow';
 import { ThreeDotsLoader } from '@/components/shared/three-dots-loader';
 import { voices, VoicePicker } from './voice-picker';
-import { Card } from '@/components/ui/card';
 
 export function TextToSpeechPage() {
   const [text, setText] = useState('');
@@ -65,14 +64,14 @@ export function TextToSpeechPage() {
   };
   
   return (
-    <div className="flex flex-col h-full bg-background text-foreground">
+    <div className="flex flex-col h-full bg-transparent text-foreground">
       <main className="flex-grow p-4 md:p-6 flex flex-col gap-6">
         <VoicePicker 
             selectedValue={selectedVoice} 
             onValueChange={setSelectedVoice}
             disabled={isGenerating}
         />
-        <Card className="flex-grow flex flex-col p-4 md:p-6 shadow-sm overflow-hidden rounded-2xl">
+        <div className="flex-grow flex flex-col glass-card p-1">
           <Textarea
             value={text}
             onChange={(e) => setText(e.target.value)}
@@ -83,25 +82,25 @@ export function TextToSpeechPage() {
             rows={10}
           />
           {audioDataUri && !isGenerating && (
-            <div className="mt-4 p-4 bg-muted/50 rounded-lg flex items-center justify-between gap-4">
+            <div className="mt-4 p-4 bg-black/10 rounded-lg flex items-center justify-between gap-4 mx-4 mb-4 border border-white/10">
                 <audio controls src={audioDataUri} className="w-full">
                     Your browser does not support the audio element.
                 </audio>
-                <Button onClick={handleDownload} variant="outline" size="icon">
+                <Button onClick={handleDownload} variant="ghost" size="icon" className="glass-button">
                     <Download className="w-5 h-5" />
                     <span className="sr-only">Download Audio</span>
                 </Button>
             </div>
           )}
-        </Card>
+        </div>
       </main>
       
-      <footer className="flex-shrink-0 flex items-center justify-center gap-2 p-4 border-t bg-background">
+      <footer className="flex-shrink-0 flex items-center justify-center gap-2 p-4 border-t border-white/10 bg-transparent">
         <div className="w-full max-w-lg flex gap-2 items-center">
           <Button 
             onClick={handleGenerate}
             size="lg"
-            className="flex-1 rounded-full h-12 px-8 bg-accent text-accent-foreground hover:bg-accent/90"
+            className="flex-1 rounded-full h-12 px-8 glass-button"
             disabled={isGenerating || !text.trim()}
           >
             {isGenerating ? (

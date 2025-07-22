@@ -65,6 +65,17 @@
       "layer": {
         "app/image-to-pdf/page": "action-browser"
       }
+    },
+    "405ebf3000873dc89fbbe3b2bebc56418e42ba171a": {
+      "workers": {
+        "app/combine-pdf/page": {
+          "moduleId": "[project]/.next-internal/server/app/combine-pdf/page/actions.js { ACTIONS_MODULE0 => \"[project]/src/ai/flows/combine-pdf-flow.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false
+        }
+      },
+      "layer": {
+        "app/combine-pdf/page": "action-browser"
+      }
     }
   },
   "edge": {},
