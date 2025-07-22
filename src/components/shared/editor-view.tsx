@@ -16,7 +16,7 @@ export function EditorView({ transcript, onTranscriptChange, disabled }: EditorV
         value={transcript}
         onChange={(e) => onTranscriptChange(e.target.value)}
         placeholder="Your transcribed text will appear here. You can edit it directly."
-        className="h-[76vh] w-full resize-none text-base leading-relaxed p-6 border-0 focus-visible:ring-0 focus-visible:ring-offset-0"
+        className="h-full w-full resize-none text-base leading-relaxed p-6 border-0 focus-visible:ring-0 focus-visible:ring-offset-0"
         disabled={disabled}
         aria-label="Transcription Editor"
       />

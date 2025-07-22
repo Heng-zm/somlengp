@@ -66,6 +66,7 @@ export function Sidebar({ language, toggleLanguage }: { language: Language, togg
               <Button
                 variant={pathname === item.href ? 'secondary' : 'ghost'}
                 className="w-full justify-start text-base py-6"
+                type="button"
               >
                 <item.icon className="mr-3 h-5 w-5" />
                 {item.label}
@@ -83,6 +84,7 @@ export function Sidebar({ language, toggleLanguage }: { language: Language, togg
                             <Button
                                 variant='ghost'
                                 className="w-full justify-start text-base py-6"
+                                type="button"
                             >
                                 <item.icon className="mr-3 h-5 w-5" />
                                 {item.label}
@@ -92,7 +94,7 @@ export function Sidebar({ language, toggleLanguage }: { language: Language, togg
                 </div>
                 {history.length > 3 && (
                      <Link href="/history" passHref>
-                        <Button variant="link" className="w-full justify-start text-base py-6 text-primary">
+                        <Button variant="link" className="w-full justify-start text-base py-6 text-primary" type="button">
                             <ArrowRight className="mr-3 h-5 w-5" />
                             {t.seeAll}
                         </Button>
@@ -105,7 +107,7 @@ export function Sidebar({ language, toggleLanguage }: { language: Language, togg
       <div className="p-4 border-t">
         <Sheet>
           <SheetTrigger asChild>
-            <Button variant="ghost" className="w-full justify-start">
+            <Button variant="ghost" className="w-full justify-start" type="button">
               <LifeBuoy className="mr-3 h-5 w-5" />
               {t.support}
             </Button>
@@ -130,17 +132,17 @@ export function Sidebar({ language, toggleLanguage }: { language: Language, togg
           </SheetContent>
         </Sheet>
         <Link href="https://t.me/Ozo0_0" target="_blank" rel="noopener noreferrer" passHref>
-          <Button variant="ghost" className="w-full justify-start mt-2">
+          <Button variant="ghost" className="w-full justify-start mt-2" type="button">
             <FileHeart className="mr-3 h-5 w-5" />
             {t.reportBug}
           </Button>
         </Link>
         <div className="flex items-center gap-2 mt-2">
-            <Button variant="ghost" onClick={toggleLanguage} className="w-full justify-start">
+            <Button variant="ghost" onClick={toggleLanguage} className="w-full justify-start" type="button">
                 <Languages className="mr-3 h-5 w-5" />
                 <span>{language === 'en' ? 'ភាសាខ្មែរ' : 'English'}</span>
             </Button>
-            <Button variant="ghost" size="icon" onClick={toggleTheme} className="flex-shrink-0">
+            <Button variant="ghost" size="icon" onClick={toggleTheme} className="flex-shrink-0" type="button">
                 {theme === 'dark' ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
             </Button>
         </div>
