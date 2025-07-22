@@ -10,6 +10,17 @@
       "layer": {
         "app/chat-with-ai/page": "action-browser"
       }
+    },
+    "4050ac54cf9201e45356f56398fcd7f2aac0735f7e": {
+      "workers": {
+        "app/text-to-speech/page": {
+          "moduleId": "[project]/.next-internal/server/app/text-to-speech/page/actions.js { ACTIONS_MODULE0 => \"[project]/src/ai/flows/text-to-speech-flow.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false
+        }
+      },
+      "layer": {
+        "app/text-to-speech/page": "action-browser"
+      }
     }
   },
   "edge": {},
