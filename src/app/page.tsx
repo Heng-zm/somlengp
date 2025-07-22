@@ -3,7 +3,7 @@
 
 import { useContext, useMemo, useState, useEffect } from 'react';
 import Link from 'next/link';
-import { Mic, FileText, Menu, Combine, Image as ImageIcon, Users, Wand2, BotMessageSquare } from 'lucide-react';
+import { Mic, FileText, Menu, Combine, Image as ImageIcon, Users, Wand2, BotMessageSquare, AudioLines } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
@@ -57,6 +57,7 @@ export default function Home() {
   const featureCards = [
     { href: '/voice-transcript', title: t.voiceScribe, description: t.voiceTranscriptDescription, icon: Mic, gradient: 'from-blue-400 to-teal-400' },
     { href: '/pdf-transcript', title: t.pdfTranscript, description: t.pdfTranscriptDescription, icon: FileText, gradient: 'from-purple-400 to-pink-400' },
+    { href: '/text-to-speech', title: 'Text to Speech', description: 'Convert text into natural-sounding speech.', icon: AudioLines, gradient: 'from-red-400 to-yellow-400' },
     { href: '/combine-pdf', title: t.combinePdf, description: t.combinePdfDescription, icon: Combine, gradient: 'from-green-400 to-blue-400' },
     { href: '/image-to-pdf', title: t.imageToPdf, description: t.imageToPdfDescription, icon: ImageIcon, gradient: 'from-orange-400 to-red-400' },
     { href: '/convert-image-format', title: t.convertImageFormat, description: t.convertImageFormatDescription, icon: Wand2, gradient: 'from-yellow-400 to-orange-400' },
