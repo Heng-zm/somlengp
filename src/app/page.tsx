@@ -18,9 +18,11 @@ const VISITOR_SESSION_KEY = 'ozo-designer-session-visited';
 export default function Home() {
   const [visitorCount, setVisitorCount] = useState<number | null>(null);
   const langContext = useContext(LanguageContext);
+  
   if (!langContext) {
     throw new Error('Home page must be used within a LanguageProvider');
   }
+
   const { language, toggleLanguage, theme, toggleTheme } = langContext;
   const t = useMemo(() => allTranslations[language], [language]);
   
