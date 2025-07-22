@@ -482,11 +482,6 @@ body {
   margin-bottom: .25rem;
 }
 
-.my-4 {
-  margin-top: 1rem;
-  margin-bottom: 1rem;
-}
-
 .my-2 {
   margin-top: .5rem;
   margin-bottom: .5rem;
@@ -630,10 +625,6 @@ body {
 
 .h-6 {
   height: 1.5rem;
-}
-
-.h-64 {
-  height: 16rem;
 }
 
 .h-7 {
