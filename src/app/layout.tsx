@@ -3,16 +3,11 @@ import { Analytics } from "@vercel/analytics/next"
 import {Toaster} from '@/components/ui/toaster';
 import './globals.css';
 import { AppLayout } from '@/layouts/app-layout';
-import { Inter, Kantumruy_Pro } from 'next/font/google';
-
-const inter = Inter({ 
-  subsets: ['latin'],
-  variable: '--font-sans',
-});
+import { Kantumruy_Pro } from 'next/font/google';
 
 const kantumruy = Kantumruy_Pro({
-  subsets: ['khmer'],
-  variable: '--font-kantumruy',
+  subsets: ['khmer', 'latin'],
+  variable: '--font-sans',
 });
 
 
@@ -27,8 +22,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${inter.variable} ${kantumruy.variable}`}>
-      <body className={`antialiased`}>
+    <html lang="en" className={`${kantumruy.variable}`}>
+      <body className={`antialiased font-sans`}>
         <AppLayout>
           {children}
         </AppLayout>

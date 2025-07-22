@@ -8,35 +8,34 @@ body {
 
 @layer base {
   :root {
-    --background: 220 20% 97%; /* Light Gray (#F0F4F7) */
-    --foreground: 224 10% 10%;
-    
-    /* Solid card styles for a cleaner look */
-    --card: 0 0% 100%;
-    --card-foreground: 224 10% 10%;
+    --background: 224 71% 4%; /* Near Black */
+    --foreground: 210 40% 98%; /* White */
 
-    --popover: 0 0% 100%;
-    --popover-foreground: 224 10% 10%;
-    
-    --primary: 207 90% 61%; /* Soft Blue (#64B5F6) */
-    --primary-foreground: 0 0% 100%;
+    --card: 224 71% 9%; /* Slightly lighter black */
+    --card-foreground: 210 40% 98%;
 
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
-    
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
-    
-    --accent: 175 65% 42%; /* Teal (#26A69A) */
-    --accent-foreground: 0 0% 100%;
+    --popover: 224 71% 4%;
+    --popover-foreground: 210 40% 98%;
 
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 0 0% 98%;
+    --primary: 142 76% 50%; /* Vibrant Green */
+    --primary-foreground: 224 71% 4%;
 
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 207 90% 61%;
+    --secondary: 217 33% 17%;
+    --secondary-foreground: 210 40% 98%;
     
+    --muted: 217 33% 17%;
+    --muted-foreground: 215 20% 65%;
+
+    --accent: 347 87% 61%; /* Vibrant Red */
+    --accent-foreground: 210 40% 98%;
+    
+    --destructive: 0 63% 31%;
+    --destructive-foreground: 210 40% 98%;
+
+    --border: 217 33% 17%;
+    --input: 217 33% 17%;
+    --ring: 142 76% 50%;
+
     --radius: 0.8rem; /* Increased for a softer, more iOS-like feel */
   }
 
@@ -77,11 +76,6 @@ body {
   }
   body {
     @apply bg-background text-foreground;
-    font-family: var(--font-sans);
-  }
-
-  html[lang="km"] body {
-    font-family: var(--font-kantumruy);
   }
 }
 

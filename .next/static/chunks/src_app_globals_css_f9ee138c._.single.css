@@ -246,25 +246,25 @@ img, video {
 }
 
 :root {
-  --background: 220 20% 97%;
-  --foreground: 224 10% 10%;
-  --card: 0 0% 100%;
-  --card-foreground: 224 10% 10%;
-  --popover: 0 0% 100%;
-  --popover-foreground: 224 10% 10%;
-  --primary: 207 90% 61%;
-  --primary-foreground: 0 0% 100%;
-  --secondary: 210 40% 96.1%;
-  --secondary-foreground: 222.2 47.4% 11.2%;
-  --muted: 210 40% 96.1%;
-  --muted-foreground: 215.4 16.3% 46.9%;
-  --accent: 175 65% 42%;
-  --accent-foreground: 0 0% 100%;
-  --destructive: 0 84.2% 60.2%;
-  --destructive-foreground: 0 0% 98%;
-  --border: 214.3 31.8% 91.4%;
-  --input: 214.3 31.8% 91.4%;
-  --ring: 207 90% 61%;
+  --background: 224 71% 4%;
+  --foreground: 210 40% 98%;
+  --card: 224 71% 9%;
+  --card-foreground: 210 40% 98%;
+  --popover: 224 71% 4%;
+  --popover-foreground: 210 40% 98%;
+  --primary: 142 76% 50%;
+  --primary-foreground: 224 71% 4%;
+  --secondary: 217 33% 17%;
+  --secondary-foreground: 210 40% 98%;
+  --muted: 217 33% 17%;
+  --muted-foreground: 215 20% 65%;
+  --accent: 347 87% 61%;
+  --accent-foreground: 210 40% 98%;
+  --destructive: 0 63% 31%;
+  --destructive-foreground: 210 40% 98%;
+  --border: 217 33% 17%;
+  --input: 217 33% 17%;
+  --ring: 142 76% 50%;
   --radius: .8rem;
 }
 
@@ -297,11 +297,6 @@ img, video {
 body {
   background-color: hsl(var(--background));
   color: hsl(var(--foreground));
-  font-family: var(--font-sans);
-}
-
-html[lang="km"] body {
-  font-family: var(--font-kantumruy);
 }
 
 .\!container {
@@ -643,6 +638,10 @@ html[lang="km"] body {
   height: 76vh;
 }
 
+.h-\[78vh\] {
+  height: 78vh;
+}
+
 .h-\[80vh\] {
   height: 80vh;
 }
@@ -657,10 +656,6 @@ html[lang="km"] body {
 
 .h-px {
   height: 1px;
-}
-
-.h-\[78vh\] {
-  height: 78vh;
 }
 
 .max-h-96 {
@@ -1458,6 +1453,10 @@ html[lang="km"] body {
 
 .font-mono {
   font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, Liberation Mono, Courier New, monospace;
+}
+
+.font-sans {
+  font-family: var(--font-sans), sans-serif;
 }
 
 .text-2xl {
