@@ -110,31 +110,31 @@ export function VoicePicker({ selectedValue, onValueChange, disabled }: VoicePic
                                         selectedValue === voice.value && "border-2 border-primary shadow-lg"
                                     )}
                                 >
-                                    <CardContent className="relative flex flex-col items-center justify-center p-2 gap-1 aspect-square">
+                                    <CardContent className="relative flex flex-col items-center justify-center p-4 gap-2 aspect-square">
                                         <Button
                                             size="icon"
                                             variant="ghost"
-                                            className="absolute top-1 right-1 w-7 h-7 rounded-full z-10"
+                                            className="absolute top-2 right-2 w-8 h-8 rounded-full z-10"
                                             onClick={(e) => handlePreview(e, voice.value)}
                                             disabled={loadingPreview !== null || disabled}
                                         >
                                             {loadingPreview === voice.value ? (
                                                 <LoaderCircle className="animate-spin" />
                                             ) : playingPreview === voice.value ? (
-                                                <Pause className="w-4 h-4 fill-current" />
+                                                <Pause className="w-5 h-5 fill-current" />
                                             ) : (
-                                                <Play className="w-4 h-4 fill-current" />
+                                                <Play className="w-5 h-5 fill-current" />
                                             )}
                                             <span className="sr-only">Preview voice</span>
                                         </Button>
-                                        <Avatar className="w-12 h-12 transition-transform duration-300 group-hover:scale-110">
-                                            <AvatarFallback className="bg-muted/50 text-muted-foreground text-3xl">
+                                        <Avatar className="w-16 h-16 transition-transform duration-300 group-hover:scale-110">
+                                            <AvatarFallback className="bg-muted/50 text-muted-foreground text-4xl">
                                                 {voice.gender === 'Male' ? <User /> : <UserRound />}
                                             </AvatarFallback>
                                         </Avatar>
                                         <div className="text-center">
-                                            <p className="text-xs font-semibold">{voice.label}</p>
-                                            <p className="text-[10px] text-muted-foreground">{voice.gender}</p>
+                                            <p className="font-semibold">{voice.label}</p>
+                                            <p className="text-xs text-muted-foreground">{voice.gender}</p>
                                         </div>
                                     </CardContent>
                                 </Card>
