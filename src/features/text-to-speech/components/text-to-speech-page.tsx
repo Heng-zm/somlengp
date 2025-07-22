@@ -5,13 +5,13 @@ import { useState, useMemo, useContext } from 'react';
 import { AudioLines, Download } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
-import { Card } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
 import { allTranslations } from '@/lib/translations';
 import { LanguageContext } from '@/contexts/language-context';
 import { textToSpeech } from '@/ai/flows/text-to-speech-flow';
 import { ThreeDotsLoader } from '@/components/shared/three-dots-loader';
 import { voices, VoicePicker } from './voice-picker';
+import { Card } from '@/components/ui/card';
 
 export function TextToSpeechPage() {
   const [text, setText] = useState('');
