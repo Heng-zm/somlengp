@@ -42,7 +42,7 @@ export function FeaturePageLayout({ children, title, showModelSelector = false }
         <div className="flex flex-col h-full">
             <header className="flex-shrink-0 flex items-center justify-between p-2 sm:p-4 border-b">
                 <Button variant="ghost" size="icon" asChild>
-                  <Link href="/">
+                  <Link href="/home">
                     <ChevronLeft />
                     <span className="sr-only">Back to Home</span>
                   </Link>
