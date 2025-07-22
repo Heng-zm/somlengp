@@ -17,16 +17,16 @@ const ChatInputSchema = z.array(
 );
 
 export async function chat(messages: MessageData[]): Promise<ReadableStream<string>> {
-  const { stream: modelStream } = ai.generate({
-    model: 'gemini-1.5-flash-latest',
-    history: messages.slice(0, -1),
-    prompt: messages[messages.length - 1].content[0].text!,
-    stream: true,
-  });
-
   return new ReadableStream({
     async start(controller) {
       try {
+        const { stream: modelStream } = ai.generate({
+          model: 'gemini-1.5-flash-latest',
+          history: messages.slice(0, -1),
+          prompt: messages[messages.length - 1].content[0].text!,
+          stream: true,
+        });
+
         for await (const chunk of modelStream) {
           const text = chunk.text;
           if (text) {
