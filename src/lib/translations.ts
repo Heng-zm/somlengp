@@ -83,7 +83,7 @@ const enTranslations: Translations = {
     conversionErrorDescription: "Please upload at least one image to convert.",
     selectImageFile: "Please select an image file (JPEG, PNG, etc.).",
     fileTooLargeTitle: "File Too Large",
-    fileToLargeDescription: (size: number) => `The file exceeds the server's limit of ${size}MB. Please use a smaller file.`,
+    fileTooLargeDescription: (size: number) => `The file exceeds the server's limit of ${size}MB. Please use a smaller file.`,
     convertImageFormat: "Convert Image Format",
     convertImageFormatDescription: "Easily change the format of your images.",
     convertImageFormatTitle: "Upload your image to convert",
@@ -94,7 +94,7 @@ const enTranslations: Translations = {
     chatWithAi: "Chat With AI",
     chatWithAiDescription: "Have a conversation with an intelligent AI assistant.",
     askAnything: "Ask anything...",
-    chatError: "Chat Error",
+    chatError: "Sorry, something went wrong. Please try again.",
 };
 
 const kmTranslations: Translations = {
@@ -185,7 +185,7 @@ const kmTranslations: Translations = {
     chatWithAi: "ជជែកជាមួយ AI",
     chatWithAiDescription: "ជជែកជាមួយជំនួយការ AI ដ៏ឆ្លាតវៃ។",
     askAnything: "សួរអ្វីក៏បាន...",
-    chatError: "កំហុសក្នុងការជជែក",
+    chatError: "សូមអភ័យទោស មានបញ្ហា​មួយ។ សូម​ព្យាយាម​ម្តង​ទៀត។",
 };
 
 export const allTranslations = {

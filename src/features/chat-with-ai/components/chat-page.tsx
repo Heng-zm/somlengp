@@ -3,7 +3,7 @@
 
 import {useState, useEffect, useRef, useMemo, useContext} from 'react';
 import {motion, AnimatePresence} from 'framer-motion';
-import {Avatar, AvatarFallback, AvatarImage} from '@/components/ui/avatar';
+import {Avatar, AvatarFallback} from '@/components/ui/avatar';
 import {Button} from '@/components/ui/button';
 import {Input} from '@/components/ui/input';
 import {cn} from '@/lib/utils';
@@ -14,6 +14,7 @@ import {Bot, Send, User} from 'lucide-react';
 import {ThreeDotsLoader} from '@/components/shared/three-dots-loader';
 import {LanguageContext} from '@/contexts/language-context';
 import {allTranslations} from '@/lib/translations';
+import { addMessage, getMessages, type ChatMessage as StoredMessage } from '@/lib/idb';
 
 interface Message {
   id: string;
@@ -69,6 +70,7 @@ export function ChatPage() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
   const [isStreaming, setIsStreaming] = useState(false);
+  const [isLoadingHistory, setIsLoadingHistory] = useState(true);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
 
   const langContext = useContext(LanguageContext);
@@ -78,10 +80,26 @@ export function ChatPage() {
   const { language } = langContext;
   const t = useMemo(() => allTranslations[language], [language]);
 
+  useEffect(() => {
+    const loadHistory = async () => {
+        try {
+            const history = await getMessages();
+            setMessages(history);
+        } catch (error) {
+            console.error("Failed to load chat history:", error);
+        } finally {
+            setIsLoadingHistory(false);
+        }
+    };
+    loadHistory();
+  }, []);
 
   function scrollToBottom() {
     if (scrollAreaRef.current) {
-        scrollAreaRef.current.scrollTo({ top: scrollAreaRef.current.scrollHeight, behavior: 'smooth' });
+        const viewport = scrollAreaRef.current.querySelector('div[data-radix-scroll-area-viewport]');
+        if (viewport) {
+            viewport.scrollTo({ top: viewport.scrollHeight, behavior: 'smooth' });
+        }
     }
   }
 
@@ -93,10 +111,12 @@ export function ChatPage() {
     e.preventDefault();
     if (!input.trim() || isStreaming) return;
 
-    const userMessage: Message = {id: `user-${Date.now()}`, role: 'user', text: input};
-    const modelMessage: Message = {id: `model-${Date.now()}`, role: 'model', text: '...'};
+    const userMessage: StoredMessage = {id: `user-${Date.now()}`, role: 'user', text: input, timestamp: Date.now()};
+    addMessage(userMessage);
+    
+    const modelMessagePlaceholder: Message = {id: `model-${Date.now()}`, role: 'model', text: '...'};
 
-    setMessages(prev => [...prev, userMessage, modelMessage]);
+    setMessages(prev => [...prev, userMessage, modelMessagePlaceholder]);
     setInput('');
     setIsStreaming(true);
 
@@ -113,13 +133,23 @@ export function ChatPage() {
       const read = async () => {
         const { done, value } = await reader.read();
         if (done) {
+          const finalModelMessage: StoredMessage = {
+              id: modelMessagePlaceholder.id,
+              role: 'model',
+              text: streamedResponse,
+              timestamp: Date.now()
+          };
+          addMessage(finalModelMessage);
           setIsStreaming(false);
           return;
         }
         streamedResponse += value;
         setMessages(prev => {
           const updated = [...prev];
-          updated[updated.length - 1].text = streamedResponse;
+          const lastMessage = updated[updated.length - 1];
+          if (lastMessage.role === 'model') {
+            lastMessage.text = streamedResponse;
+          }
           return updated;
         });
         scrollToBottom();
@@ -129,9 +159,19 @@ export function ChatPage() {
       
     } catch (error) {
       console.error('Chat error:', error);
+      const errorMessage: StoredMessage = {
+          id: modelMessagePlaceholder.id,
+          role: 'model',
+          text: t.chatError,
+          timestamp: Date.now()
+      };
+      addMessage(errorMessage);
       setMessages(prev => {
         const updated = [...prev];
-        updated[updated.length - 1].text = t.chatError;
+        const lastMessage = updated[updated.length - 1];
+        if (lastMessage.role === 'model') {
+            lastMessage.text = t.chatError;
+        }
         return updated;
       });
       setIsStreaming(false);
@@ -143,7 +183,12 @@ export function ChatPage() {
       <ScrollArea className="flex-1" ref={scrollAreaRef}>
         <div className="mx-auto w-full max-w-3xl p-4 sm:p-6">
           <AnimatePresence>
-            {messages.length > 0 ? (
+            {isLoadingHistory ? (
+                <div className="flex h-[calc(100vh-200px)] flex-col items-center justify-center text-center">
+                    <ThreeDotsLoader />
+                    <p className="mt-4 text-muted-foreground">Loading history...</p>
+                </div>
+            ) : messages.length > 0 ? (
               <div className="flex flex-col gap-4">
                 {messages.map(message => (
                   <ChatBubble key={message.id} message={message} />
@@ -158,7 +203,7 @@ export function ChatPage() {
                   </Avatar>
                   <h2 className="text-2xl font-bold">Chat with Ozo</h2>
                   <p className="text-muted-foreground">
-                    Ask me anything! I can help you with a variety of tasks.
+                    Ask me anything! Your conversation will be saved locally.
                   </p>
                 </div>
             )}
