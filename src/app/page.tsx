@@ -3,7 +3,7 @@
 
 import { useContext, useMemo, useState, useEffect } from 'react';
 import Link from 'next/link';
-import { Mic, FileText, Menu, Combine, Image as ImageIcon, Users, Wand2, BotMessageSquare, AudioLines } from 'lucide-react';
+import { Mic, FileText, Menu, Combine, Image as ImageIcon, Users, Wand2, BotMessageSquare, AudioLines, Sun, Moon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { Sidebar } from '@/components/shared/sidebar';
@@ -21,7 +21,7 @@ export default function Home() {
   if (!langContext) {
     throw new Error('Home page must be used within a LanguageProvider');
   }
-  const { language, toggleLanguage } = langContext;
+  const { language, toggleLanguage, theme, toggleTheme } = langContext;
   const t = useMemo(() => allTranslations[language], [language]);
   
   useEffect(() => {
@@ -80,19 +80,24 @@ export default function Home() {
             )}
           </div>
         </div>
-        <Sheet>
-            <SheetTrigger asChild>
-                <Button variant="ghost" size="icon" className="md:hidden">
-                    <Menu className="h-6 w-6" />
-                </Button>
-            </SheetTrigger>
-            <SheetContent side="left" className="p-0 w-[300px] bg-background/80 backdrop-blur-lg">
-              <SheetHeader className="p-4 border-b sr-only">
-                  <SheetTitle>Main Menu</SheetTitle>
-              </SheetHeader>
-              <Sidebar language={language} toggleLanguage={toggleLanguage} />
-            </SheetContent>
-        </Sheet>
+        <div className="flex items-center gap-2">
+            <Button variant="ghost" size="icon" onClick={toggleTheme} className="hidden md:inline-flex">
+                {theme === 'dark' ? <Sun /> : <Moon />}
+            </Button>
+            <Sheet>
+                <SheetTrigger asChild>
+                    <Button variant="ghost" size="icon" className="md:hidden">
+                        <Menu className="h-6 w-6" />
+                    </Button>
+                </SheetTrigger>
+                <SheetContent side="left" className="p-0 w-[300px] bg-background/80 backdrop-blur-lg">
+                  <SheetHeader className="p-4 border-b sr-only">
+                      <SheetTitle>Main Menu</SheetTitle>
+                  </SheetHeader>
+                  <Sidebar language={language} toggleLanguage={toggleLanguage} />
+                </SheetContent>
+            </Sheet>
+        </div>
       </header>
 
       <main className="flex-grow p-4 sm:p-6 md:p-8">
