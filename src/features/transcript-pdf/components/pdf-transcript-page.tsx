@@ -58,6 +58,26 @@ export function PdfTranscriptPage() {
     }
   }
   
+  const handleError = (error: any) => {
+    console.error(error);
+    const errorMessage = (error.message || '').toLowerCase();
+    let title = t.transcriptionError;
+    let description = error.message || "An error occurred while processing your PDF.";
+
+    if (errorMessage.includes('503') || errorMessage.includes('model is overloaded')) {
+        title = t.modelOverloadedTitle;
+        description = t.modelOverloadedDescription;
+    } else if (errorMessage.includes('413') || errorMessage.includes('too large')) {
+        title = t.fileTooLargeTitle;
+        description = t.fileTooLargeDescription(MAX_FILE_SIZE_MB);
+    } else if (errorMessage.includes('429') || errorMessage.includes('rate limit')) {
+        title = t.rateLimitExceeded;
+        description = t.rateLimitMessage;
+    }
+    toast({ title, description, variant: "destructive" });
+    clearFile();
+  };
+  
   const handleFileSelect = useCallback(async (file: File | null | undefined) => {
     if (!file) return;
 
@@ -98,23 +118,7 @@ export function PdfTranscriptPage() {
         clearFile();
       }
     } catch (e: any) {
-        console.error(e);
-        const errorMessage = (e.message || '').toLowerCase();
-        let title = t.transcriptionError;
-        let description = e.message || "An error occurred while processing your PDF.";
-
-        if (errorMessage.includes('503') || errorMessage.includes('model is overloaded')) {
-            title = t.modelOverloadedTitle;
-            description = t.modelOverloadedDescription;
-        } else if (errorMessage.includes('413') || errorMessage.includes('too large')) {
-            title = t.fileTooLargeTitle;
-            description = t.fileTooLargeDescription(MAX_FILE_SIZE_MB);
-        } else if (errorMessage.includes('429') || errorMessage.includes('rate limit')) {
-            title = t.rateLimitExceeded;
-            description = t.rateLimitMessage;
-        }
-        toast({ title, description, variant: "destructive" });
-        clearFile();
+        handleError(e);
     } finally {
       setIsTranscribing(false);
     }

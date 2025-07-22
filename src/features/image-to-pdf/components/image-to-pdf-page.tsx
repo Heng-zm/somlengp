@@ -59,9 +59,12 @@ export function ImageToPdfPage() {
   const fileObjectURLs = useMemo(() => files.map(file => URL.createObjectURL(file)), [files]);
 
   useEffect(() => {
+    // This effect will run when the component unmounts or when fileObjectURLs changes.
+    // It's crucial for preventing memory leaks.
     return () => {
         fileObjectURLs.forEach(url => URL.revokeObjectURL(url));
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [fileObjectURLs]);
   
   const handleFileSelect = (selectedFiles: FileList | null) => {
@@ -92,7 +95,13 @@ export function ImageToPdfPage() {
   };
   
   const handleRemoveFile = (index: number) => {
-    setFiles(prev => prev.filter((_, i) => i !== index));
+    setFiles(prev => {
+        const newFiles = prev.filter((_, i) => i !== index);
+        if (newFiles.length === 0 && fileInputRef.current) {
+            fileInputRef.current.value = ''; // Reset the input so the same file can be selected again
+        }
+        return newFiles;
+    });
   };
   
   const handleConvert = async () => {

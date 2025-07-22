@@ -6,7 +6,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
 import { cn } from "@/lib/utils";
 import { User, UserRound, Play, LoaderCircle, Pause } from "lucide-react";
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { textToSpeech } from "@/ai/flows/text-to-speech-flow";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
@@ -33,8 +33,19 @@ export function VoicePicker({ selectedValue, onValueChange, disabled }: VoicePic
     const [previews, setPreviews] = useState<Record<string, string>>({});
     const [loadingPreview, setLoadingPreview] = useState<string | null>(null);
     const [playingPreview, setPlayingPreview] = useState<string | null>(null);
-    const audioRef = useRef<HTMLAudioElement>(null);
+    const audioRef = useRef<HTMLAudioElement | null>(null);
     const { toast } = useToast();
+
+    // Effect to clean up the audio element on unmount
+    useEffect(() => {
+        const audioElement = audioRef.current;
+        return () => {
+            if (audioElement) {
+                audioElement.pause();
+                audioElement.src = '';
+            }
+        };
+    }, []);
 
     const stopCurrentPreview = () => {
         if (audioRef.current) {
@@ -47,34 +58,32 @@ export function VoicePicker({ selectedValue, onValueChange, disabled }: VoicePic
     const handlePreview = async (e: React.MouseEvent, voiceValue: string) => {
         e.stopPropagation(); // Prevent card selection when clicking preview button
         if (loadingPreview) return;
-
+    
         if (playingPreview === voiceValue) {
             stopCurrentPreview();
             return;
         }
         
         stopCurrentPreview(); // Stop any other preview before starting a new one
-
-        if (previews[voiceValue]) {
+    
+        const playAudio = (src: string) => {
             if (audioRef.current) {
-                audioRef.current.src = previews[voiceValue];
+                audioRef.current.src = src;
                 audioRef.current.play().catch(console.error);
                 setPlayingPreview(voiceValue);
             }
+        };
+    
+        if (previews[voiceValue]) {
+            playAudio(previews[voiceValue]);
             return;
         }
-
+    
         setLoadingPreview(voiceValue);
         try {
             const { audioDataUri } = await textToSpeech({ text: "Hello, you are listening to a preview.", voice: voiceValue });
             setPreviews(prev => ({ ...prev, [voiceValue]: audioDataUri }));
-            
-            if (audioRef.current) {
-                audioRef.current.src = audioDataUri;
-                audioRef.current.play().catch(console.error);
-                setPlayingPreview(voiceValue);
-            }
-
+            playAudio(audioDataUri);
         } catch (error: any) {
             toast({
                 title: "Preview Failed",
@@ -84,7 +93,7 @@ export function VoicePicker({ selectedValue, onValueChange, disabled }: VoicePic
         } finally {
             setLoadingPreview(null);
         }
-    }
+    };
     
     return (
         <div className="relative">
@@ -149,7 +158,7 @@ export function VoicePicker({ selectedValue, onValueChange, disabled }: VoicePic
                 ref={audioRef} 
                 className="hidden" 
                 onEnded={() => setPlayingPreview(null)}
-                onPause={() => setPlayingPreview(null)}
+                onPause={() => setPlayingPreview(null)} // This also helps reset state if user pauses manually
             />
         </div>
     );
