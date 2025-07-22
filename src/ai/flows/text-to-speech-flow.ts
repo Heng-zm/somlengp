@@ -15,7 +15,7 @@ import wav from 'wav';
 
 const TextToSpeechInputSchema = z.object({
   text: z.string().describe('The text to be converted to speech.'),
-  voice: z.string().optional().default('Algenib').describe('The name of the voice to use for the speech.'),
+  voice: z.string().optional().default('algenib').describe('The name of the voice to use for the speech.'),
 });
 export type TextToSpeechInput = z.infer<typeof TextToSpeechInputSchema>;
 
@@ -68,7 +68,7 @@ const textToSpeechFlow = ai.defineFlow(
         responseModalities: ['AUDIO'],
         speechConfig: {
           voiceConfig: {
-            prebuiltVoiceConfig: { voiceName: voice || 'Algenib' },
+            prebuiltVoiceConfig: { voiceName: voice || 'algenib' },
           },
         },
       },

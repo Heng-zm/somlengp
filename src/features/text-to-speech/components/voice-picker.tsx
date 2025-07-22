@@ -12,15 +12,16 @@ import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 
 export const voices = [
-    { value: 'Algenib', label: 'Algenib', gender: 'Female' },
-    { value: 'Achernar', label: 'Achernar', gender: 'Male' },
-    { value: 'en-US-Wavenet-A', label: 'Linda', gender: 'Female' },
-    { value: 'en-US-Wavenet-B', label: 'John', gender: 'Male' },
-    { value: 'en-GB-Wavenet-A', label: 'Abigail', gender: 'Female' },
-    { value: 'en-GB-Wavenet-B', label: 'Peter', gender: 'Male' },
-    { value: 'en-AU-Wavenet-A', label: 'Olivia', gender: 'Female' },
-    { value: 'en-AU-Wavenet-B', label: 'James', gender: 'Male' },
+    { value: 'algenib', label: 'Algenib', gender: 'Female' },
+    { value: 'achernar', label: 'Achernar', gender: 'Male' },
+    { value: 'gacrux', label: 'Gacrux', gender: 'Female' },
+    { value: 'rasalgethi', label: 'Rasalgethi', gender: 'Male' },
+    { value: 'despina', label: 'Despina', gender: 'Female' },
+    { value: 'zephyr', label: 'Zephyr', gender: 'Male' },
+    { value: 'umbriel', label: 'Umbriel', gender: 'Female' },
+    { value: 'zubenelgenubi', label: 'Zubenelgenubi', gender: 'Male' },
 ];
+
 
 interface VoicePickerProps {
     selectedValue: string;
