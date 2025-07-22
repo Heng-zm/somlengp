@@ -62,33 +62,40 @@ const textToSpeechFlow = ai.defineFlow(
         throw new Error('Input text cannot be empty.');
     }
     
-    const { media } = await ai.generate({
-      model: googleAI.model('gemini-2.5-flash-preview-tts'),
-      config: {
-        responseModalities: ['AUDIO'],
-        speechConfig: {
-          voiceConfig: {
-            prebuiltVoiceConfig: { voiceName: voice || 'algenib' },
+    try {
+        const { media } = await ai.generate({
+          model: googleAI.model('gemini-2.5-flash-preview-tts'),
+          config: {
+            responseModalities: ['AUDIO'],
+            speechConfig: {
+              voiceConfig: {
+                prebuiltVoiceConfig: { voiceName: voice || 'algenib' },
+              },
+            },
           },
-        },
-      },
-      prompt: text,
-    });
+          prompt: text,
+        });
 
-    if (!media) {
-      throw new Error('The model did not return any audio data.');
+        if (!media) {
+          throw new Error('The model did not return any audio data.');
+        }
+
+        const audioBuffer = Buffer.from(
+          media.url.substring(media.url.indexOf(',') + 1),
+          'base64'
+        );
+        
+        const wavBase64 = await toWav(audioBuffer);
+
+        return {
+          audioDataUri: `data:audio/wav;base64,${wavBase64}`,
+        };
+    } catch (e: any) {
+        if (e.message && (e.message.includes('429') || e.message.toLowerCase().includes('rate limit'))) {
+            throw new Error("429: Rate Limit Exceeded. You've made too many requests. Please check your API plan and billing details.");
+        }
+        throw e;
     }
-
-    const audioBuffer = Buffer.from(
-      media.url.substring(media.url.indexOf(',') + 1),
-      'base64'
-    );
-    
-    const wavBase64 = await toWav(audioBuffer);
-
-    return {
-      audioDataUri: `data:audio/wav;base64,${wavBase64}`,
-    };
   }
 );
 
