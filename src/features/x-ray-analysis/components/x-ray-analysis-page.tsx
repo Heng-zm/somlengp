@@ -30,7 +30,7 @@ export function XRayAnalysisPage() {
   return (
     <div className="flex flex-col h-full bg-background text-foreground">
       <main className="flex-grow p-4 md:p-6 flex flex-col items-center justify-center">
-          <Card className="w-full max-w-lg p-6 md:p-8 bg-card text-card-foreground shadow-2xl rounded-3xl">
+          <Card className="w-full max-w-lg p-6 md:p-8 glass-card">
             <div className="grid grid-cols-2 gap-8">
                 <div className="flex flex-col justify-between">
                     <div>
