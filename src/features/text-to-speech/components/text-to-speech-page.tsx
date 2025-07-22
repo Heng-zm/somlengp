@@ -11,25 +11,13 @@ import { allTranslations } from '@/lib/translations';
 import { LanguageContext } from '@/contexts/language-context';
 import { textToSpeech } from '@/ai/flows/text-to-speech-flow';
 import { ThreeDotsLoader } from '@/components/shared/three-dots-loader';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Label } from '@/components/ui/label';
-
-const voices = [
-    { value: 'Algenib', label: 'Algenib (Female)' },
-    { value: 'Achernar', label: 'Achernar (Male)' },
-    { value: 'en-US-Wavenet-A', label: 'USA - Female A' },
-    { value: 'en-US-Wavenet-B', label: 'USA - Male B' },
-    { value: 'en-GB-Wavenet-A', label: 'British - Female' },
-    { value: 'en-GB-Wavenet-B', label: 'British - Male' },
-    { value: 'en-AU-Wavenet-A', label: 'Australian - Female' },
-    { value: 'en-AU-Wavenet-B', label: 'Australian - Male' },
-];
+import { voices, VoicePicker } from './voice-picker';
 
 export function TextToSpeechPage() {
   const [text, setText] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
   const [audioDataUri, setAudioDataUri] = useState<string | null>(null);
-  const [selectedVoice, setSelectedVoice] = useState<string>('Algenib');
+  const [selectedVoice, setSelectedVoice] = useState<string>(voices[0].value);
   const { toast } = useToast();
 
   const langContext = useContext(LanguageContext);
@@ -79,20 +67,12 @@ export function TextToSpeechPage() {
   return (
     <div className="flex flex-col h-full bg-background text-foreground">
       <main className="flex-grow p-4 md:p-6 flex flex-col gap-6">
+        <VoicePicker 
+            selectedValue={selectedVoice} 
+            onValueChange={setSelectedVoice}
+            disabled={isGenerating}
+        />
         <Card className="flex-grow flex flex-col p-4 md:p-6 shadow-sm overflow-hidden rounded-2xl">
-          <div className="mb-4">
-              <Label htmlFor="voice-select" className="mb-2 block">Voice</Label>
-              <Select value={selectedVoice} onValueChange={setSelectedVoice} disabled={isGenerating}>
-                  <SelectTrigger id="voice-select">
-                      <SelectValue placeholder="Select a voice..." />
-                  </SelectTrigger>
-                  <SelectContent>
-                      {voices.map(voice => (
-                          <SelectItem key={voice.value} value={voice.value}>{voice.label}</SelectItem>
-                      ))}
-                  </SelectContent>
-              </Select>
-          </div>
           <Textarea
             value={text}
             onChange={(e) => setText(e.target.value)}
