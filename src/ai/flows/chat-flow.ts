@@ -23,7 +23,7 @@ export async function chat(
   return new ReadableStream({
     async start(controller) {
       try {
-        const {stream} = ai.generate({
+        const {stream, response} = ai.generate({
           model: googleAI.model('gemini-1.5-flash-latest'),
           history: messages.slice(0, -1),
           prompt: messages[messages.length - 1].content[0].text!,
@@ -36,6 +36,9 @@ export async function chat(
             controller.enqueue(text);
           }
         }
+        
+        await response;
+
       } catch (error) {
         console.error('Stream error:', error);
         controller.error(error);
