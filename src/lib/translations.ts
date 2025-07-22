@@ -170,7 +170,7 @@ const kmTranslations: Translations = {
     conversionErrorDescription: "សូមផ្ទុកឡើងយ៉ាងហោចណាស់រូបភាពមួយ។",
     selectImageFile: "សូមជ្រើសរើសឯកសាររូបភាព។",
     fileTooLargeTitle: "ឯកសារធំពេក",
-    fileToLargeDescription: (size: number) => `ឯកសារមានទំហំធំជាង ${size}MB។ សូមផ្ទុកឡើងឯកសារតូចជាងនេះ។`,
+    fileTooLargeDescription: (size: number) => `ឯកសារមានទំហំធំជាង ${size}MB។ សូមផ្ទុកឡើងឯកសារតូចជាងនេះ។`,
     convertImageFormat: "បម្លែងទ្រង់ទ្រាយរូបភាព",
     convertImageFormatDescription: "ផ្លាស់ប្តូរទ្រង់ទ្រាយរូបភាពរបស់អ្នកបានយ៉ាងងាយស្រួល។",
     convertImageFormatTitle: "ផ្ទុកឡើងរូបភាពរបស់អ្នកដើម្បីបម្លែង",
