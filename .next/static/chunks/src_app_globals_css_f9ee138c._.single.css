@@ -269,25 +269,25 @@ img, video {
 }
 
 .dark {
-  --background: 222 47% 11%;
+  --background: 224 71% 4%;
   --foreground: 210 40% 98%;
-  --card: 222 47% 15%;
+  --card: 224 71% 9%;
   --card-foreground: 210 40% 98%;
-  --popover: 222 47% 11%;
+  --popover: 224 71% 4%;
   --popover-foreground: 210 40% 98%;
-  --primary: 207 90% 55%;
-  --primary-foreground: 224 10% 10%;
-  --secondary: 217.2 32.6% 17.5%;
+  --primary: 142 76% 50%;
+  --primary-foreground: 224 71% 4%;
+  --secondary: 217 33% 17%;
   --secondary-foreground: 210 40% 98%;
-  --muted: 217.2 32.6% 17.5%;
-  --muted-foreground: 215 20.2% 65.1%;
-  --accent: 175 60% 45%;
-  --accent-foreground: 0 0% 100%;
-  --destructive: 0 62.8% 30.6%;
-  --destructive-foreground: 0 0% 98%;
-  --border: 217.2 32.6% 25%;
-  --input: 217.2 32.6% 17.5%;
-  --ring: 207 90% 55%;
+  --muted: 217 33% 17%;
+  --muted-foreground: 215 20% 65%;
+  --accent: 347 87% 61%;
+  --accent-foreground: 210 40% 98%;
+  --destructive: 0 63% 31%;
+  --destructive-foreground: 210 40% 98%;
+  --border: 217 33% 17%;
+  --input: 217 33% 17%;
+  --ring: 142 76% 50%;
 }
 
 * {
@@ -1102,6 +1102,10 @@ body {
   white-space: nowrap;
 }
 
+.rounded-2xl {
+  border-radius: 1rem;
+}
+
 .rounded-\[2px\] {
   border-radius: 2px;
 }
@@ -1124,6 +1128,10 @@ body {
 
 .rounded-sm {
   border-radius: calc(var(--radius)  - 4px);
+}
+
+.rounded-xl {
+  border-radius: .75rem;
 }
 
 .rounded-t-lg {
@@ -1223,10 +1231,6 @@ body {
   background-color: hsl(var(--background));
 }
 
-.bg-background\/50 {
-  background-color: hsl(var(--background) / .5);
-}
-
 .bg-background\/80 {
   background-color: hsl(var(--background) / .8);
 }
@@ -1245,6 +1249,10 @@ body {
 
 .bg-card {
   background-color: hsl(var(--card));
+}
+
+.bg-card\/50 {
+  background-color: hsl(var(--card) / .5);
 }
 
 .bg-destructive {
@@ -1349,6 +1357,11 @@ body {
 .px-4 {
   padding-left: 1rem;
   padding-right: 1rem;
+}
+
+.px-5 {
+  padding-left: 1.25rem;
+  padding-right: 1.25rem;
 }
 
 .px-8 {
@@ -1915,6 +1928,10 @@ body {
 
 .hover\:text-primary-foreground:hover {
   color: hsl(var(--primary-foreground));
+}
+
+.hover\:text-secondary-foreground:hover {
+  color: hsl(var(--secondary-foreground));
 }
 
 .hover\:underline:hover {
