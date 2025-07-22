@@ -71,7 +71,7 @@ export default function Home() {
           <div className="flex flex-col gap-2">
             <h1 className="text-3xl font-bold text-foreground">VoiceScribe</h1>
             {visitorCount !== null ? (
-                <div className="flex items-center gap-2 bg-background/50 backdrop-blur-sm px-3 py-1 rounded-full w-fit">
+                <div className="flex items-center gap-2 bg-card/50 backdrop-blur-sm px-3 py-1 rounded-full w-fit">
                     <Users className="w-4 h-4 text-muted-foreground" />
                     <span className="text-sm font-medium text-muted-foreground">{visitorCount} Visitors</span>
                 </div>
@@ -124,11 +124,11 @@ function FeatureCard({ href, title, description, icon: Icon }: FeatureCardProps)
     <Link href={href} passHref>
       <Card as="div" className={cn(
         "w-full h-full min-h-[220px] flex flex-col justify-between p-6 overflow-hidden transition-all duration-300 ease-in-out",
-        "bg-card text-card-foreground",
+        "bg-card text-card-foreground border-transparent",
         "hover:scale-[1.03] hover:shadow-2xl hover:border-primary/20"
       )}>
           <div className="relative z-10">
-            <div className="mb-4 p-3 bg-primary/10 rounded-full w-fit border border-primary/20">
+            <div className="mb-4 p-3 bg-primary/10 rounded-xl w-fit border border-primary/20">
               <Icon className="w-6 h-6 text-primary" />
             </div>
             <h2 className="text-2xl font-bold">{title}</h2>
