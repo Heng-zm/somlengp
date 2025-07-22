@@ -4,7 +4,7 @@
 import { useContext, useMemo } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { BotMessageSquare, Languages, FileText, LifeBuoy, Mic, Combine, Image as ImageIcon, Wand2, FileHeart, AudioLines, Sun, Moon } from 'lucide-react';
+import { BotMessageSquare, Languages, FileText, LifeBuoy, Mic, Combine, Image as ImageIcon, Wand2, FileHeart, AudioLines } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { allTranslations } from '@/lib/translations';
@@ -43,9 +43,6 @@ export function Sidebar({ language, toggleLanguage }: { language: Language, togg
             <p className="text-xs text-muted-foreground">Version {packageJson.version}</p>
           </div>
         </Link>
-        <Button variant="ghost" size="icon" onClick={toggleTheme} aria-label="Toggle theme">
-            {theme === 'dark' ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
-        </Button>
       </div>
 
       <nav className="flex-grow p-4 space-y-2">
