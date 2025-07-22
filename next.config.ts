@@ -18,10 +18,6 @@ const nextConfig: NextConfig = {
       },
     ],
   },
-  // Prevent the dev server from restarting when the visitor data file is changed.
-  watchOptions: {
-    ignored: ['**/visitor_data.json'],
-  },
 };
 
 export default nextConfig;
