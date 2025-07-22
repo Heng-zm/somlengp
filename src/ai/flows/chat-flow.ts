@@ -8,6 +8,7 @@
 import {ai} from '@/ai/genkit';
 import {MessageData} from 'genkit';
 import {z} from 'zod';
+import { googleAI } from '@genkit-ai/googleai';
 
 const ChatInputSchema = z.array(
   z.object({
@@ -21,7 +22,7 @@ export async function chat(messages: MessageData[]): Promise<ReadableStream<stri
     async start(controller) {
       try {
         const { stream: modelStream } = await ai.generate({
-          model: 'gemini-1.5-flash-latest',
+          model: googleAI.model('gemini-1.5-flash-latest'),
           history: messages.slice(0, -1),
           prompt: messages[messages.length - 1].content[0].text!,
           stream: true,
