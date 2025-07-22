@@ -5,12 +5,13 @@ import { useMemo } from 'react';
 import Link from 'next/link';
 import { History as HistoryIcon, Mic, FileText, Combine, ImageIcon, Wand2, AudioLines } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { useHistory } from '@/hooks/use-history';
 import { FeaturePageLayout } from '@/layouts/feature-page-layout';
 import { allTranslations } from '@/lib/translations';
 import { LanguageContext } from '@/contexts/language-context';
 import { useContext } from 'react';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 const iconMap: { [key: string]: React.ElementType } = {
     '/voice-transcript': Mic,
@@ -38,35 +39,39 @@ export default function HistoryPage() {
 
     return (
         <FeaturePageLayout title={t.history}>
-            <div className="p-4 md:p-6">
-                {isLoaded && history.length === 0 ? (
-                    <Card className="flex flex-col items-center justify-center text-center p-10 h-64 border-dashed">
-                        <HistoryIcon className="w-16 h-16 text-muted-foreground mb-4" />
-                        <h3 className="text-xl font-semibold">{t.noHistory}</h3>
-                    </Card>
-                ) : (
-                    <div className="space-y-4">
-                        {sortedHistory.map(item => {
-                            const Icon = iconMap[item.href] || HistoryIcon;
-                            return (
-                                <Link key={item.href} href={item.href} passHref>
-                                    <Card as="div" className="p-4 flex items-center gap-4 transition-all hover:shadow-md hover:border-primary/50 cursor-pointer">
-                                        <div className="p-3 bg-primary/10 rounded-lg">
-                                            <Icon className="w-6 h-6 text-primary" />
-                                        </div>
-                                        <div className="flex-grow">
-                                            <h4 className="font-semibold text-lg">{item.label}</h4>
-                                            <p className="text-sm text-muted-foreground">
-                                                {new Date(item.timestamp).toLocaleString()}
-                                            </p>
-                                        </div>
-                                        <Button variant="ghost">Go</Button>
-                                    </Card>
-                                </Link>
-                            )
-                        })}
-                    </div>
-                )}
+            <div className="p-4 md:p-6 h-full">
+                <Card className="h-full flex flex-col">
+                    {isLoaded && history.length === 0 ? (
+                        <div className="flex flex-col items-center justify-center text-center p-10 flex-grow">
+                            <HistoryIcon className="w-16 h-16 text-muted-foreground mb-4" />
+                            <h3 className="text-xl font-semibold">{t.noHistory}</h3>
+                        </div>
+                    ) : (
+                        <ScrollArea className="flex-grow">
+                            <CardContent className="p-4 space-y-4">
+                                {sortedHistory.map(item => {
+                                    const Icon = iconMap[item.href] || HistoryIcon;
+                                    return (
+                                        <Link key={item.href} href={item.href} passHref>
+                                            <Card as="div" className="p-4 flex items-center gap-4 transition-all hover:shadow-md hover:border-primary/50 cursor-pointer">
+                                                <div className="p-3 bg-primary/10 rounded-lg">
+                                                    <Icon className="w-6 h-6 text-primary" />
+                                                </div>
+                                                <div className="flex-grow">
+                                                    <h4 className="font-semibold text-lg">{item.label}</h4>
+                                                    <p className="text-sm text-muted-foreground">
+                                                        {new Date(item.timestamp).toLocaleString()}
+                                                    </p>
+                                                </div>
+                                                <Button variant="ghost">Go</Button>
+                                            </Card>
+                                        </Link>
+                                    )
+                                })}
+                            </CardContent>
+                        </ScrollArea>
+                    )}
+                </Card>
             </div>
         </FeaturePageLayout>
     );

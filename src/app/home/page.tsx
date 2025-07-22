@@ -41,15 +41,17 @@ export default function HomePage() {
     
     const incrementAndFetchCount = async () => {
         try {
+            // This POST request increments the count on the server
             const response = await fetch('/api/visit', { method: 'POST' });
             const data = await response.json();
             if (data.success) {
                 setVisitorCount(data.count);
+                // Mark this session as having visited
                 sessionStorage.setItem(VISITOR_SESSION_KEY, 'true');
             }
         } catch(error) {
             console.error('Failed to increment visitor count:', error);
-            // Fallback to just fetching if post fails
+            // If the increment fails, still try to fetch the current count
             fetchVisitorCount();
         }
     };
@@ -57,8 +59,10 @@ export default function HomePage() {
     if (typeof window !== 'undefined') {
         const hasVisited = sessionStorage.getItem(VISITOR_SESSION_KEY);
         if (hasVisited) {
+            // If already visited in this session, just get the count
             fetchVisitorCount();
         } else {
+            // If it's a new session, increment the count
             incrementAndFetchCount();
         }
     }
@@ -91,12 +95,12 @@ export default function HomePage() {
           </div>
         </div>
         <div className="flex items-center gap-2">
-            <Button variant="ghost" size="icon" onClick={toggleTheme} className="hidden md:inline-flex">
+            <Button variant="ghost" size="icon" onClick={toggleTheme} className="hidden md:inline-flex" type="button">
                 {theme === 'dark' ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
             </Button>
             <Sheet>
                 <SheetTrigger asChild>
-                    <Button variant="ghost" size="icon" className="md:hidden">
+                    <Button variant="ghost" size="icon" className="md:hidden" type="button">
                         <Menu className="h-6 w-6" />
                     </Button>
                 </SheetTrigger>
@@ -158,4 +162,3 @@ function FeatureCard({ href, title, description, icon: Icon }: FeatureCardProps)
     </Link>
   );
 }
-
