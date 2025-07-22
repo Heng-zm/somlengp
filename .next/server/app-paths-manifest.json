@@ -4,5 +4,6 @@
   "/image-to-pdf/page": "app/image-to-pdf/page.js",
   "/voice-transcript/page": "app/voice-transcript/page.js",
   "/page": "app/page.js",
-  "/history/page": "app/history/page.js"
+  "/history/page": "app/history/page.js",
+  "/api/visit/route": "app/api/visit/route.js"
 }
