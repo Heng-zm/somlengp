@@ -82,7 +82,7 @@ export default function Home() {
         </div>
         <div className="flex items-center gap-2">
             <Button variant="ghost" size="icon" onClick={toggleTheme} className="hidden md:inline-flex">
-                {theme === 'dark' ? <Sun /> : <Moon />}
+                {theme === 'dark' ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
             </Button>
             <Sheet>
                 <SheetTrigger asChild>
@@ -129,7 +129,7 @@ function FeatureCard({ href, title, description, icon: Icon }: FeatureCardProps)
     <Link href={href} passHref>
       <Card as="div" className={cn(
         "w-full h-full min-h-[220px] flex flex-col justify-between p-6 overflow-hidden transition-all duration-300 ease-in-out",
-        "bg-card text-card-foreground",
+        "bg-card text-card-foreground border",
         "hover:scale-[1.03] hover:shadow-2xl hover:border-primary/20"
       )}>
           <div className="relative z-10">

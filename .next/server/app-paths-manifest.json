@@ -4,6 +4,7 @@
   "/chat-with-ai/page": "app/chat-with-ai/page.js",
   "/combine-pdf/page": "app/combine-pdf/page.js",
   "/convert-image-format/page": "app/convert-image-format/page.js",
+  "/favicon.ico/route": "app/favicon.ico/route.js",
   "/image-to-pdf/page": "app/image-to-pdf/page.js",
   "/page": "app/page.js",
   "/pdf-transcript/page": "app/pdf-transcript/page.js",
