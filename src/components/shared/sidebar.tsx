@@ -15,6 +15,27 @@ import { LanguageContext } from '@/contexts/language-context';
 import { useHistory } from '@/hooks/use-history';
 import { Separator } from '../ui/separator';
 
+function XRayIcon(props: React.SVGProps<SVGSVGElement>) {
+    return (
+        <svg
+            {...props}
+            xmlns="http://www.w3.org/2000/svg"
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+        >
+            <path d="m14.5 2-2.5 6 2.5 6h-5L7 8l-2.5-6" />
+            <path d="m7 14 2.5 6 2.5-6" />
+            <path d="M14.5 14h-5" />
+        </svg>
+    )
+}
+
 export function Sidebar({ language, toggleLanguage }: { language: Language, toggleLanguage: () => void }) {
   const pathname = usePathname();
   const t = useMemo(() => allTranslations[language], [language]);
@@ -35,6 +56,7 @@ export function Sidebar({ language, toggleLanguage }: { language: Language, togg
     { href: '/combine-pdf', label: t.combinePdf, icon: Combine },
     { href: '/image-to-pdf', label: t.imageToPdf, icon: ImageIcon },
     { href: '/convert-image-format', label: t.convertImageFormat, icon: Wand2 },
+    { href: '/x-ray-analysis', label: 'X-Ray Analysis', icon: XRayIcon },
   ];
   
   const recentHistory = useMemo(() => {

@@ -15,6 +15,27 @@ import { Card } from '@/components/ui/card';
 
 const VISITOR_SESSION_KEY = 'ozo-designer-session-visited';
 
+function XRayIcon(props: React.SVGProps<SVGSVGElement>) {
+    return (
+        <svg
+            {...props}
+            xmlns="http://www.w3.org/2000/svg"
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+        >
+            <path d="m14.5 2-2.5 6 2.5 6h-5L7 8l-2.5-6" />
+            <path d="m7 14 2.5 6 2.5-6" />
+            <path d="M14.5 14h-5" />
+        </svg>
+    )
+}
+
 export default function HomePage() {
   const [visitorCount, setVisitorCount] = useState<number | null>(null);
   const langContext = useContext(LanguageContext);
@@ -75,6 +96,7 @@ export default function HomePage() {
     { href: '/combine-pdf', title: t.combinePdf, description: t.combinePdfDescription, icon: Combine },
     { href: '/image-to-pdf', title: t.imageToPdf, description: t.imageToPdfDescription, icon: ImageIcon },
     { href: '/convert-image-format', title: t.convertImageFormat, description: t.convertImageFormatDescription, icon: Wand2 },
+    { href: '/x-ray-analysis', title: 'X-Ray Analysis', description: 'AI-powered X-ray analysis for faster results.', icon: XRayIcon },
   ];
 
   return (
