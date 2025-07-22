@@ -11,6 +11,8 @@ import { textToSpeech } from "@/ai/flows/text-to-speech-flow";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 
+const VOICE_PREVIEW_CACHE_KEY = 'voicePreviewCache';
+
 export const voices = [
     { value: 'algenib', label: 'Algenib', gender: 'Female' },
     { value: 'achernar', label: 'Achernar', gender: 'Male' },
@@ -35,6 +37,18 @@ export function VoicePicker({ selectedValue, onValueChange, disabled }: VoicePic
     const [playingPreview, setPlayingPreview] = useState<string | null>(null);
     const audioRef = useRef<HTMLAudioElement | null>(null);
     const { toast } = useToast();
+
+    // Load cached previews from localStorage on initial render
+    useEffect(() => {
+        try {
+            const cachedPreviews = localStorage.getItem(VOICE_PREVIEW_CACHE_KEY);
+            if (cachedPreviews) {
+                setPreviews(JSON.parse(cachedPreviews));
+            }
+        } catch (error) {
+            console.error("Failed to load voice previews from localStorage", error);
+        }
+    }, []);
 
     // Effect to clean up the audio element on unmount
     useEffect(() => {
@@ -82,7 +96,13 @@ export function VoicePicker({ selectedValue, onValueChange, disabled }: VoicePic
         setLoadingPreview(voiceValue);
         try {
             const { audioDataUri } = await textToSpeech({ text: "Hello, you are listening to a preview.", voice: voiceValue });
-            setPreviews(prev => ({ ...prev, [voiceValue]: audioDataUri }));
+            const newPreviews = { ...previews, [voiceValue]: audioDataUri };
+            setPreviews(newPreviews);
+            try {
+                localStorage.setItem(VOICE_PREVIEW_CACHE_KEY, JSON.stringify(newPreviews));
+            } catch (error) {
+                console.error("Failed to save voice previews to localStorage", error);
+            }
             playAudio(audioDataUri);
         } catch (error: any) {
             toast({
