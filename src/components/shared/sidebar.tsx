@@ -28,7 +28,7 @@ export function Sidebar({ language, toggleLanguage }: { language: Language, togg
   const { theme, toggleTheme } = langContext;
 
   const navItems = [
-    { href: '/', label: t.home, icon: Home },
+    { href: '/home', label: t.home, icon: Home },
     { href: '/voice-transcript', label: t.voiceScribe, icon: Mic },
     { href: '/text-to-speech', label: "Text to Speech", icon: AudioLines },
     { href: '/pdf-transcript', label: t.pdfTranscript, icon: FileText },
@@ -52,7 +52,7 @@ export function Sidebar({ language, toggleLanguage }: { language: Language, togg
   return (
     <aside className="w-full h-full flex flex-col bg-transparent">
       <div className="p-4 border-b flex justify-between items-center">
-        <Link href="/" className="flex items-center gap-2">
+        <Link href="/home" className="flex items-center gap-2">
           <BotMessageSquare className="h-8 w-8 text-primary" />
           <div>
             <h1 className="text-xl font-bold">VoiceScribe</h1>
