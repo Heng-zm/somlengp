@@ -35,6 +35,7 @@ import {
 import {Label} from '@/components/ui/label';
 import JSZip from 'jszip';
 import { ThreeDotsLoader } from '@/components/shared/three-dots-loader';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 type TargetFormat = 'jpeg' | 'png' | 'webp' | 'bmp' | 'gif' | 'avif';
 
@@ -206,8 +207,6 @@ export function ConvertImageFormatPage() {
         className="flex flex-col h-full bg-transparent text-foreground"
         onDragEnter={handleDragEnter}
         onDragOver={handleDragEvents}
-        onDragLeave={handleDragLeave}
-        onDrop={handleDrop}
     >
       <main className="flex-grow p-4 md:p-6 flex flex-col items-center">
         <div className="w-full max-w-4xl flex-grow flex flex-col">
@@ -218,40 +217,54 @@ export function ConvertImageFormatPage() {
                     isDragging ? "border-primary bg-primary/10" : "border-border"
                 )}
                 onClick={() => fileInputRef.current?.click()}
+                onDragLeave={handleDragLeave}
+                onDrop={handleDrop}
             >
                 <FileUp className="w-16 h-16 text-muted-foreground mb-4" />
                 <h3 className="text-xl font-semibold">{t.convertImageFormatTitle}</h3>
                 <p className="text-muted-foreground mt-2">{t.dropImages}</p>
             </Card>
             ) : (
-                <Card className="w-full h-full flex flex-col gap-4 p-6">
-                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-                        {fileObjectURLs.map((url, index) => (
-                            <Card key={url} className="relative aspect-square group overflow-hidden rounded-lg">
-                                <Image
-                                    src={url}
-                                    alt={`Preview ${index}`}
-                                    fill
-                                    sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, (max-width: 1024px) 25vw, 20vw"
-                                    style={{ objectFit: 'cover' }}
-                                    className="transition-transform duration-300 group-hover:scale-105"
-                                />
-                                <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
-                                    <Button variant="destructive" size="icon" onClick={() => handleRemoveFile(index)}>
-                                        <X className="w-5 h-5"/>
-                                    </Button>
-                                </div>
-                            </Card>
-                        ))}
-                        <button
-                            onClick={() => fileInputRef.current?.click()}
-                            className="flex flex-col items-center justify-center aspect-square border-2 border-dashed border-border rounded-lg text-muted-foreground hover:bg-accent/10 hover:border-primary transition-colors"
-                        >
-                            <ImagePlus className="w-8 h-8 mb-2" />
-                            <span>{t.addMoreImages}</span>
-                        </button>
+                <div className="grid md:grid-cols-2 gap-6 h-full">
+                  <Card className="flex flex-col">
+                    <div className="p-4 border-b">
+                        <h3 className="text-lg font-semibold">{t.imagesToConvert} ({files.length})</h3>
                     </div>
-                </Card>
+                    <ScrollArea className="flex-grow p-4">
+                      <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+                          {fileObjectURLs.map((url, index) => (
+                              <Card key={url} className="relative aspect-square group overflow-hidden rounded-lg">
+                                  <Image
+                                      src={url}
+                                      alt={`Preview ${index}`}
+                                      fill
+                                      sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, (max-width: 1024px) 25vw, 20vw"
+                                      style={{ objectFit: 'cover' }}
+                                      className="transition-transform duration-300 group-hover:scale-105"
+                                  />
+                                  <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
+                                      <Button variant="destructive" size="icon" onClick={() => handleRemoveFile(index)}>
+                                          <X className="w-5 h-5"/>
+                                      </Button>
+                                  </div>
+                              </Card>
+                          ))}
+                      </div>
+                    </ScrollArea>
+                  </Card>
+                  <Card
+                      className={cn(
+                          'flex flex-col items-center justify-center text-center border-2 border-dashed h-full transition-colors cursor-pointer p-6',
+                          isDragging ? "border-primary bg-primary/10" : "border-border"
+                      )}
+                      onClick={() => fileInputRef.current?.click()}
+                      onDragLeave={handleDragLeave}
+                      onDrop={handleDrop}
+                  >
+                      <ImagePlus className="w-16 h-16 text-muted-foreground mb-4" />
+                      <h3 className="text-xl font-semibold">{t.addMoreImages}</h3>
+                  </Card>
+                </div>
             )}
         </div>
         <input
@@ -269,7 +282,7 @@ export function ConvertImageFormatPage() {
           <SheetTrigger asChild>
             <Button
               size="lg"
-              className="w-full max-w-lg"
+              className="w-full max-w-lg h-12"
               disabled={isConverting || files.length === 0}
             >
                 <Wand2 className="h-5 w-5" />
@@ -307,7 +320,7 @@ export function ConvertImageFormatPage() {
               <Button
                 onClick={handleConvert}
                 size="lg"
-                className="w-full"
+                className="w-full h-12"
                 disabled={isConverting || files.length === 0}
               >
                 {isConverting ? (

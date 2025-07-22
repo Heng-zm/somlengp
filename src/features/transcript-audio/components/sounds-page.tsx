@@ -2,7 +2,7 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback, useMemo, useContext } from 'react';
-import { Download, FileUp, Sparkles, X as XIcon, Copy } from 'lucide-react';
+import { Download, FileUp, Sparkles, X as XIcon, Copy, FileText } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Sheet,
@@ -294,34 +294,48 @@ export function SoundsPage() {
         onDrop={handleDrop}
     >
         <main className="flex-grow p-4 md:p-6 flex flex-col items-center">
-            {!audioFile ? (
-                <Card 
-                    className={cn(
-                        "w-full max-w-4xl flex-grow flex flex-col items-center justify-center text-center border-2 border-dashed transition-colors cursor-pointer p-6",
-                        isDragging ? "border-primary bg-primary/10" : "border-border"
-                    )}
-                    onClick={() => fileInputRef.current?.click()}
-                >
-                    <FileUp className="w-16 h-16 text-muted-foreground mb-4"/>
-                    <h3 className="text-xl font-semibold">{t.chooseFile}</h3>
-                    <p className="text-muted-foreground mt-2">{t.dropAudio}</p>
-                </Card>
-            ) : (
-                <Card className="w-full max-w-4xl flex-grow flex flex-col shadow-sm overflow-hidden">
-                    {isTranscribing && (
-                        <div className="absolute inset-0 bg-background/80 flex flex-col items-center justify-center z-10 backdrop-blur-sm">
-                            <ThreeDotsLoader />
-                            <p className="text-lg font-medium text-foreground mt-4">{t.transcribing}</p>
-                            <p className="text-muted-foreground">{audioFile.name}</p>
+            <div className="w-full max-w-4xl flex-grow flex flex-col">
+                {!audioFile ? (
+                    <Card 
+                        className={cn(
+                            "flex-grow flex flex-col items-center justify-center text-center border-2 border-dashed transition-colors cursor-pointer p-6",
+                            isDragging ? "border-primary bg-primary/10" : "border-border"
+                        )}
+                        onClick={() => fileInputRef.current?.click()}
+                    >
+                        <FileUp className="w-16 h-16 text-muted-foreground mb-4"/>
+                        <h3 className="text-xl font-semibold">{t.chooseFile}</h3>
+                        <p className="text-muted-foreground mt-2">{t.dropAudio}</p>
+                    </Card>
+                ) : (
+                    <Card className="w-full flex-grow flex flex-col shadow-sm overflow-hidden">
+                        <div className="flex-shrink-0 flex items-center justify-between p-3 border-b bg-muted/30">
+                            <div className="flex items-center gap-2 overflow-hidden">
+                                <FileText className="w-5 h-5 text-primary"/>
+                                <span className="font-medium truncate">{audioFile.name}</span>
+                                <span className="text-sm text-muted-foreground">{`${(audioFile.size / 1024 / 1024).toFixed(2)} MB`}</span>
+                            </div>
+                            <Button onClick={clearFile} variant="ghost" size="icon" className="rounded-full">
+                                <XIcon className="w-4 h-4" />
+                                <span className="sr-only">Clear file</span>
+                            </Button>
                         </div>
-                    )}
-                    <EditorView
-                        transcript={editedTranscript}
-                        onTranscriptChange={setEditedTranscript}
-                        disabled={isTranscribing}
-                    />
-                </Card>
-            )}
+                        <div className="flex-grow relative">
+                            {isTranscribing && (
+                                <div className="absolute inset-0 bg-background/80 flex flex-col items-center justify-center z-10 backdrop-blur-sm">
+                                    <ThreeDotsLoader />
+                                    <p className="text-lg font-medium text-foreground mt-4">{t.transcribing}</p>
+                                </div>
+                            )}
+                            <EditorView
+                                transcript={editedTranscript}
+                                onTranscriptChange={setEditedTranscript}
+                                disabled={isTranscribing}
+                            />
+                        </div>
+                    </Card>
+                )}
+            </div>
              <input
                 type="file"
                 ref={fileInputRef}

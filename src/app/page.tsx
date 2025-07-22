@@ -124,7 +124,7 @@ function FeatureCard({ href, title, description, icon: Icon }: FeatureCardProps)
     <Link href={href} passHref>
       <Card as="div" className={cn(
         "w-full h-full min-h-[220px] flex flex-col justify-between p-6 overflow-hidden transition-all duration-300 ease-in-out",
-        "bg-card text-card-foreground border-transparent",
+        "bg-card text-card-foreground",
         "hover:scale-[1.03] hover:shadow-2xl hover:border-primary/20"
       )}>
           <div className="relative z-10">
