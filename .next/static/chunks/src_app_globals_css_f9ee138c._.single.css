@@ -246,25 +246,25 @@ img, video {
 }
 
 :root {
-  --background: 224 71% 4%;
-  --foreground: 210 40% 98%;
-  --card: 224 71% 9%;
-  --card-foreground: 210 40% 98%;
-  --popover: 224 71% 4%;
-  --popover-foreground: 210 40% 98%;
-  --primary: 142 76% 50%;
-  --primary-foreground: 224 71% 4%;
-  --secondary: 217 33% 17%;
-  --secondary-foreground: 210 40% 98%;
-  --muted: 217 33% 17%;
-  --muted-foreground: 215 20% 65%;
-  --accent: 347 87% 61%;
+  --background: 240 10% 100%;
+  --foreground: 222 84% 5%;
+  --card: 240 10% 98%;
+  --card-foreground: 222 84% 5%;
+  --popover: 240 10% 100%;
+  --popover-foreground: 222 84% 5%;
+  --primary: 142 76% 36%;
+  --primary-foreground: 210 40% 98%;
+  --secondary: 240 5% 96%;
+  --secondary-foreground: 222 84% 5%;
+  --muted: 240 5% 90%;
+  --muted-foreground: 240 4% 46%;
+  --accent: 347 87% 50%;
   --accent-foreground: 210 40% 98%;
-  --destructive: 0 63% 31%;
+  --destructive: 0 84% 60%;
   --destructive-foreground: 210 40% 98%;
-  --border: 217 33% 17%;
-  --input: 217 33% 17%;
-  --ring: 142 76% 50%;
+  --border: 240 6% 90%;
+  --input: 240 6% 90%;
+  --ring: 142 76% 36%;
   --radius: .8rem;
 }
 
@@ -2464,6 +2464,10 @@ body {
 }
 
 @media (width >= 768px) {
+  .md\:inline-flex {
+    display: inline-flex;
+  }
+
   .md\:hidden {
     display: none;
   }

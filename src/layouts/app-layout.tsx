@@ -8,19 +8,32 @@ import { LanguageContext } from '@/contexts/language-context';
 
 export function AppLayout({ children }: { children: React.ReactNode }) {
   const [language, setLanguage] = useState<Language>('en');
+  const [theme, setTheme] = useState('dark');
 
   const toggleLanguage = () => {
     setLanguage(prev => (prev === 'en' ? 'km' : 'en'));
+  };
+
+  const toggleTheme = () => {
+    setTheme(prev => (prev === 'light' ? 'dark' : 'light'));
   };
 
   useEffect(() => {
     document.documentElement.lang = language;
   }, [language]);
 
+  useEffect(() => {
+    const root = window.document.documentElement;
+    root.classList.remove('light', 'dark');
+    root.classList.add(theme);
+  }, [theme]);
+
   const contextValue = useMemo(() => ({
     language,
-    toggleLanguage
-  }), [language]);
+    toggleLanguage,
+    theme,
+    toggleTheme,
+  }), [language, theme]);
 
   return (
     <LanguageContext.Provider value={contextValue}>

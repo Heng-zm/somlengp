@@ -1,25 +1,28 @@
 
 "use client";
 
-import { useMemo } from 'react';
+import { useContext, useMemo } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { BotMessageSquare, Languages, FileText, LifeBuoy, Mic, Combine, Image as ImageIcon, Wand2, FileHeart, AudioLines } from 'lucide-react';
+import { BotMessageSquare, Languages, FileText, LifeBuoy, Mic, Combine, Image as ImageIcon, Wand2, FileHeart, AudioLines, Sun, Moon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { allTranslations } from '@/lib/translations';
 import type { Language } from '@/lib/translations';
 import { cn } from '@/lib/utils';
 import packageJson from '../../../package.json';
+import { LanguageContext } from '@/contexts/language-context';
 
-interface SidebarProps {
-  language: Language;
-  toggleLanguage: () => void;
-}
-
-export function Sidebar({ language, toggleLanguage }: SidebarProps) {
+export function Sidebar({ language, toggleLanguage }: { language: Language, toggleLanguage: () => void }) {
   const pathname = usePathname();
   const t = useMemo(() => allTranslations[language], [language]);
+  const langContext = useContext(LanguageContext);
+  
+  if (!langContext) {
+    throw new Error('Sidebar must be used within a LanguageProvider');
+  }
+
+  const { theme, toggleTheme } = langContext;
 
   const navItems = [
     { href: '/voice-transcript', label: t.voiceScribe, icon: Mic },
@@ -32,7 +35,7 @@ export function Sidebar({ language, toggleLanguage }: SidebarProps) {
 
   return (
     <aside className="w-full h-full flex flex-col bg-transparent">
-      <div className="p-4 border-b">
+      <div className="p-4 border-b flex justify-between items-center">
         <Link href="/" className="flex items-center gap-2">
           <BotMessageSquare className="h-8 w-8 text-primary" />
           <div>
@@ -40,6 +43,9 @@ export function Sidebar({ language, toggleLanguage }: SidebarProps) {
             <p className="text-xs text-muted-foreground">Version {packageJson.version}</p>
           </div>
         </Link>
+        <Button variant="ghost" size="icon" onClick={toggleTheme} aria-label="Toggle theme">
+            {theme === 'dark' ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
+        </Button>
       </div>
 
       <nav className="flex-grow p-4 space-y-2">
