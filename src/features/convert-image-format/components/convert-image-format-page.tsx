@@ -203,31 +203,32 @@ export function ConvertImageFormatPage() {
 
   return (
     <div 
-        className="flex flex-col h-full bg-background text-foreground"
+        className="flex flex-col h-full bg-transparent text-foreground"
         onDragEnter={handleDragEnter}
         onDragOver={handleDragEvents}
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
     >
       <main className="flex-grow p-4 md:p-6 flex flex-col items-center">
-        <Card className="w-full max-w-4xl flex-grow flex flex-col rounded-2xl shadow-sm">
+        <div className="w-full max-w-4xl flex-grow flex flex-col">
             {files.length === 0 ? (
             <div
                 className={cn(
-                'flex flex-col items-center justify-center text-center rounded-2xl border-2 border-dashed border-border bg-card h-full transition-colors cursor-pointer p-6',
+                'flex flex-col items-center justify-center text-center border-2 border-dashed border-white/20 h-full transition-colors cursor-pointer p-6',
+                'glass-card',
                 isDragging && 'border-primary bg-primary/10'
                 )}
                 onClick={() => fileInputRef.current?.click()}
             >
-                <FileUp className="w-16 h-16 text-muted-foreground/30 mb-4" />
+                <FileUp className="w-16 h-16 text-white/30 mb-4" />
                 <h3 className="text-xl font-semibold">{t.convertImageFormatTitle}</h3>
-                <p className="text-muted-foreground mt-2">{t.dropImages}</p>
+                <p className="text-white/70 mt-2">{t.dropImages}</p>
             </div>
             ) : (
-                <div className="w-full h-full flex flex-col gap-4 p-6">
+                <div className="w-full h-full flex flex-col gap-4 p-6 glass-card">
                     <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
                         {fileObjectURLs.map((url, index) => (
-                            <Card key={url} className="relative aspect-square group overflow-hidden rounded-lg">
+                            <Card key={url} className="relative aspect-square group overflow-hidden rounded-lg bg-black/10 border-white/10">
                                 <Image
                                     src={url}
                                     alt={`Preview ${index}`}
@@ -245,7 +246,7 @@ export function ConvertImageFormatPage() {
                         ))}
                         <button
                             onClick={() => fileInputRef.current?.click()}
-                            className="flex flex-col items-center justify-center aspect-square border-2 border-dashed rounded-lg text-muted-foreground hover:bg-muted/50 hover:border-primary transition-colors"
+                            className="flex flex-col items-center justify-center aspect-square border-2 border-dashed border-white/20 rounded-lg text-muted-foreground hover:bg-black/10 hover:border-primary transition-colors"
                         >
                             <ImagePlus className="w-8 h-8 mb-2" />
                             <span>{t.addMoreImages}</span>
@@ -253,7 +254,7 @@ export function ConvertImageFormatPage() {
                     </div>
                 </div>
             )}
-        </Card>
+        </div>
         <input
           type="file"
           ref={fileInputRef}
@@ -264,12 +265,12 @@ export function ConvertImageFormatPage() {
         />
       </main>
 
-      <footer className="flex-shrink-0 flex items-center justify-center gap-2 p-4 border-t bg-background">
+      <footer className="flex-shrink-0 flex items-center justify-center gap-2 p-4 border-t border-white/10 bg-transparent">
         <Sheet open={isDrawerOpen} onOpenChange={setIsDrawerOpen}>
           <SheetTrigger asChild>
             <Button
               size="lg"
-              className="w-full max-w-lg rounded-full h-12 px-8 bg-accent text-accent-foreground hover:bg-accent/90"
+              className="w-full max-w-lg rounded-full h-12 px-8 glass-button"
               disabled={isConverting || files.length === 0}
             >
                 <Wand2 className="h-5 w-5" />
@@ -278,7 +279,7 @@ export function ConvertImageFormatPage() {
                 </span>
             </Button>
           </SheetTrigger>
-          <SheetContent side="bottom" className="rounded-t-lg">
+          <SheetContent side="bottom" className="rounded-t-lg bg-background/80 backdrop-blur-xl border-t border-white/10">
             <SheetHeader className="text-left">
               <SheetTitle>{t.exportSettings}</SheetTitle>
               <SheetDescription>{t.chooseFormat}</SheetDescription>
@@ -307,7 +308,7 @@ export function ConvertImageFormatPage() {
               <Button
                 onClick={handleConvert}
                 size="lg"
-                className="w-full bg-accent text-accent-foreground hover:bg-accent/90"
+                className="w-full glass-button"
                 disabled={isConverting || files.length === 0}
               >
                 {isConverting ? (

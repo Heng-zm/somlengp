@@ -175,29 +175,29 @@ export function PdfTranscriptPage() {
   
   return (
     <div 
-        className="flex flex-col h-full bg-background text-foreground"
+        className="flex flex-col h-full bg-transparent text-foreground"
         onDragEnter={handleDragEnter}
         onDragOver={handleDragEvents}
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
     >
         <main className="flex-grow p-4 md:p-6 flex flex-col items-center">
-            <Card className="w-full max-w-4xl flex-grow flex flex-col rounded-2xl shadow-sm">
+            <div className="w-full max-w-4xl flex-grow flex flex-col">
                 {!pdfFile ? (
                     <div
                         className={cn(
-                        'flex cursor-pointer flex-col items-center justify-center rounded-2xl border-2 border-dashed bg-card text-center transition-colors border-border h-full',
+                        'flex cursor-pointer flex-col items-center justify-center border-2 border-dashed border-white/20 text-center transition-colors h-full glass-card',
                         isDragging && 'border-primary bg-primary/10'
                         )}
                         onClick={() => fileInputRef.current?.click()}
                     >
-                        <FileUp className="mb-4 h-16 w-16 text-muted-foreground/30" />
+                        <FileUp className="mb-4 h-16 w-16 text-white/30" />
                         <h3 className="text-xl font-semibold">{t.chooseFile}</h3>
-                        <p className="mt-2 text-muted-foreground">{t.dropPdf}</p>
+                        <p className="mt-2 text-white/70">{t.dropPdf}</p>
                     </div>
                 ) : (
-                    <div className="h-full flex flex-col">
-                        <div className="flex-shrink-0 flex items-center justify-between p-3 border-b bg-muted/30">
+                    <Card className="h-full flex flex-col glass-card overflow-hidden">
+                        <div className="flex-shrink-0 flex items-center justify-between p-3 border-b border-white/10 bg-black/10">
                             <div className="flex items-center gap-2 overflow-hidden">
                                 <FileText className="w-5 h-5 text-primary"/>
                                 <span className="font-medium truncate">{pdfFile.name}</span>
@@ -210,7 +210,7 @@ export function PdfTranscriptPage() {
                         </div>
                         <div className="flex-grow relative">
                             {isTranscribing && (
-                                <div className="absolute inset-0 bg-background/80 flex flex-col items-center justify-center z-10">
+                                <div className="absolute inset-0 bg-background/80 flex flex-col items-center justify-center z-10 backdrop-blur-sm">
                                     <ThreeDotsLoader />
                                     <p className="text-lg font-medium text-foreground mt-4">{t.transcribing}</p>
                                 </div>
@@ -219,14 +219,14 @@ export function PdfTranscriptPage() {
                                 value={transcribedText}
                                 readOnly
                                 placeholder={isTranscribing ? 'Transcribing...' : t.transcribedTextPlaceholder}
-                                className="h-full w-full resize-none text-base leading-relaxed p-6 border-0 focus-visible:ring-0 focus-visible:ring-offset-0"
+                                className="h-full w-full resize-none text-base leading-relaxed p-6 border-0 focus-visible:ring-0 focus-visible:ring-offset-0 bg-transparent"
                                 aria-label="Transcribed Text"
                                 disabled={isTranscribing}
                             />
                         </div>
-                    </div>
+                    </Card>
                 )}
-            </Card>
+            </div>
 
             <input
                 type="file"
@@ -238,20 +238,20 @@ export function PdfTranscriptPage() {
         </main>
         
         {pdfFile && (
-          <footer className="flex-shrink-0 flex items-center justify-center gap-2 p-4 bg-background border-t">
+          <footer className="flex-shrink-0 flex items-center justify-center gap-2 p-4 bg-transparent border-t border-white/10">
             <div className="w-full max-w-lg flex gap-2 items-center justify-center">
-                  <Button onClick={handleCopy} variant="outline" size="icon" className="h-12 w-12 rounded-full" disabled={isTranscribing || !isReadyForContent}>
+                  <Button onClick={handleCopy} variant="outline" size="icon" className="h-12 w-12 rounded-full glass-button" disabled={isTranscribing || !isReadyForContent}>
                       <Copy className="h-5 w-5" />
                       <span className="sr-only">{t.copy}</span>
                   </Button>
                   <Sheet open={isExportSheetOpen} onOpenChange={setIsExportSheetOpen}>
                     <SheetTrigger asChild>
-                      <Button size="lg" className="h-12 px-6 rounded-full bg-accent text-accent-foreground hover:bg-accent/90 flex-1" disabled={isTranscribing || !isReadyForContent}>
+                      <Button size="lg" className="h-12 px-6 rounded-full glass-button flex-1" disabled={isTranscribing || !isReadyForContent}>
                           {isTranscribing ? <ThreeDotsLoader /> : <Download className="h-5 w-5" />}
                           <span className="ml-2 sm:inline font-bold">{isTranscribing ? t.transcribing : t.download}</span>
                       </Button>
                     </SheetTrigger>
-                    <SheetContent side="bottom" className="rounded-t-lg">
+                    <SheetContent side="bottom" className="rounded-t-lg bg-background/80 backdrop-blur-xl border-t border-white/10">
                       <SheetHeader className="text-left">
                         <SheetTitle>{t.exportSettings}</SheetTitle>
                         <SheetDescription>{t.chooseFormat}</SheetDescription>
@@ -270,7 +270,7 @@ export function PdfTranscriptPage() {
                                </SelectContent>
                            </Select>
                         </div>
-                        <Button onClick={handleExport} size="lg" className="bg-accent text-accent-foreground hover:bg-accent/90" disabled={isTranscribing}>
+                        <Button onClick={handleExport} size="lg" className="glass-button" disabled={isTranscribing}>
                            {isTranscribing ? (
                                <ThreeDotsLoader />
                            ) : (
