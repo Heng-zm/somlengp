@@ -671,6 +671,10 @@ body {
   height: 1px;
 }
 
+.h-\[calc\(100vh-200px\)\] {
+  height: calc(100vh - 200px);
+}
+
 .max-h-96 {
   max-height: 24rem;
 }
@@ -697,6 +701,10 @@ body {
 
 .min-h-screen {
   min-height: 100vh;
+}
+
+.min-h-\[220px\] {
+  min-height: 220px;
 }
 
 .w-0 {
@@ -829,6 +837,10 @@ body {
 
 .max-w-sm {
   max-width: 24rem;
+}
+
+.max-w-\[80\%\] {
+  max-width: 80%;
 }
 
 .flex-1 {
@@ -1357,6 +1369,12 @@ body {
   --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to);
 }
 
+.from-rose-400 {
+  --tw-gradient-from: #fb7185 var(--tw-gradient-from-position);
+  --tw-gradient-to: #fb718500 var(--tw-gradient-to-position);
+  --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to);
+}
+
 .to-blue-400 {
   --tw-gradient-to: #60a5fa var(--tw-gradient-to-position);
 }
@@ -1489,6 +1507,11 @@ body {
 .py-6 {
   padding-top: 1.5rem;
   padding-bottom: 1.5rem;
+}
+
+.px-5 {
+  padding-left: 1.25rem;
+  padding-right: 1.25rem;
 }
 
 .pb-3 {
@@ -2515,6 +2538,10 @@ body {
 
   .md\:col-span-2 {
     grid-column: span 2 / span 2;
+  }
+
+  .md\:hidden {
+    display: none;
   }
 
   .md\:max-w-\[420px\] {
