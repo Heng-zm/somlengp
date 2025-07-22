@@ -27,35 +27,40 @@ export default function HomePage() {
   const t = useMemo(() => allTranslations[language], [language]);
   
   useEffect(() => {
-    const fetchAndIncrementCount = async () => {
+    const fetchVisitorCount = async () => {
       try {
-        const hasVisited = sessionStorage.getItem(VISITOR_SESSION_KEY);
-        let count = 0;
-        
-        if (hasVisited) {
-          const response = await fetch('/api/visit');
-          const data = await response.json();
-          if (data.success) {
-            count = data.count;
-          }
-        } else {
-          const response = await fetch('/api/visit', { method: 'POST' });
-          const data = await response.json();
-          if (data.success) {
-            count = data.count;
-            sessionStorage.setItem(VISITOR_SESSION_KEY, 'true');
-          }
+        const response = await fetch('/api/visit');
+        const data = await response.json();
+        if (data.success) {
+          setVisitorCount(data.count);
         }
-        setVisitorCount(count);
       } catch (error) {
-        console.error('Failed to fetch visitor count:', error);
-        setVisitorCount(null); // Set to null on error to show skeleton
+        console.error('Failed to fetch initial visitor count:', error);
       }
     };
+    
+    const incrementAndFetchCount = async () => {
+        try {
+            const response = await fetch('/api/visit', { method: 'POST' });
+            const data = await response.json();
+            if (data.success) {
+                setVisitorCount(data.count);
+                sessionStorage.setItem(VISITOR_SESSION_KEY, 'true');
+            }
+        } catch(error) {
+            console.error('Failed to increment visitor count:', error);
+            // Fallback to just fetching if post fails
+            fetchVisitorCount();
+        }
+    };
 
-    // Ensure this runs only on the client
     if (typeof window !== 'undefined') {
-      fetchAndIncrementCount();
+        const hasVisited = sessionStorage.getItem(VISITOR_SESSION_KEY);
+        if (hasVisited) {
+            fetchVisitorCount();
+        } else {
+            incrementAndFetchCount();
+        }
     }
   }, []);
   
