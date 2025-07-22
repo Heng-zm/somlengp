@@ -59,7 +59,6 @@ export function SoundsPage() {
   const [vocabInput, setVocabInput] = useState('');
   const [isRatingOpen, setIsRatingOpen] = useState(false);
   const hasRated = useRef(false);
-  const prevCustomVocabulary = useRef<string[]>([]);
 
   const { toast } = useToast();
   const fileInputRef = useRef<HTMLInputElement | null>(null);
@@ -106,11 +105,6 @@ export function SoundsPage() {
   
   const handleRetranscribe = useCallback(async () => {
     if (!audioFile) return;
-
-    if (isEqual(prevCustomVocabulary.current, customVocabulary)) {
-      toast({ title: "No Changes", description: "Your custom vocabulary hasn't changed. No need to re-transcribe." });
-      return;
-    }
   
     setIsTranscribing(true);
     try {
@@ -123,7 +117,6 @@ export function SoundsPage() {
       if (result && result.transcript) {
         setStructuredTranscript(result.transcript);
         setEditedTranscript(result.text);
-        prevCustomVocabulary.current = [...customVocabulary];
         toast({ title: "Transcription Improved!", description: "The text has been updated with your custom vocabulary." });
       } else {
         toast({
@@ -151,7 +144,6 @@ export function SoundsPage() {
         if (result && result.transcript) {
             setStructuredTranscript(result.transcript);
             setEditedTranscript(result.text);
-            prevCustomVocabulary.current = [...customVocabulary];
         } else {
             toast({
                 title: t.transcriptionFailed,
@@ -164,7 +156,7 @@ export function SoundsPage() {
     } finally {
         setIsTranscribing(false);
     }
-  }, [t, toast, customVocabulary]);
+  }, [t, toast]);
 
   const handleFileSelect = (file: File | null | undefined) => {
     if (!file) return;
@@ -228,6 +220,7 @@ export function SoundsPage() {
     txt: 'TXT (Plain Text)',
     json: 'JSON (Structured Data)',
     csv: 'CSV (Spreadsheet)',
+    docx: 'DOCX (Word Document)',
   }), []);
 
   const isReadyForContent = !isTranscribing && structuredTranscript.length > 0;

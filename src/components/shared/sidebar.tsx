@@ -74,11 +74,12 @@ export function Sidebar({ language, toggleLanguage }: { language: Language, togg
               </Button>
             </Link>
           ))}
+      </nav>
 
-          {history.length > 0 && (
-            <div className='mt-4'>
-                <Separator className="my-4" />
-                <h2 className="mb-2 px-2 text-lg font-semibold tracking-tight flex items-center">{t.history}</h2>
+      {history.length > 0 && (
+            <div className='p-4 pt-0'>
+                <Separator className="my-2" />
+                <h2 className="mb-2 mt-4 px-2 text-lg font-semibold tracking-tight flex items-center">{t.history}</h2>
                 <div className="space-y-1">
                     {recentHistory.map(item => (
                         <Link key={`history-${item.href}`} href={item.href} passHref>
@@ -102,10 +103,9 @@ export function Sidebar({ language, toggleLanguage }: { language: Language, togg
                      </Link>
                 )}
             </div>
-          )}
-      </nav>
+      )}
 
-      <div className="p-4 border-t">
+      <div className="p-4 border-t mt-auto">
         <Sheet>
           <SheetTrigger asChild>
             <Button variant="ghost" className="w-full justify-start" type="button">
