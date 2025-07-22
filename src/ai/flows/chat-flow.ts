@@ -46,7 +46,7 @@ export async function chat(
         console.log("----------------------------------");
 
         // --- Call ai.generate ---
-        const { stream, response } = await ai.generate({
+        const { stream, response } = ai.generate({
           model: googleAI.model('gemini-1.5-flash-latest'),
           history: historyMessages,
           prompt: promptText,
