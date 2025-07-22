@@ -455,6 +455,10 @@ body {
   top: 50%;
 }
 
+.top-1 {
+  top: .25rem;
+}
+
 .z-10 {
   z-index: 10;
 }
@@ -1601,6 +1605,10 @@ body {
 .text-xs {
   font-size: .75rem;
   line-height: 1rem;
+}
+
+.text-\[10px\] {
+  font-size: 10px;
 }
 
 .font-bold {
