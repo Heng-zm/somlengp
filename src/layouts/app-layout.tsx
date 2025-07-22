@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import type { Language } from '@/lib/translations';
 import { FeaturePageLayoutProvider } from './feature-page-layout';
 import { LanguageContext } from '@/contexts/language-context';
@@ -12,6 +12,10 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
   const toggleLanguage = () => {
     setLanguage(prev => (prev === 'en' ? 'km' : 'en'));
   };
+
+  useEffect(() => {
+    document.documentElement.lang = language;
+  }, [language]);
 
   const contextValue = useMemo(() => ({
     language,

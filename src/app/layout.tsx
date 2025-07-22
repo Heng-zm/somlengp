@@ -3,9 +3,18 @@ import { Analytics } from "@vercel/analytics/next"
 import {Toaster} from '@/components/ui/toaster';
 import './globals.css';
 import { AppLayout } from '@/layouts/app-layout';
-import { Inter } from 'next/font/google';
+import { Inter, Kantumruy_Pro } from 'next/font/google';
 
-const inter = Inter({ subsets: ['latin'] });
+const inter = Inter({ 
+  subsets: ['latin'],
+  variable: '--font-sans',
+});
+
+const kantumruy = Kantumruy_Pro({
+  subsets: ['khmer'],
+  variable: '--font-kantumruy',
+});
+
 
 export const metadata: Metadata = {
   title: 'VoiceScribe',
@@ -18,8 +27,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
-      <body className={`${inter.className} antialiased`}>
+    <html lang="en" className={`${inter.variable} ${kantumruy.variable}`}>
+      <body className={`antialiased`}>
         <AppLayout>
           {children}
         </AppLayout>
