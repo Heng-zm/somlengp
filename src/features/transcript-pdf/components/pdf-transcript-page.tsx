@@ -219,7 +219,7 @@ export function PdfTranscriptPage() {
                                 value={transcribedText}
                                 readOnly
                                 placeholder={isTranscribing ? 'Transcribing...' : t.transcribedTextPlaceholder}
-                                className="h-full w-full resize-none text-base leading-relaxed p-6 border-0 focus-visible:ring-0 focus-visible:ring-offset-0 bg-transparent"
+                                className="h-[78vh] w-full resize-none text-base leading-relaxed p-6 border-0 focus-visible:ring-0 focus-visible:ring-offset-0 bg-transparent"
                                 aria-label="Transcribed Text"
                                 disabled={isTranscribing}
                             />
