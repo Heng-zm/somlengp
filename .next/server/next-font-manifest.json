@@ -1,8 +1,12 @@
 {
   "app": {
     "[project]/src/app/chat-with-ai/page": [
-      "static/media/1q2AY5aECkp34vEBSPFOmJxwlEjBe6_ji2Ryyw-s.p.90e4135e.woff2",
-      "static/media/1q2AY5aECkp34vEBSPFOmJxwlEPBe6_ji2Q-s.p.a33cfee8.woff2"
+      "static/media/1q2AY5aECkp34vEBSPFOmJxwlEPBe6_ji2Q-s.p.a33cfee8.woff2",
+      "static/media/1q2AY5aECkp34vEBSPFOmJxwlEjBe6_ji2Ryyw-s.p.90e4135e.woff2"
+    ],
+    "[project]/src/app/page": [
+      "static/media/1q2AY5aECkp34vEBSPFOmJxwlEPBe6_ji2Q-s.p.a33cfee8.woff2",
+      "static/media/1q2AY5aECkp34vEBSPFOmJxwlEjBe6_ji2Ryyw-s.p.90e4135e.woff2"
     ]
   },
   "appUsingSizeAdjust": true,
