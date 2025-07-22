@@ -15,12 +15,21 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
   };
 
   const toggleTheme = () => {
-    setTheme(prev => (prev === 'light' ? 'dark' : 'light'));
+    setTheme(prev => {
+        const newTheme = prev === 'light' ? 'dark' : 'light';
+        localStorage.setItem('theme', newTheme);
+        return newTheme;
+    });
   };
 
   useEffect(() => {
     document.documentElement.lang = language;
   }, [language]);
+
+  useEffect(() => {
+    const savedTheme = localStorage.getItem('theme') || 'dark';
+    setTheme(savedTheme);
+  }, []);
 
   useEffect(() => {
     const root = window.document.documentElement;
@@ -33,7 +42,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
     toggleLanguage,
     theme,
     toggleTheme,
-  }), [language, theme]);
+  }), [language, theme, toggleLanguage, toggleTheme]);
 
   return (
     <LanguageContext.Provider value={contextValue}>
