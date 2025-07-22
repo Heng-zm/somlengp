@@ -20,15 +20,18 @@ const ChatInputSchema = z.array(
 export async function chat(messages: MessageData[]): Promise<ReadableStream<string>> {
   return new ReadableStream({
     async start(controller) {
+      let llmStream;
       try {
-        const { stream: modelStream } = await ai.generate({
+        const response = await ai.generate({
           model: googleAI.model('gemini-1.5-flash-latest'),
           history: messages.slice(0, -1),
           prompt: messages[messages.length - 1].content[0].text!,
           stream: true,
         });
 
-        for await (const chunk of modelStream) {
+        llmStream = response.stream;
+
+        for await (const chunk of llmStream) {
           const text = chunk.text;
           if (text) {
             controller.enqueue(text);
