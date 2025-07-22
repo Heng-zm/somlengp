@@ -248,23 +248,23 @@ img, video {
 :root {
   --background: 220 20% 97%;
   --foreground: 224 10% 10%;
-  --card: 220 20% 100%;
+  --card: 0 0% 100%;
   --card-foreground: 224 10% 10%;
   --popover: 0 0% 100%;
   --popover-foreground: 224 10% 10%;
-  --primary: 207 90% 55%;
+  --primary: 207 90% 61%;
   --primary-foreground: 0 0% 100%;
   --secondary: 210 40% 96.1%;
   --secondary-foreground: 222.2 47.4% 11.2%;
   --muted: 210 40% 96.1%;
   --muted-foreground: 215.4 16.3% 46.9%;
-  --accent: 175 60% 45%;
+  --accent: 175 65% 42%;
   --accent-foreground: 0 0% 100%;
   --destructive: 0 84.2% 60.2%;
   --destructive-foreground: 0 0% 98%;
   --border: 214.3 31.8% 91.4%;
   --input: 214.3 31.8% 91.4%;
-  --ring: 207 90% 55%;
+  --ring: 207 90% 61%;
   --radius: .8rem;
 }
 
@@ -275,19 +275,19 @@ img, video {
   --card-foreground: 210 40% 98%;
   --popover: 222 47% 11%;
   --popover-foreground: 210 40% 98%;
-  --primary: 207 90% 69%;
+  --primary: 207 90% 55%;
   --primary-foreground: 224 10% 10%;
   --secondary: 217.2 32.6% 17.5%;
   --secondary-foreground: 210 40% 98%;
   --muted: 217.2 32.6% 17.5%;
   --muted-foreground: 215 20.2% 65.1%;
-  --accent: 175 60% 50%;
+  --accent: 175 60% 45%;
   --accent-foreground: 0 0% 100%;
   --destructive: 0 62.8% 30.6%;
   --destructive-foreground: 0 0% 98%;
   --border: 217.2 32.6% 25%;
   --input: 217.2 32.6% 17.5%;
-  --ring: 207 90% 69%;
+  --ring: 207 90% 55%;
 }
 
 * {
@@ -295,17 +295,8 @@ img, video {
 }
 
 body {
-  background-image: linear-gradient(to bottom right, var(--tw-gradient-stops));
-  --tw-gradient-from: #dbeafe var(--tw-gradient-from-position);
-  --tw-gradient-to: #ccfbf1 var(--tw-gradient-to-position);
-  --tw-gradient-stops: var(--tw-gradient-from), #f3e8ff var(--tw-gradient-via-position), var(--tw-gradient-to);
+  background-color: hsl(var(--background));
   color: hsl(var(--foreground));
-}
-
-body:is(.dark *) {
-  --tw-gradient-from: #111827 var(--tw-gradient-from-position);
-  --tw-gradient-to: #111827 var(--tw-gradient-to-position);
-  --tw-gradient-stops: var(--tw-gradient-from), #1e3a8a66 var(--tw-gradient-via-position), var(--tw-gradient-to);
 }
 
 .\!container {
@@ -481,6 +472,11 @@ body:is(.dark *) {
   margin-right: -.25rem;
 }
 
+.mx-4 {
+  margin-left: 1rem;
+  margin-right: 1rem;
+}
+
 .my-0\.5 {
   margin-top: .125rem;
   margin-bottom: .125rem;
@@ -489,11 +485,6 @@ body:is(.dark *) {
 .my-1 {
   margin-top: .25rem;
   margin-bottom: .25rem;
-}
-
-.mx-4 {
-  margin-left: 1rem;
-  margin-right: 1rem;
 }
 
 .-ml-4 {
@@ -1111,10 +1102,6 @@ body:is(.dark *) {
   white-space: nowrap;
 }
 
-.rounded-2xl {
-  border-radius: 1rem;
-}
-
 .rounded-\[2px\] {
   border-radius: 2px;
 }
@@ -1208,20 +1195,12 @@ body:is(.dark *) {
   border-color: hsl(var(--primary));
 }
 
+.border-primary\/20 {
+  border-color: hsl(var(--primary) / .2);
+}
+
 .border-transparent {
   border-color: #0000;
-}
-
-.border-white\/10 {
-  border-color: #ffffff1a;
-}
-
-.border-white\/20 {
-  border-color: #fff3;
-}
-
-.border-white\/5 {
-  border-color: #ffffff0d;
 }
 
 .border-l-transparent {
@@ -1252,10 +1231,6 @@ body:is(.dark *) {
   background-color: hsl(var(--background) / .8);
 }
 
-.bg-black\/10 {
-  background-color: #0000001a;
-}
-
 .bg-black\/60 {
   background-color: #0009;
 }
@@ -1284,6 +1259,10 @@ body:is(.dark *) {
   background-color: hsl(var(--muted));
 }
 
+.bg-muted\/30 {
+  background-color: hsl(var(--muted) / .3);
+}
+
 .bg-muted\/50 {
   background-color: hsl(var(--muted) / .5);
 }
@@ -1310,14 +1289,6 @@ body:is(.dark *) {
 
 .bg-transparent {
   background-color: #0000;
-}
-
-.bg-white\/10 {
-  background-color: #ffffff1a;
-}
-
-.bg-white\/5 {
-  background-color: #ffffff0d;
 }
 
 .fill-current {
@@ -1378,11 +1349,6 @@ body:is(.dark *) {
 .px-4 {
   padding-left: 1rem;
   padding-right: 1rem;
-}
-
-.px-6 {
-  padding-left: 1.5rem;
-  padding-right: 1.5rem;
 }
 
 .px-8 {
@@ -1619,14 +1585,6 @@ body:is(.dark *) {
   color: hsl(var(--secondary-foreground));
 }
 
-.text-white\/30 {
-  color: #ffffff4d;
-}
-
-.text-white\/70 {
-  color: #ffffffb3;
-}
-
 .text-yellow-400 {
   --tw-text-opacity: 1;
   color: rgb(250 204 21 / var(--tw-text-opacity, 1));
@@ -1655,10 +1613,6 @@ body:is(.dark *) {
 
 .opacity-70 {
   opacity: .7;
-}
-
-.opacity-80 {
-  opacity: .8;
 }
 
 .opacity-90 {
@@ -1852,38 +1806,6 @@ body:is(.dark *) {
   scrollbar-width: none;
 }
 
-.glass-card {
-  background-color: hsl(var(--card) / .5);
-  --tw-shadow: 0 10px 15px -3px #0000001a, 0 4px 6px -4px #0000001a;
-  --tw-shadow-colored: 0 10px 15px -3px var(--tw-shadow-color), 0 4px 6px -4px var(--tw-shadow-color);
-  box-shadow: var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow);
-  --tw-backdrop-blur: blur(24px);
-  backdrop-filter: var(--tw-backdrop-blur) var(--tw-backdrop-brightness) var(--tw-backdrop-contrast) var(--tw-backdrop-grayscale) var(--tw-backdrop-hue-rotate) var(--tw-backdrop-invert) var(--tw-backdrop-opacity) var(--tw-backdrop-saturate) var(--tw-backdrop-sepia);
-  border-width: 1px;
-  border-color: #ffffff1a;
-  border-radius: 1rem;
-}
-
-.glass-button {
-  border-radius: var(--radius);
-  --tw-text-opacity: 1;
-  color: rgb(255 255 255 / var(--tw-text-opacity, 1));
-  --tw-backdrop-blur: blur(4px);
-  backdrop-filter: var(--tw-backdrop-blur) var(--tw-backdrop-brightness) var(--tw-backdrop-contrast) var(--tw-backdrop-grayscale) var(--tw-backdrop-hue-rotate) var(--tw-backdrop-invert) var(--tw-backdrop-opacity) var(--tw-backdrop-saturate) var(--tw-backdrop-sepia);
-  background-color: #fff3;
-  border-width: 1px;
-  border-color: #ffffff1a;
-  transition-property: all;
-  transition-duration: .3s;
-  transition-timing-function: cubic-bezier(.4, 0, .2, 1);
-  animation-duration: .3s;
-}
-
-.glass-button:hover {
-  background-color: #ffffff4d;
-  border-color: #fff3;
-}
-
 .\[animation-delay\:-0\.15s\] {
   animation-delay: -.15s;
 }
@@ -1935,24 +1857,16 @@ body:is(.dark *) {
   border-color: hsl(var(--primary));
 }
 
-.hover\:border-white\/20:hover {
-  border-color: #fff3;
+.hover\:border-primary\/20:hover {
+  border-color: hsl(var(--primary) / .2);
 }
 
 .hover\:bg-accent:hover {
   background-color: hsl(var(--accent));
 }
 
-.hover\:bg-accent\/90:hover {
-  background-color: hsl(var(--accent) / .9);
-}
-
-.hover\:bg-background:hover {
-  background-color: hsl(var(--background));
-}
-
-.hover\:bg-black\/10:hover {
-  background-color: #0000001a;
+.hover\:bg-accent\/10:hover {
+  background-color: hsl(var(--accent) / .1);
 }
 
 .hover\:bg-destructive\/80:hover {
