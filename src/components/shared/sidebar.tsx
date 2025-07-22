@@ -4,7 +4,7 @@
 import { useContext, useMemo } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { BotMessageSquare, Languages, FileText, LifeBuoy, Mic, Combine, Image as ImageIcon, Wand2, FileHeart, AudioLines } from 'lucide-react';
+import { BotMessageSquare, Languages, FileText, LifeBuoy, Mic, Combine, Image as ImageIcon, Wand2, FileHeart, AudioLines, Sun, Moon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { allTranslations } from '@/lib/translations';
@@ -92,10 +92,15 @@ export function Sidebar({ language, toggleLanguage }: { language: Language, togg
             {t.reportBug}
           </Button>
         </Link>
-         <Button variant="ghost" onClick={toggleLanguage} className="w-full justify-start mt-2">
-            <Languages className="mr-3 h-5 w-5" />
-            <span>{language === 'en' ? 'ភាសាខ្មែរ' : 'English'}</span>
-        </Button>
+        <div className="flex items-center gap-2 mt-2">
+            <Button variant="ghost" onClick={toggleLanguage} className="w-full justify-start">
+                <Languages className="mr-3 h-5 w-5" />
+                <span>{language === 'en' ? 'ភាសាខ្មែរ' : 'English'}</span>
+            </Button>
+            <Button variant="ghost" size="icon" onClick={toggleTheme} className="flex-shrink-0">
+                {theme === 'dark' ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
+            </Button>
+        </div>
       </div>
     </aside>
   );
