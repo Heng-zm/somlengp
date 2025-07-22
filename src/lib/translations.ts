@@ -91,10 +91,6 @@ const enTranslations: Translations = {
     modelOverloadedTitle: "AI Model Busy",
     modelOverloadedDescription: "The AI model is currently experiencing high demand. Please try again in a few moments.",
     reportBug: "Report a Bug",
-    chatWithAi: "Chat With AI",
-    chatWithAiDescription: "Have a conversation with an intelligent AI assistant.",
-    askAnything: "Ask anything...",
-    chatError: "Sorry, something went wrong. Please try again.",
 };
 
 const kmTranslations: Translations = {
@@ -182,10 +178,6 @@ const kmTranslations: Translations = {
     modelOverloadedTitle: "ម៉ូដែល AI រវល់",
     modelOverloadedDescription: "ម៉ូដែល AI កំពុងមានតម្រូវការខ្ពស់។ សូមព្យាយាមម្តងទៀតក្នុងរយៈពេលពីរបីនាទីទៀត។",
     reportBug: "រាយការណ៍បញ្ហា",
-    chatWithAi: "ជជែកជាមួយ AI",
-    chatWithAiDescription: "ជជែកជាមួយជំនួយការ AI ដ៏ឆ្លាតវៃ។",
-    askAnything: "សួរអ្វីក៏បាន...",
-    chatError: "សូមអភ័យទោស មានបញ្ហា​មួយ។ សូម​ព្យាយាម​ម្តង​ទៀត។",
 };
 
 export const allTranslations = {
