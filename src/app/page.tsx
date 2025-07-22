@@ -49,11 +49,14 @@ export default function Home() {
         setVisitorCount(count);
       } catch (error) {
         console.error('Failed to fetch visitor count:', error);
-        setVisitorCount(null);
+        setVisitorCount(null); // Set to null on error to show skeleton
       }
     };
 
-    fetchAndIncrementCount();
+    // Ensure this runs only on the client
+    if (typeof window !== 'undefined') {
+      fetchAndIncrementCount();
+    }
   }, []);
   
   const featureCards = [
@@ -142,7 +145,7 @@ function FeatureCard({ href, title, description, icon: Icon }: FeatureCardProps)
             <p className="text-muted-foreground mt-1">{description}</p>
           </div>
           <div className="flex justify-end z-10">
-            <Button variant="secondary">
+            <Button variant="secondary" type="button">
               {allTranslations.en.startNow}
             </Button>
           </div>
