@@ -4,7 +4,7 @@
 import { useContext, useMemo } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { BotMessageSquare, Languages, FileText, LifeBuoy, Mic, Combine, Image as ImageIcon, Wand2, FileHeart, AudioLines, Sun, Moon } from 'lucide-react';
+import { BotMessageSquare, Languages, FileText, LifeBuoy, Mic, Combine, Image as ImageIcon, Wand2, FileHeart, AudioLines, Sun, Moon, History, ArrowRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { allTranslations } from '@/lib/translations';
@@ -12,11 +12,14 @@ import type { Language } from '@/lib/translations';
 import { cn } from '@/lib/utils';
 import packageJson from '../../../package.json';
 import { LanguageContext } from '@/contexts/language-context';
+import { useHistory } from '@/hooks/use-history';
+import { Separator } from '../ui/separator';
 
 export function Sidebar({ language, toggleLanguage }: { language: Language, toggleLanguage: () => void }) {
   const pathname = usePathname();
   const t = useMemo(() => allTranslations[language], [language]);
   const langContext = useContext(LanguageContext);
+  const { history } = useHistory();
   
   if (!langContext) {
     throw new Error('Sidebar must be used within a LanguageProvider');
@@ -32,6 +35,18 @@ export function Sidebar({ language, toggleLanguage }: { language: Language, togg
     { href: '/image-to-pdf', label: t.imageToPdf, icon: ImageIcon },
     { href: '/convert-image-format', label: t.convertImageFormat, icon: Wand2 },
   ];
+  
+  const recentHistory = useMemo(() => {
+    // Find the corresponding nav item for each history entry to get the icon
+    return history.slice(0, 3).map(h => {
+        const navItem = navItems.find(item => item.href === h.href);
+        return {
+            ...h,
+            icon: navItem?.icon || History, // Fallback icon
+        };
+    });
+  }, [history, navItems]);
+
 
   return (
     <aside className="w-full h-full flex flex-col bg-transparent">
@@ -45,7 +60,35 @@ export function Sidebar({ language, toggleLanguage }: { language: Language, togg
         </Link>
       </div>
 
-      <nav className="flex-grow p-4 space-y-2">
+      <nav className="flex-grow p-4 space-y-1">
+          {history.length > 0 && (
+            <div className='mb-4'>
+                <h2 className="mb-2 px-2 text-lg font-semibold tracking-tight flex items-center">{t.history}</h2>
+                <div className="space-y-1">
+                    {recentHistory.map(item => (
+                        <Link key={`history-${item.href}`} href={item.href} passHref>
+                            <Button
+                                variant={pathname === item.href ? 'secondary' : 'ghost'}
+                                className="w-full justify-start text-base py-6"
+                            >
+                                <item.icon className="mr-3 h-5 w-5" />
+                                {item.label}
+                            </Button>
+                        </Link>
+                    ))}
+                </div>
+                {history.length > 3 && (
+                     <Link href="/history" passHref>
+                        <Button variant="link" className="w-full justify-start text-base py-6 text-primary">
+                            <ArrowRight className="mr-3 h-5 w-5" />
+                            {t.seeAll}
+                        </Button>
+                     </Link>
+                )}
+                <Separator className="my-4" />
+            </div>
+          )}
+
           {navItems.map(item => (
             <Link key={item.href} href={item.href} passHref>
               <Button
