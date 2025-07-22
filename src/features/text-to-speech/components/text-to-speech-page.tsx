@@ -85,14 +85,16 @@ export function TextToSpeechPage() {
             rows={10}
           />
           {audioDataUri && !isGenerating && (
-            <div className="mt-4 p-4 bg-muted/50 rounded-lg flex items-center justify-between gap-4 mx-4 mb-4 border">
-                <audio controls src={audioDataUri} className="w-full">
-                    Your browser does not support the audio element.
-                </audio>
-                <Button onClick={handleDownload} variant="ghost" size="icon">
-                    <Download className="w-5 h-5" />
-                    <span className="sr-only">Download Audio</span>
-                </Button>
+            <div className="p-4">
+                <Card className="flex items-center justify-between gap-4 p-2 border bg-muted/30">
+                    <audio controls src={audioDataUri} className="w-full">
+                        Your browser does not support the audio element.
+                    </audio>
+                    <Button onClick={handleDownload} variant="ghost" size="icon">
+                        <Download className="w-5 h-5" />
+                        <span className="sr-only">Download Audio</span>
+                    </Button>
+                </Card>
             </div>
           )}
         </Card>
@@ -103,7 +105,7 @@ export function TextToSpeechPage() {
           <Button 
             onClick={handleGenerate}
             size="lg"
-            className="flex-1"
+            className="flex-1 h-12"
             disabled={isGenerating || !text.trim()}
           >
             {isGenerating ? (

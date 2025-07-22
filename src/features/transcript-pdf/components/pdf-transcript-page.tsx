@@ -186,7 +186,7 @@ export function PdfTranscriptPage() {
                 {!pdfFile ? (
                     <Card
                         className={cn(
-                        'flex cursor-pointer flex-col items-center justify-center border-2 border-dashed text-center transition-colors h-full p-6',
+                        'flex-grow flex cursor-pointer flex-col items-center justify-center border-2 border-dashed text-center transition-colors p-6',
                         isDragging ? 'border-primary bg-primary/10' : 'border-border'
                         )}
                         onClick={() => fileInputRef.current?.click()}

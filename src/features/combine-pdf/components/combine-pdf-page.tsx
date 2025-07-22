@@ -2,7 +2,7 @@
 "use client";
 
 import { useState, useMemo, useContext, useRef } from 'react';
-import { Combine, FileUp, X, File, FilePlus } from 'lucide-react';
+import { Combine, FileUp, X, File, FilePlus, Download } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { Card } from '@/components/ui/card';
@@ -10,8 +10,9 @@ import { allTranslations } from '@/lib/translations';
 import { LanguageContext } from '@/contexts/language-context';
 import { cn } from '@/lib/utils';
 import { combinePdf } from '@/ai/flows/combine-pdf-flow';
-import { MAX_FILE_SIZE_BYTES, MAX_FILE_SIZE_MB } from '@/config';
+import { MAX_FILE_SIZE_MB } from '@/config';
 import { ThreeDotsLoader } from '@/components/shared/three-dots-loader';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 const blobToBase64 = (blob: Blob): Promise<string> => {
     return new Promise((resolve, reject) => {
@@ -159,26 +160,31 @@ export function CombinePdfPage() {
         className="flex flex-col h-full bg-transparent text-foreground"
         onDragEnter={handleDragEnter}
         onDragOver={handleDragEvents}
-        onDragLeave={handleDragLeave}
-        onDrop={handleDrop}
     >
-        <main className="flex-grow p-4 md:p-6 flex flex-col items-center">
-            <div className="w-full max-w-4xl flex-grow flex flex-col">
-                {files.length === 0 ? (
-                    <Card
-                        className={cn(
-                            "flex flex-col items-center justify-center text-center border-2 border-dashed  h-full transition-colors cursor-pointer p-6",
-                             isDragging ? "border-primary bg-primary/10" : "border-border"
-                        )}
-                        onClick={() => fileInputRef.current?.click()}
-                    >
-                        <FileUp className="w-16 h-16 text-muted-foreground mb-4"/>
-                        <h3 className="text-xl font-semibold">{t.combinePdfTitle}</h3>
-                        <p className="text-muted-foreground mt-2">{t.dropMultiplePdfs}</p>
-                    </Card>
-                ) : (
-                    <Card className="w-full h-full flex flex-col gap-4 p-6">
-                        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+      <main className="flex-grow p-4 md:p-6 flex flex-col items-center">
+          <div className="w-full max-w-4xl flex-grow flex flex-col">
+              {files.length === 0 ? (
+                  <Card
+                      className={cn(
+                          "flex flex-col items-center justify-center text-center border-2 border-dashed h-full transition-colors cursor-pointer p-6",
+                           isDragging ? "border-primary bg-primary/10" : "border-border"
+                      )}
+                      onClick={() => fileInputRef.current?.click()}
+                      onDragLeave={handleDragLeave}
+                      onDrop={handleDrop}
+                  >
+                      <FileUp className="w-16 h-16 text-muted-foreground mb-4"/>
+                      <h3 className="text-xl font-semibold">{t.combinePdfTitle}</h3>
+                      <p className="text-muted-foreground mt-2">{t.dropMultiplePdfs}</p>
+                  </Card>
+              ) : (
+                <div className="grid md:grid-cols-2 gap-6 h-full">
+                  <Card className="flex flex-col">
+                    <div className="p-4 border-b">
+                        <h3 className="text-lg font-semibold">{t.filesToCombine} ({files.length})</h3>
+                    </div>
+                    <ScrollArea className="flex-grow p-4">
+                        <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
                             {files.map((file, index) => (
                                <Card key={index} className="relative group aspect-square flex flex-col items-center justify-center p-2 text-center transition-shadow hover:shadow-md">
                                    <File className="w-12 h-12 text-primary mb-2"/>
@@ -191,45 +197,53 @@ export function CombinePdfPage() {
                                    </div>
                                </Card>
                             ))}
-                            <button
-                                onClick={() => fileInputRef.current?.click()}
-                                className="flex flex-col items-center justify-center aspect-square border-2 border-dashed border-border rounded-lg text-muted-foreground hover:bg-accent/10 hover:border-primary transition-colors"
-                            >
-                                <FilePlus className="w-8 h-8 mb-2" />
-                                <span>{t.addMorePdfs}</span>
-                            </button>
                         </div>
-                    </Card>
-                )}
-            </div>
+                    </ScrollArea>
+                  </Card>
 
-            <input
-                type="file"
-                ref={fileInputRef}
-                onChange={(e) => handleFileSelect(e.target.files)}
-                className="hidden"
-                accept="application/pdf"
-                multiple
-            />
-        </main>
+                  <Card
+                      className={cn(
+                          "flex flex-col items-center justify-center text-center border-2 border-dashed h-full transition-colors cursor-pointer p-6",
+                           isDragging ? "border-primary bg-primary/10" : "border-border"
+                      )}
+                      onClick={() => fileInputRef.current?.click()}
+                      onDragLeave={handleDragLeave}
+                      onDrop={handleDrop}
+                  >
+                      <FilePlus className="w-16 h-16 text-muted-foreground mb-4"/>
+                      <h3 className="text-xl font-semibold">{t.addMorePdfs}</h3>
+                  </Card>
+                </div>
+              )}
+          </div>
+
+          <input
+              type="file"
+              ref={fileInputRef}
+              onChange={(e) => handleFileSelect(e.target.files)}
+              className="hidden"
+              accept="application/pdf"
+              multiple
+          />
+      </main>
         
-        <footer className="flex-shrink-0 flex items-center justify-center gap-2 p-4 border-t bg-background">
-            <div className="w-full max-w-lg flex gap-2 items-center">
-                <Button 
-                    onClick={handleCombine}
-                    size="lg"
-                    className="flex-1"
-                    disabled={isCombining || files.length < 2}
-                >
-                    {isCombining ? (
-                        <ThreeDotsLoader />
-                    ) : (
-                        <Combine className="h-5 w-5" />
-                    )}
-                    <span className="ml-2 sm:inline font-bold">{t.combineAndDownload}</span>
-                </Button>
-            </div>
-        </footer>
+      <footer className="flex-shrink-0 flex items-center justify-center gap-2 p-4 border-t bg-background">
+          <div className="w-full max-w-lg flex gap-2 items-center">
+              <Button 
+                  onClick={handleCombine}
+                  size="lg"
+                  className="flex-1 h-12"
+                  disabled={isCombining || files.length < 2}
+              >
+                  {isCombining ? (
+                      <ThreeDotsLoader />
+                  ) : (
+                      <Download className="h-5 w-5" />
+                  )}
+                  <span className="ml-2 sm:inline font-bold">{t.combineAndDownload}</span>
+              </Button>
+          </div>
+      </footer>
     </div>
   );
 }
