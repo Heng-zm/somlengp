@@ -45,6 +45,10 @@ export default function HistoryPage() {
                         <div className="flex flex-col items-center justify-center text-center p-10 flex-grow">
                             <HistoryIcon className="w-16 h-16 text-muted-foreground mb-4" />
                             <h3 className="text-xl font-semibold">{t.noHistory}</h3>
+                            <p className="text-muted-foreground mt-2">Start using the tools to see your history here.</p>
+                            <Button asChild className="mt-4">
+                                <Link href="/home">Go to Home</Link>
+                            </Button>
                         </div>
                     ) : (
                         <ScrollArea className="flex-grow">
