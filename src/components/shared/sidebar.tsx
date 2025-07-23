@@ -38,18 +38,6 @@ export function Sidebar({ language, toggleLanguage }: { language: Language, togg
     { href: '/image-to-pdf', label: t.imageToPdf, icon: ImageIcon },
     { href: '/convert-image-format', label: t.convertImageFormat, icon: Wand2 },
   ];
-  
-  const popularTool = useMemo(() => {
-    if (history.length === 0) return null;
-    const sortedHistory = [...history].sort((a,b) => b.count - a.count);
-    const mostPopular = sortedHistory[0];
-    if (mostPopular.count <= 1) return null; // Only show if used more than once
-    const navItem = navItems.find(item => item.href === mostPopular.href);
-    return {
-        ...mostPopular,
-        icon: navItem?.icon || TrendingUp
-    };
-  }, [history, navItems]);
 
   const recentHistory = useMemo(() => {
     // Find the corresponding nav item for each history entry to get the icon
@@ -94,23 +82,6 @@ export function Sidebar({ language, toggleLanguage }: { language: Language, togg
               ))}
           </nav>
           
-          {popularTool && (
-              <div className="p-4 pt-0">
-                <Separator className="my-2" />
-                <h2 className="mb-2 mt-4 px-2 text-lg font-semibold tracking-tight flex items-center">{t.popularTools}</h2>
-                 <Link href={popularTool.href} passHref>
-                    <Button
-                        variant='ghost'
-                        className="w-full justify-start text-base py-6"
-                        type="button"
-                    >
-                        <popularTool.icon className="mr-3 h-5 w-5 text-primary" />
-                        {popularTool.label}
-                    </Button>
-                </Link>
-              </div>
-          )}
-
           {history.length > 0 && (
                 <div className='p-4 pt-0'>
                     <Separator className="my-2" />
