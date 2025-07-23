@@ -68,7 +68,7 @@ export default function HomePage() {
     <div className="flex flex-col h-full text-foreground">
       <header className="flex-shrink-0 flex items-center justify-between p-4 sm:p-6">
         <div className="flex items-center gap-4">
-          <Image src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRfXQ6IUyl8D8fpZl8p9BvXg-PCxKPa-1vOp0oPC2-uKH-H_M1T" alt="logo" width={32} height={32} data-ai-hint="logo" />
+          <Image src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRfXQ6IUyl8D8fpZl8p9BvXg-PCxKPa-1vOp0oPC2-uKH-H_M1T" alt="logo" width={32} height={32} data-ai-hint="logo" className="rounded-full" />
           <div className="flex flex-col gap-1">
             <h1 className="text-2xl sm:text-3xl font-bold text-foreground">VoiceScribe</h1>
             {visitorCount !== null ? (
