@@ -44,7 +44,11 @@
     "dotenv": "^16.5.0",
     "embla-carousel-react": "^8.6.0",
     "framer-motion": "^11.5.7",
+<<<<<<< HEAD
     "genkit": "1.0.0",
+=======
+    "genkit": "1.0.0-rc.16",
+>>>>>>> 07295143dd25c3186bfdc84e307c974b23309e4e
     "jszip": "^3.10.1",
     "lodash.isequal": "^4.5.0",
     "lucide-react": "^0.475.0",
