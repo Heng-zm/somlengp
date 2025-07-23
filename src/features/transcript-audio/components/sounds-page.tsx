@@ -51,7 +51,7 @@ export function SoundsPage() {
   const [isTranscribing, setIsTranscribing] = useState(false);
   const [structuredTranscript, setStructuredTranscript] = useState<TranscriptWord[]>([]);
   const [editedTranscript, setEditedTranscript] = useState('');
-  const [wordsPerSecond, setWordsPerSecond] = useState<number | undefined>(10);
+  const [wordsPerSecond, setWordsPerSecond] = useState<number | undefined>(1);
   const [exportFormat, setExportFormat] = useState('srt');
   const [isDragging, setIsDragging] = useState(false);
   const [isExportSheetOpen, setIsExportSheetOpen] = useState(false);
