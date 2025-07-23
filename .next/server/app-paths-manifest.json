@@ -3,5 +3,7 @@
   "/pdf-transcript/page": "app/pdf-transcript/page.js",
   "/history/page": "app/history/page.js",
   "/text-to-speech/page": "app/text-to-speech/page.js",
+  "/api/visit/route": "app/api/visit/route.js",
+  "/combine-pdf/page": "app/combine-pdf/page.js",
   "/page": "app/page.js"
 }
