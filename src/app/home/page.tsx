@@ -13,6 +13,7 @@ import { cn } from '@/lib/utils';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Card } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import Image from 'next/image';
 
 const VISITOR_SESSION_KEY = 'ozo-designer-session-visited';
 
@@ -67,7 +68,7 @@ export default function HomePage() {
     <div className="flex flex-col h-full text-foreground">
       <header className="flex-shrink-0 flex items-center justify-between p-4 sm:p-6">
         <div className="flex items-center gap-4">
-          <BotMessageSquare className="h-8 w-8 text-primary" />
+          <Image src="https://placehold.co/32x32.png" alt="logo" width={32} height={32} data-ai-hint="logo" />
           <div className="flex flex-col gap-1">
             <h1 className="text-2xl sm:text-3xl font-bold text-foreground">VoiceScribe</h1>
             {visitorCount !== null ? (

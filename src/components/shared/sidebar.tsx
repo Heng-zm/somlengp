@@ -14,6 +14,7 @@ import packageJson from '../../../package.json';
 import { LanguageContext } from '@/contexts/language-context';
 import { useHistory } from '@/hooks/use-history';
 import { Separator } from '../ui/separator';
+import Image from 'next/image';
 
 export function Sidebar({ language, toggleLanguage }: { language: Language, toggleLanguage: () => void }) {
   const pathname = usePathname();
@@ -53,7 +54,7 @@ export function Sidebar({ language, toggleLanguage }: { language: Language, togg
     <aside className="w-full h-full flex flex-col bg-transparent">
       <div className="p-4 border-b flex justify-between items-center">
         <Link href="/home" className="flex items-center gap-2">
-          <BotMessageSquare className="h-8 w-8 text-primary" />
+          <Image src="https://placehold.co/32x32.png" alt="logo" width={32} height={32} data-ai-hint="logo" />
           <div>
             <h1 className="text-xl font-bold">VoiceScribe</h1>
             <p className="text-xs text-muted-foreground">Version {packageJson.version}</p>
