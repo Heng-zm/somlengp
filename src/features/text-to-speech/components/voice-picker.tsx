@@ -141,6 +141,7 @@ export function VoicePicker({ selectedValue, onValueChange, disabled }: VoicePic
                                 >
                                     <CardContent className="relative flex flex-col items-center justify-center p-4 gap-2 aspect-square">
                                         <Button
+                                            type="button"
                                             size="icon"
                                             variant="ghost"
                                             className="absolute top-2 right-2 w-8 h-8 rounded-full z-10"

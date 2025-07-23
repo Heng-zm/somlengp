@@ -110,8 +110,8 @@ export function RatingDialog({ open, onOpenChange, onSubmit, translations }: Rat
               />
             </div>
             <DialogFooter>
-              <Button variant="ghost" onClick={() => handleClose(false)} disabled={isSubmitting}>{translations.rateLater}</Button>
-              <Button onClick={handleSubmit} disabled={rating === 0 || isSubmitting}>
+              <Button type="button" variant="ghost" onClick={() => handleClose(false)} disabled={isSubmitting}>{translations.rateLater}</Button>
+              <Button type="button" onClick={handleSubmit} disabled={rating === 0 || isSubmitting}>
                 {isSubmitting ? (
                     <ThreeDotsLoader />
                 ) : (
