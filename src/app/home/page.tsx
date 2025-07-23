@@ -21,7 +21,6 @@ const VISITOR_SESSION_KEY = 'ozo-designer-session-visited';
 export default function HomePage() {
   const [visitorCount, setVisitorCount] = useState<number | null>(null);
   const langContext = useContext(LanguageContext);
-  const { history } = useHistory();
   
   if (!langContext) {
     throw new Error('Home page must be used within a LanguageProvider');
@@ -64,27 +63,7 @@ export default function HomePage() {
   ], [t]);
   
   const primaryFeature = featureCards[0];
-  
-  const popularTools = useMemo(() => {
-    return history
-        .filter(item => item.count > 1) // Only show items used more than once
-        .sort((a, b) => b.count - a.count)
-        .map(h => {
-            const feature = featureCards.find(f => f.href === h.href);
-            if (!feature) return null; // If feature is not found, return null
-            return {
-                ...h,
-                ...feature
-            };
-        })
-        .filter(Boolean) // Filter out any null entries
-        .slice(0, 3);
-  }, [history, featureCards]);
-  
-  const otherFeatures = useMemo(() => {
-      const popularHrefs = new Set(popularTools.map(p => p.href));
-      return featureCards.slice(1).filter(f => !popularHrefs.has(f.href));
-  }, [featureCards, popularTools]);
+  const otherFeatures = featureCards.slice(1);
 
   return (
     <div className="flex flex-col h-full text-foreground">
@@ -145,42 +124,20 @@ export default function HomePage() {
                 </Card>
             </Link>
             
-            {popularTools.length > 0 && (
-                <div className="space-y-4">
-                    <h3 className="text-xl font-semibold px-2 flex items-center gap-2">
-                        <TrendingUp className="w-6 h-6 text-primary" />
-                        {t.popularTools}
-                    </h3>
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                        {popularTools.map((card) => (
-                            <FeatureCard
-                                key={card.href}
-                                href={card.href}
-                                title={card.title}
-                                description={card.description}
-                                icon={card.icon}
-                            />
-                        ))}
-                    </div>
+            <div className="space-y-4">
+                <h3 className="text-xl font-semibold px-2">{t.otherTools}</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {otherFeatures.map((card) => (
+                        <FeatureCard
+                            key={card.href}
+                            href={card.href}
+                            title={card.title}
+                            description={card.description}
+                            icon={card.icon}
+                        />
+                    ))}
                 </div>
-            )}
-
-            {otherFeatures.length > 0 && (
-                <div className="space-y-4">
-                    <h3 className="text-xl font-semibold px-2">{t.otherTools}</h3>
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                        {otherFeatures.map((card) => (
-                            <FeatureCard
-                                key={card.href}
-                                href={card.href}
-                                title={card.title}
-                                description={card.description}
-                                icon={card.icon}
-                            />
-                        ))}
-                    </div>
-                </div>
-            )}
+            </div>
         </main>
       </ScrollArea>
     </div>
