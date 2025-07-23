@@ -3,7 +3,7 @@
 
 import { useContext, useMemo, useState, useEffect } from 'react';
 import Link from 'next/link';
-import { Mic, FileText, Menu, Combine, Image as ImageIcon, Users, Wand2, BotMessageSquare, AudioLines, Sun, Moon, ArrowRight } from 'lucide-react';
+import { Mic, FileText, Menu, Combine, Image as ImageIcon, Users, Wand2, AudioLines, Sun, Moon, ArrowRight, TrendingUp } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { Sidebar } from '@/components/shared/sidebar';
@@ -14,12 +14,14 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Card } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import Image from 'next/image';
+import { useHistory } from '@/hooks/use-history';
 
 const VISITOR_SESSION_KEY = 'ozo-designer-session-visited';
 
 export default function HomePage() {
   const [visitorCount, setVisitorCount] = useState<number | null>(null);
   const langContext = useContext(LanguageContext);
+  const { history } = useHistory();
   
   if (!langContext) {
     throw new Error('Home page must be used within a LanguageProvider');
@@ -52,17 +54,35 @@ export default function HomePage() {
     }
   }, []);
   
-  const featureCards = [
+  const featureCards = useMemo(() => [
     { href: '/voice-transcript', title: t.voiceScribe, description: t.voiceTranscriptDescription, icon: Mic },
     { href: '/pdf-transcript', title: t.pdfTranscript, description: t.pdfTranscriptDescription, icon: FileText },
     { href: '/text-to-speech', title: 'Text to Speech', description: 'Convert text into natural-sounding speech.', icon: AudioLines },
     { href: '/combine-pdf', title: t.combinePdf, description: t.combinePdfDescription, icon: Combine },
     { href: '/image-to-pdf', title: t.imageToPdf, description: t.imageToPdfDescription, icon: ImageIcon },
     { href: '/convert-image-format', title: t.convertImageFormat, description: t.convertImageFormatDescription, icon: Wand2 },
-  ];
+  ], [t]);
   
   const primaryFeature = featureCards[0];
-  const otherFeatures = featureCards.slice(1);
+  
+  const popularTools = useMemo(() => {
+    return history
+        .filter(item => item.count > 1) // Only show items used more than once
+        .sort((a, b) => b.count - a.count)
+        .slice(0, 3)
+        .map(h => {
+            const feature = featureCards.find(f => f.href === h.href);
+            return {
+                ...h,
+                ...feature
+            };
+        });
+  }, [history, featureCards]);
+  
+  const otherFeatures = useMemo(() => {
+      const popularHrefs = new Set(popularTools.map(p => p.href));
+      return featureCards.slice(1).filter(f => !popularHrefs.has(f.href));
+  }, [featureCards, popularTools]);
 
   return (
     <div className="flex flex-col h-full text-foreground">
@@ -122,21 +142,43 @@ export default function HomePage() {
                     </div>
                 </Card>
             </Link>
-
-            <div className="space-y-4">
-                <h3 className="text-xl font-semibold px-2">Other Tools</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {otherFeatures.map((card) => (
-                        <FeatureCard
-                            key={card.href}
-                            href={card.href}
-                            title={card.title}
-                            description={card.description}
-                            icon={card.icon}
-                        />
-                    ))}
+            
+            {popularTools.length > 0 && (
+                <div className="space-y-4">
+                    <h3 className="text-xl font-semibold px-2 flex items-center gap-2">
+                        <TrendingUp className="w-6 h-6 text-primary" />
+                        {t.popularTools}
+                    </h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        {popularTools.map((card) => (
+                            <FeatureCard
+                                key={card.href}
+                                href={card.href}
+                                title={card.title}
+                                description={card.description}
+                                icon={card.icon}
+                            />
+                        ))}
+                    </div>
                 </div>
-            </div>
+            )}
+
+            {otherFeatures.length > 0 && (
+                <div className="space-y-4">
+                    <h3 className="text-xl font-semibold px-2">{t.otherTools}</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        {otherFeatures.map((card) => (
+                            <FeatureCard
+                                key={card.href}
+                                href={card.href}
+                                title={card.title}
+                                description={card.description}
+                                icon={card.icon}
+                            />
+                        ))}
+                    </div>
+                </div>
+            )}
         </main>
       </ScrollArea>
     </div>

@@ -92,9 +92,11 @@ const enTranslations: Translations = {
     modelOverloadedTitle: "AI Model Busy",
     modelOverloadedDescription: "The AI model is currently experiencing high demand. Please try again in a few moments.",
     reportBug: "Report a Bug",
-    history: "History",
-    seeAll: "See All",
+    history: "Recent History",
+    seeAll: "See All History",
     noHistory: "No history yet. Start using features to see them here.",
+    popularTools: "Popular Tools",
+    otherTools: "Other Tools",
 };
 
 const kmTranslations: Translations = {
@@ -183,9 +185,11 @@ const kmTranslations: Translations = {
     modelOverloadedTitle: "ម៉ូដែល AI រវល់",
     modelOverloadedDescription: "ម៉ូដែល AI កំពុងមានតម្រូវការខ្ពស់។ សូមព្យាយាមម្តងទៀតក្នុងរយៈពេលពីរបីនាទីទៀត។",
     reportBug: "រាយការណ៍បញ្ហា",
-    history: "ប្រវត្តិ",
-    seeAll: "មើល​ទាំងអស់",
+    history: "ប្រវត្តិថ្មីៗ",
+    seeAll: "មើល​ប្រវត្តិ​ទាំងអស់",
     noHistory: "មិនទាន់មានប្រវត្តិទេ។ ចាប់ផ្តើមប្រើលក្ខណៈពិសេសដើម្បីមើលពួកវានៅទីនេះ។",
+    popularTools: "ឧបករណ៍ពេញនិយម",
+    otherTools: "ឧបករណ៍ផ្សេងទៀត",
 };
 
 export const allTranslations = {

@@ -7,6 +7,14 @@
       "layer": {
         "app/pdf-transcript/page": "action-browser"
       }
+    },
+    "a239e622c69ca364a32fb0569fbd756713d228f0": {
+      "workers": {
+        "app/text-to-speech/page": "(action-browser)/./node_modules/next/dist/build/webpack/loaders/next-flight-action-entry-loader.js?actions=%5B%5B%22%2Fhome%2Fuser%2Fstudio%2Fsrc%2Fai%2Fflows%2Ftext-to-speech-flow.ts%22%2C%5B%22textToSpeech%22%5D%5D%5D&__client_imported__=true!"
+      },
+      "layer": {
+        "app/text-to-speech/page": "action-browser"
+      }
     }
   },
   "edge": {},

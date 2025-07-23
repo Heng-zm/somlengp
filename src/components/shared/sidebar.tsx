@@ -4,7 +4,7 @@
 import { useContext, useMemo } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { BotMessageSquare, Languages, FileText, LifeBuoy, Mic, Combine, Image as ImageIcon, Wand2, FileHeart, AudioLines, Sun, Moon, History, ArrowRight, Home } from 'lucide-react';
+import { BotMessageSquare, Languages, FileText, LifeBuoy, Mic, Combine, Image as ImageIcon, Wand2, FileHeart, AudioLines, Sun, Moon, History, ArrowRight, Home, TrendingUp } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { allTranslations } from '@/lib/translations';
@@ -39,14 +39,29 @@ export function Sidebar({ language, toggleLanguage }: { language: Language, togg
     { href: '/convert-image-format', label: t.convertImageFormat, icon: Wand2 },
   ];
   
+  const popularTool = useMemo(() => {
+    if (history.length === 0) return null;
+    const sortedHistory = [...history].sort((a,b) => b.count - a.count);
+    const mostPopular = sortedHistory[0];
+    if (mostPopular.count <= 1) return null; // Only show if used more than once
+    const navItem = navItems.find(item => item.href === mostPopular.href);
+    return {
+        ...mostPopular,
+        icon: navItem?.icon || TrendingUp
+    };
+  }, [history, navItems]);
+
   const recentHistory = useMemo(() => {
     // Find the corresponding nav item for each history entry to get the icon
-    return history.slice(0, 3).map(h => {
-        const navItem = navItems.find(item => item.href === h.href);
-        return {
-            ...h,
-            icon: navItem?.icon || History, // Fallback icon
-        };
+    return history
+        .sort((a,b) => b.timestamp - a.timestamp)
+        .slice(0, 3)
+        .map(h => {
+            const navItem = navItems.find(item => item.href === h.href);
+            return {
+                ...h,
+                icon: navItem?.icon || History, // Fallback icon
+            };
     });
   }, [history, navItems]);
 
@@ -78,6 +93,23 @@ export function Sidebar({ language, toggleLanguage }: { language: Language, togg
                 </Link>
               ))}
           </nav>
+          
+          {popularTool && (
+              <div className="p-4 pt-0">
+                <Separator className="my-2" />
+                <h2 className="mb-2 mt-4 px-2 text-lg font-semibold tracking-tight flex items-center">{t.popularTools}</h2>
+                 <Link href={popularTool.href} passHref>
+                    <Button
+                        variant='ghost'
+                        className="w-full justify-start text-base py-6"
+                        type="button"
+                    >
+                        <popularTool.icon className="mr-3 h-5 w-5 text-primary" />
+                        {popularTool.label}
+                    </Button>
+                </Link>
+              </div>
+          )}
 
           {history.length > 0 && (
                 <div className='p-4 pt-0'>
