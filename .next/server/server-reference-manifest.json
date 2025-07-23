@@ -39,6 +39,14 @@
       "layer": {
         "app/voice-transcript/page": "action-browser"
       }
+    },
+    "be689d8cef3d0ed3dd35d48db783652585a4d555": {
+      "workers": {
+        "app/image-to-pdf/page": "(action-browser)/./node_modules/next/dist/build/webpack/loaders/next-flight-action-entry-loader.js?actions=%5B%5B%22%2Fhome%2Fuser%2Fstudio%2Fsrc%2Fai%2Fflows%2Fimage-to-pdf-flow.ts%22%2C%5B%22imageToPdf%22%5D%5D%5D&__client_imported__=true!"
+      },
+      "layer": {
+        "app/image-to-pdf/page": "action-browser"
+      }
     }
   },
   "edge": {},
