@@ -56,7 +56,7 @@ export default function HistoryPage() {
                                 {sortedHistory.map(item => {
                                     const Icon = iconMap[item.href] || HistoryIcon;
                                     return (
-                                        <Link key={item.href} href={item.href} passHref>
+                                        <Link key={`${item.href}-${item.timestamp}`} href={item.href} passHref>
                                             <Card as="div" className="p-4 flex items-center gap-4 transition-all hover:shadow-md hover:border-primary/50 cursor-pointer mb-4">
                                                 <div className="p-3 bg-primary/10 rounded-lg">
                                                     <Icon className="w-6 h-6 text-primary" />

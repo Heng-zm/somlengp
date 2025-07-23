@@ -308,7 +308,7 @@ export function SoundsPage() {
                                 <span className="font-medium truncate">{audioFile.name}</span>
                                 <span className="text-sm text-muted-foreground">{`${(audioFile.size / 1024 / 1024).toFixed(2)} MB`}</span>
                             </div>
-                            <Button onClick={clearFile} variant="ghost" size="icon" className="rounded-full">
+                            <Button type="button" onClick={clearFile} variant="ghost" size="icon" className="rounded-full">
                                 <XIcon className="w-4 h-4" />
                                 <span className="sr-only">Clear file</span>
                             </Button>
@@ -341,13 +341,13 @@ export function SoundsPage() {
         {audioFile && (
           <footer className="flex-shrink-0 flex items-center justify-center gap-2 p-4 border-t bg-background">
               <div className="w-full max-w-lg flex gap-2 items-center">
-                  <Button onClick={handleCopy} variant="outline" size="icon" className="h-12 w-12" disabled={isTranscribing || !isReadyForContent}>
+                  <Button type="button" onClick={handleCopy} variant="outline" size="icon" className="h-12 w-12" disabled={isTranscribing || !isReadyForContent}>
                       <Copy className="h-5 w-5" />
                       <span className="sr-only">{t.copy}</span>
                   </Button>
                   <Sheet open={isExportSheetOpen} onOpenChange={setIsExportSheetOpen}>
                       <SheetTrigger asChild>
-                          <Button size="lg" className="flex-1 h-12" disabled={isTranscribing || !isReadyForContent}>
+                          <Button type="button" size="lg" className="flex-1 h-12" disabled={isTranscribing || !isReadyForContent}>
                               {isTranscribing ? <ThreeDotsLoader /> : <Download className="h-5 w-5" />}
                               <span className="ml-2 sm:inline font-bold">{isTranscribing ? t.transcribing : t.download}</span>
                           </Button>
@@ -390,27 +390,27 @@ export function SoundsPage() {
                                         onKeyDown={(e) => e.key === 'Enter' && handleAddVocab()}
                                         placeholder={t.pressEnterToAdd}
                                     />
-                                    <Button onClick={handleAddVocab} variant="secondary">{t.addWord}</Button>
+                                    <Button type="button" onClick={handleAddVocab} variant="secondary">{t.addWord}</Button>
                                   </div>
                                   <div className="flex flex-wrap gap-2 mt-3">
                                       {customVocabulary.map(word => (
                                           <Badge key={word} variant="secondary" className="text-base px-3 py-1">
                                               {word}
-                                              <button onClick={() => handleRemoveVocab(word)} className="ml-2 rounded-full hover:bg-muted-foreground/20 p-0.5">
+                                              <button type="button" onClick={() => handleRemoveVocab(word)} className="ml-2 rounded-full hover:bg-muted-foreground/20 p-0.5">
                                                   <XIcon className="h-3 w-3" />
                                               </button>
                                           </Badge>
                                       ))}
                                   </div>
                                   {customVocabulary.length > 0 && (
-                                    <Button onClick={handleRetranscribe} disabled={isTranscribing} size="sm" className="mt-3 w-full">
+                                    <Button type="button" onClick={handleRetranscribe} disabled={isTranscribing} size="sm" className="mt-3 w-full">
                                         {isTranscribing ? <ThreeDotsLoader /> : <Sparkles className="mr-2" />}
                                         {t.retranscribe}
                                     </Button>
                                   )}
                               </div>
 
-                              <Button onClick={handleExport} size="lg" disabled={isTranscribing}>
+                              <Button type="button" onClick={handleExport} size="lg" disabled={isTranscribing}>
                                   {isTranscribing ? (
                                       <ThreeDotsLoader />
                                   ) : (
