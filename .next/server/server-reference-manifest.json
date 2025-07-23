@@ -1,5 +1,14 @@
 {
-  "node": {},
+  "node": {
+    "76f31eda599833c17764a897b8535bebfb27b858": {
+      "workers": {
+        "app/pdf-transcript/page": "(action-browser)/./node_modules/next/dist/build/webpack/loaders/next-flight-action-entry-loader.js?actions=%5B%5B%22%2Fhome%2Fuser%2Fstudio%2Fsrc%2Fai%2Fflows%2Fpdf-transcript-flow.ts%22%2C%5B%22transcribePdf%22%5D%5D%5D&__client_imported__=true!"
+      },
+      "layer": {
+        "app/pdf-transcript/page": "action-browser"
+      }
+    }
+  },
   "edge": {},
   "encryptionKey": "OnblkfukM2tMgDhRLfb9zcHiGPda+hZjqVktbciN/zA="
 }
