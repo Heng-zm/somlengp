@@ -301,7 +301,7 @@ export function SoundsPage() {
                         <p className="text-muted-foreground mt-2">{t.dropAudio}</p>
                     </Card>
                 ) : (
-                    <Card className="w-full flex-grow flex flex-col shadow-sm overflow-hidden">
+                    <Card className="w-full h-full flex-grow flex flex-col shadow-sm overflow-hidden">
                         <div className="flex-shrink-0 flex items-center justify-between p-3 border-b bg-muted/30">
                             <div className="flex items-center gap-2 overflow-hidden">
                                 <FileText className="w-5 h-5 text-primary"/>
@@ -313,7 +313,7 @@ export function SoundsPage() {
                                 <span className="sr-only">Clear file</span>
                             </Button>
                         </div>
-                        <div className="flex-grow relative">
+                        <div className="flex-grow relative h-[78vh]">
                             {isTranscribing && (
                                 <div className="absolute inset-0 bg-background/80 flex flex-col items-center justify-center z-10 backdrop-blur-sm">
                                     <ThreeDotsLoader />
@@ -435,3 +435,5 @@ export function SoundsPage() {
     </div>
   );
 }
+
+    

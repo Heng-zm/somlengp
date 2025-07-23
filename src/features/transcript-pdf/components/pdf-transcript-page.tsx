@@ -200,7 +200,7 @@ export function PdfTranscriptPage() {
                         <p className="mt-2 text-muted-foreground">{t.dropPdf}</p>
                     </Card>
                 ) : (
-                    <Card className="h-full flex flex-col overflow-hidden">
+                    <Card className="h-full flex-grow flex flex-col overflow-hidden">
                         <div className="flex-shrink-0 flex items-center justify-between p-3 border-b bg-muted/30">
                             <div className="flex items-center gap-2 overflow-hidden">
                                 <FileText className="w-5 h-5 text-primary"/>
@@ -212,7 +212,7 @@ export function PdfTranscriptPage() {
                                 <span className="sr-only">Clear file</span>
                             </Button>
                         </div>
-                        <div className="flex-grow relative">
+                        <div className="flex-grow relative h-[78vh]">
                             {isTranscribing && (
                                 <div className="absolute inset-0 bg-background/80 flex flex-col items-center justify-center z-10 backdrop-blur-sm">
                                     <ThreeDotsLoader />
@@ -223,7 +223,7 @@ export function PdfTranscriptPage() {
                                 value={transcribedText}
                                 readOnly
                                 placeholder={isTranscribing ? 'Transcribing...' : t.transcribedTextPlaceholder}
-                                className="h-[78vh] w-full resize-none text-base leading-relaxed p-6 border-0 focus-visible:ring-0 focus-visible:ring-offset-0 bg-transparent"
+                                className="h-full w-full resize-none text-base leading-relaxed p-6 border-0 focus-visible:ring-0 focus-visible:ring-offset-0 bg-transparent"
                                 aria-label="Transcribed Text"
                                 disabled={isTranscribing}
                             />
@@ -293,3 +293,5 @@ export function PdfTranscriptPage() {
     </div>
   );
 }
+
+    
