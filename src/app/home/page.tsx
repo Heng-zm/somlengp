@@ -69,14 +69,16 @@ export default function HomePage() {
     return history
         .filter(item => item.count > 1) // Only show items used more than once
         .sort((a, b) => b.count - a.count)
-        .slice(0, 3)
         .map(h => {
             const feature = featureCards.find(f => f.href === h.href);
+            if (!feature) return null; // If feature is not found, return null
             return {
                 ...h,
                 ...feature
             };
-        });
+        })
+        .filter(Boolean) // Filter out any null entries
+        .slice(0, 3);
   }, [history, featureCards]);
   
   const otherFeatures = useMemo(() => {
