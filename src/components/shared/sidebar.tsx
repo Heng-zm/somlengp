@@ -29,7 +29,7 @@ export function Sidebar({ language, toggleLanguage }: { language: Language, togg
 
   const { theme, toggleTheme } = langContext;
 
-  const navItems = [
+  const navItems = useMemo(() => [
     { href: '/home', label: t.home, icon: Home },
     { href: '/voice-transcript', label: t.voiceScribe, icon: Mic },
     { href: '/text-to-speech', label: "Text to Speech", icon: AudioLines },
@@ -37,7 +37,7 @@ export function Sidebar({ language, toggleLanguage }: { language: Language, togg
     { href: '/combine-pdf', label: t.combinePdf, icon: Combine },
     { href: '/image-to-pdf', label: t.imageToPdf, icon: ImageIcon },
     { href: '/convert-image-format', label: t.convertImageFormat, icon: Wand2 },
-  ];
+  ], [t]);
 
   const recentHistory = useMemo(() => {
     // Find the corresponding nav item for each history entry to get the icon

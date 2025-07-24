@@ -88,7 +88,7 @@ export default function HomePage() {
             </Button>
             <Sheet>
                 <SheetTrigger asChild>
-                    <Button variant="ghost" size="icon" className="md:hidden" type="button">
+                    <Button variant="ghost" size="icon" type="button">
                         <Menu className="h-6 w-6" />
                     </Button>
                 </SheetTrigger>
