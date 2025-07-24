@@ -28,7 +28,6 @@ import { allTranslations } from '@/lib/translations';
 import { LanguageContext } from '@/contexts/language-context';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { MAX_FILE_SIZE_BYTES, MAX_FILE_SIZE_MB } from '@/config';
-import isEqual from 'lodash.isequal';
 import { ThreeDotsLoader } from '@/components/shared/three-dots-loader';
 
 const blobToBase64 = (blob: Blob): Promise<string> => {
@@ -435,5 +434,3 @@ export function SoundsPage() {
     </div>
   );
 }
-
-    
