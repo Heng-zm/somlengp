@@ -31,7 +31,7 @@ export default function HistoryPage() {
     }
 
     const { language } = langContext;
-    const t = useMemo(() => createSafeTranslations(allTranslations[language]), [language]);
+const t = useMemo(() => createSafeTranslations(allTranslations[language]), [language]);
 
     const sortedHistory = useMemo(() => {
         return [...history].sort((a, b) => b.timestamp - a.timestamp);

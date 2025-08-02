@@ -109,6 +109,24 @@ export const resolveTranslation = (value: TranslationValue, size?: number): stri
 };
 
 // Create a translation hook helper
+export const createSafeTranslations = (translations: Translations): Record<string, TranslationValue> => {
+    // Create an object with all translations resolved safely
+    const resolved: Record<string, TranslationValue> = {};
+    
+    for (const key in translations) {
+        const value = translations[key as keyof Translations];
+        if (typeof value === 'function') {
+            // For function-based translations, create a helper function
+            resolved[key] = (size?: number) => value(size || 25);
+        } else {
+            // For string translations, use directly
+            resolved[key] = value;
+        }
+    }
+    
+    return resolved;
+};
+
 export const useTranslationResolver = (translations: Translations) => {
     return {
         ...translations,
