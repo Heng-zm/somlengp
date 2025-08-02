@@ -1,6 +1,7 @@
 import type {Metadata, Viewport} from 'next';
 import {Toaster} from '@/components/ui/toaster';
 import './globals.css';
+ import { GoogleAnalytics } from '@next/third-parties/google';
 import { AppLayout } from '@/layouts/app-layout';
 import { Kantumruy_Pro } from 'next/font/google';
 
@@ -62,6 +63,15 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${kantumruy.variable}`}>
       <body className={`antialiased font-sans`}>
+        <!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-GQPSM8WTZY"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-GQPSM8WTZY');
+</script>
         <AppLayout>
           {children}
         </AppLayout>
