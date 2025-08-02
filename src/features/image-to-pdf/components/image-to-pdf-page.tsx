@@ -11,7 +11,6 @@ import { LanguageContext } from '@/contexts/language-context';
 import { cn } from '@/lib/utils';
 import { imageToPdf } from '@/ai/flows/image-to-pdf-flow';
 import Image from 'next/image';
-import { MAX_FILE_SIZE_MB } from '@/config';
 import { ThreeDotsLoader } from '@/components/shared/three-dots-loader';
 import { ScrollArea } from '@/components/ui/scroll-area';
 
@@ -133,14 +132,9 @@ export function ImageToPdfPage() {
         setFiles([]);
 
     } catch(e: unknown) {
-        let title = t.conversionError;
-        let description = e instanceof Error ? e.message : 'An unknown error occurred.';
-        const errorMessage = e instanceof Error ? e.message.toLowerCase() : '';
-
-        if (errorMessage.includes('413') || errorMessage.includes('too large')) {
-            title = t.fileTooLargeTitle;
-            description = t.fileTooLargeDescription(MAX_FILE_SIZE_MB);
-        }
+        const title = t.conversionError;
+        const description = e instanceof Error ? e.message : 'An unknown error occurred.';
+        
         toast({
             title,
             description,

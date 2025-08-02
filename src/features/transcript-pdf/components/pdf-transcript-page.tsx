@@ -58,7 +58,7 @@ export function PdfTranscriptPage() {
     }
   }
   
-  const handleError = (error: any) => {
+  const handleError = (error: Error | { message: string }) => {
     console.error(error);
     const errorMessage = (error.message || '').toLowerCase();
     let title = t.transcriptionError;
@@ -117,12 +117,12 @@ export function PdfTranscriptPage() {
         });
         clearFile();
       }
-    } catch (e: any) {
-        handleError(e);
+    } catch (e: unknown) {
+        handleError(e as Error);
     } finally {
       setIsTranscribing(false);
     }
-  }, [t, toast]);
+  }, [t, toast, handleError]);
 
 
   const handleDragEvents = (e: React.DragEvent<HTMLDivElement>) => {

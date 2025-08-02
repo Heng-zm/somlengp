@@ -23,7 +23,7 @@ export function TextToSpeechPage() {
   if (!langContext) {
     throw new Error('TextToSpeechPage must be used within a LanguageProvider');
   }
-  const { language } = langContext;
+  // const { language } = langContext;
   // const t = useMemo(() => allTranslations[language], [language]);
 
   const handleGenerate = async () => {

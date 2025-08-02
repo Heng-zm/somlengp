@@ -22,7 +22,7 @@ export function useHistory() {
       if (storedHistory) {
         // Basic migration for old history format
         const parsedHistory = JSON.parse(storedHistory);
-        const migratedHistory = parsedHistory.map((item: any) => ({
+        const migratedHistory = parsedHistory.map((item: HistoryItem & { count?: number }) => ({
             ...item,
             count: item.count || 1
         }));
