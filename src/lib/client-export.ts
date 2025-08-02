@@ -98,7 +98,7 @@ function exportToVtt(text: string, words: TranscriptWord[], wordsPerSecond?: num
     
     if (segmentDuration > 0) {
         const segments = groupWordsIntoSegments(words, segmentDuration);
-        segments.forEach((segment, i) => {
+        segments.forEach((segment) => {
             vttContent += `${formatVttTime(segment.start)} --> ${formatVttTime(segment.end)}\n`;
             vttContent += `${segment.text}\n\n`;
         });

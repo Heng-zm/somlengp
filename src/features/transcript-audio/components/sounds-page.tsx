@@ -125,8 +125,8 @@ export function SoundsPage() {
           variant: "destructive",
         });
       }
-    } catch (e: any) {
-        handleError(e);
+    } catch (e: unknown) {
+        handleError(e as Error);
     } finally {
       setIsTranscribing(false);
     }
@@ -151,8 +151,8 @@ export function SoundsPage() {
                 variant: "destructive",
             });
         }
-    } catch (e: any) {
-        handleError(e);
+    } catch (e: unknown) {
+        handleError(e as Error);
     } finally {
         setIsTranscribing(false);
     }
