@@ -60,7 +60,7 @@ export function Sidebar({ language, toggleLanguage }: { language: Language, togg
           <Image src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRfXQ6IUyl8D8fpZl8p9BvXg-PCxKPa-1vOp0oPC2-uKH-H_M1T" alt="logo" width={32} height={32} data-ai-hint="logo" className="rounded-full" />
           <div>
             <h1 className="text-xl font-bold">VoiceScribe</h1>
-            <p className="text-xs text-muted-foreground">Version {packageJson.version}</p>
+            <p className="text-xs text-muted-foreground">Version 2.2.5</p>
           </div>
         </Link>
       </div>
