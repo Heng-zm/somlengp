@@ -2,7 +2,7 @@
 "use client";
 
 import { useState, useMemo, useContext, useRef } from 'react';
-import { Combine, FileUp, X, File, FilePlus, Download } from 'lucide-react';
+import { FileUp, X, File, FilePlus, Download } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { Card } from '@/components/ui/card';
@@ -113,10 +113,10 @@ export function CombinePdfPage() {
 
         setFiles([]);
 
-    } catch(e: any) {
+    } catch(e: unknown) {
         let title = t.combineError;
-        let description = e.message || 'An unknown error occurred.';
-        const errorMessage = (e.message || '').toLowerCase();
+        let description = e instanceof Error ? e.message : 'An unknown error occurred.';
+        const errorMessage = (e instanceof Error ? e.message : '').toLowerCase();
 
         if (errorMessage.includes('413') || errorMessage.includes('too large')) {
             title = t.fileTooLargeTitle;

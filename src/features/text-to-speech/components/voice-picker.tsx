@@ -104,10 +104,10 @@ export function VoicePicker({ selectedValue, onValueChange, disabled }: VoicePic
                 console.error("Failed to save voice previews to localStorage", error);
             }
             playAudio(audioDataUri);
-        } catch (error: any) {
+        } catch (error: unknown) {
             toast({
                 title: "Preview Failed",
-                description: error.message || "Could not generate voice preview.",
+                description: error instanceof Error ? error.message : "Could not generate voice preview.",
                 variant: "destructive"
             });
         } finally {

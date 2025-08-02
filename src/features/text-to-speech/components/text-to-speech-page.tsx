@@ -1,12 +1,11 @@
 
 "use client";
 
-import { useState, useMemo, useContext } from 'react';
+import { useState, useContext } from 'react';
 import { AudioLines, Download } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { Textarea } from '@/components/ui/textarea';
-import { allTranslations } from '@/lib/translations';
 import { LanguageContext } from '@/contexts/language-context';
 import { textToSpeech } from '@/ai/flows/text-to-speech-flow';
 import { ThreeDotsLoader } from '@/components/shared/three-dots-loader';
@@ -25,7 +24,7 @@ export function TextToSpeechPage() {
     throw new Error('TextToSpeechPage must be used within a LanguageProvider');
   }
   const { language } = langContext;
-  const t = useMemo(() => allTranslations[language], [language]);
+  // const t = useMemo(() => allTranslations[language], [language]);
 
   const handleGenerate = async () => {
     if (!text.trim()) {
@@ -43,10 +42,10 @@ export function TextToSpeechPage() {
     try {
       const result = await textToSpeech({ text, voice: selectedVoice });
       setAudioDataUri(result.audioDataUri);
-    } catch (e: any) {
+    } catch (e: unknown) {
       toast({
         title: 'Generation Failed',
-        description: e.message || 'An unknown error occurred.',
+        description: e instanceof Error ? e.message : 'An unknown error occurred.',
         variant: 'destructive',
       });
     } finally {

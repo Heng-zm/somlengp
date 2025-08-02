@@ -1,12 +1,11 @@
 
 "use client";
 
-import { createContext, useState, useMemo, useContext, useEffect } from 'react';
+import { useContext, useEffect } from 'react';
 import { ChevronLeft } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { allTranslations, createSafeTranslations } from '@/lib/translations';
 import { LanguageContext } from '@/contexts/language-context';
 import { useHistory } from '@/hooks/use-history';
 
@@ -21,7 +20,7 @@ interface FeaturePageLayoutProps {
     showModelSelector?: boolean;
 }
 
-export function FeaturePageLayout({ children, title, showModelSelector = false }: FeaturePageLayoutProps) {
+export function FeaturePageLayout({ children, title }: FeaturePageLayoutProps) {
     const langContext = useContext(LanguageContext);
     const pathname = usePathname();
     const { addHistoryItem } = useHistory();
@@ -29,8 +28,6 @@ export function FeaturePageLayout({ children, title, showModelSelector = false }
     if (!langContext) {
         throw new Error('FeaturePageLayout must be used within an AppLayout');
     }
-    const { language } = langContext;
-    const t = useMemo(() => createSafeTranslations(allTranslations[language]), [language]);
 
     useEffect(() => {
         if (title && pathname) {

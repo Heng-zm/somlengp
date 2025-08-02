@@ -13,7 +13,7 @@ import {FileUp, X, Download, Wand2, ImagePlus} from 'lucide-react';
 import {Button} from '@/components/ui/button';
 import {useToast} from '@/hooks/use-toast';
 import {Card} from '@/components/ui/card';
-import {allTranslations, resolveTranslation} from '@/lib/translations';
+import {allTranslations} from '@/lib/translations';
 import {LanguageContext} from '@/contexts/language-context';
 import {cn} from '@/lib/utils';
 import Image from 'next/image';
@@ -165,10 +165,10 @@ export function ConvertImageFormatPage() {
         description: `${files.length} images have been converted and downloaded as a zip file.`,
       });
       setIsDrawerOpen(false);
-    } catch (e: any) {
+    } catch (e: unknown) {
       toast({
         title: t.conversionError,
-        description: e.message || 'An unknown error occurred during conversion.',
+        description: e instanceof Error ? e.message : 'An unknown error occurred during conversion.',
         variant: 'destructive',
       });
     } finally {

@@ -37,7 +37,7 @@ async function toWav(
       bitDepth: sampleWidth * 8,
     });
 
-    const bufs: any[] = [];
+    const bufs: Buffer[] = [];
     writer.on('error', reject);
     writer.on('data', function (d) {
       bufs.push(d);
@@ -90,8 +90,8 @@ const textToSpeechFlow = ai.defineFlow(
         return {
           audioDataUri: `data:audio/wav;base64,${wavBase64}`,
         };
-    } catch (e: any) {
-        if (e.message && (e.message.includes('429') || e.message.toLowerCase().includes('rate limit'))) {
+    } catch (e: unknown) {
+        if (e instanceof Error && (e.message.includes('429') || e.message.toLowerCase().includes('rate limit'))) {
             throw new Error("429: Rate Limit Exceeded. You've made too many requests. Please check your API plan and billing details.");
         }
         throw e;
