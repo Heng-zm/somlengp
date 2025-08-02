@@ -68,9 +68,12 @@ export function NumberPicker({
     });
 
     if (closestElement) {
-      const newValue = parseInt(closestElement.dataset.value || "0", 10);
-      if (newValue !== internalValue) {
-        setInternalValue(newValue);
+      const dataValue = (closestElement as HTMLElement).getAttribute('data-value');
+      if (dataValue) {
+        const newValue = parseInt(dataValue, 10);
+        if (newValue !== internalValue) {
+          setInternalValue(newValue);
+        }
       }
     }
   };

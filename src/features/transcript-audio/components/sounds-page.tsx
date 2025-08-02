@@ -82,7 +82,7 @@ export function SoundsPage() {
     }
   };
 
-  const handleError = (error: any) => {
+  const handleError = useCallback((error: Error | { message: string }) => {
     console.error(error);
     const errorMessage = (error.message || '').toLowerCase();
     let title = t.transcriptionError;
@@ -100,7 +100,8 @@ export function SoundsPage() {
     }
     toast({ title, description, variant: "destructive" });
     clearFile();
-  };
+  }, [t, toast]);
+
   
   const handleRetranscribe = useCallback(async () => {
     if (!audioFile) return;
@@ -129,7 +130,7 @@ export function SoundsPage() {
     } finally {
       setIsTranscribing(false);
     }
-  }, [audioFile, customVocabulary, t, toast]);
+  }, [audioFile, customVocabulary, t, toast, handleError]);
   
   const processAudio = useCallback(async (file: File) => {
     setIsTranscribing(true);
@@ -155,7 +156,7 @@ export function SoundsPage() {
     } finally {
         setIsTranscribing(false);
     }
-  }, [t, toast]);
+  }, [t, toast, handleError]);
 
   const handleFileSelect = (file: File | null | undefined) => {
     if (!file) return;
