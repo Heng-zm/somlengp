@@ -77,11 +77,11 @@ export default function HomePage() {
         <div className="flex items-center gap-4">
           <Image src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRfXQ6IUyl8D8fpZl8p9BvXg-PCxKPa-1vOp0oPC2-uKH-H_M1T" alt="logo" width={32} height={32} data-ai-hint="logo" className="rounded-full" />
           <div className="flex flex-col gap-1">
-            <h1 className="text-2xl sm:text-3xl font-bold text-foreground">VoiceScribe</h1>
+            <h1 className="text-2xl sm:text-3xl font-bold text-foreground">Somleng</h1>
             {visitorCount !== null ? (
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
                     <Users className="w-4 h-4" />
-                    <span>{visitorCount} Visitors</span>
+                    <span>{visitorCount} User</span>
                 </div>
             ) : (
                 <Skeleton className="h-6 w-24 rounded-md" />
