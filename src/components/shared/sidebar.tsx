@@ -133,7 +133,7 @@ export function Sidebar({ language, toggleLanguage }: { language: Language, togg
             </SheetHeader>
             <div className="flex-grow flex justify-center items-center">
                 <div className="h-full w-full max-w-sm rounded-md border border-border overflow-hidden">
-                    <iframe src="https://0zodesigner.github.io/donate/" className="w-full h-full" title="Donate" />
+                    <iframe src="https://pay-coffee.vercel.app/" className="w-full h-full" title="Support" />
                 </div>
             </div>
           </SheetContent>
