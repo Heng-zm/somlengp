@@ -8,7 +8,6 @@ const nextConfig = {
     ignoreDuringBuilds: false,
   },
   // Performance optimizations
-  swcMinify: true,
   compiler: {
     removeConsole: process.env.NODE_ENV === 'production',
   },
@@ -27,6 +26,24 @@ const nextConfig = {
         pathname: '/**',
       }
     ],
+  },
+  webpack: (config, { isServer }) => {
+    // Handle handlebars and other Node.js modules
+    if (!isServer) {
+      config.resolve.fallback = {
+        ...config.resolve.fallback,
+        fs: false,
+        path: false,
+        crypto: false,
+      };
+    }
+    
+    // Ignore handlebars warnings for require.extensions
+    config.ignoreWarnings = [
+      /require\.extensions is not supported by webpack/,
+    ];
+    
+    return config;
   },
 };
 
