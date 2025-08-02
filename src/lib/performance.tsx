@@ -2,7 +2,7 @@
 import React from 'react';
 
 // Debounce function for performance optimization
-export function debounce<T extends (...args: any[]) => any>(
+export function debounce<T extends (...args: unknown[]) => unknown>(
   func: T,
   wait: number,
   immediate?: boolean
@@ -25,13 +25,13 @@ export function debounce<T extends (...args: any[]) => any>(
 }
 
 // Throttle function for performance optimization
-export function throttle<T extends (...args: any[]) => any>(
+export function throttle<T extends (...args: unknown[]) => unknown>(
   func: T,
   limit: number
 ): (...args: Parameters<T>) => void {
   let inThrottle: boolean;
   
-  return function executedFunction(...args: Parameters<T>) {
+  return function executedFunction(this: unknown, ...args: Parameters<T>) {
     if (!inThrottle) {
       func.apply(this, args);
       inThrottle = true;
@@ -41,17 +41,25 @@ export function throttle<T extends (...args: any[]) => any>(
 }
 
 // Lazy loading utility
-export function createLazyComponent<T extends React.ComponentType<any>>(
-  importFunc: () => Promise<{ default: T }>,
+export function createLazyComponent(
+  importFunc: () => Promise<{ default: React.ComponentType<unknown> }>,
   fallback?: React.ComponentType
 ) {
   const LazyComponent = React.lazy(importFunc);
   
-  return (props: React.ComponentProps<T>) => (
-    <React.Suspense fallback={fallback ? <fallback /> : <div>Loading...</div>}>
-      <LazyComponent {...props} />
-    </React.Suspense>
-  );
+  const LazyWrapper = (props: Record<string, unknown>) => {
+    const FallbackComponent = fallback;
+    const fallbackElement = FallbackComponent ? <FallbackComponent /> : <div>Loading...</div>;
+    
+    return (
+      <React.Suspense fallback={fallbackElement}>
+        <LazyComponent {...props} />
+      </React.Suspense>
+    );
+  };
+  
+  LazyWrapper.displayName = 'LazyWrapper';
+  return LazyWrapper;
 }
 
 // Intersection Observer hook for lazy loading
@@ -99,9 +107,9 @@ export function preloadResource(href: string, as: string, type?: string) {
 // Image optimization utility
 export function getOptimizedImageUrl(
   src: string,
-  width?: number,
-  height?: number,
-  quality = 75
+  _width?: number,
+  _height?: number,
+  _quality = 75
 ): string {
   // This would integrate with your image optimization service
   // For now, return the original src
@@ -112,7 +120,7 @@ export function getOptimizedImageUrl(
 export function useCleanup(cleanup: () => void, deps: React.DependencyList) {
   React.useEffect(() => {
     return cleanup;
-  }, deps);
+  }, [cleanup, ...deps]);
 }
 
 // Performance monitoring utility
@@ -129,8 +137,8 @@ export function measurePerformance(name: string, fn: () => void) {
 }
 
 // Virtual scrolling utility for large lists
-export function useVirtualScroll(
-  items: any[],
+export function useVirtualScroll<T>(
+  items: T[],
   itemHeight: number,
   containerHeight: number,
   overscan = 5
