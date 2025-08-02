@@ -1,5 +1,4 @@
 import type {Metadata} from 'next';
-import { Analytics } from "@vercel/analytics/next"
 import {Toaster} from '@/components/ui/toaster';
 import './globals.css';
 import { AppLayout } from '@/layouts/app-layout';

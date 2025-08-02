@@ -3,7 +3,7 @@
 
 import { useContext, useMemo, useState, useEffect } from 'react';
 import Link from 'next/link';
-import { Mic, FileText, Menu, Combine, Image as ImageIcon, Users, Wand2, AudioLines, Sun, Moon, ArrowRight, TrendingUp } from 'lucide-react';
+import { Mic, FileText, Menu, Combine, Image as ImageIcon, Users, Wand2, AudioLines, Sun, Moon, ArrowRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { Sidebar } from '@/components/shared/sidebar';
@@ -14,7 +14,6 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Card } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import Image from 'next/image';
-import { useHistory } from '@/hooks/use-history';
 
 const VISITOR_SESSION_KEY = 'ozo-designer-session-visited';
 
@@ -105,7 +104,7 @@ export default function HomePage() {
       <ScrollArea className="flex-grow">
         <main className="p-4 sm:p-6 space-y-8">
             <Link href={primaryFeature.href} passHref>
-                <Card as="div" className="w-full p-6 sm:p-8 md:p-10 flex flex-col justify-between overflow-hidden transition-all duration-300 ease-in-out bg-gradient-to-br from-primary/10 via-background to-background hover:shadow-2xl hover:border-primary/20 group">
+                <Card className="w-full p-6 sm:p-8 md:p-10 flex flex-col justify-between overflow-hidden transition-all duration-300 ease-in-out bg-gradient-to-br from-primary/10 via-background to-background hover:shadow-2xl hover:border-primary/20 group">
                     <div className="flex flex-col sm:flex-row items-start gap-6">
                         <div className="p-4 bg-primary/20 rounded-xl w-fit border border-primary/30">
                             <primaryFeature.icon className="w-8 h-8 text-primary" />
@@ -154,7 +153,7 @@ interface FeatureCardProps {
 function FeatureCard({ href, title, description, icon: Icon }: FeatureCardProps) {
   return (
     <Link href={href} passHref>
-      <Card as="div" className={cn(
+      <Card className={cn(
         "w-full h-full p-5 flex items-center gap-5 transition-all duration-300 ease-in-out",
         "bg-card text-card-foreground border",
         "hover:scale-[1.03] hover:shadow-xl hover:border-primary/20 group"

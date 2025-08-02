@@ -1,9 +1,20 @@
 
 export type Language = 'km' | 'en';
 
-type Translations = {
-    [key: string]: any;
+type TranslationValue = string | ((size: number) => string);
+
+type Translations = Record<string, TranslationValue> & {
     fileTooLargeDescription: (size: number) => string;
+};
+
+// Type guard to check if a translation value is a string
+export const isStringTranslation = (value: TranslationValue): value is string => {
+    return typeof value === 'string';
+};
+
+// Safe getter for string translations
+export const getStringTranslation = (value: TranslationValue): string => {
+    return isStringTranslation(value) ? value : value.toString();
 };
 
 const enTranslations: Translations = {

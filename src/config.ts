@@ -1,16 +1,10 @@
 // src/config.ts
 
 /**
- * The maximum file size in megabytes (MB) allowed for uploads.
- * This limit is enforced on the client-side before uploading
- * and on the server-side upon receiving the file.
- * NOTE: Vercel Hobby plan has a 4.5MB body size limit for Serverless Functions.
- * Base64 encoding adds ~37% overhead. To stay safely under 4.5MB,
- * we set the raw file limit to 3MB (3MB * 1.37 ≈ 4.11MB).
- * The user has requested to increase this to 8MB. This may cause issues on
- * hosting platforms with smaller limits.
+ * File upload size limits removed - set to a very high value.
+ * This configuration only affects file uploads.
  */
-export const MAX_FILE_SIZE_MB = 8;
+export const MAX_FILE_SIZE_MB = 100000; // 100GB - effectively no limit
 
 /**
  * The maximum file size in bytes.
