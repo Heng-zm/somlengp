@@ -2,8 +2,24 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Improve rendering performance */
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
 body {
   /* The font is now handled by next/font in layout.tsx */
+  min-height: 100vh;
+  line-height: 1.5;
+  -webkit-text-size-adjust: 100%;
+  tab-size: 4;
 }
 
 @layer base {

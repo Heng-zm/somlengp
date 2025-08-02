@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useContext, useMemo, useState, useEffect } from 'react';
+import { useContext, useMemo, useState, useEffect, memo, Suspense } from 'react';
 import Link from 'next/link';
 import { Mic, FileText, Menu, Combine, Image as ImageIcon, Users, Wand2, AudioLines, Sun, Moon, ArrowRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -157,7 +157,7 @@ interface FeatureCardProps {
   icon: React.ElementType;
 }
 
-function FeatureCard({ href, title, description, icon: Icon }: FeatureCardProps) {
+const FeatureCard = memo(function FeatureCard({ href, title, description, icon: Icon }: FeatureCardProps) {
   return (
     <Link href={href} passHref>
       <Card className={cn(
@@ -165,15 +165,15 @@ function FeatureCard({ href, title, description, icon: Icon }: FeatureCardProps)
         "bg-card text-card-foreground border",
         "hover:scale-[1.03] hover:shadow-xl hover:border-primary/20 group"
       )}>
-          <div className="p-3 bg-secondary rounded-lg border">
+          <div className="p-3 bg-secondary rounded-lg border will-change-transform">
             <Icon className="w-6 h-6 text-primary transition-colors group-hover:text-primary" />
           </div>
           <div className="flex-grow">
             <h2 className="text-lg font-semibold">{title}</h2>
             <p className="text-sm text-muted-foreground mt-1 line-clamp-2">{description}</p>
           </div>
-          <ArrowRight className="text-muted-foreground/50 transition-transform group-hover:translate-x-1" />
+          <ArrowRight className="text-muted-foreground/50 transition-transform group-hover:translate-x-1 will-change-transform" />
       </Card>
     </Link>
   );
-}
+});

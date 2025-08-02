@@ -7,6 +7,7 @@ globalThis.__BUILD_MANIFEST = {
   "lowPriorityFiles": [],
   "rootMainFiles": [
     "static/chunks/webpack.js",
+    "static/chunks/vendors.js",
     "static/chunks/main-app.js"
   ],
   "rootMainFilesTree": {},
