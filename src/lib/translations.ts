@@ -3,18 +3,118 @@ export type Language = 'km' | 'en';
 
 type TranslationValue = string | ((size: number) => string);
 
-type Translations = Record<string, TranslationValue> & {
-    fileTooLargeDescription: (size: number) => string;
+// Base translations interface for string-only values
+interface BaseTranslations {
+    home: string;
+    voiceScribe: string;
+    voiceTranscriptDescription: string;
+    startNow: string;
+    selectModel: string;
+    transcribing: string;
+    readyToTranscribe: string;
+    dropAudio: string;
+    download: string;
+    exportSettings: string;
+    chooseFormat: string;
+    exportFormat: string;
+    wordsPerSecond: string;
+    wordsPerSecondHint: string;
+    exportTranscript: string;
+    invalidFileType: string;
+    selectAudioFile: string;
+    transcriptionFailed: string;
+    noTranscript: string;
+    transcriptionError: string;
+    rateLimitExceeded: string;
+    rateLimitMessage: string;
+    support: string;
+    supportDescription: string;
+    improveAccuracy: string;
+    customVocabulary: string;
+    customVocabularyHint: string;
+    addWord: string;
+    pressEnterToAdd: string;
+    retranscribe: string;
+    ratingTitle: string;
+    ratingDescription: string;
+    ratingFeedbackPlaceholder: string;
+    ratingSubmit: string;
+    ratingLater: string;
+    feedbackSuccess: string;
+    feedbackError: string;
+    ratingThankYou: string;
+    pdfTranscript: string;
+    pdfTranscriptDescription: string;
+    features: string;
+    copy: string;
+    copied: string;
+    chooseFile: string;
+    pageTitle: string;
+    dropPdf: string;
+    noText: string;
+    noTextToExport: string;
+    selectPdfFile: string;
+    transcribedTextPlaceholder: string;
+    uploadCardTitle: string;
+    transcriptionSuccess: string;
+    fileName: string;
+    fileSize: string;
+    actions: string;
+    actionsDescription: string;
+    exportFailed: string;
+    combinePdf: string;
+    combinePdfDescription: string;
+    combinePdfTitle: string;
+    dropMultiplePdfs: string;
+    filesToCombine: string;
+    addMorePdfs: string;
+    combineAndDownload: string;
+    combineError: string;
+    combineErrorDescription: string;
+    imageToPdf: string;
+    imageToPdfDescription: string;
+    imageToPdfTitle: string;
+    dropImages: string;
+    addMoreImages: string;
+    imagesToConvert: string;
+    convertAndDownload: string;
+    conversionError: string;
+    conversionErrorDescription: string;
+    selectImageFile: string;
+    fileTooLargeTitle: string;
+    convertImageFormat: string;
+    convertImageFormatDescription: string;
+    convertImageFormatTitle: string;
+    dropImageToConvert: string;
+    modelOverloadedTitle: string;
+    modelOverloadedDescription: string;
+    reportBug: string;
+    history: string;
+    seeAll: string;
+    noHistory: string;
+    popularTools: string;
+    otherTools: string;
+    fileTooLargeDescription: (size: number) => string; // Only function-based translation
+}
+
+// Extended type for internal translations (allowing functions)
+type Translations = BaseTranslations;
+
+// Create safe translation resolver that works with React components
+export const resolveTranslation = (value: TranslationValue, size?: number): string => {
+    if (typeof value === 'string') {
+        return value;
+    }
+    return value(size || 25); // Default 25MB limit
 };
 
-// Type guard to check if a translation value is a string
-export const isStringTranslation = (value: TranslationValue): value is string => {
-    return typeof value === 'string';
-};
-
-// Safe getter for string translations
-export const getStringTranslation = (value: TranslationValue): string => {
-    return isStringTranslation(value) ? value : value.toString();
+// Create a translation hook helper
+export const useTranslationResolver = (translations: Translations) => {
+    return {
+        ...translations,
+        // Helper method to resolve dynamic translations
+        getFileTooLargeDescription: (size: number) => translations.fileTooLargeDescription(size)
+    };
 };
 
 const enTranslations: Translations = {

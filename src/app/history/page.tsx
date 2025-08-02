@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { useHistory } from '@/hooks/use-history';
 import { FeaturePageLayout } from '@/layouts/feature-page-layout';
-import { allTranslations } from '@/lib/translations';
+import { allTranslations, createSafeTranslations } from '@/lib/translations';
 import { LanguageContext } from '@/contexts/language-context';
 import { useContext } from 'react';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -31,7 +31,7 @@ export default function HistoryPage() {
     }
 
     const { language } = langContext;
-    const t = useMemo(() => allTranslations[language], [language]);
+    const t = useMemo(() => createSafeTranslations(allTranslations[language]), [language]);
 
     const sortedHistory = useMemo(() => {
         return [...history].sort((a, b) => b.timestamp - a.timestamp);

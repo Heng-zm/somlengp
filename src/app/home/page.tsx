@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { Sidebar } from '@/components/shared/sidebar';
 import { LanguageContext } from '@/contexts/language-context';
-import { allTranslations } from '@/lib/translations';
+import { allTranslations, createSafeTranslations } from '@/lib/translations';
 import { cn } from '@/lib/utils';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Card } from '@/components/ui/card';
@@ -26,7 +26,7 @@ export default function HomePage() {
   }
 
   const { language, toggleLanguage, theme, toggleTheme } = langContext;
-  const t = useMemo(() => allTranslations[language], [language]);
+  const t = useMemo(() => createSafeTranslations(allTranslations[language]), [language]);
   
   useEffect(() => {
     const fetchVisitorCount = async (isIncrement: boolean) => {

@@ -24,7 +24,7 @@ import { NumberPicker } from '@/components/ui/number-picker';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { RatingDialog } from '@/components/shared/rating-dialog';
-import { allTranslations } from '@/lib/translations';
+import { allTranslations, resolveTranslation } from '@/lib/translations';
 import { LanguageContext } from '@/contexts/language-context';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { MAX_FILE_SIZE_BYTES, MAX_FILE_SIZE_MB } from '@/config';
@@ -90,13 +90,13 @@ export function SoundsPage() {
 
     if (errorMessage.includes('503') || errorMessage.includes('model is overloaded')) {
         title = t.modelOverloadedTitle;
-        description = t.modelOverloadedDescription;
+        description = resolveTranslation(t.modelOverloadedDescription);
     } else if (errorMessage.includes('413') || errorMessage.includes('too large')) {
       title = t.fileTooLargeTitle;
-      description = t.fileTooLargeDescription(MAX_FILE_SIZE_MB);
+            description = resolveTranslation(t.fileTooLargeDescription, MAX_FILE_SIZE_MB);
     } else if (errorMessage.includes('429') || errorMessage.includes('rate limit')) {
       title = t.rateLimitExceeded;
-      description = t.rateLimitMessage;
+      description = resolveTranslation(t.rateLimitMessage);
     }
     toast({ title, description, variant: "destructive" });
     clearFile();
@@ -164,7 +164,7 @@ export function SoundsPage() {
     if (file.size > MAX_FILE_SIZE_BYTES) {
         toast({
             title: t.fileTooLargeTitle,
-            description: t.fileTooLargeDescription(MAX_FILE_SIZE_MB),
+            description: resolveTranslation(t.fileTooLargeDescription, MAX_FILE_SIZE_MB),
             variant: "destructive",
         });
         return;
