@@ -11,7 +11,20 @@ const nextConfig = {
   compiler: {
     removeConsole: process.env.NODE_ENV === 'production',
   },
+  // Enable experimental features for better performance
+  experimental: {
+    optimizeCss: true,
+    optimizePackageImports: ['lucide-react', '@radix-ui/react-icons'],
+    serverActions: {
+      bodySizeLimit: '10mb', // Increase from default 1mb to 10mb
+    },
+  },
+  // Optimize images
   images: {
+    formats: ['image/webp', 'image/avif'],
+    deviceSizes: [640, 750, 828, 1080, 1200, 1920, 2048, 3840],
+    imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
+    minimumCacheTTL: 60,
     remotePatterns: [
       {
         protocol: 'https',
@@ -27,6 +40,10 @@ const nextConfig = {
       }
     ],
   },
+  // Optimize bundle
+  poweredByHeader: false,
+  compress: true,
+  
   webpack: (config, { isServer }) => {
     // Handle handlebars and other Node.js modules
     if (!isServer) {
@@ -42,6 +59,21 @@ const nextConfig = {
     config.ignoreWarnings = [
       /require\.extensions is not supported by webpack/,
     ];
+    
+    // Optimize chunks
+    config.optimization = {
+      ...config.optimization,
+      splitChunks: {
+        chunks: 'all',
+        cacheGroups: {
+          vendor: {
+            test: /[\\/]node_modules[\\/]/,
+            name: 'vendors',
+            chunks: 'all',
+          },
+        },
+      },
+    };
     
     return config;
   },

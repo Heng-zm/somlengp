@@ -92,6 +92,11 @@ export default {
         'accordion-up': 'accordion-up 0.2s ease-out',
         'bounce-dot': 'bounce-dot 1.4s infinite ease-in-out both',
       },
+      willChange: {
+        'transform': 'transform',
+        'opacity': 'opacity',
+        'transform-opacity': 'transform, opacity',
+      },
     },
   },
   plugins: [require('tailwindcss-animate')],

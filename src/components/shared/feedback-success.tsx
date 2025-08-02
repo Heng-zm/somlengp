@@ -1,14 +1,16 @@
 "use client";
 
-import { CheckCircle } from 'lucide-react';
+import { CheckCircle, X } from 'lucide-react';
 import { useEffect, useState } from 'react';
+import { Button } from '@/components/ui/button';
 
 interface FeedbackSuccessProps {
   message: string;
   onAnimationEnd: () => void;
+  onClose?: () => void;
 }
 
-export function FeedbackSuccess({ message, onAnimationEnd }: FeedbackSuccessProps) {
+export function FeedbackSuccess({ message, onAnimationEnd, onClose }: FeedbackSuccessProps) {
   const [visible, setVisible] = useState(false);
 
   useEffect(() => {
@@ -18,18 +20,40 @@ export function FeedbackSuccess({ message, onAnimationEnd }: FeedbackSuccessProp
     // Trigger close after animation + delay
     const timer = setTimeout(() => {
       onAnimationEnd();
-    }, 2000); // 500ms animation + 1500ms wait
+    }, 3000); // 500ms animation + 2500ms wait (longer for user to read)
 
     return () => clearTimeout(timer);
   }, [onAnimationEnd]);
 
+  const handleClose = () => {
+    if (onClose) {
+      onClose();
+    } else {
+      onAnimationEnd();
+    }
+  };
+
   return (
-    <div className="flex flex-col items-center justify-center gap-4 text-center transition-opacity duration-500 ease-in-out" style={{ opacity: visible ? 1 : 0 }}>
+    <div className="relative flex flex-col items-center justify-center gap-4 text-center transition-opacity duration-500 ease-in-out" style={{ opacity: visible ? 1 : 0 }}>
+      {/* Manual close button */}
+      <Button
+        variant="ghost"
+        size="icon"
+        className="absolute -top-2 -right-2 h-8 w-8 rounded-full opacity-70 hover:opacity-100"
+        onClick={handleClose}
+      >
+        <X className="h-4 w-4" />
+        <span className="sr-only">Close</span>
+      </Button>
+      
       <CheckCircle 
         className="h-20 w-20 text-green-500 transition-transform duration-500 ease-out" 
         style={{ transform: visible ? 'scale(1)' : 'scale(0.5)' }} 
       />
       <h2 className="text-2xl font-bold">{message}</h2>
+      <p className="text-sm text-muted-foreground mt-2">
+        This dialog will close automatically in a few seconds
+      </p>
     </div>
   );
 }

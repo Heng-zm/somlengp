@@ -12,7 +12,10 @@
     "lint:fix": "next lint --fix",
     "typecheck": "tsc --noEmit",
     "analyze": "cross-env ANALYZE=true next build",
-    "check-all": "npm run typecheck && npm run lint"
+    "check-all": "npm run typecheck && npm run lint",
+    "perf:check": "node scripts/performance-check.js",
+    "perf:build": "npm run build && npm run perf:check",
+    "optimize": "npm run perf:check && npm run lint:fix"
   },
   "dependencies": {
     "@genkit-ai/firebase": "^1.15.5",

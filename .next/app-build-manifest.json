@@ -2,29 +2,18 @@
   "pages": {
     "/layout": [
       "static/chunks/webpack.js",
+      "static/chunks/vendors.js",
       "static/chunks/main-app.js",
+      "static/chunks/_app-pages-browser_src_hooks_use-toast_ts-_app-pages-browser_src_layouts_feature-page-layout_tsx.js",
       "static/css/app/layout.css",
       "static/chunks/app/layout.js"
     ],
-    "/home/page": [
+    "/image-to-pdf/page": [
       "static/chunks/webpack.js",
+      "static/chunks/vendors.js",
       "static/chunks/main-app.js",
-      "static/chunks/app/home/page.js"
-    ],
-    "/api/visit/route": [
-      "static/chunks/webpack.js",
-      "static/chunks/main-app.js",
-      "static/chunks/app/api/visit/route.js"
-    ],
-    "/voice-transcript/page": [
-      "static/chunks/webpack.js",
-      "static/chunks/main-app.js",
-      "static/chunks/app/voice-transcript/page.js"
-    ],
-    "/text-to-speech/page": [
-      "static/chunks/webpack.js",
-      "static/chunks/main-app.js",
-      "static/chunks/app/text-to-speech/page.js"
+      "static/chunks/_app-pages-browser_src_hooks_use-toast_ts-_app-pages-browser_src_layouts_feature-page-layout_tsx.js",
+      "static/chunks/app/image-to-pdf/page.js"
     ]
   }
 }
