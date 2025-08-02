@@ -58,7 +58,7 @@ export function PdfTranscriptPage() {
     }
   }
   
-  const handleError = (error: Error | { message: string }) => {
+  const handleError = useCallback((error: Error | { message: string }) => {
     console.error(error);
     const errorMessage = (error.message || '').toLowerCase();
     let title = t.transcriptionError;
@@ -76,7 +76,7 @@ export function PdfTranscriptPage() {
     }
     toast({ title, description, variant: "destructive" });
     clearFile();
-  };
+  }, [t, toast]);
   
   const handleFileSelect = useCallback(async (file: File | null | undefined) => {
     if (!file) return;

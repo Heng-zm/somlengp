@@ -10,7 +10,7 @@ export const MAX_FILE_SIZE_MB = 100000; // 100GB - effectively no limit
  * The maximum file size in bytes.
  * Derived from MAX_FILE_SIZE_MB.
  */
-export const MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024;
+export const MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE_MB * 10240 * 10240;
 
 /**
  * The maximum size for a base64-encoded string, accounting for the ~37% overhead.

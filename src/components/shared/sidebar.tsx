@@ -7,7 +7,7 @@ import { usePathname } from 'next/navigation';
 import { Languages, FileText, LifeBuoy, Mic, Combine, Image as ImageIcon, Wand2, FileHeart, AudioLines, Sun, Moon, History, ArrowRight, Home } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
-import { allTranslations, createSafeTranslations } from '@/lib/translations';
+import { allTranslations } from '@/lib/translations';
 import type { Language } from '@/lib/translations';
 import packageJson from '../../../package.json';
 import { LanguageContext } from '@/contexts/language-context';
@@ -18,7 +18,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 
 export function Sidebar({ language, toggleLanguage }: { language: Language, toggleLanguage: () => void }) {
   const pathname = usePathname();
-const t = useMemo(() => createSafeTranslations(allTranslations[language]), [language]);
+  const t = useMemo(() => allTranslations[language], [language]);
   const langContext = useContext(LanguageContext);
   const { history } = useHistory();
   
