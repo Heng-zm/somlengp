@@ -6,7 +6,7 @@ import { Combine, FileUp, X, File, FilePlus, Download } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { Card } from '@/components/ui/card';
-import { allTranslations } from '@/lib/translations';
+import { allTranslations, resolveTranslation } from '@/lib/translations';
 import { LanguageContext } from '@/contexts/language-context';
 import { cn } from '@/lib/utils';
 import { combinePdf } from '@/ai/flows/combine-pdf-flow';
@@ -120,7 +120,7 @@ export function CombinePdfPage() {
 
         if (errorMessage.includes('413') || errorMessage.includes('too large')) {
             title = t.fileTooLargeTitle;
-            description = t.fileTooLargeDescription(MAX_FILE_SIZE_MB);
+            description = resolveTranslation(t.fileTooLargeDescription, MAX_FILE_SIZE_MB);
         }
         toast({
             title,

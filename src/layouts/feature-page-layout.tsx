@@ -6,7 +6,7 @@ import { ChevronLeft } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { allTranslations } from '@/lib/translations';
+import { allTranslations, createSafeTranslations } from '@/lib/translations';
 import { LanguageContext } from '@/contexts/language-context';
 import { useHistory } from '@/hooks/use-history';
 
@@ -30,7 +30,7 @@ export function FeaturePageLayout({ children, title, showModelSelector = false }
         throw new Error('FeaturePageLayout must be used within an AppLayout');
     }
     const { language } = langContext;
-    const t = useMemo(() => allTranslations[language], [language]);
+    const t = useMemo(() => createSafeTranslations(allTranslations[language]), [language]);
 
     useEffect(() => {
         if (title && pathname) {

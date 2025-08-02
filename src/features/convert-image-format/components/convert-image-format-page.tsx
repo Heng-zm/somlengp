@@ -13,7 +13,7 @@ import {FileUp, X, Download, Wand2, ImagePlus} from 'lucide-react';
 import {Button} from '@/components/ui/button';
 import {useToast} from '@/hooks/use-toast';
 import {Card} from '@/components/ui/card';
-import {allTranslations} from '@/lib/translations';
+import {allTranslations, resolveTranslation} from '@/lib/translations';
 import {LanguageContext} from '@/contexts/language-context';
 import {cn} from '@/lib/utils';
 import Image from 'next/image';
