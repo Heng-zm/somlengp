@@ -1,7 +1,7 @@
 {
   "/_not-found/page": "app/_not-found/page.js",
+  "/favicon.ico/route": "app/favicon.ico/route.js",
   "/home/page": "app/home/page.js",
   "/voice-transcript/page": "app/voice-transcript/page.js",
-  "/image-to-pdf/page": "app/image-to-pdf/page.js",
-  "/pdf-transcript/page": "app/pdf-transcript/page.js"
+  "/image-to-pdf/page": "app/image-to-pdf/page.js"
 }
