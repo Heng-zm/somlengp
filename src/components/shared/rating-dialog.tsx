@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState } from 'react';
+import { useState, memo } from 'react';
 import { Star, MessageSquare } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
@@ -31,7 +31,7 @@ interface RatingDialogProps {
   };
 }
 
-export function RatingDialog({ open, onOpenChange, onSubmit, translations }: RatingDialogProps) {
+export const RatingDialog = memo(function RatingDialog({ open, onOpenChange, onSubmit, translations }: RatingDialogProps) {
   const [rating, setRating] = useState(0);
   const [hoverRating, setHoverRating] = useState(0);
   const [feedback, setFeedback] = useState('');
@@ -125,4 +125,4 @@ export function RatingDialog({ open, onOpenChange, onSubmit, translations }: Rat
       </DialogContent>
     </Dialog>
   );
-}
+});

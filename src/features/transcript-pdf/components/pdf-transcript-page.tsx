@@ -16,6 +16,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { MAX_FILE_SIZE_BYTES, MAX_FILE_SIZE_MB } from '@/config';
 import { ThreeDotsLoader } from '@/components/shared/three-dots-loader';
+import { formatFileSize } from '@/lib/format-file-size';
 
 const blobToBase64 = (blob: Blob): Promise<string> => {
   return new Promise((resolve, reject) => {
@@ -205,7 +206,7 @@ export function PdfTranscriptPage() {
                             <div className="flex items-center gap-2 overflow-hidden">
                                 <FileText className="w-5 h-5 text-primary"/>
                                 <span className="font-medium truncate">{pdfFile.name}</span>
-                                <span className="text-sm text-muted-foreground">{`${(pdfFile.size / 1024 / 1024).toFixed(2)} MB`}</span>
+                                <span className="text-sm text-muted-foreground">{formatFileSize(pdfFile.size)}</span>
                             </div>
                             <Button onClick={clearFile} variant="ghost" size="icon" className="rounded-full">
                                 <X className="w-4 h-4" />

@@ -1,7 +1,7 @@
 "use client";
 
 import { CheckCircle, X } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState, memo } from 'react';
 import { Button } from '@/components/ui/button';
 
 interface FeedbackSuccessProps {
@@ -10,7 +10,7 @@ interface FeedbackSuccessProps {
   onClose?: () => void;
 }
 
-export function FeedbackSuccess({ message, onAnimationEnd, onClose }: FeedbackSuccessProps) {
+const FeedbackSuccess = memo(function FeedbackSuccess({ message, onAnimationEnd, onClose }: FeedbackSuccessProps) {
   const [visible, setVisible] = useState(false);
 
   useEffect(() => {
@@ -25,16 +25,24 @@ export function FeedbackSuccess({ message, onAnimationEnd, onClose }: FeedbackSu
     return () => clearTimeout(timer);
   }, [onAnimationEnd]);
 
-  const handleClose = () => {
+  const handleClose = useCallback(() => {
     if (onClose) {
       onClose();
     } else {
       onAnimationEnd();
     }
-  };
+  }, [onClose, onAnimationEnd]);
+
+  const containerStyle = useMemo(() => ({
+    opacity: visible ? 1 : 0
+  }), [visible]);
+
+  const iconStyle = useMemo(() => ({
+    transform: visible ? 'scale(1)' : 'scale(0.5)'
+  }), [visible]);
 
   return (
-    <div className="relative flex flex-col items-center justify-center gap-4 text-center transition-opacity duration-500 ease-in-out" style={{ opacity: visible ? 1 : 0 }}>
+    <div className="relative flex flex-col items-center justify-center gap-4 text-center transition-opacity duration-500 ease-in-out" style={containerStyle}>
       {/* Manual close button */}
       <Button
         variant="ghost"
@@ -48,7 +56,7 @@ export function FeedbackSuccess({ message, onAnimationEnd, onClose }: FeedbackSu
       
       <CheckCircle 
         className="h-20 w-20 text-green-500 transition-transform duration-500 ease-out" 
-        style={{ transform: visible ? 'scale(1)' : 'scale(0.5)' }} 
+        style={iconStyle} 
       />
       <h2 className="text-2xl font-bold">{message}</h2>
       <p className="text-sm text-muted-foreground mt-2">
@@ -56,4 +64,6 @@ export function FeedbackSuccess({ message, onAnimationEnd, onClose }: FeedbackSu
       </p>
     </div>
   );
-}
+});
+
+export { FeedbackSuccess };

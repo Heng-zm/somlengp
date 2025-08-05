@@ -9,7 +9,6 @@ import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { allTranslations } from '@/lib/translations';
 import type { Language } from '@/lib/translations';
-import packageJson from '../../../package.json';
 import { LanguageContext } from '@/contexts/language-context';
 import { useHistory } from '@/hooks/use-history';
 import { Separator } from '../ui/separator';
