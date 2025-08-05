@@ -36,8 +36,12 @@ import {Label} from '@/components/ui/label';
 import JSZip from 'jszip';
 import { ThreeDotsLoader } from '@/components/shared/three-dots-loader';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { formatTotalFileSize } from '@/lib/format-file-size';
 
 type TargetFormat = 'jpeg' | 'png' | 'webp' | 'bmp' | 'gif' | 'avif';
+
+// Move inline styles outside component to prevent re-renders
+const imageStyle: React.CSSProperties = { objectFit: 'cover' };
 
 const clientSideConvert = (
   file: File,
@@ -236,6 +240,7 @@ export function ConvertImageFormatPage() {
                   <Card className="flex flex-col">
                     <div className="p-4 border-b">
                         <h3 className="text-lg font-semibold">{t.imagesToConvert} ({files.length})</h3>
+                        <p className="text-sm text-muted-foreground mt-1">Total size: {formatTotalFileSize(files)}</p>
                     </div>
                     <ScrollArea className="flex-grow p-4">
                       <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
@@ -246,7 +251,7 @@ export function ConvertImageFormatPage() {
                                       alt={`Preview ${index}`}
                                       fill
                                       sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, (max-width: 1024px) 25vw, 20vw"
-                                      style={{ objectFit: 'cover' }}
+                                      style={imageStyle}
                                       className="transition-transform duration-300 group-hover:scale-105"
                                   />
                                   <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">

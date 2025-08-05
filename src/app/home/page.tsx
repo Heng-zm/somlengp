@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useContext, useMemo, useState, useEffect, memo, Suspense } from 'react';
+import { useContext, useMemo, useState, useEffect, memo } from 'react';
 import Link from 'next/link';
 import { Mic, FileText, Menu, Combine, Image as ImageIcon, Users, Wand2, AudioLines, Sun, Moon, ArrowRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';

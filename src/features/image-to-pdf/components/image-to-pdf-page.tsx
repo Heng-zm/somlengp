@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState, useMemo, useContext, useRef, useEffect } from 'react';
+import { useState, useMemo, useContext, useRef, useEffect, memo, useCallback } from 'react';
 import { FileUp, X, ImagePlus, Download } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
@@ -13,6 +13,7 @@ import { imageToPdf } from '@/ai/flows/image-to-pdf-flow';
 import Image from 'next/image';
 import { ThreeDotsLoader } from '@/components/shared/three-dots-loader';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { formatTotalFileSize } from '@/lib/format-file-size';
 
 const blobToBase64 = (blob: Blob): Promise<string> => {
     return new Promise((resolve, reject) => {
@@ -41,7 +42,9 @@ const dataUriToBlob = (dataUri: string): Blob => {
 }
 
 
-export function ImageToPdfPage() {
+const imageObjectFitStyle = { objectFit: 'cover' as const };
+
+const ImageToPdfPage = memo(function ImageToPdfPage() {
   const [files, setFiles] = useState<File[]>([]);
   const [isConverting, setIsConverting] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
@@ -93,7 +96,7 @@ export function ImageToPdfPage() {
     }
   };
   
-  const handleRemoveFile = (index: number) => {
+  const handleRemoveFile = useCallback((index: number) => {
     setFiles(prev => {
         const newFiles = prev.filter((_, i) => i !== index);
         if (newFiles.length === 0 && fileInputRef.current) {
@@ -101,7 +104,7 @@ export function ImageToPdfPage() {
         }
         return newFiles;
     });
-  };
+  }, []);
   
   const handleConvert = async () => {
     if (files.length === 0) {
@@ -195,6 +198,7 @@ export function ImageToPdfPage() {
                         <Card className="flex flex-col">
                             <div className="p-4 border-b">
                                 <h3 className="text-lg font-semibold">{t.imagesToConvert} ({files.length})</h3>
+                                <p className="text-sm text-muted-foreground mt-1">Total size: {formatTotalFileSize(files)}</p>
                             </div>
                             <ScrollArea className="flex-grow p-4">
                               <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
@@ -205,7 +209,7 @@ export function ImageToPdfPage() {
                                                   alt={`Preview ${index}`} 
                                                   fill
                                                   sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, (max-width: 1024px) 25vw, 20vw"
-                                                  style={{ objectFit: 'cover' }}
+                                                  style={imageObjectFitStyle}
                                                   className="transition-transform duration-300 group-hover:scale-105"
                                           />
                                           <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
@@ -262,4 +266,6 @@ export function ImageToPdfPage() {
         </footer>
     </div>
   );
-}
+});
+
+export { ImageToPdfPage };

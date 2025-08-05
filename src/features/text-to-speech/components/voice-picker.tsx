@@ -6,7 +6,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
 import { cn } from "@/lib/utils";
 import { User, UserRound, Play, LoaderCircle, Pause } from "lucide-react";
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, memo, useCallback, useMemo } from "react";
 import { textToSpeech } from "@/ai/flows/text-to-speech-flow";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
@@ -31,7 +31,7 @@ interface VoicePickerProps {
     disabled?: boolean;
 }
 
-export function VoicePicker({ selectedValue, onValueChange, disabled }: VoicePickerProps) {
+const VoicePicker = memo(function VoicePicker({ selectedValue, onValueChange, disabled }: VoicePickerProps) {
     const [previews, setPreviews] = useState<Record<string, string>>({});
     const [loadingPreview, setLoadingPreview] = useState<string | null>(null);
     const [playingPreview, setPlayingPreview] = useState<string | null>(null);
@@ -61,15 +61,15 @@ export function VoicePicker({ selectedValue, onValueChange, disabled }: VoicePic
         };
     }, []);
 
-    const stopCurrentPreview = () => {
+    const stopCurrentPreview = useCallback(() => {
         if (audioRef.current) {
             audioRef.current.pause();
             audioRef.current.currentTime = 0;
         }
         setPlayingPreview(null);
-    };
+    }, []);
 
-    const handlePreview = async (e: React.MouseEvent, voiceValue: string) => {
+    const handlePreview = useCallback(async (e: React.MouseEvent, voiceValue: string) => {
         e.stopPropagation(); // Prevent card selection when clicking preview button
         if (loadingPreview) return;
     
@@ -113,15 +113,22 @@ export function VoicePicker({ selectedValue, onValueChange, disabled }: VoicePic
         } finally {
             setLoadingPreview(null);
         }
-    };
+    }, [loadingPreview, playingPreview, previews, stopCurrentPreview, toast]);
+    const carouselOpts = useMemo(() => ({
+        align: "start" as const,
+        loop: false,
+    }), []);
+
+    const handleCardClick = useCallback((voiceValue: string) => {
+        if (!disabled) {
+            onValueChange(voiceValue);
+        }
+    }, [disabled, onValueChange]);
     
     return (
         <div className="relative">
             <Carousel 
-                opts={{
-                    align: "start",
-                    loop: false,
-                }}
+                opts={carouselOpts}
                 className="w-full"
             >
                 <CarouselContent>
@@ -129,7 +136,7 @@ export function VoicePicker({ selectedValue, onValueChange, disabled }: VoicePic
                         <CarouselItem key={voice.value} className="basis-1/2 sm:basis-1/3 md:basis-1/4 lg:basis-1/5 xl:basis-1/6">
                             <div 
                                 className="p-1"
-                                onClick={() => !disabled && onValueChange(voice.value)}
+                                onClick={() => handleCardClick(voice.value)}
                             >
                                 <Card 
                                     className={cn(
@@ -183,4 +190,6 @@ export function VoicePicker({ selectedValue, onValueChange, disabled }: VoicePic
             />
         </div>
     );
-}
+});
+
+export { VoicePicker };

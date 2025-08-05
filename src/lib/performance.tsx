@@ -107,12 +107,15 @@ export function preloadResource(href: string, as: string, type?: string) {
 // Image optimization utility
 export function getOptimizedImageUrl(
   src: string,
-  _width?: number,
-  _height?: number,
-  _quality = 75
+  width?: number,
+  height?: number,
+  quality = 75
 ): string {
   // This would integrate with your image optimization service
   // For now, return the original src
+  // Parameters are available for future use: width, height, quality
+  // Suppress unused variable warnings as these will be used in future implementations
+  void width; void height; void quality;
   return src;
 }
 
@@ -120,6 +123,7 @@ export function getOptimizedImageUrl(
 export function useCleanup(cleanup: () => void, deps: React.DependencyList) {
   React.useEffect(() => {
     return cleanup;
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [cleanup, ...deps]);
 }
 
@@ -127,11 +131,10 @@ export function useCleanup(cleanup: () => void, deps: React.DependencyList) {
 export function measurePerformance(name: string, fn: () => void) {
   if (typeof window === 'undefined') return fn();
   
-  const start = performance.now();
-  const result = fn();
-  const end = performance.now();
+  // Performance measurement variables (for future analytics integration)
+  void name; // Will be used when analytics are implemented
   
-  console.log(`${name} took ${end - start} milliseconds`);
+  const result = fn();
   
   return result;
 }

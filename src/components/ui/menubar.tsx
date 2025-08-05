@@ -6,11 +6,11 @@ import { Check, ChevronRight, Circle } from "lucide-react"
 
 import { cn } from "@/lib/utils"
 
-function MenubarMenu({
-  ...props
-}: React.ComponentProps<typeof MenubarPrimitive.Menu>) {
-  return <MenubarPrimitive.Menu {...props} />
-}
+const MenubarMenu = React.memo<React.ComponentProps<typeof MenubarPrimitive.Menu>>(
+  function MenubarMenu({ ...props }) {
+    return <MenubarPrimitive.Menu {...props} />
+  }
+)
 
 function MenubarGroup({
   ...props
@@ -220,21 +220,20 @@ const MenubarSeparator = React.forwardRef<
 ))
 MenubarSeparator.displayName = MenubarPrimitive.Separator.displayName
 
-const MenubarShortcut = ({
-  className,
-  ...props
-}: React.HTMLAttributes<HTMLSpanElement>) => {
-  return (
-    <span
-      className={cn(
-        "ml-auto text-xs tracking-widest text-muted-foreground",
-        className
-      )}
-      {...props}
-    />
-  )
-}
-MenubarShortcut.displayname = "MenubarShortcut"
+const MenubarShortcut = React.memo<React.HTMLAttributes<HTMLSpanElement>>(
+  function MenubarShortcut({ className, ...props }) {
+    return (
+      <span
+        className={cn(
+          "ml-auto text-xs tracking-widest text-muted-foreground",
+          className
+        )}
+        {...props}
+      />
+    )
+  }
+)
+MenubarShortcut.displayName = "MenubarShortcut"
 
 export {
   Menubar,

@@ -62,7 +62,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
     toggleLanguage,
     theme,
     toggleTheme,
-  }), [language, theme]);
+  }), [language, theme, toggleLanguage, toggleTheme]);
 
   return (
     <LanguageContext.Provider value={contextValue}>

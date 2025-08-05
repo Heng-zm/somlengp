@@ -1,6 +1,7 @@
 
 "use client";
 
+import { memo } from "react";
 import { Textarea } from "@/components/ui/textarea";
 
 interface EditorViewProps {
@@ -9,7 +10,7 @@ interface EditorViewProps {
   disabled: boolean;
 }
 
-export function EditorView({ transcript, onTranscriptChange, disabled }: EditorViewProps) {
+export const EditorView = memo(function EditorView({ transcript, onTranscriptChange, disabled }: EditorViewProps) {
   return (
     <div className="relative h-full w-full">
       <Textarea
@@ -22,4 +23,4 @@ export function EditorView({ transcript, onTranscriptChange, disabled }: EditorV
       />
     </div>
   );
-}
+});

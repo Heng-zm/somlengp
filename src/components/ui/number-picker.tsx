@@ -11,18 +11,21 @@ interface NumberPickerProps {
   onChange: (value: number | undefined) => void;
 }
 
-export function NumberPicker({
+export const NumberPicker = React.memo<NumberPickerProps>(function NumberPicker({
   min = 1,
   max = 30,
   value,
   onChange,
-}: NumberPickerProps) {
-  const numbers = Array.from({ length: max - min + 1 }, (_, i) => i + min);
+}) {
+  const numbers = React.useMemo(
+    () => Array.from({ length: max - min + 1 }, (_, i) => i + min),
+    [min, max]
+  );
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const [internalValue, setInternalValue] = useState(value);
   const isInteracting = useRef(false);
 
-  const scrollToValue = (val: number) => {
+  const scrollToValue = React.useCallback((val: number) => {
     const container = scrollContainerRef.current;
     if (container) {
       const selectedElement = container.querySelector(`[data-value="${val}"]`) as HTMLElement;
@@ -33,7 +36,7 @@ export function NumberPicker({
         container.scrollTo({ left: scrollLeft, behavior: 'smooth' });
       }
     }
-  };
+  }, []);
   
   // Set initial scroll position and update when value prop changes
   useEffect(() => {
@@ -41,7 +44,7 @@ export function NumberPicker({
       setInternalValue(value);
       scrollToValue(value);
     }
-  }, [value]);
+  }, [value, scrollToValue]);
 
   const handleScroll = () => {
     if (!isInteracting.current) return;
@@ -90,11 +93,11 @@ export function NumberPicker({
     isInteracting.current = true;
   }
 
-  const handleClick = (num: number) => {
+  const handleClick = React.useCallback((num: number) => {
     setInternalValue(num);
     onChange(num);
     scrollToValue(num);
-  }
+  }, [onChange, scrollToValue]);
 
   return (
     <div className="relative w-full h-16 flex items-center justify-center overflow-hidden">
@@ -125,4 +128,4 @@ export function NumberPicker({
       <div className="absolute inset-y-0 left-1/2 -translate-x-1/2 w-0.5 bg-primary/20" aria-hidden="true" />
     </div>
   );
-}
+});

@@ -13,6 +13,7 @@ import { combinePdf } from '@/ai/flows/combine-pdf-flow';
 import { MAX_FILE_SIZE_MB } from '@/config';
 import { ThreeDotsLoader } from '@/components/shared/three-dots-loader';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { formatFileSize, formatTotalFileSize } from '@/lib/format-file-size';
 
 const blobToBase64 = (blob: Blob): Promise<string> => {
     return new Promise((resolve, reject) => {
@@ -182,6 +183,7 @@ export function CombinePdfPage() {
                   <Card className="flex flex-col">
                     <div className="p-4 border-b">
                         <h3 className="text-lg font-semibold">{t.filesToCombine} ({files.length})</h3>
+                        <p className="text-sm text-muted-foreground mt-1">Total size: {formatTotalFileSize(files)}</p>
                     </div>
                     <ScrollArea className="flex-grow p-4">
                         <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
@@ -189,7 +191,7 @@ export function CombinePdfPage() {
                                <Card key={index} className="relative group aspect-square flex flex-col items-center justify-center p-2 text-center transition-shadow hover:shadow-md">
                                    <File className="w-12 h-12 text-primary mb-2"/>
                                    <p className="text-sm font-medium truncate w-full">{file.name}</p>
-                                   <p className="text-xs text-muted-foreground">{`${(file.size / 1024 / 1024).toFixed(2)} MB`}</p>
+                                   <p className="text-xs text-muted-foreground">{formatFileSize(file.size)}</p>
                                    <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity rounded-lg">
                                      <Button variant="destructive" size="icon" onClick={() => handleRemoveFile(index)}>
                                          <X className="w-5 h-5"/>

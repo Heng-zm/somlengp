@@ -16,7 +16,7 @@ const nextConfig = {
     optimizeCss: true,
     optimizePackageImports: ['lucide-react', '@radix-ui/react-icons'],
     serverActions: {
-      bodySizeLimit: '10mb', // Increase from default 1mb to 10mb
+      bodySizeLimit: '50mb', // Increase to 50mb for large image files
     },
   },
   // Optimize images
@@ -60,15 +60,57 @@ const nextConfig = {
       /require\.extensions is not supported by webpack/,
     ];
     
-    // Optimize chunks
+    // Enhanced bundle splitting for better performance
     config.optimization = {
       ...config.optimization,
       splitChunks: {
         chunks: 'all',
+        minSize: 20000,
+        maxSize: 250000,
+        minRemainingSize: 0,
+        minChunks: 1,
+        maxAsyncRequests: 30,
+        maxInitialRequests: 30,
+        enforceSizeThreshold: 50000,
         cacheGroups: {
+          default: {
+            minChunks: 2,
+            priority: -20,
+            reuseExistingChunk: true,
+          },
           vendor: {
             test: /[\\/]node_modules[\\/]/,
             name: 'vendors',
+            priority: -10,
+            chunks: 'all',
+            maxSize: 500000,
+          },
+          // Separate React and React-DOM
+          react: {
+            test: /[\\/]node_modules[\\/](react|react-dom)[\\/]/,
+            name: 'react',
+            priority: 20,
+            chunks: 'all',
+          },
+          // Separate UI libraries
+          ui: {
+            test: /[\\/]node_modules[\\/](@radix-ui|lucide-react)[\\/]/,
+            name: 'ui',
+            priority: 15,
+            chunks: 'all',
+          },
+          // Charts library
+          charts: {
+            test: /[\\/]node_modules[\\/](recharts)[\\/]/,
+            name: 'charts',
+            priority: 10,
+            chunks: 'all',
+          },
+          // AI and Firebase libraries
+          ai: {
+            test: /[\\/]node_modules[\\/](@genkit-ai|firebase)[\\/]/,
+            name: 'ai',
+            priority: 5,
             chunks: 'all',
           },
         },
