@@ -189,6 +189,25 @@
       "static/chunks/main-app-6c28d431d3e88c13.js",
       "static/chunks/app/page-0276c7bf8c942c46.js"
     ],
+    "/text-to-speech/page": [
+      "static/chunks/webpack-5378da01e846714e.js",
+      "static/chunks/vendors-c0d76f48-f2a499493f9bc5a7.js",
+      "static/chunks/vendors-ad6a2f20-645b63faf4218074.js",
+      "static/chunks/vendors-e29bb037-50312373883792b0.js",
+      "static/chunks/vendors-a83425b3-ae86f4c4c787e4f9.js",
+      "static/chunks/vendors-27f02048-802cf0bf2b4583a8.js",
+      "static/chunks/vendors-1fe1241d-13666ce82afdf50c.js",
+      "static/chunks/vendors-6808aa01-6951166999069e4a.js",
+      "static/chunks/vendors-ff30e0d3-ecfcc68ba2dc404c.js",
+      "static/chunks/vendors-cfb98476-16b0a8a6be75b20c.js",
+      "static/chunks/vendors-0fbe0e3f-0064403436805642.js",
+      "static/chunks/vendors-2898f16f-08250d4800f0ad70.js",
+      "static/chunks/vendors-fa70753b-91b67d8b199e594f.js",
+      "static/chunks/main-app-6c28d431d3e88c13.js",
+      "static/chunks/ui-62e32967-01ca3557a6c7f022.js",
+      "static/chunks/ui-abda2f14-5fed47b3fdebe76b.js",
+      "static/chunks/app/text-to-speech/page-0d708d815163bb6b.js"
+    ],
     "/pdf-transcript/page": [
       "static/chunks/webpack-5378da01e846714e.js",
       "static/chunks/vendors-c0d76f48-f2a499493f9bc5a7.js",
@@ -209,25 +228,6 @@
       "static/chunks/875-2e370e84a4f2f6a3.js",
       "static/chunks/569-dcbfa02a7fc25482.js",
       "static/chunks/app/pdf-transcript/page-08df216e2ecfac7c.js"
-    ],
-    "/text-to-speech/page": [
-      "static/chunks/webpack-5378da01e846714e.js",
-      "static/chunks/vendors-c0d76f48-f2a499493f9bc5a7.js",
-      "static/chunks/vendors-ad6a2f20-645b63faf4218074.js",
-      "static/chunks/vendors-e29bb037-50312373883792b0.js",
-      "static/chunks/vendors-a83425b3-ae86f4c4c787e4f9.js",
-      "static/chunks/vendors-27f02048-802cf0bf2b4583a8.js",
-      "static/chunks/vendors-1fe1241d-13666ce82afdf50c.js",
-      "static/chunks/vendors-6808aa01-6951166999069e4a.js",
-      "static/chunks/vendors-ff30e0d3-ecfcc68ba2dc404c.js",
-      "static/chunks/vendors-cfb98476-16b0a8a6be75b20c.js",
-      "static/chunks/vendors-0fbe0e3f-0064403436805642.js",
-      "static/chunks/vendors-2898f16f-08250d4800f0ad70.js",
-      "static/chunks/vendors-fa70753b-91b67d8b199e594f.js",
-      "static/chunks/main-app-6c28d431d3e88c13.js",
-      "static/chunks/ui-62e32967-01ca3557a6c7f022.js",
-      "static/chunks/ui-abda2f14-5fed47b3fdebe76b.js",
-      "static/chunks/app/text-to-speech/page-0d708d815163bb6b.js"
     ],
     "/voice-transcript/page": [
       "static/chunks/webpack-5378da01e846714e.js",
