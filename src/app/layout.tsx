@@ -4,6 +4,7 @@ import {Toaster} from '@/components/ui/toaster';
 import './globals.css';
 import { GoogleAnalytics } from '@next/third-parties/google'; // Keep this import
 import { AppLayout } from '@/layouts/app-layout';
+import { AuthProvider } from '@/contexts/auth-context';
 import { Kantumruy_Pro } from 'next/font/google';
 
 const kantumruy = Kantumruy_Pro({
@@ -75,9 +76,11 @@ export default function RootLayout({
           gtag('config', 'G-GQPSM8WTZY');
         </script> */}
 
-        <AppLayout>
-          {children}
-        </AppLayout>
+        <AuthProvider>
+          <AppLayout>
+            {children}
+          </AppLayout>
+        </AuthProvider>
         <Toaster />
 
         {/* This is the correct way to add Google Analytics in Next.js App Router */}

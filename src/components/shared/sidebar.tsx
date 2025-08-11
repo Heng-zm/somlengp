@@ -14,6 +14,7 @@ import { useHistory } from '@/hooks/use-history';
 import { Separator } from '../ui/separator';
 import Image from 'next/image';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { LoginButton } from '@/components/auth/login-button';
 
 export function Sidebar({ language, toggleLanguage }: { language: Language, toggleLanguage: () => void }) {
   const pathname = usePathname();
@@ -54,14 +55,19 @@ export function Sidebar({ language, toggleLanguage }: { language: Language, togg
 
   return (
     <aside className="w-full h-full flex flex-col bg-transparent">
-      <div className="flex-shrink-0 p-4 border-b flex justify-between items-center">
-        <Link href="/home" className="flex items-center gap-2">
-          <Image src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRfXQ6IUyl8D8fpZl8p9BvXg-PCxKPa-1vOp0oPC2-uKH-H_M1T" alt="logo" width={32} height={32} data-ai-hint="logo" className="rounded-full" />
-          <div>
-            <h1 className="text-xl font-bold">VoiceScribe</h1>
-            <p className="text-xs text-muted-foreground">Version 2.2.5</p>
-          </div>
-        </Link>
+      <div className="flex-shrink-0 p-4 border-b">
+        <div className="flex justify-between items-center mb-3">
+          <Link href="/home" className="flex items-center gap-2">
+            <Image src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRfXQ6IUyl8D8fpZl8p9BvXg-PCxKPa-1vOp0oPC2-uKH-H_M1T" alt="logo" width={32} height={32} data-ai-hint="logo" className="rounded-full" />
+            <div>
+              <h1 className="text-xl font-bold">VoiceScribe</h1>
+              <p className="text-xs text-muted-foreground">Version 2.2.5</p>
+            </div>
+          </Link>
+        </div>
+        <div className="flex justify-center">
+          <LoginButton variant="modern" />
+        </div>
       </div>
 
       <ScrollArea className="flex-grow">

@@ -13,6 +13,7 @@ import { cn } from '@/lib/utils';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Card } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { LoginButton } from '@/components/auth/login-button';
 import Image from 'next/image';
 
 const VISITOR_SESSION_KEY = 'ozo-designer-session-visited';
@@ -89,6 +90,7 @@ export default function HomePage() {
           </div>
         </div>
         <div className="flex items-center gap-2">
+            <LoginButton variant="circle" />
             <Button variant="ghost" size="icon" onClick={toggleTheme} className="hidden md:inline-flex" type="button">
                 {theme === 'dark' ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
             </Button>

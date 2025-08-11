@@ -9,7 +9,7 @@ const nextConfig = {
   },
   // Performance optimizations
   compiler: {
-    removeConsole: process.env.NODE_ENV === 'production',
+    removeConsole: true, // Remove console logs in all environments
   },
   // Enable experimental features for better performance
   experimental: {
