@@ -18,11 +18,11 @@
     "optimize": "npm run perf:check && npm run lint:fix"
   },
   "dependencies": {
-    "@next/third-parties": "^15.4.5",
     "@genkit-ai/firebase": "^1.15.5",
     "@genkit-ai/googleai": "^1.15.5",
     "@genkit-ai/next": "^1.15.5",
     "@hookform/resolvers": "^4.1.3",
+    "@next/third-parties": "^15.4.5",
     "@opentelemetry/exporter-jaeger": "^2.0.1",
     "@opentelemetry/winston-transport": "^0.14.0",
     "@radix-ui/react-accordion": "^1.2.3",
@@ -61,6 +61,7 @@
     "lodash.isequal": "^4.5.0",
     "lucide-react": "^0.460.0",
     "next": "^15.0.0",
+    "next-auth": "^4.24.11",
     "patch-package": "^8.0.0",
     "pdf-lib": "^1.17.1",
     "react": "^18.3.1",
