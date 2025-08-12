@@ -21,7 +21,10 @@ if (typeof window !== 'undefined') {
     hasAuthDomain: !!firebaseConfig.authDomain,
     hasProjectId: !!firebaseConfig.projectId,
     authDomain: firebaseConfig.authDomain,
-    projectId: firebaseConfig.projectId
+    projectId: firebaseConfig.projectId,
+    environment: process.env.NODE_ENV,
+    currentDomain: window.location.hostname,
+    currentOrigin: window.location.origin
   });
   
   // Check for missing required fields
@@ -30,7 +33,26 @@ if (typeof window !== 'undefined') {
   
   if (missingFields.length > 0) {
     console.error('Missing required Firebase configuration fields:', missingFields);
-    console.error('Please check your .env file and ensure all required NEXT_PUBLIC_FIREBASE_* variables are set');
+    console.error('Please check your environment variables and ensure all required NEXT_PUBLIC_FIREBASE_* variables are set');
+    console.error('Current environment:', process.env.NODE_ENV);
+    console.error('Current domain:', window.location.hostname);
+    
+    // Show deployment-specific instructions
+    if (process.env.NODE_ENV === 'production') {
+      console.error('🚨 PRODUCTION DEPLOYMENT ISSUE:');
+      console.error('1. Set environment variables in your deployment platform (Vercel, Netlify, etc.)');
+      console.error('2. Add this domain to Firebase Console > Authentication > Settings > Authorized domains');
+      console.error('3. Add this domain to Google Cloud Console > APIs & Services > Credentials');
+    }
+  }
+  
+  // Production-specific domain validation
+  if (process.env.NODE_ENV === 'production') {
+    console.log('🚀 Production deployment detected');
+    console.log('Current domain:', window.location.hostname);
+    console.log('Make sure this domain is added to:');
+    console.log('1. Firebase Console > Authentication > Settings > Authorized domains');
+    console.log('2. Google Cloud Console > APIs & Services > Credentials > OAuth 2.0 Client IDs');
   }
 }
 
