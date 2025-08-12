@@ -272,7 +272,7 @@ export function AIAssistantWidget({ className, variant = 'compact' }: AIAssistan
                       message.role === 'user' ? 'flex-row-reverse space-x-reverse' : ''
                     )}
                   >
-                    <Avatar className="w-6 h-6 flex-shrink-0">
+                    <Avatar className="w-6 h-6 flex-shrink-0 ring-1 ring-white/20">
                       {message.role === 'user' ? (
                         <AvatarFallback className="bg-blue-500 text-white text-xs">
                           <User className="w-3 h-3" />

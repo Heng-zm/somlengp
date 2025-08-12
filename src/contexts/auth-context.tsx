@@ -1,10 +1,10 @@
 "use client";
 
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
-import { User, onAuthStateChanged, signInWithPopup, signInWithRedirect, getRedirectResult, signOut } from 'firebase/auth';
+import { User, onAuthStateChanged, signInWithPopup, signInWithRedirect, getRedirectResult, signOut, deleteUser } from 'firebase/auth';
 import { auth, googleProvider } from '@/lib/firebase';
 import { useToast } from '@/hooks/use-toast';
-import { createUserProfile, getUserProfile, updateLastSignInTime } from '@/lib/user-profile';
+import { createUserProfile, getUserProfile, updateLastSignInTime, deleteUserProfile } from '@/lib/user-profile';
 import { UserProfile } from '@/lib/types';
 
 interface AuthContextType {
@@ -13,6 +13,7 @@ interface AuthContextType {
   loading: boolean;
   signInWithGoogle: (useRedirect?: boolean) => Promise<void>;
   logout: () => Promise<void>;
+  deleteAccount: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -217,12 +218,64 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  const deleteAccount = async () => {
+    if (!user) {
+      toast({
+        title: "Error",
+        description: "No user is currently signed in.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      setLoading(true);
+      
+      // First delete the user profile from Firestore
+      try {
+        await deleteUserProfile(user.uid);
+        console.log('User profile deleted from Firestore');
+      } catch (firestoreError) {
+        console.error('Error deleting user profile from Firestore:', firestoreError);
+        // Continue with auth deletion even if Firestore deletion fails
+      }
+      
+      // Then delete the user from Firebase Auth
+      await deleteUser(user);
+      
+      toast({
+        title: "Success",
+        description: "Your account has been permanently deleted.",
+      });
+    } catch (error: unknown) {
+      const authError = error as { code?: string; message?: string };
+      console.error('Error deleting account:', error);
+      
+      let errorMessage = "Failed to delete account. Please try again.";
+      
+      if (authError.code === 'auth/requires-recent-login') {
+        errorMessage = "For security reasons, please sign out and sign in again before deleting your account.";
+      } else if (authError.code === 'auth/user-not-found') {
+        errorMessage = "User account not found.";
+      }
+      
+      toast({
+        title: "Error",
+        description: errorMessage,
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const value = {
     user,
     userProfile,
     loading,
     signInWithGoogle,
-    logout
+    logout,
+    deleteAccount
   };
 
   return (

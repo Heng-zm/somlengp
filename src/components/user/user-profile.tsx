@@ -54,11 +54,11 @@ export function UserProfile({
 
   return (
     <div className={`flex items-center space-x-3 ${className}`}>
-      <Avatar className={`${sizeClasses.avatar} ring-2 ring-white shadow-lg dark:ring-gray-700`}>
+      <Avatar className={`${sizeClasses.avatar} avatar-border`}>
         <AvatarImage 
           src={user.photoURL || ''} 
           alt={user.displayName || 'User'}
-          className="object-cover"
+          className="avatar-image"
         />
         <AvatarFallback className={`bg-gradient-to-br from-blue-500 to-purple-600 text-white font-bold ${sizeClasses.fallback}`}>
           {user.displayName?.charAt(0) || user.email?.charAt(0) || 'U'}
@@ -68,7 +68,7 @@ export function UserProfile({
       {showName && (
         <div className="flex-1 min-w-0 space-y-1">
           <p className={`font-semibold text-gray-900 dark:text-gray-100 truncate ${sizeClasses.text}`}>
-            {user.displayName || 'User'}
+            {user.displayName || user.email || 'User'}
           </p>
           {!user.displayName && user.email && (
             <p className="text-sm text-gray-600 dark:text-gray-400 truncate">

@@ -46,8 +46,10 @@ export function LoginButton({ variant = 'modern' }: LoginButtonProps) {
   const { user, loading, signInWithGoogle, logout } = useAuth();
   const [isHovered, setIsHovered] = useState(false);
 
-  // Debug logging
-  console.log('LoginButton render:', { user: !!user, loading, variant });
+  // Debug logging (development only)
+  if (process.env.NODE_ENV === 'development') {
+    console.log('LoginButton render:', { user: !!user, loading, variant });
+  }
 
   // Loading state with animated spinner
   if (loading) {
@@ -68,10 +70,14 @@ export function LoginButton({ variant = 'modern' }: LoginButtonProps) {
   }
 
   const handleSignIn = async () => {
-    console.log('Login button clicked, attempting sign in...');
+    if (process.env.NODE_ENV === 'development') {
+      console.log('Login button clicked, attempting sign in...');
+    }
     try {
       await signInWithGoogle();
-      console.log('Sign in function completed');
+      if (process.env.NODE_ENV === 'development') {
+        console.log('Sign in function completed');
+      }
     } catch (error) {
       console.error('Sign in error in LoginButton:', error);
     }
@@ -176,13 +182,13 @@ export function LoginButton({ variant = 'modern' }: LoginButtonProps) {
       <DropdownMenuTrigger asChild>
         <Button 
           variant="ghost" 
-          className="relative h-10 w-10 rounded-full ring-2 ring-transparent hover:ring-primary/20 transition-all duration-200"
+          className="relative h-10 w-10 rounded-full transition-all duration-200 hover:scale-105"
         >
-          <Avatar className="h-9 w-9">
+          <Avatar className="h-9 w-9 avatar-border-highlight hover:avatar-online">
             <AvatarImage 
               src={user.photoURL || ''} 
               alt={user.displayName || 'User'}
-              className="object-cover"
+              className="avatar-image"
             />
             <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-600 text-white font-semibold">
               {user.displayName?.charAt(0) || user.email?.charAt(0) || 'U'}
@@ -197,11 +203,11 @@ export function LoginButton({ variant = 'modern' }: LoginButtonProps) {
         {/* Header with user info */}
         <div className="px-4 py-3 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-950/20 dark:to-purple-950/20">
           <div className="flex items-center space-x-3">
-            <Avatar className="h-12 w-12 ring-2 ring-white/50">
+            <Avatar className="h-12 w-12 avatar-border">
               <AvatarImage 
                 src={user.photoURL || ''} 
                 alt={user.displayName || 'User'}
-                className="object-cover"
+                className="avatar-image"
               />
               <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-600 text-white text-lg font-bold">
                 {user.displayName?.charAt(0) || user.email?.charAt(0) || 'U'}

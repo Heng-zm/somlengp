@@ -135,4 +135,23 @@ body {
     .custom-scrollbar::-webkit-scrollbar-thumb:hover {
       background: hsl(var(--foreground));
     }
+
+    /* Avatar styles to ensure proper circular shape and borders */
+    .avatar-border {
+      @apply ring-2 ring-white/50 shadow-sm dark:ring-gray-700/50;
+    }
+    
+    .avatar-border-highlight {
+      @apply ring-2 ring-primary/30 shadow-md transition-all duration-200;
+    }
+    
+    .avatar-online {
+      @apply ring-2 ring-green-400/50 shadow-md;
+    }
+
+    /* Fix for avatar image loading and border radius inheritance */
+    .avatar-image {
+      @apply aspect-square h-full w-full object-cover object-center;
+      border-radius: inherit;
+    }
 }

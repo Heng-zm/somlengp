@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { UserProfile } from './user-profile';
 import { Clock, User, Zap } from 'lucide-react';
+import { formatAccountAge } from '@/lib/user-profile';
 
 /**
  * Demo component showcasing the user profile features
@@ -28,6 +29,7 @@ export function UserProfileDemo() {
   const userInfo = getUserInfo();
   const accountAge = getAccountAge();
   const timeSinceLastSignIn = getTimeSinceLastSignIn();
+  const accountCreationDate = user.metadata.creationTime ? new Date(user.metadata.creationTime) : null;
 
   return (
     <div className="space-y-6">
@@ -83,7 +85,7 @@ export function UserProfileDemo() {
             <div className="flex items-center justify-between">
               <span className="font-medium">Account Age</span>
               <Badge variant={accountAge < 7 ? "default" : "secondary"}>
-                {accountAge} days
+                {formatAccountAge(accountCreationDate)}
                 {isNewUser() && " 🎉"}
               </Badge>
             </div>

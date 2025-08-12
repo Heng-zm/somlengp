@@ -4,6 +4,7 @@ import {
   updateUserProfile, 
   formatDate, 
   formatRelativeTime,
+  formatAccountAge,
   getUserId,
   getUserCreationTime,
   getUserLastSignInTime
@@ -127,6 +128,7 @@ export function useUserProfile() {
     // Utility functions
     formatDate,
     formatRelativeTime,
+    formatAccountAge,
   };
 }
 
