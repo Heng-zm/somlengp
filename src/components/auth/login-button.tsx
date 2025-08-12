@@ -2,7 +2,7 @@
 
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/auth-context';
-import { LogOut } from 'lucide-react';
+import { LogOut, User } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
   DropdownMenu,
@@ -14,6 +14,7 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import { useState } from 'react';
+import Link from 'next/link';
 
 // Google Colors for branding
 const GoogleIcon = () => (
@@ -225,6 +226,20 @@ export function LoginButton({ variant = 'modern' }: LoginButtonProps) {
 
         <DropdownMenuSeparator className="m-0" />
         
+        {/* Profile Link */}
+        <div className="px-2 py-2">
+          <DropdownMenuItem asChild>
+            <Link 
+              href="/profile"
+              className="cursor-pointer rounded-md px-3 py-2 text-gray-700 hover:text-gray-900 hover:bg-gray-50 dark:text-gray-300 dark:hover:text-gray-100 dark:hover:bg-gray-800 flex items-center"
+            >
+              <User className="mr-3 h-4 w-4" />
+              <span className="font-medium">View Profile</span>
+            </Link>
+          </DropdownMenuItem>
+        </div>
+        
+        <DropdownMenuSeparator className="m-0" />
         
         {/* Sign out */}
         <div className="px-2 py-2">

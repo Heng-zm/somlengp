@@ -2,11 +2,15 @@
 
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { User, onAuthStateChanged, signInWithPopup, signInWithRedirect, getRedirectResult, signOut } from 'firebase/auth';
+import { useRouter } from 'next/navigation';
 import { auth, googleProvider } from '@/lib/firebase';
 import { useToast } from '@/hooks/use-toast';
+import { createUserProfile, getUserProfile, updateLastSignInTime } from '@/lib/user-profile';
+import { UserProfile } from '@/lib/types';
 
 interface AuthContextType {
   user: User | null;
+  userProfile: UserProfile | null;
   loading: boolean;
   signInWithGoogle: (useRedirect?: boolean) => Promise<void>;
   logout: () => Promise<void>;
@@ -16,6 +20,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
+  const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
   
@@ -34,9 +39,35 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     console.log('Setting up auth state listener...');
     
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
       console.log('Auth state changed:', { user: user ? 'logged in' : 'not logged in', uid: user?.uid });
       setUser(user);
+      
+      if (user) {
+        try {
+          // Check if user profile exists
+          let profile = await getUserProfile(user.uid);
+          
+          if (!profile) {
+            // Create new user profile
+            console.log('Creating new user profile for:', user.uid);
+            profile = await createUserProfile(user);
+          } else {
+            // Update last sign-in time
+            console.log('Updating last sign-in time for:', user.uid);
+            await updateLastSignInTime(user.uid);
+          }
+          
+          setUserProfile(profile);
+        } catch (error) {
+          console.error('Error managing user profile:', error);
+          // Don't block auth if profile creation fails
+          setUserProfile(null);
+        }
+      } else {
+        setUserProfile(null);
+      }
+      
       setLoading(false);
     }, (error) => {
       console.error('Auth state change error:', error);
@@ -189,6 +220,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const value = {
     user,
+    userProfile,
     loading,
     signInWithGoogle,
     logout
