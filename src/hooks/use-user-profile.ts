@@ -1,8 +1,6 @@
 import { useState, useEffect } from 'react';
-import { User } from 'firebase/auth';
 import { useAuth } from '@/contexts/auth-context';
 import { 
-  getUserProfile, 
   updateUserProfile, 
   formatDate, 
   formatRelativeTime,

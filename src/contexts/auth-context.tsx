@@ -2,7 +2,6 @@
 
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { User, onAuthStateChanged, signInWithPopup, signInWithRedirect, getRedirectResult, signOut } from 'firebase/auth';
-import { useRouter } from 'next/navigation';
 import { auth, googleProvider } from '@/lib/firebase';
 import { useToast } from '@/hooks/use-toast';
 import { createUserProfile, getUserProfile, updateLastSignInTime } from '@/lib/user-profile';

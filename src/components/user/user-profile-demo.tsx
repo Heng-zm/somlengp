@@ -5,7 +5,7 @@ import { useUserProfile, useDateTime } from '@/hooks/use-user-profile';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { UserProfile } from './user-profile';
-import { Clock, User, Calendar, Zap } from 'lucide-react';
+import { Clock, User, Zap } from 'lucide-react';
 
 /**
  * Demo component showcasing the user profile features

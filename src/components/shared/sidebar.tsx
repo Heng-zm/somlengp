@@ -4,7 +4,7 @@
 import { useContext, useMemo } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Languages, FileText, LifeBuoy, Mic, Combine, Image as ImageIcon, Wand2, FileHeart, AudioLines, Sun, Moon, History, ArrowRight, Home } from 'lucide-react';
+import { Languages, FileText, LifeBuoy, Mic, Combine, Image as ImageIcon, Wand2, FileHeart, AudioLines, Sun, Moon, History, ArrowRight, Home, Bot } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { allTranslations } from '@/lib/translations';
@@ -30,6 +30,7 @@ export function Sidebar({ language, toggleLanguage }: { language: Language, togg
 
   const navItems = useMemo(() => [
     { href: '/home', label: t.home, icon: Home },
+    { href: '/ai-assistant', label: "AI Assistant", icon: Bot, premium: true },
     { href: '/voice-transcript', label: t.voiceScribe, icon: Mic },
     { href: '/text-to-speech', label: "Text to Speech", icon: AudioLines },
     { href: '/pdf-transcript', label: t.pdfTranscript, icon: FileText },
@@ -76,11 +77,16 @@ export function Sidebar({ language, toggleLanguage }: { language: Language, togg
                 <Link key={item.href} href={item.href} passHref>
                   <Button
                     variant={pathname === item.href ? 'secondary' : 'ghost'}
-                    className="w-full justify-start text-base py-6"
+                    className="w-full justify-start text-base py-6 relative"
                     type="button"
                   >
                     <item.icon className="mr-3 h-5 w-5" />
                     {item.label}
+                    {item.premium && (
+                      <span className="ml-auto text-xs bg-gradient-to-r from-blue-500 to-purple-600 text-white px-2 py-1 rounded-full">
+                        Premium
+                      </span>
+                    )}
                   </Button>
                 </Link>
               ))}
