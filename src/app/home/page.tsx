@@ -3,7 +3,7 @@
 
 import { useContext, useMemo, useState, useEffect, memo } from 'react';
 import Link from 'next/link';
-import { Mic, FileText, Menu, Combine, Image as ImageIcon, Users, Wand2, AudioLines, Sun, Moon, ArrowRight } from 'lucide-react';
+import { Mic, FileText, Menu, Combine, Image as ImageIcon, Users, Wand2, AudioLines, Sun, Moon, ArrowRight, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { Sidebar } from '@/components/shared/sidebar';
@@ -14,6 +14,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Card } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { LoginButton } from '@/components/auth/login-button';
+import { AIAssistantWidget } from '@/components/shared/ai-assistant-widget';
 import Image from 'next/image';
 
 const VISITOR_SESSION_KEY = 'ozo-designer-session-visited';
@@ -62,6 +63,7 @@ export default function HomePage() {
   
   const featureCards = useMemo(() => [
     { href: '/voice-transcript', title: t.voiceScribe, description: t.voiceTranscriptDescription, icon: Mic },
+    { href: '/ai-assistant', title: 'AI Assistant', description: 'Chat with an intelligent AI assistant powered by Gemini 1.5 Flash for help with any questions or tasks.', icon: Sparkles },
     { href: '/pdf-transcript', title: t.pdfTranscript, description: t.pdfTranscriptDescription, icon: FileText },
     { href: '/text-to-speech', title: 'Text to Speech', description: 'Convert text into natural-sounding speech.', icon: AudioLines },
     { href: '/combine-pdf', title: t.combinePdf, description: t.combinePdfDescription, icon: Combine },
@@ -148,6 +150,9 @@ export default function HomePage() {
             </div>
         </main>
       </ScrollArea>
+      
+      {/* Floating AI Assistant Widget */}
+      <AIAssistantWidget />
     </div>
   );
 }
