@@ -115,15 +115,36 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       let errorMessage = "Failed to sign in with Google. Please try again.";
       let suggestRedirect = false;
       
+      // Enhanced error handling for production issues
       if (authError.code === 'auth/popup-blocked') {
         errorMessage = "Popup blocked. Trying redirect method...";
         suggestRedirect = true;
       } else if (authError.code === 'auth/popup-closed-by-user') {
         errorMessage = "Sign-in popup was closed. Please try again.";
       } else if (authError.code === 'auth/unauthorized-domain') {
-        errorMessage = "This domain is not authorized. Please check Firebase configuration.";
+        const currentDomain = typeof window !== 'undefined' ? window.location.hostname : 'unknown';
+        errorMessage = `Domain '${currentDomain}' is not authorized. Please add it to Firebase Console > Authentication > Settings > Authorized domains.`;
+        console.error('🚨 DOMAIN NOT AUTHORIZED:', {
+          currentDomain,
+          authDomain: auth.config.authDomain,
+          instructions: 'Add this domain to Firebase Console > Authentication > Settings > Authorized domains'
+        });
       } else if (authError.code === 'auth/invalid-api-key') {
         errorMessage = "Invalid API key. Please check Firebase configuration.";
+        console.error('🚨 INVALID API KEY:', {
+          message: 'Check environment variables in your deployment platform',
+          currentKey: auth.config.apiKey?.substring(0, 10) + '...'
+        });
+      } else if (authError.code === 'auth/operation-not-allowed') {
+        errorMessage = "Google sign-in is not enabled. Please enable it in Firebase Console.";
+        console.error('🚨 GOOGLE SIGN-IN NOT ENABLED:', {
+          instructions: 'Go to Firebase Console > Authentication > Sign-in method > Google'
+        });
+      } else if (authError.code === 'auth/invalid-oauth-client-id') {
+        errorMessage = "OAuth client configuration error. Please check Google Cloud Console.";
+        console.error('🚨 OAUTH CLIENT ERROR:', {
+          instructions: 'Check Google Cloud Console > APIs & Services > Credentials'
+        });
       } else if (authError.message && authError.message.includes('invalid')) {
         errorMessage = "OAuth configuration error. Please check Google Cloud Console settings.";
       }
