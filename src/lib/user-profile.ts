@@ -175,6 +175,29 @@ export function formatRelativeTime(date: Date | null | undefined): string {
 }
 
 /**
+ * Formats account age in a more user-friendly way
+ */
+export function formatAccountAge(date: Date | null | undefined): string {
+  if (!date) return 'Unknown';
+  
+  const now = new Date();
+  const diffInMs = now.getTime() - date.getTime();
+  const diffInDays = Math.floor(diffInMs / (1000 * 60 * 60 * 24));
+  const diffInMonths = Math.floor(diffInDays / 30);
+  const diffInYears = Math.floor(diffInDays / 365);
+  
+  if (diffInDays < 1) {
+    return 'Today';
+  } else if (diffInDays < 30) {
+    return `${diffInDays} day${diffInDays !== 1 ? 's' : ''}`;
+  } else if (diffInMonths < 12) {
+    return `${diffInMonths} month${diffInMonths !== 1 ? 's' : ''}`;
+  } else {
+    return `${diffInYears} year${diffInYears !== 1 ? 's' : ''}`;
+  }
+}
+
+/**
  * Generates a user ID (this is already provided by Firebase Auth, but included for completeness)
  */
 export function getUserId(user: User): string {
@@ -193,4 +216,13 @@ export function getUserCreationTime(user: User): Date | null {
  */
 export function getUserLastSignInTime(user: User): Date | null {
   return user.metadata.lastSignInTime ? new Date(user.metadata.lastSignInTime) : null;
+}
+
+/**
+ * Deletes a user profile from Firestore
+ */
+export async function deleteUserProfile(uid: string): Promise<void> {
+  const userRef = doc(db, 'users', uid);
+  const { deleteDoc } = await import('firebase/firestore');
+  await deleteDoc(userRef);
 }

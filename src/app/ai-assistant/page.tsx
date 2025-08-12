@@ -252,10 +252,13 @@ export default function AIAssistantPage() {
                         message.role === 'user' ? 'flex-row-reverse space-x-reverse' : ''
                       )}
                     >
-                      <Avatar className="w-8 h-8 flex-shrink-0">
+                      <Avatar className="w-8 h-8 flex-shrink-0 ring-1 ring-white/20 shadow-sm">
                         {message.role === 'user' ? (
                           <>
-                            <AvatarImage src={user?.photoURL || undefined} />
+                            <AvatarImage 
+                              src={user?.photoURL || undefined} 
+                              className="avatar-image"
+                            />
                             <AvatarFallback className="bg-blue-500 text-white">
                               <User className="w-4 h-4" />
                             </AvatarFallback>

@@ -9,7 +9,7 @@ export function usePerformanceMonitor(componentName: string) {
 
   useEffect(() => {
     renderCount.current += 1;
-  });
+  }, []);
 
   useEffect(() => {
     startTime.current = performance.now();
@@ -22,7 +22,7 @@ export function usePerformanceMonitor(componentName: string) {
         console.warn(`⚠️ ${componentName} took ${duration.toFixed(2)}ms to render (render #${renderCount.current})`);
       }
     };
-  });
+  }, [componentName]);
 
   return { renderCount: renderCount.current };
 }
@@ -164,7 +164,7 @@ export function useRenderOptimizer() {
     }
     
     lastRender.current = currentTime;
-  });
+  }, []);
   
   return {
     avgRenderTime: renderTimes.current.length > 0 

@@ -16,16 +16,18 @@ const firebaseConfig = {
 
 // Validate Firebase configuration
 if (typeof window !== 'undefined') {
-  console.log('Firebase config validation:', {
-    hasApiKey: !!firebaseConfig.apiKey,
-    hasAuthDomain: !!firebaseConfig.authDomain,
-    hasProjectId: !!firebaseConfig.projectId,
-    authDomain: firebaseConfig.authDomain,
-    projectId: firebaseConfig.projectId,
-    environment: process.env.NODE_ENV,
-    currentDomain: window.location.hostname,
-    currentOrigin: window.location.origin
-  });
+  if (process.env.NODE_ENV === 'development') {
+    console.log('Firebase config validation:', {
+      hasApiKey: !!firebaseConfig.apiKey,
+      hasAuthDomain: !!firebaseConfig.authDomain,
+      hasProjectId: !!firebaseConfig.projectId,
+      authDomain: firebaseConfig.authDomain,
+      projectId: firebaseConfig.projectId,
+      environment: process.env.NODE_ENV,
+      currentDomain: window.location.hostname,
+      currentOrigin: window.location.origin
+    });
+  }
   
   // Check for missing required fields
   const requiredFields = ['apiKey', 'authDomain', 'projectId'];
@@ -46,8 +48,9 @@ if (typeof window !== 'undefined') {
     }
   }
   
-  // Production-specific domain validation
-  if (process.env.NODE_ENV === 'production') {
+  // Production-specific domain validation (errors only)
+  if (process.env.NODE_ENV === 'production' && process.env.NODE_ENV === 'development') {
+    // Only log in development for production troubleshooting
     console.log('🚀 Production deployment detected');
     console.log('Current domain:', window.location.hostname);
     console.log('Make sure this domain is added to:');
@@ -60,7 +63,9 @@ if (typeof window !== 'undefined') {
 let app;
 try {
   app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
-  console.log('Firebase app initialized successfully');
+  if (process.env.NODE_ENV === 'development') {
+    console.log('Firebase app initialized successfully');
+  }
 } catch (error) {
   console.error('Firebase initialization error:', error);
   throw error;
@@ -75,7 +80,7 @@ googleProvider.addScope('email');
 googleProvider.addScope('profile');
 
 // Add additional debug logging for auth
-if (typeof window !== 'undefined') {
+if (typeof window !== 'undefined' && process.env.NODE_ENV === 'development') {
   console.log('Firebase Auth initialized:', {
     authDomain: auth.config.authDomain,
     apiKey: auth.config.apiKey?.substring(0, 10) + '...',
