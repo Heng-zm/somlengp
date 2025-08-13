@@ -13,7 +13,7 @@ import { cn } from '@/lib/utils';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Card } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { LoginButton } from '@/components/auth/login-button';
+import { AuthFormsHomeOnly } from '@/components/auth/auth-forms-home-only';
 import { AIAssistantWidget } from '@/components/shared/ai-assistant-widget';
 import Image from 'next/image';
 
@@ -76,23 +76,27 @@ export default function HomePage() {
 
   return (
     <div className="flex flex-col h-full text-foreground">
-      <header className="flex-shrink-0 flex items-center justify-between p-4 sm:p-6">
-        <div className="flex items-center gap-4">
-          <Image src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRfXQ6IUyl8D8fpZl8p9BvXg-PCxKPa-1vOp0oPC2-uKH-H_M1T" alt="logo" width={32} height={32} data-ai-hint="logo" className="rounded-full" />
-          <div className="flex flex-col gap-1">
-            <h1 className="text-2xl sm:text-3xl font-bold text-foreground">Somleng</h1>
-            {visitorCount !== null ? (
-                <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                    <Users className="w-4 h-4" />
-                    <span>{visitorCount} User</span>
-                </div>
-            ) : (
-                <Skeleton className="h-6 w-24 rounded-md" />
-            )}
+      <header className="flex-shrink-0 flex items-center justify-between p-3 sm:p-4 md:p-6">
+        <div className="flex items-center gap-2 sm:gap-4 min-w-0 flex-1">
+          <Image src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRfXQ6IUyl8D8fpZl8p9BvXg-PCxKPa-1vOp0oPC2-uKH-H_M1T" alt="logo" width={32} height={32} data-ai-hint="logo" className="rounded-full flex-shrink-0" />
+          <div className="flex flex-col gap-1 min-w-0">
+            <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-foreground truncate">Somleng</h1>
+            <div className="hidden sm:block">
+              {visitorCount !== null ? (
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                      <Users className="w-4 h-4" />
+                      <span>{visitorCount} User</span>
+                  </div>
+              ) : (
+                  <Skeleton className="h-6 w-24 rounded-md" />
+              )}
+            </div>
           </div>
         </div>
-        <div className="flex items-center gap-2">
-            <LoginButton variant="circle" />
+        <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
+            <div className="flex items-center">
+              <AuthFormsHomeOnly />
+            </div>
             <Button variant="ghost" size="icon" onClick={toggleTheme} className="hidden md:inline-flex" type="button">
                 {theme === 'dark' ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
             </Button>

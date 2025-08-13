@@ -1,39 +1,5 @@
 {
-  "node": {
-    "40c2b6805cf84f2193c76cf3e98e630953559f6015": {
-      "workers": {
-        "app/pdf-transcript/page": {
-          "moduleId": "(action-browser)/./node_modules/next/dist/build/webpack/loaders/next-flight-action-entry-loader.js?actions=%5B%5B%22C%3A%5C%5CUsers%5C%5CGS%20Computer%5C%5CDownloads%5C%5CTelegram%20Desktop%5C%5Csomlengp%5C%5Csrc%5C%5Cai%5C%5Cflows%5C%5Cpdf-transcript-flow.ts%22%2C%5B%7B%22id%22%3A%2240c2b6805cf84f2193c76cf3e98e630953559f6015%22%2C%22exportedName%22%3A%22transcribePdf%22%7D%5D%5D%5D&__client_imported__=true!",
-          "async": false
-        }
-      },
-      "layer": {
-        "app/pdf-transcript/page": "action-browser"
-      }
-    },
-    "40269e02c0b993da63dd1ca2fcd878f23768dd4a38": {
-      "workers": {
-        "app/voice-transcript/page": {
-          "moduleId": "(action-browser)/./node_modules/next/dist/build/webpack/loaders/next-flight-action-entry-loader.js?actions=%5B%5B%22C%3A%5C%5CUsers%5C%5CGS%20Computer%5C%5CDownloads%5C%5CTelegram%20Desktop%5C%5Csomlengp%5C%5Csrc%5C%5Cai%5C%5Cflows%5C%5Cspeech-to-text-flow.ts%22%2C%5B%7B%22id%22%3A%2240269e02c0b993da63dd1ca2fcd878f23768dd4a38%22%2C%22exportedName%22%3A%22transcribeAudio%22%7D%5D%5D%2C%5B%22C%3A%5C%5CUsers%5C%5CGS%20Computer%5C%5CDownloads%5C%5CTelegram%20Desktop%5C%5Csomlengp%5C%5Csrc%5C%5Cai%5C%5Cflows%5C%5Cimprove-transcription-accuracy-flow.ts%22%2C%5B%7B%22id%22%3A%2240719564a910011a951965210d849bae2629095de4%22%2C%22exportedName%22%3A%22improveTranscriptionAccuracy%22%7D%5D%5D%5D&__client_imported__=true!",
-          "async": false
-        }
-      },
-      "layer": {
-        "app/voice-transcript/page": "action-browser"
-      }
-    },
-    "40719564a910011a951965210d849bae2629095de4": {
-      "workers": {
-        "app/voice-transcript/page": {
-          "moduleId": "(action-browser)/./node_modules/next/dist/build/webpack/loaders/next-flight-action-entry-loader.js?actions=%5B%5B%22C%3A%5C%5CUsers%5C%5CGS%20Computer%5C%5CDownloads%5C%5CTelegram%20Desktop%5C%5Csomlengp%5C%5Csrc%5C%5Cai%5C%5Cflows%5C%5Cspeech-to-text-flow.ts%22%2C%5B%7B%22id%22%3A%2240269e02c0b993da63dd1ca2fcd878f23768dd4a38%22%2C%22exportedName%22%3A%22transcribeAudio%22%7D%5D%5D%2C%5B%22C%3A%5C%5CUsers%5C%5CGS%20Computer%5C%5CDownloads%5C%5CTelegram%20Desktop%5C%5Csomlengp%5C%5Csrc%5C%5Cai%5C%5Cflows%5C%5Cimprove-transcription-accuracy-flow.ts%22%2C%5B%7B%22id%22%3A%2240719564a910011a951965210d849bae2629095de4%22%2C%22exportedName%22%3A%22improveTranscriptionAccuracy%22%7D%5D%5D%5D&__client_imported__=true!",
-          "async": false
-        }
-      },
-      "layer": {
-        "app/voice-transcript/page": "action-browser"
-      }
-    }
-  },
+  "node": {},
   "edge": {},
   "encryptionKey": "BWFLVbqWeFX84ed7Tn+LzQ0rLtpE/YzJIUNjBPtTBmA="
 }

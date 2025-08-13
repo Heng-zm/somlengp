@@ -49,7 +49,7 @@ if (typeof window !== 'undefined') {
   }
   
   // Production-specific domain validation (errors only)
-  if (process.env.NODE_ENV === 'production' && process.env.NODE_ENV === 'development') {
+  if (process.env.NODE_ENV === 'production') {
     // Only log in development for production troubleshooting
     console.log('🚀 Production deployment detected');
     console.log('Current domain:', window.location.hostname);
