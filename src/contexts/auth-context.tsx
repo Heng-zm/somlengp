@@ -1,7 +1,7 @@
 "use client";
 
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
-import { User, onAuthStateChanged, signInWithPopup, signInWithRedirect, getRedirectResult, signOut, deleteUser } from 'firebase/auth';
+import { User, onAuthStateChanged, signInWithPopup, signInWithRedirect, getRedirectResult, signOut, deleteUser, signInWithEmailAndPassword, createUserWithEmailAndPassword, sendPasswordResetEmail } from 'firebase/auth';
 import { auth, googleProvider } from '@/lib/firebase';
 import { useToast } from '@/hooks/use-toast';
 import { createUserProfile, getUserProfile, updateLastSignInTime, deleteUserProfile } from '@/lib/user-profile';
@@ -12,6 +12,9 @@ interface AuthContextType {
   userProfile: UserProfile | null;
   loading: boolean;
   signInWithGoogle: (useRedirect?: boolean) => Promise<void>;
+  signInWithEmail: (email: string, password: string) => Promise<void>;
+  signUpWithEmail: (email: string, password: string) => Promise<void>;
+  resetPassword: (email: string) => Promise<void>;
   logout: () => Promise<void>;
   deleteAccount: () => Promise<void>;
 }
@@ -198,6 +201,117 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  const signInWithEmail = async (email: string, password: string) => {
+    try {
+      setLoading(true);
+      const result = await signInWithEmailAndPassword(auth, email, password);
+      console.log('Email sign-in successful:', result.user.uid);
+      toast({
+        title: "Success",
+        description: "Successfully signed in!",
+      });
+    } catch (error: unknown) {
+      const authError = error as { code?: string; message?: string };
+      console.error('Error signing in with email:', error);
+      
+      let errorMessage = "Failed to sign in. Please check your credentials.";
+      
+      if (authError.code === 'auth/user-not-found') {
+        errorMessage = "No account found with this email address.";
+      } else if (authError.code === 'auth/wrong-password') {
+        errorMessage = "Incorrect password. Please try again.";
+      } else if (authError.code === 'auth/invalid-email') {
+        errorMessage = "Invalid email address format.";
+      } else if (authError.code === 'auth/user-disabled') {
+        errorMessage = "This account has been disabled.";
+      } else if (authError.code === 'auth/too-many-requests') {
+        errorMessage = "Too many failed attempts. Please try again later.";
+      } else if (authError.code === 'auth/network-request-failed') {
+        errorMessage = "Network error. Please check your connection.";
+      }
+      
+      toast({
+        title: "Sign In Error",
+        description: errorMessage,
+        variant: "destructive",
+      });
+      
+      throw error; // Re-throw for form handling
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const signUpWithEmail = async (email: string, password: string) => {
+    try {
+      setLoading(true);
+      const result = await createUserWithEmailAndPassword(auth, email, password);
+      console.log('Email sign-up successful:', result.user.uid);
+      toast({
+        title: "Success",
+        description: "Account created successfully!",
+      });
+    } catch (error: unknown) {
+      const authError = error as { code?: string; message?: string };
+      console.error('Error signing up with email:', error);
+      
+      let errorMessage = "Failed to create account. Please try again.";
+      
+      if (authError.code === 'auth/email-already-in-use') {
+        errorMessage = "An account with this email address already exists.";
+      } else if (authError.code === 'auth/invalid-email') {
+        errorMessage = "Invalid email address format.";
+      } else if (authError.code === 'auth/weak-password') {
+        errorMessage = "Password is too weak. Please use at least 6 characters.";
+      } else if (authError.code === 'auth/operation-not-allowed') {
+        errorMessage = "Email/password sign-up is not enabled.";
+      } else if (authError.code === 'auth/network-request-failed') {
+        errorMessage = "Network error. Please check your connection.";
+      }
+      
+      toast({
+        title: "Sign Up Error",
+        description: errorMessage,
+        variant: "destructive",
+      });
+      
+      throw error; // Re-throw for form handling
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const resetPassword = async (email: string) => {
+    try {
+      await sendPasswordResetEmail(auth, email);
+      toast({
+        title: "Password Reset Sent",
+        description: "Check your email for password reset instructions.",
+      });
+    } catch (error: unknown) {
+      const authError = error as { code?: string; message?: string };
+      console.error('Error sending password reset email:', error);
+      
+      let errorMessage = "Failed to send password reset email.";
+      
+      if (authError.code === 'auth/user-not-found') {
+        errorMessage = "No account found with this email address.";
+      } else if (authError.code === 'auth/invalid-email') {
+        errorMessage = "Invalid email address format.";
+      } else if (authError.code === 'auth/too-many-requests') {
+        errorMessage = "Too many requests. Please try again later.";
+      }
+      
+      toast({
+        title: "Reset Password Error",
+        description: errorMessage,
+        variant: "destructive",
+      });
+      
+      throw error; // Re-throw for form handling
+    }
+  };
+
   const logout = async () => {
     try {
       setLoading(true);
@@ -274,6 +388,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     userProfile,
     loading,
     signInWithGoogle,
+    signInWithEmail,
+    signUpWithEmail,
+    resetPassword,
     logout,
     deleteAccount
   };

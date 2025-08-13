@@ -14,7 +14,6 @@ import { useHistory } from '@/hooks/use-history';
 import { Separator } from '../ui/separator';
 import Image from 'next/image';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { LoginButton } from '@/components/auth/login-button';
 
 export function Sidebar({ language, toggleLanguage }: { language: Language, toggleLanguage: () => void }) {
   const pathname = usePathname();
@@ -65,9 +64,6 @@ export function Sidebar({ language, toggleLanguage }: { language: Language, togg
               <p className="text-xs text-muted-foreground">Version 2.2.5</p>
             </div>
           </Link>
-        </div>
-        <div className="flex justify-center">
-          <LoginButton variant="modern" />
         </div>
       </div>
 
