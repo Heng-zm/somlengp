@@ -19,7 +19,6 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { cn } from "@/lib/utils";
 import { Mail, Lock, Eye, EyeOff, UserPlus, User } from "lucide-react";
 import { z } from "zod";
-import { SignupEmailVerification } from "./signup-email-verification";
 
 // Zod schema for form validation
 const signupSchema = z.object({
@@ -72,8 +71,6 @@ export function SignupFormStandalone({ onSuccess, onSwitchToLogin }: SignupFormS
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [step, setStep] = useState<'form' | 'verification'>('form');
-  const [formData, setFormData] = useState<SignupFormData | null>(null);
 
   const form = useForm<SignupFormData>({
     resolver: zodResolver(signupSchema),
@@ -93,23 +90,8 @@ export function SignupFormStandalone({ onSuccess, onSwitchToLogin }: SignupFormS
     
     setIsLoading(true);
     try {
-      const response = await fetch('/api/signup-verification/send', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(data),
-      });
-
-      const result = await response.json();
-
-      if (result.success) {
-        setFormData(data);
-        setStep('verification');
-      } else {
-        // Handle error (e.g., show toast notification)
-        console.error("Signup error:", result.error);
-      }
+      await signUpWithEmail(data.email, data.password);
+      onSuccess?.();
     } catch (error) {
       console.error("Signup error:", error);
     } finally {
@@ -126,17 +108,6 @@ export function SignupFormStandalone({ onSuccess, onSwitchToLogin }: SignupFormS
     }
   };
 
-  if (step === 'verification' && formData) {
-    return (
-      <SignupEmailVerification
-        email={formData.email}
-        firstName={formData.firstName}
-        lastName={formData.lastName}
-        onSuccess={onSuccess}
-        onBack={() => setStep('form')}
-      />
-    );
-  }
 
   return (
     <div className="space-y-6">

@@ -28,7 +28,6 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { cn } from "@/lib/utils";
 import { Mail, Lock, Eye, EyeOff, UserPlus, User, CheckCircle2 } from "lucide-react";
 import { z } from "zod";
-import { SignupEmailVerification } from "./signup-email-verification";
 
 // Zod schema for form validation
 const signupSchema = z.object({
@@ -83,8 +82,6 @@ export function SignupForm({ onSwitchToLogin, isOpen: externalIsOpen, onOpenChan
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [internalIsOpen, setInternalIsOpen] = useState(false);
-  const [step, setStep] = useState<'form' | 'verification'>('form');
-  const [formData, setFormData] = useState<SignupFormData | null>(null);
   
   // Use external control if provided, otherwise use internal state
   const isOpen = externalIsOpen !== undefined ? externalIsOpen : internalIsOpen;
@@ -107,22 +104,9 @@ export function SignupForm({ onSwitchToLogin, isOpen: externalIsOpen, onOpenChan
     
     setIsLoading(true);
     try {
-      const response = await fetch('/api/signup-verification/send', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(data),
-      });
-
-      const result = await response.json();
-
-      if (result.success) {
-        setFormData(data);
-        setStep('verification');
-      } else {
-        console.error("Sheet form: Signup error:", result.error);
-      }
+      await signUpWithEmail(data.email, data.password);
+      form.reset();
+      setIsOpen(false);
     } catch (error) {
       console.error("Sheet form: Signup error:", error);
     } finally {
@@ -160,21 +144,6 @@ export function SignupForm({ onSwitchToLogin, isOpen: externalIsOpen, onOpenChan
       </SheetTrigger>
       
       <SheetContent side="right" className="w-full sm:max-w-md overflow-y-auto">
-        {step === 'verification' && formData ? (
-          <SignupEmailVerification
-            email={formData.email}
-            firstName={formData.firstName}
-            lastName={formData.lastName}
-            onSuccess={() => {
-              setIsOpen(false);
-              setStep('form');
-              form.reset();
-            }}
-            onBack={() => setStep('form')}
-            className="border-0 shadow-none"
-          />
-        ) : (
-          <>
             <SheetHeader className="space-y-4">
               <div className="mx-auto w-16 h-16 bg-gradient-to-br from-green-500 to-blue-600 rounded-full flex items-center justify-center shadow-lg">
                 <UserPlus className="w-8 h-8 text-white" />
@@ -547,8 +516,7 @@ export function SignupForm({ onSwitchToLogin, isOpen: externalIsOpen, onOpenChan
                 <span>Your data is protected with industry-standard encryption</span>
               </div>
             </SheetFooter>
-          </>
-        )}
+      </SheetContent>
     </Sheet>
   );
 }

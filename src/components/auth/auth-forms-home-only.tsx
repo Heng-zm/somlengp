@@ -1,6 +1,5 @@
 "use client";
 
-import { useState } from "react";
 import { useAuth } from "@/contexts/auth-context";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -184,20 +183,23 @@ export function AuthFormsHomeOnly({ variant = 'default' }: AuthFormsHomeOnlyProp
           variant={variant === 'circle' ? 'ghost' : 'outline'}
           size={variant === 'circle' ? 'icon' : 'sm'}
           className={cn(
-            "relative overflow-hidden bg-white hover:bg-gray-50 text-gray-700 border border-gray-300 shadow-sm",
-            "transition-all duration-300 hover:shadow-lg hover:scale-[1.02]",
-            "dark:bg-gray-900 dark:text-gray-200 dark:border-gray-600 dark:hover:bg-gray-800",
+            "relative overflow-hidden",
             variant === 'circle' 
-              ? "h-10 w-10 rounded-full p-0" 
-              : "h-8 px-3 text-xs sm:h-9 sm:px-4 sm:text-sm w-full sm:w-auto"
+              ? "h-10 w-10 rounded-full p-0 bg-gradient-to-br from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white shadow-lg hover:shadow-xl border-0"
+              : "bg-gradient-to-r from-blue-50 to-purple-50 hover:from-blue-100 hover:to-purple-100 text-gray-700 border border-blue-200 shadow-sm hover:border-blue-300 dark:from-blue-950/30 dark:to-purple-950/30 dark:hover:from-blue-900/40 dark:hover:to-purple-900/40 dark:bg-gray-900 dark:text-gray-200 dark:border-blue-600 dark:hover:bg-gray-800 h-8 px-3 text-xs sm:h-9 sm:px-4 sm:text-sm w-full sm:w-auto group",
+            "transition-all duration-300 hover:shadow-lg hover:scale-[1.02]"
           )}
         >
           {variant === 'circle' ? (
-            <LogIn className="h-4 w-4" />
+            <div className="relative flex items-center justify-center">
+              <LogIn className="h-4 w-4 text-white hover:scale-110 transition-transform duration-300" />
+            </div>
           ) : (
             <>
-              <LogIn className="mr-1 sm:mr-2 h-3 w-3 sm:h-4 sm:w-4" />
-              <span className="font-medium">Sign in</span>
+              <div className="bg-gradient-to-br from-blue-500 to-purple-600 rounded-full p-1 mr-1 sm:mr-2 shadow-sm group-hover:shadow-md transition-all duration-300">
+                <LogIn className="h-3 w-3 sm:h-4 sm:w-4 text-white group-hover:scale-110 transition-transform duration-300" />
+              </div>
+              <span className="font-medium bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent group-hover:from-blue-700 group-hover:to-purple-700 transition-all duration-300">Sign in</span>
             </>
           )}
         </Button>
