@@ -155,6 +155,58 @@ body {
       }
     }
 
+    /* AI Assistant mobile optimizations */
+    @media (max-width: 640px) {
+      /* Improve touch scrolling on mobile */
+      .ai-chat-messages {
+        -webkit-overflow-scrolling: touch;
+        overscroll-behavior: contain;
+      }
+      
+      /* Mobile-friendly message bubbles */
+      .ai-message-bubble {
+        @apply text-base leading-relaxed;
+        /* Better line spacing for mobile reading */
+        line-height: 1.6;
+      }
+      
+      /* Enhanced touch targets for mobile */
+      .mobile-touch-target {
+        @apply min-h-[48px] min-w-[48px];
+        /* Add touch feedback */
+        -webkit-tap-highlight-color: rgba(0, 0, 0, 0.1);
+      }
+      
+      /* Mobile input improvements */
+      .mobile-input {
+        @apply text-base;
+        /* Prevent zoom on iOS */
+        font-size: 16px;
+        /* Better touch interaction */
+        touch-action: manipulation;
+      }
+      
+      /* Mobile-friendly spacing */
+      .ai-assistant-container {
+        @apply px-3 py-2;
+        /* Account for mobile keyboards */
+        padding-bottom: env(safe-area-inset-bottom);
+      }
+      
+      /* Improved mobile animations */
+      .ai-message-animation {
+        /* Reduce motion on mobile for performance */
+        animation-duration: 0.2s;
+      }
+      
+      /* Mobile scroll indicators */
+      .ai-scroll-area {
+        /* Show scroll indicators on mobile */
+        scrollbar-width: thin;
+        scrollbar-color: rgba(0, 0, 0, 0.2) transparent;
+      }
+    }
+
     /* Avatar styles to ensure proper circular shape and borders */
     .avatar-border {
       @apply ring-2 ring-white/50 shadow-sm dark:ring-gray-700/50;

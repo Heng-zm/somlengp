@@ -9,7 +9,7 @@ import {
   useCallback,
   useEffect,
 } from 'react';
-import {FileUp, X, Download, Wand2, ImagePlus} from 'lucide-react';
+import {FileUp, X, Download, Wand2, ImagePlus, Image as ImageIcon} from 'lucide-react';
 import {Button} from '@/components/ui/button';
 import {useToast} from '@/hooks/use-toast';
 import {Card} from '@/components/ui/card';
@@ -25,13 +25,7 @@ import {
   SheetTitle,
   SheetTrigger,
 } from '@/components/ui/sheet';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
+import { ExportSettingsDropdown } from '@/components/shared/export-settings-dropdown';
 import {Label} from '@/components/ui/label';
 import JSZip from 'jszip';
 import { ThreeDotsLoader } from '@/components/shared/three-dots-loader';
@@ -96,6 +90,58 @@ export function ConvertImageFormatPage() {
   }
   const {language} = langContext;
   const t = useMemo(() => allTranslations[language], [language]);
+
+  // Image format definitions for the dropdown
+  const imageFormats = useMemo(() => [
+    {
+      id: 'png',
+      name: 'png',
+      displayName: 'PNG',
+      description: 'Portable Network Graphics - lossless compression',
+      icon: ImageIcon,
+      category: 'data' as const
+    },
+    {
+      id: 'jpeg',
+      name: 'jpeg',
+      displayName: 'JPEG',
+      description: 'Joint Photographic Experts Group - lossy compression',
+      icon: ImageIcon,
+      category: 'data' as const
+    },
+    {
+      id: 'webp',
+      name: 'webp',
+      displayName: 'WebP',
+      description: 'Modern web format with better compression',
+      icon: ImageIcon,
+      category: 'data' as const
+    },
+    {
+      id: 'gif',
+      name: 'gif',
+      displayName: 'GIF',
+      description: 'Graphics Interchange Format - supports animation',
+      icon: ImageIcon,
+      category: 'data' as const
+    },
+    {
+      id: 'bmp',
+      name: 'bmp',
+      displayName: 'BMP',
+      description: 'Bitmap format - uncompressed',
+      icon: ImageIcon,
+      category: 'data' as const
+    },
+    {
+      id: 'avif',
+      name: 'avif',
+      displayName: 'AVIF',
+      description: 'AV1 Image Format - next-gen compression',
+      icon: ImageIcon,
+      category: 'data' as const
+    }
+  ], []);
 
   const fileObjectURLs = useMemo(() => files.map(file => URL.createObjectURL(file)), [files]);
 
@@ -310,24 +356,16 @@ export function ConvertImageFormatPage() {
             </SheetHeader>
             <div className="grid gap-6 py-6">
               <div className="grid w-full items-center gap-1.5">
-                <Label htmlFor="format-select">Target Format</Label>
-                <Select
-                  value={targetFormat}
-                  onValueChange={v => setTargetFormat(v as TargetFormat)}
+                <Label>Target Format</Label>
+                <ExportSettingsDropdown
+                  selectedFormat={targetFormat}
+                  onFormatChange={(format) => setTargetFormat(format as TargetFormat)}
+                  formats={imageFormats}
+                  label="Target Format"
+                  className="w-full"
+                  size="lg"
                   disabled={isConverting}
-                >
-                  <SelectTrigger id="format-select">
-                    <SelectValue placeholder="Select format..." />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="png">PNG</SelectItem>
-                    <SelectItem value="jpeg">JPEG</SelectItem>
-                    <SelectItem value="webp">WEBP</SelectItem>
-                    <SelectItem value="gif">GIF</SelectItem>
-                    <SelectItem value="bmp">BMP</SelectItem>
-                    <SelectItem value="avif">AVIF</SelectItem>
-                  </SelectContent>
-                </Select>
+                />
               </div>
               <Button
                 onClick={handleConvert}

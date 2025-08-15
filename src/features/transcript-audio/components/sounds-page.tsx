@@ -26,7 +26,7 @@ import { Badge } from '@/components/ui/badge';
 import { RatingDialog } from '@/components/shared/rating-dialog';
 import { allTranslations, resolveTranslation } from '@/lib/translations';
 import { LanguageContext } from '@/contexts/language-context';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { ExportSettingsDropdown } from '@/components/shared/export-settings-dropdown';
 import { MAX_FILE_SIZE_BYTES, MAX_FILE_SIZE_MB } from '@/config';
 import { ThreeDotsLoader } from '@/components/shared/three-dots-loader';
 import { formatFileSize } from '@/lib/format-file-size';
@@ -215,14 +215,6 @@ export function SoundsPage() {
     }
   }, [editedTranscript, exportFormat, structuredTranscript, toast, wordsPerSecond]);
   
-  const formatDisplayNames = useMemo(() => ({
-    srt: 'SRT (Subtitles)',
-    vtt: 'VTT (Subtitles)',
-    txt: 'TXT (Plain Text)',
-    json: 'JSON (Structured Data)',
-    csv: 'CSV (Spreadsheet)',
-    docx: 'DOCX (Word Document)',
-  }), []);
 
   const isReadyForContent = !isTranscribing && structuredTranscript.length > 0;
 
@@ -361,16 +353,12 @@ export function SoundsPage() {
                           <div className="grid gap-6 py-6">
                               <div className="grid gap-3">
                                   <Label>{t.exportFormat}</Label>
-                                  <Select value={exportFormat} onValueChange={setExportFormat}>
-                                      <SelectTrigger>
-                                          <SelectValue placeholder="Select format" />
-                                      </SelectTrigger>
-                                      <SelectContent>
-                                          {Object.entries(formatDisplayNames).map(([value, label]) => (
-                                          <SelectItem key={value} value={value}>{label}</SelectItem>
-                                          ))}
-                                      </SelectContent>
-                                  </Select>
+                                  <ExportSettingsDropdown
+                                      selectedFormat={exportFormat}
+                                      onFormatChange={setExportFormat}
+                                      label={t.exportFormat}
+                                      className="w-full"
+                                  />
                               </div>
                               <div className="grid gap-3">
                                   <Label htmlFor="words-per-second" className="text-center">{t.wordsPerSecond}</Label>

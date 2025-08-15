@@ -13,7 +13,7 @@ import { allTranslations } from '@/lib/translations';
 import { LanguageContext } from '@/contexts/language-context';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger, SheetDescription } from '@/components/ui/sheet';
 import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { ExportSettingsDropdown } from '@/components/shared/export-settings-dropdown';
 import { MAX_FILE_SIZE_BYTES, MAX_FILE_SIZE_MB } from '@/config';
 import { ThreeDotsLoader } from '@/components/shared/three-dots-loader';
 import { formatFileSize } from '@/lib/format-file-size';
@@ -173,10 +173,25 @@ export function PdfTranscriptPage() {
 
   const isReadyForContent = !isTranscribing && transcribedText;
 
-  const pdfExportFormats = useMemo(() => ({
-    docx: 'DOCX (Word Document)',
-    txt: 'TXT (Plain Text)',
-  }), []);
+  // PDF transcript supports only document formats
+  const pdfExportFormats = useMemo(() => [
+    {
+      id: 'docx',
+      name: 'docx',
+      displayName: 'DOCX',
+      description: 'Microsoft Word document format',
+      icon: FileText,
+      category: 'document' as const
+    },
+    {
+      id: 'txt',
+      name: 'txt',
+      displayName: 'TXT',
+      description: 'Plain text without formatting',
+      icon: FileText,
+      category: 'document' as const
+    }
+  ], []);
   
   return (
     <div 
@@ -264,16 +279,14 @@ export function PdfTranscriptPage() {
                       <div className="grid gap-6 py-6">
                         <div className="grid gap-3">
                           <Label>{t.exportFormat}</Label>
-                           <Select value={exportFormat} onValueChange={setExportFormat}>
-                               <SelectTrigger>
-                                   <SelectValue placeholder="Select format" />
-                               </SelectTrigger>
-                               <SelectContent>
-                                   {Object.entries(pdfExportFormats).map(([value, label]) => (
-                                   <SelectItem key={value} value={value}>{label}</SelectItem>
-                                   ))}
-                               </SelectContent>
-                           </Select>
+                          <ExportSettingsDropdown
+                            selectedFormat={exportFormat}
+                            onFormatChange={setExportFormat}
+                            formats={pdfExportFormats}
+                            label={t.exportFormat}
+                            className="w-full"
+                            size="lg"
+                          />
                         </div>
                         <Button onClick={handleExport} size="lg" disabled={isTranscribing}>
                            {isTranscribing ? (
