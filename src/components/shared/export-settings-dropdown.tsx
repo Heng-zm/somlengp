@@ -207,4 +207,3 @@ export function ExportSettingsDropdown({
 }
 
 export { DEFAULT_EXPORT_FORMATS };
-export type { ExportFormat };
