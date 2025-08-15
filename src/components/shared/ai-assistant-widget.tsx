@@ -172,14 +172,14 @@ export function AIAssistantWidget({ className, variant = 'compact' }: AIAssistan
       <motion.div
         initial={{ scale: 0 }}
         animate={{ scale: 1 }}
-        className={cn("fixed bottom-6 right-6 z-50", className)}
+        className={cn("fixed bottom-4 right-4 sm:bottom-6 sm:right-6 z-50", className)}
       >
         <Button
           size="lg"
           onClick={() => setIsOpen(true)}
-          className="h-14 w-14 rounded-full bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 shadow-lg hover:shadow-xl transition-all duration-300"
+          className="h-12 w-12 sm:h-14 sm:w-14 rounded-full bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 shadow-lg hover:shadow-xl transition-all duration-300 min-h-[48px] min-w-[48px]"
         >
-          <MessageCircle className="h-6 w-6 text-white" />
+          <MessageCircle className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
         </Button>
       </motion.div>
     );
@@ -194,8 +194,8 @@ export function AIAssistantWidget({ className, variant = 'compact' }: AIAssistan
       className={cn(
         "fixed z-50 bg-background border rounded-lg shadow-2xl",
         isExpanded 
-          ? "bottom-4 right-4 w-96 h-[500px]" 
-          : "bottom-6 right-6 w-80 h-96",
+          ? "bottom-2 right-2 left-2 sm:bottom-4 sm:right-4 sm:left-auto w-auto sm:w-96 h-[calc(100vh-1rem)] sm:h-[500px]" 
+          : "bottom-4 right-4 left-4 sm:bottom-6 sm:right-6 sm:left-auto w-auto sm:w-80 h-80 sm:h-96",
         className
       )}
     >
@@ -349,23 +349,23 @@ export function AIAssistantWidget({ className, variant = 'compact' }: AIAssistan
                 onKeyPress={handleKeyPress}
                 placeholder="Ask me anything..."
                 disabled={isLoading}
-                className="flex-1 text-sm h-8"
+                className="flex-1 text-sm min-h-[44px] sm:h-8 border-2 rounded-lg"
               />
               <Button
                 size="sm"
                 onClick={sendMessage}
                 disabled={!input.trim() || isLoading}
-                className="h-8 w-8 p-0"
+                className="min-h-[44px] min-w-[44px] sm:h-8 sm:w-8 p-0 rounded-lg"
               >
                 {isLoading ? (
-                  <RefreshCw className="w-3 h-3 animate-spin" />
+                  <RefreshCw className="w-4 h-4 sm:w-3 sm:h-3 animate-spin" />
                 ) : (
-                  <Send className="w-3 h-3" />
+                  <Send className="w-4 h-4 sm:w-3 sm:h-3" />
                 )}
               </Button>
             </div>
             
-            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 text-center">
+            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 text-center hidden sm:block">
               Press Enter to send
             </p>
           </div>
