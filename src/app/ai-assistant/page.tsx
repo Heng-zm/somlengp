@@ -11,6 +11,15 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { AIModel } from '@/components/shared/model-selector';
 import { 
   Send, 
   Bot, 
@@ -19,8 +28,9 @@ import {
   Trash2, 
   Copy, 
   RefreshCw,
-  Zap,
-  ArrowLeft
+  ArrowLeft,
+  Settings,
+  ChevronDown
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
@@ -33,6 +43,24 @@ interface Message {
   timestamp: Date;
 }
 
+
+const AI_MODELS: AIModel[] = [
+  {
+    id: 'gemini-1.5-flash',
+    name: 'gemini-1.5-flash',
+    displayName: 'Gemini 1.5 Flash',
+    description: 'Fast and efficient for most tasks',
+    icon: '⚡'
+  },
+  {
+    id: 'gemini-2.5-flash',
+    name: 'gemini-2.5-flash',
+    displayName: 'Gemini 2.5 Flash',
+    description: 'Latest model with enhanced capabilities',
+    icon: '✨'
+  }
+];
+
 export default function AIAssistantPage() {
   const { user } = useAuth();
   const { toast } = useToast();
@@ -41,6 +69,7 @@ export default function AIAssistantPage() {
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [isTyping, setIsTyping] = useState(false);
+  const [selectedModel, setSelectedModel] = useState<AIModel>(AI_MODELS[0]);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -62,11 +91,23 @@ export default function AIAssistantPage() {
       setMessages([{
         id: Date.now().toString(),
         role: 'assistant',
-        content: `Hello! 👋 I'm your AI Assistant powered by Gemini 1.5 Flash. I'm here to help you with questions, creative tasks, problem-solving, and more. What would you like to discuss today?`,
+        content: `Hello! 👋 I'm your AI Assistant powered by ${selectedModel.displayName}. I'm here to help you with questions, creative tasks, problem-solving, and more. What would you like to discuss today?`,
         timestamp: new Date(),
       }]);
     }
-  }, [messages.length]);
+  }, [messages.length, selectedModel]);
+
+  // Update welcome message when model changes
+  useEffect(() => {
+    if (messages.length > 0) {
+      setMessages([{
+        id: Date.now().toString(),
+        role: 'assistant',
+        content: `Model switched to ${selectedModel.displayName}! ${selectedModel.icon} ${selectedModel.description}. How can I assist you today?`,
+        timestamp: new Date(),
+      }]);
+    }
+  }, [selectedModel]);
 
   const sendMessage = async () => {
     if (!input.trim() || isLoading || !user) return;
@@ -99,6 +140,7 @@ export default function AIAssistantPage() {
             content: msg.content,
           })),
           userId: user.uid,
+          model: selectedModel.name,
         }),
       });
 
@@ -208,8 +250,8 @@ export default function AIAssistantPage() {
                     AI Assistant
                   </h1>
                   <p className="text-sm text-gray-600 dark:text-gray-400 flex items-center gap-2">
-                    <Zap className="w-4 h-4" />
-                    Powered by Gemini 1.5 Flash
+                    <span className="text-lg">{selectedModel.icon}</span>
+                    Powered by {selectedModel.displayName}
                   </p>
                 </div>
               </div>
@@ -217,11 +259,54 @@ export default function AIAssistantPage() {
                 <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200 dark:bg-green-950/20 dark:text-green-400 dark:border-green-800">
                   Online
                 </Badge>
+                
+                {/* AI Model Selector */}
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="flex"
+                    >
+                      <Settings className="w-4 h-4 mr-2" />
+                      {selectedModel.displayName}
+                      <ChevronDown className="w-4 h-4 ml-2" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-56">
+                    <DropdownMenuLabel>Select AI Model</DropdownMenuLabel>
+                    <DropdownMenuSeparator />
+                    {AI_MODELS.map((model) => (
+                      <DropdownMenuItem
+                        key={model.id}
+                        onClick={() => setSelectedModel(model)}
+                        className={cn(
+                          "flex flex-col items-start space-y-1 cursor-pointer",
+                          selectedModel.id === model.id && "bg-blue-50 dark:bg-blue-950/20"
+                        )}
+                      >
+                        <div className="flex items-center space-x-2">
+                          <span className="text-lg">{model.icon}</span>
+                          <span className="font-medium">{model.displayName}</span>
+                          {selectedModel.id === model.id && (
+                            <Badge variant="secondary" className="text-xs">
+                              Active
+                            </Badge>
+                          )}
+                        </div>
+                        <p className="text-xs text-gray-500 dark:text-gray-400">
+                          {model.description}
+                        </p>
+                      </DropdownMenuItem>
+                    ))}
+                  </DropdownMenuContent>
+                </DropdownMenu>
+                
                 <Button
                   variant="outline"
                   size="sm"
                   onClick={clearChat}
-                  className="hidden sm:flex"
+                  className="flex"
                 >
                   <Trash2 className="w-4 h-4 mr-2" />
                   Clear Chat

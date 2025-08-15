@@ -337,7 +337,7 @@ export function EnhancedLoginButton({
         </Button>
       </DropdownMenuTrigger>
       
-      <DropdownMenuContent className="w-72 p-0" align="end" forceMount>
+      <DropdownMenuContent align="end" className="w-72">
         {/* Header with user info */}
         <div className="px-4 py-3 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-950/20 dark:to-purple-950/20">
           <div className="flex items-center space-x-3">
@@ -368,33 +368,29 @@ export function EnhancedLoginButton({
           </div>
         </div>
 
-        <DropdownMenuSeparator className="m-0" />
+        <DropdownMenuSeparator />
         
         {/* Profile Link */}
-        <div className="px-2 py-2">
-          <DropdownMenuItem asChild>
-            <Link 
-              href="/profile"
-              className="cursor-pointer rounded-md px-3 py-2 text-gray-700 hover:text-gray-900 hover:bg-gray-50 dark:text-gray-300 dark:hover:text-gray-100 dark:hover:bg-gray-800 flex items-center"
-            >
-              <User className="mr-3 h-4 w-4" />
-              <span className="font-medium">View Profile</span>
-            </Link>
-          </DropdownMenuItem>
-        </div>
+        <DropdownMenuItem asChild>
+          <Link 
+            href="/profile"
+            className="cursor-pointer flex items-center"
+          >
+            <User className="w-4 h-4 mr-2" />
+            <span className="font-medium">View Profile</span>
+          </Link>
+        </DropdownMenuItem>
         
-        <DropdownMenuSeparator className="m-0" />
+        <DropdownMenuSeparator />
         
         {/* Sign out */}
-        <div className="px-2 py-2">
-          <DropdownMenuItem 
-            onClick={logout} 
-            className="cursor-pointer rounded-md px-3 py-2 text-red-600 hover:text-red-700 hover:bg-red-50 dark:text-red-400 dark:hover:text-red-300 dark:hover:bg-red-950/20"
-          >
-            <LogIn className="mr-3 h-4 w-4 rotate-180" />
-            <span className="font-medium">Sign out</span>
-          </DropdownMenuItem>
-        </div>
+        <DropdownMenuItem 
+          onClick={logout} 
+          className="cursor-pointer text-red-600 hover:text-red-700 hover:bg-red-50 dark:text-red-400 dark:hover:text-red-300 dark:hover:bg-red-950/20"
+        >
+          <LogIn className="w-4 h-4 mr-2 rotate-180" />
+          <span className="font-medium">Sign out</span>
+        </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
   );
