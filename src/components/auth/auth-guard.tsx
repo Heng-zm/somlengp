@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/auth-context';
+import { debug } from '@/lib/debug';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -91,7 +92,7 @@ export function AuthGuard({ children, fallback }: AuthGuardProps) {
       
       form.reset();
     } catch (error) {
-      console.error("Login error:", error);
+      debug.error("Login error:", error);
       // Error handling is done in the auth context
     } finally {
       setIsLoading(false);
@@ -108,7 +109,7 @@ export function AuthGuard({ children, fallback }: AuthGuardProps) {
       setShowResetDialog(false);
       setResetEmail("");
     } catch (error) {
-      console.error("Password reset error:", error);
+      debug.error("Password reset error:", error);
       // Error handling is done in the auth context
     }
   };
@@ -117,7 +118,7 @@ export function AuthGuard({ children, fallback }: AuthGuardProps) {
     try {
       await signInWithGoogle();
     } catch (error) {
-      console.error("Google sign-in error:", error);
+      debug.error("Google sign-in error:", error);
     }
   };
 

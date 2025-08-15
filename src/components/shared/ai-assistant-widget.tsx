@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/auth-context';
 import { Button } from '@/components/ui/button';
@@ -77,7 +77,7 @@ export function AIAssistantWidget({ className, variant = 'compact' }: AIAssistan
     }
   }, [isOpen]);
 
-  const sendMessage = async () => {
+  const sendMessage = useCallback(async () => {
     if (!input.trim() || isLoading) return;
 
     if (!user) {
@@ -153,18 +153,18 @@ export function AIAssistantWidget({ className, variant = 'compact' }: AIAssistan
       setIsLoading(false);
       setIsTyping(false);
     }
-  };
+  }, [user, messages, input, toast]);
 
-  const handleKeyPress = (e: React.KeyboardEvent) => {
+  const handleKeyPress = useCallback((e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
       sendMessage();
     }
-  };
+  }, [sendMessage]);
 
-  const openFullAssistant = () => {
+  const openFullAssistant = useCallback(() => {
     router.push('/ai-assistant');
-  };
+  }, [router]);
 
   // Compact floating button
   if (!isOpen) {
@@ -328,8 +328,8 @@ export function AIAssistantWidget({ className, variant = 'compact' }: AIAssistan
                   <div className="bg-gray-100 dark:bg-gray-800 rounded-lg p-2">
                     <div className="flex space-x-1">
                       <div className="w-1 h-1 bg-gray-400 rounded-full animate-bounce" />
-                      <div className="w-1 h-1 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }} />
-                      <div className="w-1 h-1 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }} />
+                      <div className="w-1 h-1 bg-gray-400 rounded-full animate-bounce" style={{animationDelay: '0.1s'}} />
+                      <div className="w-1 h-1 bg-gray-400 rounded-full animate-bounce" style={{animationDelay: '0.2s'}} />
                     </div>
                   </div>
                 </motion.div>

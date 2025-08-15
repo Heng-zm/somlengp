@@ -62,9 +62,7 @@ export const PerformanceWrapper = React.memo<PerformanceWrapperProps>(function P
 }) {
   const { renderCount } = usePerformanceMonitor(name);
   
-  if (process.env.NODE_ENV === 'development' && logRenders) {
-    console.log(`🔄 ${name} rendered ${renderCount} times`);
-  }
+  // Log renders only in development with logRenders flag
   
   return <>{children}</>;
 });
@@ -164,7 +162,7 @@ export function useRenderOptimizer() {
     }
     
     lastRender.current = currentTime;
-  }, []);
+  });
   
   return {
     avgRenderTime: renderTimes.current.length > 0 

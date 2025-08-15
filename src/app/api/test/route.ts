@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 
 export async function GET() {
-  console.log('📝 Test API GET called');
   return NextResponse.json({
     message: 'Test API is working',
     timestamp: new Date().toISOString(),
@@ -13,11 +12,8 @@ export async function GET() {
 }
 
 export async function POST(request: NextRequest) {
-  console.log('📝 Test API POST called');
-  
   try {
     const body = await request.json();
-    console.log('📥 Received body:', body);
     
     return NextResponse.json({
       success: true,

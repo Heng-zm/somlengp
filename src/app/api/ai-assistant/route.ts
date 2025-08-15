@@ -6,8 +6,6 @@ const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
 
 if (!GEMINI_API_KEY) {
   console.error('❌ GEMINI_API_KEY is not set in environment variables');
-} else {
-  console.log('✅ GEMINI_API_KEY is available');
 }
 
 let genAI: GoogleGenerativeAI | null = null;
@@ -17,14 +15,12 @@ try {
   if (GEMINI_API_KEY) {
     genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
     model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
-    console.log('✅ Gemini AI initialized successfully');
   }
 } catch (initError) {
   console.error('❌ Failed to initialize Gemini AI:', initError);
 }
 
 export async function POST(request: NextRequest) {
-  console.log('🤖 AI Assistant API called');
   
   try {
     // Check if API key and model are available
@@ -38,13 +34,11 @@ export async function POST(request: NextRequest) {
 
     // Check if user is authenticated (you can enhance this with proper token verification)
     const authHeader = request.headers.get('authorization');
-    console.log('🔐 Auth header:', authHeader ? 'Present' : 'Missing');
     
     // Temporarily bypass auth for debugging
     // TODO: Re-enable authentication after debugging
     /*
     if (!authHeader) {
-      console.log('❌ No authorization header provided');
       return NextResponse.json(
         { error: 'Authentication required' },
         { status: 401 }
@@ -66,18 +60,14 @@ export async function POST(request: NextRequest) {
     const { messages, systemPrompt, userId } = body;
 
     if (!messages || !Array.isArray(messages) || messages.length === 0) {
-      console.log('❌ Invalid messages array:', { messages });
       return NextResponse.json(
         { error: 'Messages array is required' },
         { status: 400 }
       );
     }
     
-    console.log(`✅ Processing ${messages.length} messages for user: ${userId}`);
-
     // Get the last user message
     const lastMessage = messages[messages.length - 1];
-    console.log('📝 Last message:', { role: lastMessage.role, content: lastMessage.content?.substring(0, 100) });
     
     // Add system prompt as context if provided
     const systemMessage = systemPrompt || `You are a helpful AI assistant powered by Gemini 1.5 Flash. You are knowledgeable, friendly, and provide accurate information. Please be concise but thorough in your responses.`;
@@ -85,12 +75,10 @@ export async function POST(request: NextRequest) {
     let result;
     if (messages.length === 1) {
       // First message - no history
-      console.log('🆕 First message, no history');
       const prompt = `${systemMessage}\n\nUser: ${lastMessage.content}`;
       result = await model.generateContent(prompt);
     } else {
       // Multiple messages - use chat history
-      console.log('💬 Multiple messages, using chat history');
       
       // Prepare the conversation history for Gemini (exclude welcome message and last message)
       const historyMessages = messages.slice(1, -1); // Skip welcome message and last message
@@ -115,8 +103,6 @@ export async function POST(request: NextRequest) {
         }
       }
       
-      console.log(`📚 History length: ${history.length} messages`);
-      
       // Start a chat session with history
       const chat = model.startChat({
         history: history,
@@ -133,9 +119,6 @@ export async function POST(request: NextRequest) {
     }
     const response = result.response;
     const text = response.text();
-
-    // Log the interaction (optional - for analytics)
-    console.log(`AI Assistant - User: ${userId}, Tokens: ~${text.length / 4}`);
 
     return NextResponse.json({
       success: true,

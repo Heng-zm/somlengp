@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useContext, useMemo } from 'react';
+import { useContext, useMemo, memo } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Languages, FileText, LifeBuoy, Mic, Combine, Image as ImageIcon, Wand2, FileHeart, AudioLines, Sun, Moon, History, ArrowRight, Home, Bot } from 'lucide-react';
@@ -15,7 +15,7 @@ import { Separator } from '../ui/separator';
 import Image from 'next/image';
 import { ScrollArea } from '@/components/ui/scroll-area';
 
-export function Sidebar({ language, toggleLanguage }: { language: Language, toggleLanguage: () => void }) {
+export const Sidebar = memo(function Sidebar({ language, toggleLanguage }: { language: Language, toggleLanguage: () => void }) {
   const pathname = usePathname();
   const t = useMemo(() => allTranslations[language], [language]);
   const langContext = useContext(LanguageContext);
@@ -163,4 +163,4 @@ export function Sidebar({ language, toggleLanguage }: { language: Language, togg
       </div>
     </aside>
   );
-}
+});

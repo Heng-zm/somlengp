@@ -23,17 +23,6 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "@/components/ui/alert-dialog";
 import { useAuth } from "@/contexts/auth-context";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -88,7 +77,7 @@ export function LoginForm({ onSwitchToSignup }: LoginFormProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
   const [resetEmail, setResetEmail] = useState("");
-  const [showResetDialog, setShowResetDialog] = useState(false);
+  const [isResetDrawerOpen, setIsResetDrawerOpen] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
 
   const form = useForm<LoginFormData>({
@@ -137,7 +126,7 @@ export function LoginForm({ onSwitchToSignup }: LoginFormProps) {
     
     try {
       await resetPassword(resetEmail);
-      setShowResetDialog(false);
+      setIsResetDrawerOpen(false);
       setResetEmail("");
     } catch (error) {
       console.error("Password reset error:", error);
@@ -316,8 +305,8 @@ export function LoginForm({ onSwitchToSignup }: LoginFormProps) {
                   </Label>
                 </div>
                 
-                <AlertDialog open={showResetDialog} onOpenChange={setShowResetDialog}>
-                  <AlertDialogTrigger asChild>
+                <Sheet open={isResetDrawerOpen} onOpenChange={setIsResetDrawerOpen}>
+                  <SheetTrigger asChild>
                     <Button 
                       variant="link" 
                       className="px-0 font-medium text-sm text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300"
@@ -325,25 +314,30 @@ export function LoginForm({ onSwitchToSignup }: LoginFormProps) {
                     >
                       Forgot password?
                     </Button>
-                  </AlertDialogTrigger>
-                  <AlertDialogContent className="sm:max-w-md">
-                    <AlertDialogHeader>
-                      <AlertDialogTitle className="flex items-center gap-3 text-lg">
-                        <div className="w-10 h-10 bg-blue-100 dark:bg-blue-900/20 rounded-full flex items-center justify-center">
-                          <Mail className="h-5 w-5 text-blue-600 dark:text-blue-400" />
-                        </div>
+                  </SheetTrigger>
+                  <SheetContent side="right" className="w-full sm:max-w-md">
+                    <SheetHeader className="space-y-4 pb-6">
+                      <div className="mx-auto w-16 h-16 bg-gradient-to-br from-red-500 to-orange-500 rounded-full flex items-center justify-center shadow-lg">
+                        <Mail className="w-8 h-8 text-white" />
+                      </div>
+                      <SheetTitle className="text-2xl font-bold text-center bg-gradient-to-r from-red-600 to-orange-600 bg-clip-text text-transparent">
                         Reset Password
-                      </AlertDialogTitle>
-                      <AlertDialogDescription className="text-gray-600 dark:text-gray-400">
+                      </SheetTitle>
+                      <SheetDescription className="text-center text-gray-600 dark:text-gray-400">
                         Enter your email address and we&apos;ll send you a secure link to reset your password.
-                      </AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <div className="py-4">
-                      <div className="relative">
-                        <Mail className="absolute left-3 top-3.5 h-4 w-4 text-gray-400" />
+                      </SheetDescription>
+                    </SheetHeader>
+                    
+                    <div className="space-y-6 mt-6">
+                      <div className="relative group">
+                        <Mail className="absolute left-3 top-3.5 h-4 w-4 text-gray-400 group-focus-within:text-red-500 transition-colors" />
                         <Input
                           placeholder="your.email@example.com"
-                          className="pl-10 h-12"
+                          className={cn(
+                            "pl-10 h-12 text-sm border-gray-200 dark:border-gray-700",
+                            "focus:border-red-500 focus:ring-red-500/20 focus:ring-2",
+                            "transition-all duration-200"
+                          )}
                           type="email"
                           value={resetEmail}
                           onChange={(e) => setResetEmail(e.target.value)}
@@ -352,21 +346,51 @@ export function LoginForm({ onSwitchToSignup }: LoginFormProps) {
                               handlePasswordReset();
                             }
                           }}
+                          autoComplete="email"
                         />
+                        {resetEmail && resetEmail.includes('@') && (
+                          <CheckCircle2 className="absolute right-3 top-3.5 h-4 w-4 text-green-500" />
+                        )}
+                      </div>
+                      
+                      <div className="space-y-3 pt-4">
+                        <Button
+                          onClick={handlePasswordReset}
+                          disabled={!resetEmail || !resetEmail.includes('@')}
+                          className={cn(
+                            "w-full h-12 bg-gradient-to-r from-red-600 to-orange-600",
+                            "hover:from-red-700 hover:to-orange-700",
+                            "text-white font-medium shadow-lg hover:shadow-xl",
+                            "transition-all duration-300 hover:scale-[1.02]",
+                            "focus:ring-2 focus:ring-red-500 focus:ring-offset-2",
+                            "disabled:opacity-60 disabled:cursor-not-allowed disabled:hover:scale-100"
+                          )}
+                        >
+                          <Mail className="w-4 h-4 mr-2" />
+                          Send Reset Link
+                        </Button>
+                        
+                        <Button
+                          variant="outline"
+                          onClick={() => {
+                            setIsResetDrawerOpen(false);
+                            setResetEmail("");
+                          }}
+                          className="w-full h-12 border-gray-200 hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-800"
+                        >
+                          Cancel
+                        </Button>
                       </div>
                     </div>
-                    <AlertDialogFooter>
-                      <AlertDialogCancel className="mt-0">Cancel</AlertDialogCancel>
-                      <AlertDialogAction
-                        onClick={handlePasswordReset}
-                        disabled={!resetEmail || !resetEmail.includes('@')}
-                        className="bg-blue-600 hover:bg-blue-700"
-                      >
-                        Send Reset Link
-                      </AlertDialogAction>
-                    </AlertDialogFooter>
-                  </AlertDialogContent>
-                </AlertDialog>
+                    
+                    <SheetFooter className="mt-8">
+                      <div className="flex items-center space-x-2 text-xs text-gray-500 dark:text-gray-400 mx-auto">
+                        <Lock className="w-3 h-3" />
+                        <span>Your email will be kept secure and private</span>
+                      </div>
+                    </SheetFooter>
+                  </SheetContent>
+                </Sheet>
               </div>
 
               {/* Submit Buttons */}

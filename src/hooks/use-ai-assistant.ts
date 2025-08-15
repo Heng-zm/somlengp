@@ -2,6 +2,7 @@ import { useState, useCallback } from 'react';
 import { useAuth } from '@/contexts/auth-context';
 import { useToast } from '@/hooks/use-toast';
 import { ChatMessage, AIResponse, AIAssistantConfig, DEFAULT_AI_CONFIG } from '@/lib/ai-types';
+import { debug } from '@/lib/debug';
 
 interface UseAIAssistantReturn {
   messages: ChatMessage[];
@@ -82,7 +83,7 @@ export function useAIAssistant(initialMessages: ChatMessage[] = []): UseAIAssist
       setMessages(prev => [...prev, assistantMessage]);
 
     } catch (error: unknown) {
-      console.error('Error sending message:', error);
+      debug.error('Error sending message:', error);
       
       // Show user-friendly error message
       let errorMessage = "I apologize, but I encountered an error. Please try again.";

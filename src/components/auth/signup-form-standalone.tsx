@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -85,9 +85,6 @@ export function SignupFormStandalone({ onSuccess, onSwitchToLogin }: SignupFormS
   });
 
   const onSubmit = async (data: SignupFormData) => {
-    console.log("Form submitted with data:", data);
-    console.log("Form validation state:", form.formState.errors);
-    
     setIsLoading(true);
     try {
       await signUpWithEmail(data.email, data.password);
@@ -99,14 +96,22 @@ export function SignupFormStandalone({ onSuccess, onSwitchToLogin }: SignupFormS
     }
   };
 
-  const handleGoogleSignIn = async () => {
+  const handleGoogleSignIn = useCallback(async () => {
     try {
       await signInWithGoogle();
       onSuccess?.();
     } catch (error) {
       console.error("Google sign-in error:", error);
     }
-  };
+  }, [signInWithGoogle, onSuccess]);
+
+  const toggleShowPassword = useCallback(() => {
+    setShowPassword(prev => !prev);
+  }, []);
+
+  const toggleShowConfirmPassword = useCallback(() => {
+    setShowConfirmPassword(prev => !prev);
+  }, []);
 
 
   return (
@@ -211,7 +216,7 @@ export function SignupFormStandalone({ onSuccess, onSwitchToLogin }: SignupFormS
                     />
                     <button
                       type="button"
-                      onClick={() => setShowPassword(!showPassword)}
+                      onClick={toggleShowPassword}
                       className="absolute right-3 top-3 h-4 w-4 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
                     >
                       {showPassword ? <EyeOff /> : <Eye />}
@@ -240,7 +245,7 @@ export function SignupFormStandalone({ onSuccess, onSwitchToLogin }: SignupFormS
                     />
                     <button
                       type="button"
-                      onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                      onClick={toggleShowConfirmPassword}
                       className="absolute right-3 top-3 h-4 w-4 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
                     >
                       {showConfirmPassword ? <EyeOff /> : <Eye />}

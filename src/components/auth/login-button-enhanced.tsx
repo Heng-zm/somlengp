@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/auth-context";
+import { debug } from "@/lib/debug";
 import { 
   LogIn, 
   User, 
@@ -98,7 +99,7 @@ export function EnhancedLoginButton({
     try {
       await signInWithGoogle();
     } catch (error) {
-      console.error('Sign in error:', error);
+      debug.error('Sign in error:', error);
     }
   };
 
