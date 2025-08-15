@@ -46,10 +46,6 @@ export function LoginButton({ variant = 'modern' }: LoginButtonProps) {
   const { user, loading, signInWithGoogle, logout } = useAuth();
   const [isHovered, setIsHovered] = useState(false);
 
-  // Debug logging (development only)
-  if (process.env.NODE_ENV === 'development') {
-    console.log('LoginButton render:', { user: !!user, loading, variant });
-  }
 
   // Loading state with animated spinner
   if (loading) {
@@ -70,14 +66,8 @@ export function LoginButton({ variant = 'modern' }: LoginButtonProps) {
   }
 
   const handleSignIn = async () => {
-    if (process.env.NODE_ENV === 'development') {
-      console.log('Login button clicked, attempting sign in...');
-    }
     try {
       await signInWithGoogle();
-      if (process.env.NODE_ENV === 'development') {
-        console.log('Sign in function completed');
-      }
     } catch (error) {
       console.error('Sign in error in LoginButton:', error);
     }

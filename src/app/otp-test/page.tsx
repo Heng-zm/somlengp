@@ -12,12 +12,10 @@ export default function OTPTestPage() {
   const handleSuccess = (email: string) => {
     setVerifiedEmail(email);
     setLastError(null);
-    console.log('OTP verification successful for:', email);
   };
 
   const handleError = (error: string) => {
     setLastError(error);
-    console.error('OTP verification error:', error);
   };
 
   return (

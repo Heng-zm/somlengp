@@ -1,10 +1,12 @@
 "use client";
 
+import { memo, useMemo } from 'react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { User } from 'firebase/auth';
 import { Clock, Calendar } from 'lucide-react';
 import { formatRelativeTime } from '@/lib/user-profile';
+import { cn } from '@/lib/utils';
 
 interface UserProfileProps {
   user: User;
@@ -39,7 +41,7 @@ const sizeMap = {
   }
 };
 
-export function UserProfile({ 
+export const UserProfile = memo(function UserProfile({ 
   user, 
   size = 'md', 
   showName = true, 
@@ -49,19 +51,32 @@ export function UserProfile({
   className = '' 
 }: UserProfileProps) {
   const sizeClasses = sizeMap[size];
-  const lastSignInTime = user.metadata.lastSignInTime ? new Date(user.metadata.lastSignInTime) : null;
-  const creationTime = user.metadata.creationTime ? new Date(user.metadata.creationTime) : null;
+  
+  const { lastSignInTime, creationTime, userInitial, containerClasses, avatarClasses, fallbackClasses } = useMemo(() => {
+    const lastSignInTime = user.metadata.lastSignInTime ? new Date(user.metadata.lastSignInTime) : null;
+    const creationTime = user.metadata.creationTime ? new Date(user.metadata.creationTime) : null;
+    const userInitial = user.displayName?.charAt(0) || user.email?.charAt(0) || 'U';
+    
+    return {
+      lastSignInTime,
+      creationTime,
+      userInitial,
+      containerClasses: cn('flex items-center space-x-3', className),
+      avatarClasses: cn(sizeClasses.avatar, 'avatar-border'),
+      fallbackClasses: cn('bg-gradient-to-br from-blue-500 to-purple-600 text-white font-bold', sizeClasses.fallback)
+    };
+  }, [user.metadata.lastSignInTime, user.metadata.creationTime, user.displayName, user.email, sizeClasses, className]);
 
   return (
-    <div className={`flex items-center space-x-3 ${className}`}>
-      <Avatar className={`${sizeClasses.avatar} avatar-border`}>
+    <div className={containerClasses}>
+      <Avatar className={avatarClasses}>
         <AvatarImage 
           src={user.photoURL || ''} 
           alt={user.displayName || 'User'}
           className="avatar-image"
         />
-        <AvatarFallback className={`bg-gradient-to-br from-blue-500 to-purple-600 text-white font-bold ${sizeClasses.fallback}`}>
-          {user.displayName?.charAt(0) || user.email?.charAt(0) || 'U'}
+        <AvatarFallback className={fallbackClasses}>
+          {userInitial}
         </AvatarFallback>
       </Avatar>
       
@@ -102,4 +117,4 @@ export function UserProfile({
       )}
     </div>
   );
-}
+});

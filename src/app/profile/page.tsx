@@ -80,17 +80,6 @@ export default function ProfilePage() {
   const userCreationTime = user.metadata.creationTime ? new Date(user.metadata.creationTime) : null;
   const lastSignInTime = user.metadata.lastSignInTime ? new Date(user.metadata.lastSignInTime) : null;
   
-  // Debug user data
-  console.log('User data:', {
-    displayName: user.displayName,
-    email: user.email,
-    emailVerified: user.emailVerified,
-    photoURL: user.photoURL,
-    uid: user.uid,
-    metadata: user.metadata,
-    userCreationTime,
-    lastSignInTime
-  });
 
   return (
     <AuthGuard>

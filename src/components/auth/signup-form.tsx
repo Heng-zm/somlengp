@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useCallback, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -87,21 +87,20 @@ export function SignupForm({ onSwitchToLogin, isOpen: externalIsOpen, onOpenChan
   const isOpen = externalIsOpen !== undefined ? externalIsOpen : internalIsOpen;
   const setIsOpen = onOpenChange || setInternalIsOpen;
 
+  const formDefaultValues = useMemo(() => ({
+    firstName: "",
+    lastName: "",
+    email: "",
+    password: "",
+    confirmPassword: "",
+  }), []);
+
   const form = useForm<SignupFormData>({
     resolver: zodResolver(signupSchema),
-    defaultValues: {
-      firstName: "",
-      lastName: "",
-      email: "",
-      password: "",
-      confirmPassword: "",
-    },
+    defaultValues: formDefaultValues,
   });
 
-  const onSubmit = async (data: SignupFormData) => {
-    console.log("Sheet form submitted with data:", data);
-    console.log("Sheet form validation state:", form.formState.errors);
-    
+  const onSubmit = useCallback(async (data: SignupFormData) => {
     setIsLoading(true);
     try {
       await signUpWithEmail(data.email, data.password);
@@ -112,16 +111,16 @@ export function SignupForm({ onSwitchToLogin, isOpen: externalIsOpen, onOpenChan
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [signUpWithEmail, form, setIsOpen]);
 
-  const handleGoogleSignIn = async () => {
+  const handleGoogleSignIn = useCallback(async () => {
     try {
       await signInWithGoogle();
       setIsOpen(false);
     } catch (error) {
       console.error("Google sign-in error:", error);
     }
-  };
+  }, [signInWithGoogle, setIsOpen]);
 
   return (
     <Sheet open={isOpen} onOpenChange={setIsOpen}>

@@ -31,7 +31,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     const timeout = setTimeout(() => {
       if (loading) {
-        console.warn('Auth state timeout - setting loading to false');
         setLoading(false);
       }
     }, 10000); // 10 second timeout
@@ -40,10 +39,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [loading]);
 
   useEffect(() => {
-    console.log('Setting up auth state listener...');
-    
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
-      console.log('Auth state changed:', { user: user ? 'logged in' : 'not logged in', uid: user?.uid });
       setUser(user);
       
       if (user) {
@@ -53,11 +49,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           
           if (!profile) {
             // Create new user profile
-            console.log('Creating new user profile for:', user.uid);
             profile = await createUserProfile(user);
           } else {
             // Update last sign-in time
-            console.log('Updating last sign-in time for:', user.uid);
             await updateLastSignInTime(user.uid);
           }
           
@@ -79,7 +73,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     
     // Fallback in case auth state never changes
     const fallbackTimeout = setTimeout(() => {
-      console.log('Auth state fallback timeout triggered');
       setLoading(false);
     }, 5000);
 
@@ -87,7 +80,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     getRedirectResult(auth)
       .then((result) => {
         if (result?.user) {
-          console.log('Redirect sign-in successful:', result.user.uid);
           toast({
             title: "Success",
             description: "Successfully signed in with Google!",
@@ -118,23 +110,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [toast]);
 
   const signInWithGoogle = async (useRedirect = false) => {
-    console.log('SignInWithGoogle called:', { useRedirect, loading });
-    
     try {
       setLoading(true);
-      console.log('Firebase auth object:', auth);
-      console.log('Google provider:', googleProvider);
       
       if (useRedirect) {
-        console.log('Using redirect method...');
         // Use redirect method as fallback
         await signInWithRedirect(auth, googleProvider);
         // Note: The page will redirect, so success toast will be shown after redirect
       } else {
-        console.log('Using popup method...');
         // Try popup method first
         const result = await signInWithPopup(auth, googleProvider);
-        console.log('Popup sign-in successful:', result.user.uid);
         toast({
           title: "Success",
           description: "Successfully signed in with Google!",
@@ -205,7 +190,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       setLoading(true);
       const result = await signInWithEmailAndPassword(auth, email, password);
-      console.log('Email sign-in successful:', result.user.uid);
       toast({
         title: "Success",
         description: "Successfully signed in!",
@@ -246,7 +230,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       setLoading(true);
       const result = await createUserWithEmailAndPassword(auth, email, password);
-      console.log('Email sign-up successful:', result.user.uid);
       toast({
         title: "Success",
         description: "Account created successfully!",
@@ -348,7 +331,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       // First delete the user profile from Firestore
       try {
         await deleteUserProfile(user.uid);
-        console.log('User profile deleted from Firestore');
       } catch (firestoreError) {
         console.error('Error deleting user profile from Firestore:', firestoreError);
         // Continue with auth deletion even if Firestore deletion fails
