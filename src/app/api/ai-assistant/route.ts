@@ -9,23 +9,40 @@ if (!GEMINI_API_KEY) {
 }
 
 let genAI: GoogleGenerativeAI | null = null;
-let model: ReturnType<GoogleGenerativeAI['getGenerativeModel']> | null = null;
 
 try {
   if (GEMINI_API_KEY) {
     genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
-    model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
   }
 } catch (initError) {
   console.error('❌ Failed to initialize Gemini AI:', initError);
 }
 
+// Function to get model instance
+function getModel(modelName: string = "gemini-1.5-flash"): ReturnType<GoogleGenerativeAI['getGenerativeModel']> | null {
+  if (!genAI) return null;
+  
+  try {
+    // Map frontend model names to actual Gemini model names
+    const modelMap: { [key: string]: string } = {
+      'gemini-1.5-flash': 'gemini-1.5-flash',
+      'gemini-2.5-flash': 'gemini-2.0-flash-exp', // Note: Using available model since 2.5 might not exist yet
+    };
+    
+    const actualModelName = modelMap[modelName] || 'gemini-1.5-flash';
+    return genAI.getGenerativeModel({ model: actualModelName });
+  } catch (error) {
+    console.error(`❌ Failed to get model ${modelName}:`, error);
+    return null;
+  }
+}
+
 export async function POST(request: NextRequest) {
   
   try {
-    // Check if API key and model are available
-    if (!GEMINI_API_KEY || !model) {
-      console.error('❌ GEMINI_API_KEY not found or model not initialized');
+    // Check if API key is available
+    if (!GEMINI_API_KEY) {
+      console.error('❌ GEMINI_API_KEY not found');
       return NextResponse.json(
         { error: 'API configuration error. Please check server configuration.' },
         { status: 500 }
@@ -57,7 +74,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const { messages, systemPrompt, userId } = body;
+    const { messages, systemPrompt, userId, model: requestedModel } = body;
 
     if (!messages || !Array.isArray(messages) || messages.length === 0) {
       return NextResponse.json(
@@ -66,11 +83,23 @@ export async function POST(request: NextRequest) {
       );
     }
     
+    // Get the model instance based on the requested model
+    const modelName = requestedModel || 'gemini-1.5-flash';
+    const model = getModel(modelName);
+    
+    if (!model) {
+      console.error(`❌ Failed to get model instance for ${modelName}`);
+      return NextResponse.json(
+        { error: 'Failed to initialize AI model. Please try again.' },
+        { status: 500 }
+      );
+    }
+    
     // Get the last user message
     const lastMessage = messages[messages.length - 1];
     
     // Add system prompt as context if provided
-    const systemMessage = systemPrompt || `You are a helpful AI assistant powered by Gemini 1.5 Flash. You are knowledgeable, friendly, and provide accurate information. Please be concise but thorough in your responses.`;
+    const systemMessage = systemPrompt || `You are a helpful AI assistant powered by ${modelName}. You are knowledgeable, friendly, and provide accurate information. Please be concise but thorough in your responses.`;
 
     let result;
     if (messages.length === 1) {
@@ -123,7 +152,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       success: true,
       response: text,
-      model: 'gemini-1.5-flash',
+      model: modelName,
       timestamp: new Date().toISOString(),
     });
 

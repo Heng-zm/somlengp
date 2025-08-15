@@ -1,13 +1,14 @@
 
 "use client";
 
-import React, { useContext, useEffect } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import { ChevronLeft } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { LanguageContext } from '@/contexts/language-context';
 import { useHistory } from '@/hooks/use-history';
+import { ModelSelector, DEFAULT_AI_MODELS, AIModel } from '@/components/shared/model-selector';
 
 export function FeaturePageLayoutProvider({ children }: { children: React.ReactNode }) {
     return <>{children}</>;
@@ -20,10 +21,11 @@ interface FeaturePageLayoutProps {
     showModelSelector?: boolean;
 }
 
-export const FeaturePageLayout = React.memo<FeaturePageLayoutProps>(function FeaturePageLayout({ children, title }) {
+export const FeaturePageLayout = React.memo<FeaturePageLayoutProps>(function FeaturePageLayout({ children, title, showModelSelector = false }) {
     const langContext = useContext(LanguageContext);
     const pathname = usePathname();
     const { addHistoryItem } = useHistory();
+    const [selectedModel, setSelectedModel] = useState<AIModel>(DEFAULT_AI_MODELS[0]);
 
     if (!langContext) {
         throw new Error('FeaturePageLayout must be used within an AppLayout');
@@ -45,9 +47,17 @@ export const FeaturePageLayout = React.memo<FeaturePageLayoutProps>(function Fea
               </Link>
             </Button>
             <h1 className="text-lg sm:text-xl font-bold">{title}</h1>
-            <div className="w-10"></div>
+            {showModelSelector ? (
+                <ModelSelector
+                    selectedModel={selectedModel}
+                    onModelChange={setSelectedModel}
+                    size="sm"
+                />
+            ) : (
+                <div className="w-10"></div>
+            )}
         </header>
-    ), [title]);
+    ), [title, showModelSelector, selectedModel]);
 
     const mainContent = React.useMemo(() => (
         <div className="flex-grow overflow-y-auto">

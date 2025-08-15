@@ -136,6 +136,25 @@ body {
       background: hsl(var(--foreground));
     }
 
+    /* Mobile-optimized dropdown menu styles */
+    @media (max-width: 768px) {
+      [data-radix-dropdown-menu-content] {
+        @apply max-w-[95vw] mx-2;
+        /* Ensure proper touch targets on mobile */
+        min-height: 44px;
+      }
+      
+      [data-radix-dropdown-menu-item] {
+        /* Increase touch target size for mobile */
+        @apply min-h-[44px] px-4 py-3;
+      }
+      
+      [data-radix-dropdown-menu-trigger] {
+        /* Ensure trigger is easily tappable */
+        @apply min-h-[44px] min-w-[44px];
+      }
+    }
+
     /* Avatar styles to ensure proper circular shape and borders */
     .avatar-border {
       @apply ring-2 ring-white/50 shadow-sm dark:ring-gray-700/50;
