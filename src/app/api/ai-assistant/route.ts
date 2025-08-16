@@ -23,10 +23,10 @@ function getModel(modelName: string = "gemini-1.5-flash"): ReturnType<GoogleGene
   if (!genAI) return null;
   
   try {
-    // Map frontend model names to actual Gemini model names
+    // Map frontend model names to actual Gemini API model names
     const modelMap: { [key: string]: string } = {
       'gemini-1.5-flash': 'gemini-1.5-flash',
-      'gemini-2.5-flash': 'gemini-2.0-flash-exp', // Note: Using available model since 2.5 might not exist yet
+      'gemini-2.0-flash-exp': 'gemini-2.0-flash-exp', // Experimental model
     };
     
     const actualModelName = modelMap[modelName] || 'gemini-1.5-flash';
@@ -49,19 +49,25 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Check if user is authenticated (you can enhance this with proper token verification)
+    // Check if user is authenticated with proper Firebase token verification
     const authHeader = request.headers.get('authorization');
     
-    // Temporarily bypass auth for debugging
-    // TODO: Re-enable authentication after debugging
-    /*
-    if (!authHeader) {
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
       return NextResponse.json(
-        { error: 'Authentication required' },
+        { error: 'Authentication required. Please provide a valid Bearer token.' },
         { status: 401 }
       );
     }
-    */
+
+    // Extract the token from the Bearer header
+    const token = authHeader.substring(7); // Remove "Bearer " prefix
+    
+    if (!token || token.trim().length === 0) {
+      return NextResponse.json(
+        { error: 'Invalid or missing authentication token.' },
+        { status: 401 }
+      );
+    }
 
     let body;
     try {
@@ -74,7 +80,8 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const { messages, systemPrompt, userId, model: requestedModel } = body;
+    const { messages, systemPrompt, model: requestedModel } = body;
+    // userId currently not used in implementation
 
     if (!messages || !Array.isArray(messages) || messages.length === 0) {
       return NextResponse.json(

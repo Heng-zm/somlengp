@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/auth-context';
 import { Button } from '@/components/ui/button';
@@ -23,6 +23,7 @@ import {
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
+import { generateMessageId } from '@/lib/id-utils';
 import { motion, AnimatePresence } from 'framer-motion';
 
 interface Message {
@@ -54,7 +55,11 @@ export function AIAssistantWidget({ className, variant = 'compact' }: AIAssistan
   // Auto-scroll to bottom when new messages arrive
   useEffect(() => {
     if (scrollAreaRef.current) {
-      scrollAreaRef.current.scrollTop = scrollAreaRef.current.scrollHeight;
+      // Find the viewport element within the scroll area
+      const viewport = scrollAreaRef.current.querySelector('[data-radix-scroll-area-viewport]') as HTMLDivElement;
+      if (viewport) {
+        viewport.scrollTo({ top: viewport.scrollHeight, behavior: 'smooth' });
+      }
     }
   }, [messages, isTyping]);
 
@@ -62,7 +67,7 @@ export function AIAssistantWidget({ className, variant = 'compact' }: AIAssistan
   useEffect(() => {
     if (isOpen && messages.length === 0) {
       setMessages([{
-        id: Date.now().toString(),
+        id: generateMessageId(),
         role: 'assistant',
         content: `Hi! 👋 I'm your AI assistant. I can help with questions, creative tasks, and more. What can I do for you today?`,
         timestamp: new Date(),
@@ -90,7 +95,7 @@ export function AIAssistantWidget({ className, variant = 'compact' }: AIAssistan
     }
 
     const userMessage: Message = {
-      id: Date.now().toString(),
+      id: generateMessageId(),
       role: 'user',
       content: input.trim(),
       timestamp: new Date(),
@@ -127,7 +132,7 @@ export function AIAssistantWidget({ className, variant = 'compact' }: AIAssistan
       const data = await response.json();
 
       const assistantMessage: Message = {
-        id: (Date.now() + 1).toString(),
+        id: generateMessageId(),
         role: 'assistant',
         content: data.response,
         timestamp: new Date(),
@@ -143,7 +148,7 @@ export function AIAssistantWidget({ className, variant = 'compact' }: AIAssistan
       });
       
       const errorMessage: Message = {
-        id: (Date.now() + 1).toString(),
+        id: generateMessageId(),
         role: 'assistant',
         content: "I'm sorry, I encountered an error. Please try again or use the full AI Assistant page.",
         timestamp: new Date(),
@@ -153,7 +158,7 @@ export function AIAssistantWidget({ className, variant = 'compact' }: AIAssistan
       setIsLoading(false);
       setIsTyping(false);
     }
-  }, [user, messages, input, toast]);
+  }, [user, messages, input, isLoading, toast]);
 
   const handleKeyPress = useCallback((e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !e.shiftKey) {
