@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState, memo } from 'react';
+import { useState, memo, useCallback } from 'react';
 import { Star, MessageSquare } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
@@ -38,43 +38,56 @@ export const RatingDialog = memo(function RatingDialog({ open, onOpenChange, onS
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
 
-  const cleanUp = () => {
+  const cleanUp = useCallback(() => {
     setRating(0);
     setFeedback('');
     setIsSubmitting(false);
     setIsSubmitted(false);
-  }
+    setHoverRating(0);
+  }, []);
 
-  const handleSubmit = async () => {
+  const handleSubmit = useCallback(async () => {
+    if (rating === 0 || isSubmitting) return;
+    
     setIsSubmitting(true);
-    const success = await onSubmit(rating, feedback);
-    if (success) {
-      setIsSubmitted(true);
-    } else {
+    try {
+      const success = await onSubmit(rating, feedback);
+      if (success) {
+        setIsSubmitted(true);
+      } else {
+        setIsSubmitting(false);
+      }
+    } catch (error) {
+      console.error('Rating submission failed:', error);
       setIsSubmitting(false);
     }
-  };
+  }, [rating, feedback, isSubmitting, onSubmit]);
 
-  const handleClose = (newOpenState: boolean) => {
+  const handleClose = useCallback((newOpenState: boolean) => {
     if (isSubmitting) return;
 
-    if (!newOpenState) {
-        cleanUp();
-    }
     onOpenChange(newOpenState);
-  };
+    if (!newOpenState) {
+      // Cleanup after dialog closes to prevent state issues
+      setTimeout(cleanUp, 300);
+    }
+  }, [isSubmitting, onOpenChange, cleanUp]);
 
-  const handleAnimationEnd = () => {
+  const handleAnimationEnd = useCallback(() => {
     handleClose(false);
-  }
+  }, [handleClose]);
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
       <DialogContent className="sm:max-w-[425px] flex items-center justify-center min-h-[350px]">
         {isSubmitted ? (
-            <FeedbackSuccess message={translations.thankYou} onAnimationEnd={handleAnimationEnd} />
+            <FeedbackSuccess 
+              key="feedback-success"
+              message={translations.thankYou} 
+              onAnimationEnd={handleAnimationEnd} 
+            />
         ) : (
-          <div className="w-full">
+          <div key="feedback-form" className="w-full">
             <DialogHeader>
               <DialogTitle className="flex items-center gap-2">
                 <MessageSquare className="text-primary" />

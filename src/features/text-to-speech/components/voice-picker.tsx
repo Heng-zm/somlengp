@@ -9,6 +9,7 @@ import { User, UserRound, Play, LoaderCircle, Pause } from "lucide-react";
 import { useState, useRef, useEffect, memo, useCallback, useMemo } from "react";
 import { textToSpeech } from "@/ai/flows/text-to-speech-flow";
 import { useToast } from "@/hooks/use-toast";
+import { showVoicePreviewErrorToast } from '@/lib/toast-utils';
 import { Button } from "@/components/ui/button";
 
 const VOICE_PREVIEW_CACHE_KEY = 'voicePreviewCache';
@@ -105,11 +106,8 @@ const VoicePicker = memo(function VoicePicker({ selectedValue, onValueChange, di
             }
             playAudio(audioDataUri);
         } catch (error: unknown) {
-            toast({
-                title: "Preview Failed",
-                description: error instanceof Error ? error.message : "Could not generate voice preview.",
-                variant: "destructive"
-            });
+            const voiceLabel = voices.find(v => v.value === voiceValue)?.label || voiceValue;
+            showVoicePreviewErrorToast(voiceLabel);
         } finally {
             setLoadingPreview(null);
         }

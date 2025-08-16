@@ -5,6 +5,11 @@ import { useState, useContext } from 'react';
 import { AudioLines, Download } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
+import {
+  showTTSInputRequiredToast,
+  showTTSErrorToast,
+  showTTSSuccessToast
+} from '@/lib/toast-utils';
 import { Textarea } from '@/components/ui/textarea';
 import { LanguageContext } from '@/contexts/language-context';
 import { textToSpeech } from '@/ai/flows/text-to-speech-flow';
@@ -28,11 +33,7 @@ export function TextToSpeechPage() {
 
   const handleGenerate = async () => {
     if (!text.trim()) {
-      toast({
-        title: 'Input Required',
-        description: 'Please enter some text to generate audio.',
-        variant: 'destructive',
-      });
+      showTTSInputRequiredToast();
       return;
     }
 
@@ -42,12 +43,14 @@ export function TextToSpeechPage() {
     try {
       const result = await textToSpeech({ text, voice: selectedVoice });
       setAudioDataUri(result.audioDataUri);
+      
+      // Find the selected voice name for the success message
+      const selectedVoiceObj = voices.find(v => v.value === selectedVoice);
+      showTTSSuccessToast(selectedVoiceObj?.label);
     } catch (e: unknown) {
-      toast({
-        title: 'Generation Failed',
-        description: e instanceof Error ? e.message : 'An unknown error occurred.',
-        variant: 'destructive',
-      });
+      const errorMessage = e instanceof Error ? e.message : 'An unknown error occurred.';
+      const selectedVoiceObj = voices.find(v => v.value === selectedVoice);
+      showTTSErrorToast(errorMessage, selectedVoiceObj?.label);
     } finally {
       setIsGenerating(false);
     }

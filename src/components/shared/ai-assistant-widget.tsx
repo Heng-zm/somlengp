@@ -22,6 +22,10 @@ import {
   X
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import {
+  showAuthRequiredToast,
+  showAIAssistantErrorToast
+} from '@/lib/toast-utils';
 import { cn } from '@/lib/utils';
 import { generateMessageId } from '@/lib/id-utils';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -86,11 +90,7 @@ export function AIAssistantWidget({ className, variant = 'compact' }: AIAssistan
     if (!input.trim() || isLoading) return;
 
     if (!user) {
-      toast({
-        title: "Authentication Required",
-        description: "Please sign in to use the AI Assistant.",
-        variant: "destructive",
-      });
+      showAuthRequiredToast("the AI Assistant");
       return;
     }
 
@@ -141,19 +141,16 @@ export function AIAssistantWidget({ className, variant = 'compact' }: AIAssistan
       setMessages(prev => [...prev, assistantMessage]);
     } catch (error: unknown) {
       console.error('Error sending message:', error);
-      toast({
-        title: "Error",
-        description: "Failed to send message. Please try again.",
-        variant: "destructive",
-      });
+      const errorMessage = error instanceof Error ? error.message : "Failed to send message. Please try again.";
+      showAIAssistantErrorToast(errorMessage, !!user);
       
-      const errorMessage: Message = {
+      const errorChatMessage: Message = {
         id: generateMessageId(),
         role: 'assistant',
         content: "I'm sorry, I encountered an error. Please try again or use the full AI Assistant page.",
         timestamp: new Date(),
       };
-      setMessages(prev => [...prev, errorMessage]);
+      setMessages(prev => [...prev, errorChatMessage]);
     } finally {
       setIsLoading(false);
       setIsTyping(false);
