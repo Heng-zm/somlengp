@@ -15,7 +15,6 @@ import {
   ChevronDown, 
   Video, 
   Database, 
-  Table, 
   FileSpreadsheet,
   Download
 } from 'lucide-react';

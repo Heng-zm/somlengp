@@ -12,6 +12,12 @@ import {
 import {FileUp, X, Download, Wand2, ImagePlus, Image as ImageIcon} from 'lucide-react';
 import {Button} from '@/components/ui/button';
 import {useToast} from '@/hooks/use-toast';
+import {
+  showFileValidationErrorToast,
+  showFileProcessingSuccessToast,
+  showFileProcessingErrorToast,
+  showFileProcessingStartToast
+} from '@/lib/toast-utils';
 import {Card} from '@/components/ui/card';
 import {allTranslations} from '@/lib/translations';
 import {LanguageContext} from '@/contexts/language-context';
@@ -160,11 +166,7 @@ export function ConvertImageFormatPage() {
 
       const newFiles = Array.from(selectedFiles).filter(file => {
         if (!file.type.startsWith('image/')) {
-          toast({
-            title: t.invalidFileType,
-            description: `${file.name} is not a valid image file.`,
-            variant: 'destructive',
-          });
+          showFileValidationErrorToast(file.name, "not a valid image file");
           return false;
         }
         return true;
@@ -186,6 +188,7 @@ export function ConvertImageFormatPage() {
     }
 
     setIsConverting(true);
+    showFileProcessingStartToast("image conversion", files.length);
     const zip = new JSZip();
 
     try {
@@ -210,17 +213,11 @@ export function ConvertImageFormatPage() {
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
 
-      toast({
-        title: 'Conversion Successful!',
-        description: `${files.length} images have been converted and downloaded as a zip file.`,
-      });
+      showFileProcessingSuccessToast("converted", undefined, files.length);
       setIsDrawerOpen(false);
     } catch (e: unknown) {
-      toast({
-        title: t.conversionError,
-        description: e instanceof Error ? e.message : 'An unknown error occurred during conversion.',
-        variant: 'destructive',
-      });
+      const errorMessage = e instanceof Error ? e.message : 'An unknown error occurred during conversion.';
+      showFileProcessingErrorToast(errorMessage);
     } finally {
       setIsConverting(false);
     }

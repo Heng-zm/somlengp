@@ -32,7 +32,7 @@ import {
   Settings,
   ChevronDown
 } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
+import { showErrorToast, showSuccessToast } from '@/lib/toast-utils';
 import { cn } from '@/lib/utils';
 import { generateMessageId } from '@/lib/id-utils';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -64,7 +64,6 @@ const AI_MODELS: AIModel[] = [
 
 export default function AIAssistantPage() {
   const { user } = useAuth();
-  const { toast } = useToast();
   const router = useRouter();
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
@@ -102,17 +101,19 @@ export default function AIAssistantPage() {
     }
   }, [messages.length, selectedModel.displayName]);
 
-  // Update welcome message when model changes (exclude messages.length from dependencies to prevent infinite loop)
+  // Update welcome message when model changes (only when switching models)
+  const prevSelectedModelId = useRef(selectedModel.id);
   useEffect(() => {
-    if (messages.length > 0) {
+    if (messages.length > 0 && prevSelectedModelId.current !== selectedModel.id) {
       setMessages([{
         id: generateMessageId(),
         role: 'assistant',
         content: `Model switched to ${selectedModel.displayName}! ${selectedModel.icon} ${selectedModel.description}. How can I assist you today?`,
         timestamp: new Date(),
       }]);
+      prevSelectedModelId.current = selectedModel.id;
     }
-  }, [selectedModel.id]); // Only depend on model ID to prevent infinite loop
+  }, [selectedModel.id, selectedModel.displayName, selectedModel.icon, selectedModel.description, messages.length]); // Include all used properties
 
   const sendMessage = async () => {
     if (!input.trim() || isLoading || !user) return;
@@ -167,11 +168,7 @@ export default function AIAssistantPage() {
     } catch (error: unknown) {
       console.error('Error sending message:', error);
       const errorMessage = error instanceof Error ? error.message : "Failed to send message. Please try again.";
-      toast({
-        title: "Error",
-        description: errorMessage,
-        variant: "destructive",
-      });
+      showErrorToast("AI Assistant Error", errorMessage);
       
       // Add error message to chat
       const errorChatMessage: Message = {
@@ -199,16 +196,9 @@ export default function AIAssistantPage() {
   const copyMessage = async (content: string) => {
     try {
       await navigator.clipboard.writeText(content);
-      toast({
-        title: "Copied!",
-        description: "Message copied to clipboard",
-      });
+      showSuccessToast("Copied!", "Message copied to clipboard");
     } catch {
-      toast({
-        title: "Error",
-        description: "Failed to copy message",
-        variant: "destructive",
-      });
+      showErrorToast("Copy Error", "Failed to copy message");
     }
   };
 

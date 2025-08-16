@@ -1,6 +1,7 @@
 import { useState, useCallback } from 'react';
 import { useAuth } from '@/contexts/auth-context';
 import { useToast } from '@/hooks/use-toast';
+import { showErrorToast } from '@/lib/toast-utils';
 import { ChatMessage, AIResponse, AIAssistantConfig, DEFAULT_AI_CONFIG } from '@/lib/ai-types';
 import { debug } from '@/lib/debug';
 
@@ -97,11 +98,7 @@ export function useAIAssistant(initialMessages: ChatMessage[] = []): UseAIAssist
         errorMessage = "Your message was filtered for safety. Please rephrase your request.";
       }
       
-      toast({
-        title: "AI Assistant Error",
-        description: errorMessage,
-        variant: "destructive",
-      });
+      showErrorToast("AI Assistant Error", errorMessage);
       
       // Add error message to chat
       const errorChatMessage: ChatMessage = {

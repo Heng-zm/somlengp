@@ -1,10 +1,16 @@
 "use client";
 
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
-import { User, onAuthStateChanged, signInWithPopup, signInWithRedirect, getRedirectResult, signOut, deleteUser, signInWithEmailAndPassword, createUserWithEmailAndPassword, sendPasswordResetEmail } from 'firebase/auth';
+import { User, onAuthStateChanged, signInWithPopup, signInWithRedirect, getRedirectResult, signOut, deleteUser, signInWithEmailAndPassword, createUserWithEmailAndPassword, sendPasswordResetEmail, reauthenticateWithCredential, EmailAuthProvider, reauthenticateWithPopup } from 'firebase/auth';
 import { auth, googleProvider } from '@/lib/firebase';
 import { useToast } from '@/hooks/use-toast';
+import { 
+  showSuccessToast, 
+  showAuthSuccessToast, 
+  showAuthErrorToast 
+} from '@/lib/toast-utils';
 import { createUserProfile, getUserProfile, updateLastSignInTime, deleteUserProfile } from '@/lib/user-profile';
+import { isEmailPasswordUser, isGoogleUser } from '@/lib/auth-utils';
 import { UserProfile } from '@/lib/types';
 
 interface AuthContextType {
@@ -16,7 +22,7 @@ interface AuthContextType {
   signUpWithEmail: (email: string, password: string) => Promise<void>;
   resetPassword: (email: string) => Promise<void>;
   logout: () => Promise<void>;
-  deleteAccount: () => Promise<void>;
+  deleteAccount: (password?: string) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -80,10 +86,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     getRedirectResult(auth)
       .then((result) => {
         if (result?.user) {
-          toast({
-            title: "Success",
-            description: "Successfully signed in with Google!",
-          });
+          showAuthSuccessToast("signed in with Google");
         }
       })
       .catch((error) => {
@@ -92,11 +95,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           message: error.message,
           details: error
         });
-        toast({
-          title: "Error",
-          description: "Failed to complete sign-in. Please try again.",
-          variant: "destructive",
-        });
+        showAuthErrorToast("Failed to complete sign-in. Please try again.");
       })
       .finally(() => {
         // Ensure loading is set to false even if redirect result fails
@@ -120,10 +119,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       } else {
         // Try popup method first
         await signInWithPopup(auth, googleProvider);
-        toast({
-          title: "Success",
-          description: "Successfully signed in with Google!",
-        });
+        showAuthSuccessToast("signed in with Google");
       }
     } catch (error: unknown) {
       const authError = error as { code?: string; message?: string };
@@ -168,11 +164,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         errorMessage = "OAuth configuration error. Please check Google Cloud Console settings.";
       }
       
-      toast({
-        title: "Authentication Error",
-        description: errorMessage,
-        variant: "destructive",
-      });
+      showAuthErrorToast(errorMessage);
       
       // Auto-retry with redirect if popup was blocked
       if (suggestRedirect && !useRedirect) {
@@ -190,10 +182,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       setLoading(true);
       await signInWithEmailAndPassword(auth, email, password);
-      toast({
-        title: "Success",
-        description: "Successfully signed in!",
-      });
+      showAuthSuccessToast("signed in");
     } catch (error: unknown) {
       const authError = error as { code?: string; message?: string };
       console.error('Error signing in with email:', error);
@@ -214,11 +203,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         errorMessage = "Network error. Please check your connection.";
       }
       
-      toast({
-        title: "Sign In Error",
-        description: errorMessage,
-        variant: "destructive",
-      });
+      showAuthErrorToast(errorMessage);
       
       throw error; // Re-throw for form handling
     } finally {
@@ -230,10 +215,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       setLoading(true);
       await createUserWithEmailAndPassword(auth, email, password);
-      toast({
-        title: "Success",
-        description: "Account created successfully!",
-      });
+      showAuthSuccessToast("created account");
     } catch (error: unknown) {
       const authError = error as { code?: string; message?: string };
       console.error('Error signing up with email:', error);
@@ -252,11 +234,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         errorMessage = "Network error. Please check your connection.";
       }
       
-      toast({
-        title: "Sign Up Error",
-        description: errorMessage,
-        variant: "destructive",
-      });
+      showAuthErrorToast(errorMessage);
       
       throw error; // Re-throw for form handling
     } finally {
@@ -267,10 +245,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const resetPassword = async (email: string) => {
     try {
       await sendPasswordResetEmail(auth, email);
-      toast({
-        title: "Password Reset Sent",
-        description: "Check your email for password reset instructions.",
-      });
+      showSuccessToast("Password Reset Sent", "Check your email for password reset instructions.");
     } catch (error: unknown) {
       const authError = error as { code?: string; message?: string };
       console.error('Error sending password reset email:', error);
@@ -285,11 +260,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         errorMessage = "Too many requests. Please try again later.";
       }
       
-      toast({
-        title: "Reset Password Error",
-        description: errorMessage,
-        variant: "destructive",
-      });
+      showAuthErrorToast(errorMessage);
       
       throw error; // Re-throw for form handling
     }
@@ -300,33 +271,79 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setLoading(true);
       await signOut(auth);
       toast({
-        title: "Success",
-        description: "Successfully signed out!",
+        title: (
+          <div className="flex items-center gap-2">
+            <div className="flex h-5 w-5 items-center justify-center rounded-full bg-green-100">
+              <svg className="h-3 w-3 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+              </svg>
+            </div>
+            <span className="font-semibold text-green-800">Success</span>
+          </div>
+        ),
+        description: (
+          <div className="mt-1 text-sm text-gray-600">
+            <span className="font-medium">Successfully signed out!</span>
+            <p className="text-xs text-gray-500 mt-1">You have been safely logged out of your account.</p>
+          </div>
+        ),
+        className: "border-green-200 bg-green-50",
       });
     } catch (error) {
       console.error('Error signing out:', error);
-      toast({
-        title: "Error",
-        description: "Failed to sign out. Please try again.",
-        variant: "destructive",
-      });
+      showAuthErrorToast("Failed to sign out. Please try again.");
     } finally {
       setLoading(false);
     }
   };
 
-  const deleteAccount = async () => {
+  const deleteAccount = async (password?: string) => {
     if (!user) {
-      toast({
-        title: "Error",
-        description: "No user is currently signed in.",
-        variant: "destructive",
-      });
+      showAuthErrorToast("No user is currently signed in.");
       return;
     }
 
     try {
       setLoading(true);
+      
+      // If user is an email/password user, require password for reauthentication
+      if (isEmailPasswordUser(user) && !password) {
+        throw new Error("Password is required to delete your account.");
+      }
+      
+      // Reauthenticate the user before deleting account
+      try {
+        if (isEmailPasswordUser(user)) {
+          // For email/password users, reauthenticate with password
+          if (!password) {
+            throw new Error('Password is required to delete your account.');
+          }
+          if (user.email) {
+            const credential = EmailAuthProvider.credential(user.email, password);
+            await reauthenticateWithCredential(user, credential);
+          }
+        } else if (isGoogleUser(user)) {
+          // For Google users, reauthenticate with popup
+          await reauthenticateWithPopup(user, googleProvider);
+        } else {
+          // For other providers, still attempt basic reauthentication
+          console.warn('Unsupported provider for reauthentication:', user.providerData[0]?.providerId);
+        }
+      } catch (reAuthError: unknown) {
+        console.error('Reauthentication failed:', reAuthError);
+        
+        // Provide better error messages for different auth errors
+        const authError = reAuthError as { code?: string; message?: string };
+        if (authError.code === 'auth/popup-blocked') {
+          throw new Error('Popup was blocked. Please allow popups and try again.');
+        } else if (authError.code === 'auth/popup-closed-by-user') {
+          throw new Error('Authentication popup was closed. Please try again.');
+        } else if (authError.code === 'auth/wrong-password') {
+          throw new Error('Incorrect password. Please try again.');
+        }
+        
+        throw reAuthError; // Throw to be caught in outer catch block
+      }
       
       // First delete the user profile from Firestore
       try {
@@ -339,10 +356,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       // Then delete the user from Firebase Auth
       await deleteUser(user);
       
-      toast({
-        title: "Success",
-        description: "Your account has been permanently deleted.",
-      });
+      showSuccessToast("Account Deleted", "Your account has been permanently deleted.");
     } catch (error: unknown) {
       const authError = error as { code?: string; message?: string };
       console.error('Error deleting account:', error);
@@ -350,16 +364,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       let errorMessage = "Failed to delete account. Please try again.";
       
       if (authError.code === 'auth/requires-recent-login') {
-        errorMessage = "For security reasons, please sign out and sign in again before deleting your account.";
+        errorMessage = "For security reasons, please provide your password again to delete your account.";
       } else if (authError.code === 'auth/user-not-found') {
         errorMessage = "User account not found.";
+      } else if (authError.code === 'auth/wrong-password') {
+        errorMessage = "Incorrect password. Please try again.";
+      } else if (authError.message) {
+        errorMessage = authError.message;
       }
       
-      toast({
-        title: "Error",
-        description: errorMessage,
-        variant: "destructive",
-      });
+      showAuthErrorToast(errorMessage);
+      throw error; // Re-throw to handle in the component
     } finally {
       setLoading(false);
     }

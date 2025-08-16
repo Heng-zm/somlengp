@@ -13,18 +13,6 @@ interface FeedbackSuccessProps {
 const FeedbackSuccess = memo(function FeedbackSuccess({ message, onAnimationEnd, onClose }: FeedbackSuccessProps) {
   const [visible, setVisible] = useState(false);
 
-  useEffect(() => {
-    // Animate in
-    setVisible(true);
-
-    // Trigger close after animation + delay
-    const timer = setTimeout(() => {
-      onAnimationEnd();
-    }, 3000); // 500ms animation + 2500ms wait (longer for user to read)
-
-    return () => clearTimeout(timer);
-  }, [onAnimationEnd]);
-
   const handleClose = useCallback(() => {
     if (onClose) {
       onClose();
@@ -33,8 +21,25 @@ const FeedbackSuccess = memo(function FeedbackSuccess({ message, onAnimationEnd,
     }
   }, [onClose, onAnimationEnd]);
 
+  useEffect(() => {
+    // Animate in immediately
+    const animateIn = () => setVisible(true);
+    const timeoutId = setTimeout(animateIn, 50);
+
+    // Trigger close after animation + delay
+    const closeTimer = setTimeout(() => {
+      onAnimationEnd();
+    }, 3000); // 500ms animation + 2500ms wait (longer for user to read)
+
+    return () => {
+      clearTimeout(timeoutId);
+      clearTimeout(closeTimer);
+    };
+  }, [onAnimationEnd]);
+
   const containerStyle = useMemo(() => ({
-    opacity: visible ? 1 : 0
+    opacity: visible ? 1 : 0,
+    transform: visible ? 'scale(1)' : 'scale(0.95)'
   }), [visible]);
 
   const iconStyle = useMemo(() => ({
