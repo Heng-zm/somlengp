@@ -119,7 +119,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         // Note: The page will redirect, so success toast will be shown after redirect
       } else {
         // Try popup method first
-        const result = await signInWithPopup(auth, googleProvider);
+        await signInWithPopup(auth, googleProvider);
         toast({
           title: "Success",
           description: "Successfully signed in with Google!",
@@ -189,7 +189,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const signInWithEmail = async (email: string, password: string) => {
     try {
       setLoading(true);
-      const result = await signInWithEmailAndPassword(auth, email, password);
+      await signInWithEmailAndPassword(auth, email, password);
       toast({
         title: "Success",
         description: "Successfully signed in!",
@@ -229,7 +229,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const signUpWithEmail = async (email: string, password: string) => {
     try {
       setLoading(true);
-      const result = await createUserWithEmailAndPassword(auth, email, password);
+      await createUserWithEmailAndPassword(auth, email, password);
       toast({
         title: "Success",
         description: "Account created successfully!",

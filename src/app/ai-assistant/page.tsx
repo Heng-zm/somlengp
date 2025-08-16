@@ -34,6 +34,7 @@ import {
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
+import { generateMessageId } from '@/lib/id-utils';
 import { motion, AnimatePresence } from 'framer-motion';
 
 interface Message {
@@ -53,10 +54,10 @@ const AI_MODELS: AIModel[] = [
     icon: '⚡'
   },
   {
-    id: 'gemini-2.5-flash',
-    name: 'gemini-2.5-flash',
-    displayName: 'Gemini 2.5 Flash',
-    description: 'Latest model with enhanced capabilities',
+    id: 'gemini-2.0-flash-exp',
+    name: 'gemini-2.0-flash-exp',
+    displayName: 'Gemini 2.0 Flash (Experimental)',
+    description: 'Latest experimental model with enhanced capabilities',
     icon: '✨'
   }
 ];
@@ -76,7 +77,11 @@ export default function AIAssistantPage() {
   // Auto-scroll to bottom when new messages arrive
   useEffect(() => {
     if (scrollAreaRef.current) {
-      scrollAreaRef.current.scrollTop = scrollAreaRef.current.scrollHeight;
+      // Find the viewport element within the scroll area
+      const viewport = scrollAreaRef.current.querySelector('[data-radix-scroll-area-viewport]') as HTMLDivElement;
+      if (viewport) {
+        viewport.scrollTo({ top: viewport.scrollHeight, behavior: 'smooth' });
+      }
     }
   }, [messages, isTyping]);
 
@@ -89,31 +94,31 @@ export default function AIAssistantPage() {
   useEffect(() => {
     if (messages.length === 0) {
       setMessages([{
-        id: Date.now().toString(),
+        id: generateMessageId(),
         role: 'assistant',
         content: `Hello! 👋 I'm your AI Assistant powered by ${selectedModel.displayName}. I'm here to help you with questions, creative tasks, problem-solving, and more. What would you like to discuss today?`,
         timestamp: new Date(),
       }]);
     }
-  }, [messages.length, selectedModel]);
+  }, [messages.length, selectedModel.displayName]);
 
-  // Update welcome message when model changes
+  // Update welcome message when model changes (exclude messages.length from dependencies to prevent infinite loop)
   useEffect(() => {
     if (messages.length > 0) {
       setMessages([{
-        id: Date.now().toString(),
+        id: generateMessageId(),
         role: 'assistant',
         content: `Model switched to ${selectedModel.displayName}! ${selectedModel.icon} ${selectedModel.description}. How can I assist you today?`,
         timestamp: new Date(),
       }]);
     }
-  }, [selectedModel]);
+  }, [selectedModel.id]); // Only depend on model ID to prevent infinite loop
 
   const sendMessage = async () => {
     if (!input.trim() || isLoading || !user) return;
 
     const userMessage: Message = {
-      id: Date.now().toString(),
+      id: generateMessageId(),
       role: 'user',
       content: input.trim(),
       timestamp: new Date(),
@@ -152,7 +157,7 @@ export default function AIAssistantPage() {
       const data = await response.json();
 
       const assistantMessage: Message = {
-        id: (Date.now() + 1).toString(),
+        id: generateMessageId(),
         role: 'assistant',
         content: data.response,
         timestamp: new Date(),
@@ -170,7 +175,7 @@ export default function AIAssistantPage() {
       
       // Add error message to chat
       const errorChatMessage: Message = {
-        id: (Date.now() + 1).toString(),
+        id: generateMessageId(),
         role: 'assistant',
         content: "I'm sorry, I encountered an error. Please try again or contact support if the problem persists.",
         timestamp: new Date(),
@@ -184,7 +189,7 @@ export default function AIAssistantPage() {
 
   const clearChat = () => {
     setMessages([{
-      id: Date.now().toString(),
+      id: generateMessageId(),
       role: 'assistant',
       content: `Chat cleared! 🧹 I'm ready for a fresh conversation. What can I help you with?`,
       timestamp: new Date(),
