@@ -270,25 +270,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       setLoading(true);
       await signOut(auth);
-      toast({
-        title: (
-          <div className="flex items-center gap-2">
-            <div className="flex h-5 w-5 items-center justify-center rounded-full bg-green-100">
-              <svg className="h-3 w-3 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-              </svg>
-            </div>
-            <span className="font-semibold text-green-800">Success</span>
-          </div>
-        ),
-        description: (
-          <div className="mt-1 text-sm text-gray-600">
-            <span className="font-medium">Successfully signed out!</span>
-            <p className="text-xs text-gray-500 mt-1">You have been safely logged out of your account.</p>
-          </div>
-        ),
-        className: "border-green-200 bg-green-50",
-      });
+      showSuccessToast("Successfully signed out!", "You have been safely logged out of your account.");
     } catch (error) {
       console.error('Error signing out:', error);
       showAuthErrorToast("Failed to sign out. Please try again.");
