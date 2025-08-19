@@ -328,7 +328,7 @@ export function AlertShowcase() {
 </Alert>
 
 // Dismissible Alert
-<Alert variant="warning" dismissible onDismiss={() => console.log('dismissed')}>
+<Alert variant="warning" dismissible onDismiss={() => {/* handle dismiss */}}>
   <AlertTriangle className="h-4 w-4" />
   <AlertTitle>Warning</AlertTitle>
   <AlertDescription>Please review your settings.</AlertDescription>

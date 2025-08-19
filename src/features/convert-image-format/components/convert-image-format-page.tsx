@@ -174,7 +174,7 @@ export function ConvertImageFormatPage() {
 
       setFiles(prev => [...prev, ...newFiles]);
     },
-    [t.invalidFileType, toast]
+    []
   );
 
   const handleConvert = async () => {

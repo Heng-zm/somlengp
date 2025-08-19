@@ -4,7 +4,6 @@
 import { useState, useContext } from 'react';
 import { AudioLines, Download } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { useToast } from '@/hooks/use-toast';
 import {
   showTTSInputRequiredToast,
   showTTSErrorToast,
@@ -22,7 +21,6 @@ export function TextToSpeechPage() {
   const [isGenerating, setIsGenerating] = useState(false);
   const [audioDataUri, setAudioDataUri] = useState<string | null>(null);
   const [selectedVoice, setSelectedVoice] = useState<string>(voices[0].value);
-  const { toast } = useToast();
 
   const langContext = useContext(LanguageContext);
   if (!langContext) {

@@ -155,7 +155,7 @@ export function AIAssistantWidget({ className, variant = 'compact' }: AIAssistan
       setIsLoading(false);
       setIsTyping(false);
     }
-  }, [user, messages, input, isLoading, toast]);
+  }, [user, messages, input, isLoading]);
 
   const handleKeyPress = useCallback((e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !e.shiftKey) {

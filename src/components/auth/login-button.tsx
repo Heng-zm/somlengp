@@ -13,7 +13,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
-import { useState } from 'react';
+import { useState, useCallback, memo } from 'react';
 import Link from 'next/link';
 
 // Google Colors for branding
@@ -42,10 +42,21 @@ interface LoginButtonProps {
   variant?: 'default' | 'modern' | 'minimal' | 'gradient' | 'circle';
 }
 
-export function LoginButton({ variant = 'modern' }: LoginButtonProps) {
+const LoginButton = memo(function LoginButton({ variant = 'modern' }: LoginButtonProps) {
   const { user, loading, signInWithGoogle, logout } = useAuth();
   const [isHovered, setIsHovered] = useState(false);
 
+  // Move all hooks before any early returns
+  const handleSignIn = useCallback(async () => {
+    try {
+      await signInWithGoogle();
+    } catch (error) {
+      console.error('Sign in error in LoginButton:', error);
+    }
+  }, [signInWithGoogle]);
+
+  const handleMouseEnter = useCallback(() => setIsHovered(true), []);
+  const handleMouseLeave = useCallback(() => setIsHovered(false), []);
 
   // Loading state with animated spinner
   if (loading) {
@@ -65,14 +76,6 @@ export function LoginButton({ variant = 'modern' }: LoginButtonProps) {
     );
   }
 
-  const handleSignIn = async () => {
-    try {
-      await signInWithGoogle();
-    } catch (error) {
-      console.error('Sign in error in LoginButton:', error);
-    }
-  };
-
   // Enhanced login button designs
   if (!user) {
     const buttonVariants = {
@@ -90,8 +93,8 @@ export function LoginButton({ variant = 'modern' }: LoginButtonProps) {
       modern: (
         <Button
           onClick={handleSignIn}
-          onMouseEnter={() => setIsHovered(true)}
-          onMouseLeave={() => setIsHovered(false)}
+          onMouseEnter={handleMouseEnter}
+          onMouseLeave={handleMouseLeave}
           className={cn(
             "relative overflow-hidden bg-white hover:bg-gray-50 text-gray-700 border border-gray-300 shadow-sm",
             "transition-all duration-300 hover:shadow-lg hover:scale-[1.02]",
@@ -143,8 +146,8 @@ export function LoginButton({ variant = 'modern' }: LoginButtonProps) {
       circle: (
         <Button
           onClick={handleSignIn}
-          onMouseEnter={() => setIsHovered(true)}
-          onMouseLeave={() => setIsHovered(false)}
+          onMouseEnter={handleMouseEnter}
+          onMouseLeave={handleMouseLeave}
           className={cn(
             "relative overflow-hidden h-10 w-10 rounded-full p-0",
             "bg-white hover:bg-gray-50 border border-gray-300 shadow-md",
@@ -246,4 +249,6 @@ export function LoginButton({ variant = 'modern' }: LoginButtonProps) {
       </DropdownMenuContent>
     </DropdownMenu>
   );
-}
+});
+
+export { LoginButton };

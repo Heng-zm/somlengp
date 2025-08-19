@@ -105,13 +105,14 @@ const VoicePicker = memo(function VoicePicker({ selectedValue, onValueChange, di
                 console.error("Failed to save voice previews to localStorage", error);
             }
             playAudio(audioDataUri);
-        } catch (error: unknown) {
+        } catch (previewError: unknown) {
+            console.error('Voice preview error:', previewError);
             const voiceLabel = voices.find(v => v.value === voiceValue)?.label || voiceValue;
             showVoicePreviewErrorToast(voiceLabel);
         } finally {
             setLoadingPreview(null);
         }
-    }, [loadingPreview, playingPreview, previews, stopCurrentPreview, toast]);
+    }, [loadingPreview, playingPreview, previews, stopCurrentPreview]);
     const carouselOpts = useMemo(() => ({
         align: "start" as const,
         loop: false,

@@ -37,9 +37,11 @@ export async function generateNextUserId(): Promise<number> {
 /**
  * Gets a user profile by numeric user ID
  */
-export async function getUserProfileByUserId(_userId: number): Promise<UserProfile | null> {
+export async function getUserProfileByUserId(userId: number): Promise<UserProfile | null> {
   // Note: This requires a compound query or maintaining a separate index
   // For now, we'll need to implement this differently since Firestore doesn't have efficient reverse lookups
+  // The userId parameter will be used when this function is implemented
+  console.warn(`getUserProfileByUserId called with userId: ${userId} - not yet implemented`);
   throw new Error('getUserProfileByUserId not implemented - requires indexing strategy');
 }
 

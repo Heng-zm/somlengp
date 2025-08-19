@@ -113,7 +113,7 @@ export default function AIAssistantPage() {
       }]);
       prevSelectedModelId.current = selectedModel.id;
     }
-  }, [selectedModel.id, selectedModel.displayName, selectedModel.icon, selectedModel.description, messages.length]); // Include all used properties
+  }, [selectedModel.id, selectedModel.displayName, selectedModel.icon, selectedModel.description, messages.length]);
 
   const sendMessage = async () => {
     if (!input.trim() || isLoading || !user) return;

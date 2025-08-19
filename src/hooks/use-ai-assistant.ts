@@ -112,7 +112,7 @@ export function useAIAssistant(initialMessages: ChatMessage[] = []): UseAIAssist
       setIsLoading(false);
       setIsTyping(false);
     }
-  }, [messages, user, isLoading, toast]);
+  }, [messages, user, isLoading]);
 
   const retryLastMessage = useCallback(async () => {
     if (lastUserMessage && !isLoading) {

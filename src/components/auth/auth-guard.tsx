@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback, memo } from 'react';
 import { useAuth } from '@/contexts/auth-context';
 import { debug } from '@/lib/debug';
 import { Button } from '@/components/ui/button';
@@ -52,7 +52,7 @@ interface AuthGuardProps {
   fallback?: React.ReactNode;
 }
 
-export function AuthGuard({ children, fallback }: AuthGuardProps) {
+const AuthGuard = memo(function AuthGuard({ children, fallback }: AuthGuardProps) {
   const { user, loading, signInWithGoogle, signInWithEmail, resetPassword } = useAuth();
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -114,13 +114,13 @@ export function AuthGuard({ children, fallback }: AuthGuardProps) {
     }
   };
 
-  const handleGoogleSignIn = async () => {
+  const handleGoogleSignIn = useCallback(async () => {
     try {
       await signInWithGoogle();
     } catch (error) {
       debug.error("Google sign-in error:", error);
     }
-  };
+  }, [signInWithGoogle]);
 
   // Google Icon Component
   const GoogleIcon = () => (
@@ -449,4 +449,6 @@ export function AuthGuard({ children, fallback }: AuthGuardProps) {
   }
 
   return <>{children}</>;
-}
+});
+
+export { AuthGuard };
