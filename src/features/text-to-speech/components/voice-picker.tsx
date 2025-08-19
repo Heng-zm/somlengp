@@ -8,7 +8,6 @@ import { cn } from "@/lib/utils";
 import { User, UserRound, Play, LoaderCircle, Pause } from "lucide-react";
 import { useState, useRef, useEffect, memo, useCallback, useMemo } from "react";
 import { textToSpeech } from "@/ai/flows/text-to-speech-flow";
-import { useToast } from "@/hooks/use-toast";
 import { showVoicePreviewErrorToast } from '@/lib/toast-utils';
 import { Button } from "@/components/ui/button";
 
@@ -37,7 +36,6 @@ const VoicePicker = memo(function VoicePicker({ selectedValue, onValueChange, di
     const [loadingPreview, setLoadingPreview] = useState<string | null>(null);
     const [playingPreview, setPlayingPreview] = useState<string | null>(null);
     const audioRef = useRef<HTMLAudioElement | null>(null);
-    const { toast } = useToast();
 
     // Load cached previews from localStorage on initial render
     useEffect(() => {

@@ -17,7 +17,6 @@ interface UseAIAssistantReturn {
 
 export function useAIAssistant(initialMessages: ChatMessage[] = []): UseAIAssistantReturn {
   const { user } = useAuth();
-  const { toast } = useToast();
   const [messages, setMessages] = useState<ChatMessage[]>(initialMessages);
   const [isLoading, setIsLoading] = useState(false);
   const [isTyping, setIsTyping] = useState(false);

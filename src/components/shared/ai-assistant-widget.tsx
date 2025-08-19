@@ -21,7 +21,6 @@ import {
   RefreshCw,
   X
 } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
 import {
   showAuthRequiredToast,
   showAIAssistantErrorToast
@@ -45,7 +44,6 @@ interface AIAssistantWidgetProps {
 export function AIAssistantWidget({ className, variant = 'compact' }: AIAssistantWidgetProps) {
   const { user } = useAuth();
   const router = useRouter();
-  const { toast } = useToast();
   
   const [isOpen, setIsOpen] = useState(false);
   const [isExpanded, setIsExpanded] = useState(variant === 'expanded');

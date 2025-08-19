@@ -20,7 +20,7 @@ export default function NotFound() {
             Page Not Found
           </h2>
           <p className="text-lg text-gray-600 mb-2">
-            Oops! The page you're looking for doesn't exist.
+            Oops! The page you&apos;re looking for doesn&apos;t exist.\n
           </p>
           <p className="text-sm text-gray-500">
             It might have been moved, deleted, or you entered the wrong URL.
@@ -67,7 +67,7 @@ export default function NotFound() {
         {/* Help Links */}
         <div className="mt-12 pt-8 border-t border-gray-200">
           <p className="text-sm text-gray-500 mb-4">
-            Still can't find what you're looking for?
+            Still can&apos;t find what you&apos;re looking for?\n
           </p>
           <div className="flex justify-center space-x-6 text-sm">
             <Link

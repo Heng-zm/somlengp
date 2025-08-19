@@ -81,7 +81,7 @@ export async function reauthenticateUser(user: User, password?: string): Promise
  * Checks if a user needs recent authentication for sensitive operations
  * Firebase requires recent authentication for operations like account deletion
  */
-export function needsRecentAuth(user: User): boolean {
+export function needsRecentAuth(): boolean {
   // Firebase typically requires authentication within the last 5 minutes for sensitive operations
   // However, since we can't directly check this, we'll always require reauthentication for safety
   return true;

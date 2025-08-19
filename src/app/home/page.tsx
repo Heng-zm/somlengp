@@ -22,7 +22,6 @@ const VISITOR_SESSION_KEY = 'ozo-designer-session-visited';
 
 export default function HomePage() {
   const [visitorCount, setVisitorCount] = useState<number | null>(null);
-  const [isLoadingVisitorCount, setIsLoadingVisitorCount] = useState(true);
   const langContext = useContext(LanguageContext);
   
   if (!langContext) {
@@ -48,8 +47,6 @@ const { language, toggleLanguage, theme, toggleTheme } = langContext;
     
     return async (isIncrement: boolean) => {
       try {
-        setIsLoadingVisitorCount(true);
-        
         // Check cache first for GET requests
         if (!isIncrement && typeof window !== 'undefined') {
           const cached = localStorage.getItem(cacheKey);
@@ -57,7 +54,6 @@ const { language, toggleLanguage, theme, toggleTheme } = langContext;
             const { count, timestamp } = JSON.parse(cached);
             if (Date.now() - timestamp < cacheExpiry) {
               setVisitorCount(count);
-              setIsLoadingVisitorCount(false);
               return;
             }
           }
@@ -114,8 +110,6 @@ const { language, toggleLanguage, theme, toggleTheme } = langContext;
             setVisitorCount(count);
           }
         }
-      } finally {
-        setIsLoadingVisitorCount(false);
       }
     };
   }, []);
