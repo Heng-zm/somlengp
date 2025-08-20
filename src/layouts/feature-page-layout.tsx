@@ -39,7 +39,7 @@ export const FeaturePageLayout = React.memo<FeaturePageLayoutProps>(function Fea
 
     // Memoize header and main content
     const header = React.useMemo(() => (
-        <header className="flex-shrink-0 flex items-center justify-between p-2 sm:p-4 border-b">
+        <header className="fixed top-0 left-0 right-0 z-50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b flex items-center justify-between p-2 sm:p-4">
             <Button variant="ghost" size="icon" asChild>
               <Link href="/home">
                 <ChevronLeft />
@@ -60,7 +60,7 @@ export const FeaturePageLayout = React.memo<FeaturePageLayoutProps>(function Fea
     ), [title, showModelSelector, selectedModel]);
 
     const mainContent = React.useMemo(() => (
-        <div className="flex-grow overflow-y-auto">
+        <div className="flex-grow overflow-y-auto pt-16">
             {children}
         </div>
     ), [children]);

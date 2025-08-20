@@ -1,6 +1,6 @@
 # Google Authentication Feature
 
-This document outlines the Google authentication implementation added to the VoiceScribe application.
+This document outlines the Google authentication implementation added to the Somleng application.
 
 ## Features Implemented
 
@@ -198,4 +198,4 @@ Potential improvements for the authentication system:
 
 ---
 
-The Google authentication feature is now fully integrated into VoiceScribe, providing a secure and user-friendly way to manage user access and enable personalized features.
+The Google authentication feature is now fully integrated into Somleng, providing a secure and user-friendly way to manage user access and enable personalized features.

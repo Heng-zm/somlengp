@@ -1,6 +1,5 @@
 import { useState, useCallback } from 'react';
 import { useAuth } from '@/contexts/auth-context';
-import { useToast } from '@/hooks/use-toast';
 import { showErrorToast } from '@/lib/toast-utils';
 import { ChatMessage, AIResponse, AIAssistantConfig, DEFAULT_AI_CONFIG } from '@/lib/ai-types';
 import { debug } from '@/lib/debug';

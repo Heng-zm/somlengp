@@ -1,11 +1,12 @@
 "use client";
 
+import '../../styles/patterns.css';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/auth-context';
 import { AuthGuard } from '@/components/auth/auth-guard';
 import { FeaturePageLayout } from '@/layouts/feature-page-layout';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import {
@@ -23,11 +24,15 @@ import {
   User2,
   Calendar,
   Trash2,
-  Settings,
   Mail,
   Copy,
   CheckCircle2,
   Activity,
+  Shield,
+  Camera,
+  Edit,
+  UserCog,
+  FileText,
 } from 'lucide-react';
 import { UserProfile } from '@/components/user/user-profile';
 import { formatRelativeTime } from '@/lib/user-profile';
@@ -45,6 +50,7 @@ export default function ProfilePage() {
   const [deleteLoading, setDeleteLoading] = useState(false);
   const [deleteError, setDeleteError] = useState<string | null>(null);
   const [copiedField, setCopiedField] = useState<string | null>(null);
+  // Removed tab state management as navigation tabs have been removed
 
   if (!user) return null;
 
@@ -117,205 +123,225 @@ export default function ProfilePage() {
   return (
     <AuthGuard>
       <FeaturePageLayout title="Profile">
-        <div className="max-w-5xl mx-auto p-4 md:p-6 space-y-8 md:space-y-10">
-          {/* Enhanced Profile Header with Cover */}
-          <Card className="group overflow-hidden border-0 shadow-2xl bg-gradient-to-br from-white via-blue-50/30 to-purple-50/30 dark:from-gray-900 dark:via-gray-800 dark:to-purple-900/20 backdrop-blur-sm hover:shadow-3xl transition-all duration-500 ease-out">
-            {/* Cover Section with Animated Gradient */}
-            <div className="relative h-40 md:h-48 bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-700 overflow-hidden">
-              <div className="absolute inset-0 bg-gradient-to-r from-blue-600/90 via-purple-600/90 to-indigo-700/90"></div>
-              <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent"></div>
+        <div className="max-w-7xl mx-auto p-4 md:p-6 space-y-8">
+          {/* Profile Header with Cover Photo */}
+          <div className="rounded-3xl overflow-hidden bg-white dark:bg-gray-950 shadow-xl">
+            {/* Cover Photo with Edit Button */}
+            <div className="relative h-48 md:h-64 lg:h-80 bg-gradient-to-r from-blue-600 via-violet-600 to-indigo-600 overflow-hidden">
+              <div className="absolute inset-0 bg-pattern opacity-10"></div>
+              <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-black/10"></div>
               
-              {/* Animated background elements */}
-              <div className="absolute top-0 left-0 w-full h-full">
-                <div className="absolute top-4 right-8 w-16 h-16 bg-white/10 rounded-full blur-xl animate-pulse"></div>
-                <div className="absolute top-12 right-20 w-8 h-8 bg-purple-300/20 rounded-full blur-lg animate-bounce delay-300"></div>
-                <div className="absolute bottom-8 left-12 w-12 h-12 bg-blue-300/15 rounded-full blur-lg animate-pulse delay-700"></div>
+              {/* Background Elements */}
+              <div className="absolute inset-0 overflow-hidden">
+                <div className="absolute top-1/4 left-1/4 w-32 h-32 bg-white/10 rounded-full blur-2xl animate-pulse"></div>
+                <div className="absolute bottom-1/3 right-1/4 w-24 h-24 bg-violet-300/20 rounded-full blur-xl animate-pulse delay-300"></div>
+                <div className="absolute top-1/2 right-1/3 w-40 h-40 bg-blue-300/10 rounded-full blur-xl animate-pulse delay-700"></div>
+              </div>
+              
+              {/* Edit Cover Photo Button */}
+              <div className="absolute top-4 right-4 z-10">
+                <Button variant="secondary" size="sm" className="bg-white/20 backdrop-blur-md hover:bg-white/30 transition-all duration-200 text-white border-white/30">
+                  <Camera className="h-4 w-4 mr-2" />
+                  Edit Cover
+                </Button>
               </div>
             </div>
             
-            <CardContent className="-mt-20 relative pt-24 pb-8 px-6 md:px-8">
-              <div className="flex flex-col lg:flex-row items-center lg:items-start space-y-6 lg:space-y-0 lg:space-x-10">
-                {/* Enhanced Avatar with Status */}
-                <div className="relative shrink-0 group/avatar">
-                  <UserProfile 
-                    user={user} 
-                    size="xl" 
-                    showName={false}
-                    variant="glass"
-                    showStatusDot={true}
-                    className="ring-4 ring-white/70 dark:ring-gray-800/70 shadow-2xl hover:ring-6 hover:ring-blue-400/40 dark:hover:ring-purple-500/40 transition-all duration-300"
-                  />
-                  
-                  {/* Status indicator with animation */}
-                  <div className="absolute -bottom-2 -right-2 flex items-center justify-center">
-                    <div className="w-10 h-10 bg-gradient-to-r from-emerald-400 to-green-500 border-4 border-white dark:border-gray-800 rounded-full shadow-lg flex items-center justify-center hover:scale-110 transition-transform duration-200">
+            {/* Profile Info Section */}
+            <div className="relative px-6 lg:px-8 pb-8 bg-white dark:bg-gray-950">
+              {/* Profile Picture with Edit Option */}
+              <div className="flex flex-col md:flex-row items-center md:items-end gap-6 -mt-16 md:-mt-20 mb-6">
+                <div className="relative group">
+                  <div className="relative">
+                    <UserProfile 
+                      user={user} 
+                      size="xl" 
+                      showName={false}
+                      variant="glass"
+                      showStatusDot={true}
+                      className="ring-4 ring-white dark:ring-gray-900 shadow-xl group-hover:ring-opacity-75 transition-all duration-300"
+                    />
+                    
+                    {/* Online Status Indicator */}
+                    <div className="absolute -bottom-1 -right-1 w-8 h-8 bg-emerald-500 rounded-full border-4 border-white dark:border-gray-900 flex items-center justify-center shadow-lg">
                       <div className="w-3 h-3 bg-white rounded-full animate-pulse"></div>
+                    </div>
+                  </div>
+                  
+                  {/* Hover Edit Button */}
+                  <div className="absolute inset-0 flex items-center justify-center bg-black/30 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-200 cursor-pointer">
+                    <div className="p-2 bg-white/20 rounded-full backdrop-blur-sm">
+                      <Edit className="h-5 w-5 text-white" />
                     </div>
                   </div>
                 </div>
                 
-                {/* Enhanced User Info */}
-                <div className="flex-1 text-center lg:text-left space-y-6 min-w-0 w-full">
-                  {/* User Name with animation */}
-                  <div className="space-y-3">
-                    <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold bg-gradient-to-r from-gray-900 via-blue-800 to-purple-800 dark:from-white dark:via-blue-200 dark:to-purple-200 bg-clip-text text-transparent mb-3 transition-all duration-300 hover:scale-105 transform-gpu">
-                      {user.displayName || user.email?.split('@')[0] || 'User'}
-                    </h1>
-                    
-                    {/* Provider and verification status */}
-                    <div className="flex flex-col sm:flex-row items-center lg:items-start justify-center lg:justify-start gap-3">
-                      {user.providerData?.length > 0 && (
-                        <Badge className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white border-0 shadow-lg transition-all duration-200">
-                          <span className="mr-1">✨</span>
-                          {user.providerData[0].providerId === 'google.com' ? 'Google Account' : user.providerData[0].providerId}
-                        </Badge>
-                      )}
-                      
-                      {user.emailVerified && (
-                        <Badge className="bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-600 hover:to-green-700 text-white border-0 shadow-lg transition-all duration-200">
-                          <CheckCircle2 className="h-3 w-3 mr-1" />
-                          Verified Account
-                        </Badge>
-                      )}
-                    </div>
-                  </div>
+                {/* User Name and Badges */}
+                <div className="flex-1 text-center md:text-left space-y-3">
+                  <h1 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white">
+                    {user.displayName || user.email?.split('@')[0] || 'User'}
+                  </h1>
                   
-                  {/* Email Section with enhanced styling */}
-                  {user.email && (
-                    <div className="space-y-3">
-                      <div className="group p-4 rounded-xl bg-gradient-to-r from-gray-50/50 to-blue-50/30 dark:from-gray-800/30 dark:to-blue-900/20 border border-gray-200/50 dark:border-gray-700/30 hover:border-blue-300/50 dark:hover:border-blue-600/30 transition-all duration-300">
-                        <div className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-3">
-                          <div className="flex items-center gap-3 text-gray-700 dark:text-gray-300">
-                            <div className="p-2 rounded-lg bg-gradient-to-r from-blue-500 to-purple-600 shadow-sm">
-                              <Mail className="h-4 w-4 text-white" />
-                            </div>
-                            <span className="font-medium break-all text-sm md:text-base">{user.email}</span>
-                          </div>
-                          
-                          <Button 
-                            variant="ghost" 
-                            size="sm" 
-                            onClick={() => copyToClipboard(user.email!, 'email')}
-                            className="h-8 w-8 p-0 rounded-lg hover:bg-blue-100 dark:hover:bg-blue-900/30 hover:scale-110 transition-all duration-200"
-                            title="Copy email"
-                          >
-                            {copiedField === 'email' ? (
-                              <CheckCircle2 className="h-4 w-4 text-green-600 animate-bounce" />
-                            ) : (
-                              <Copy className="h-4 w-4 text-blue-600 dark:text-blue-400" />
-                            )}
-                          </Button>
-                        </div>
-                      </div>
-                    </div>
-                  )}
-                  
-                  {/* User Stats with enhanced cards */}
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    {userCreationTime && (
-                      <div className="group p-4 rounded-xl bg-gradient-to-br from-purple-50 to-indigo-50 dark:from-purple-900/20 dark:to-indigo-900/20 border border-purple-200/50 dark:border-purple-700/30 hover:shadow-lg hover:scale-105 transition-all duration-300">
-                        <div className="flex items-center gap-3">
-                          <div className="p-2 rounded-lg bg-gradient-to-r from-purple-500 to-indigo-600 shadow-sm">
-                            <Calendar className="h-4 w-4 text-white" />
-                          </div>
-                          <div>
-                            <p className="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wide font-medium">Member Since</p>
-                            <p className="text-sm font-semibold text-gray-800 dark:text-gray-200">{formatRelativeTime(userCreationTime)}</p>
-                          </div>
-                        </div>
-                      </div>
+                  <div className="flex flex-wrap items-center justify-center md:justify-start gap-2">
+                    {user.providerData?.length > 0 && (
+                      <Badge className="bg-gradient-to-r from-blue-500 to-violet-600 text-white border-0 shadow-sm py-1.5">
+                        <span className="mr-1">✨</span>
+                        {user.providerData[0].providerId === 'google.com' ? 'Google Account' : user.providerData[0].providerId}
+                      </Badge>
                     )}
                     
-                    {lastSignInTime && (
-                      <div className="group p-4 rounded-xl bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 border border-green-200/50 dark:border-green-700/30 hover:shadow-lg hover:scale-105 transition-all duration-300">
-                        <div className="flex items-center gap-3">
-                          <div className="p-2 rounded-lg bg-gradient-to-r from-green-500 to-emerald-600 shadow-sm">
-                            <Activity className="h-4 w-4 text-white" />
-                          </div>
-                          <div>
-                            <p className="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wide font-medium">Last Active</p>
-                            <p className="text-sm font-semibold text-gray-800 dark:text-gray-200">{formatRelativeTime(lastSignInTime)}</p>
-                          </div>
-                        </div>
-                      </div>
+                    {user.emailVerified && (
+                      <Badge className="bg-gradient-to-r from-emerald-500 to-green-600 text-white border-0 shadow-sm py-1.5">
+                        <Shield className="h-3 w-3 mr-1" />
+                        Verified Account
+                      </Badge>
                     )}
+                    
+                    <Badge className="bg-gradient-to-r from-indigo-500 to-blue-600 text-white border-0 shadow-sm py-1.5">
+                      <User2 className="h-3 w-3 mr-1" />
+                      Active User
+                    </Badge>
                   </div>
-                  
-                  {/* User ID with enhanced styling */}
-                  <div className="flex items-center justify-center lg:justify-start gap-3 p-3 rounded-lg bg-gradient-to-r from-gray-50/80 to-slate-50/80 dark:from-gray-800/50 dark:to-slate-800/50 border border-gray-200/50 dark:border-gray-700/30">
-                    <div className="p-1.5 rounded-md bg-gradient-to-r from-gray-600 to-slate-700 shadow-sm">
-                      <User2 className="h-3 w-3 text-white" />
-                    </div>
-                    <code className="bg-gradient-to-r from-gray-100 to-gray-200 dark:from-gray-700 dark:to-gray-600 px-3 py-1.5 rounded-lg font-mono text-xs text-gray-700 dark:text-gray-300 shadow-sm">
-                      {user.uid.slice(0, 12)}...{user.uid.slice(-8)}
-                    </code>
+                </div>
+                
+                {/* Quick Actions */}
+                <div className="hidden md:flex gap-2">
+                  <Button variant="outline" size="sm" className="h-9 shadow-sm border-gray-200 dark:border-gray-800">
+                    <Edit className="h-4 w-4 mr-2" />
+                    Edit Profile
+                  </Button>
+                </div>
+              </div>
+              
+              {/* User Email Display */}
+              {user.email && (
+                <div className="max-w-3xl mx-auto md:mx-0 mb-6">
+                  <div className="flex items-center gap-3 p-3 rounded-lg bg-gray-50 dark:bg-gray-900 border border-gray-100 dark:border-gray-800">
+                    <Mail className="h-5 w-5 text-gray-500 dark:text-gray-400" />
+                    <span className="flex-1 font-medium text-gray-700 dark:text-gray-300 text-sm">{user.email}</span>
                     <Button 
                       variant="ghost" 
                       size="sm" 
-                      onClick={() => copyToClipboard(user.uid, 'uid')}
-                      className="h-7 w-7 p-0 rounded-lg hover:bg-blue-100 dark:hover:bg-blue-900/30 hover:scale-110 transition-all duration-200"
-                      title="Copy User ID"
+                      onClick={() => copyToClipboard(user.email!, 'email')}
+                      className="h-8 w-8 p-0 rounded-md hover:bg-gray-200 dark:hover:bg-gray-800"
                     >
-                      {copiedField === 'uid' ? (
-                        <CheckCircle2 className="h-3 w-3 text-green-600 animate-bounce" />
+                      {copiedField === 'email' ? (
+                        <CheckCircle2 className="h-4 w-4 text-green-600" />
                       ) : (
-                        <Copy className="h-3 w-3 text-blue-600 dark:text-blue-400" />
+                        <Copy className="h-4 w-4 text-gray-500" />
                       )}
                     </Button>
                   </div>
                 </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Settings Section with enhanced design */}
-          <Card className="group border-0 shadow-xl bg-gradient-to-br from-white to-gray-50/50 dark:from-gray-900 dark:to-gray-800/50 backdrop-blur-sm hover:shadow-2xl transition-all duration-500">
-            <CardHeader className="pb-4">
-              <CardTitle className="flex items-center gap-4 text-xl">
-                <div className="p-2 rounded-xl bg-gradient-to-r from-purple-500 to-indigo-600 shadow-lg">
-                  <Settings className="h-5 w-5 text-white" />
-                </div>
-                <span className="bg-gradient-to-r from-gray-900 to-gray-700 dark:from-white dark:to-gray-300 bg-clip-text text-transparent">Account Actions</span>
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                {/* Sign Out Button */}
-                <div className="group/button relative overflow-hidden">
-                  <Button 
-                    onClick={handleLogout}
-                    className="w-full justify-start gap-4 h-14 text-amber-700 bg-gradient-to-r from-amber-50 to-orange-50 border-2 border-amber-200/50 hover:from-amber-100 hover:to-orange-100 hover:border-amber-300 hover:shadow-lg hover:scale-105 dark:text-amber-300 dark:from-amber-950/30 dark:to-orange-950/30 dark:border-amber-800/50 dark:hover:from-amber-950/50 dark:hover:to-orange-950/50 transition-all duration-300 font-medium"
-                  >
-                    <div className="p-2 rounded-lg bg-gradient-to-r from-amber-500 to-orange-500 shadow-sm">
-                      <LogOut className="h-4 w-4 text-white" />
+              )}
+              
+              {/* User Statistics */}
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-3xl mx-auto md:mx-0 mb-6">
+                {userCreationTime && (
+                  <div className="p-4 rounded-xl bg-gray-50 dark:bg-gray-900 border border-gray-100 dark:border-gray-800 hover:border-violet-200 dark:hover:border-violet-800 transition-all duration-200">
+                    <div className="flex items-center gap-3 mb-2">
+                      <div className="p-2 rounded-lg bg-violet-100 dark:bg-violet-900">
+                        <Calendar className="h-4 w-4 text-violet-700 dark:text-violet-300" />
+                      </div>
+                      <span className="text-xs text-gray-500 dark:text-gray-400 uppercase font-medium">Member Since</span>
                     </div>
-                    <span>Sign Out Safely</span>
-                  </Button>
+                    <p className="text-sm font-semibold text-gray-900 dark:text-white">{formatRelativeTime(userCreationTime)}</p>
+                  </div>
+                )}
+                
+                {lastSignInTime && (
+                  <div className="p-4 rounded-xl bg-gray-50 dark:bg-gray-900 border border-gray-100 dark:border-gray-800 hover:border-emerald-200 dark:hover:border-emerald-800 transition-all duration-200">
+                    <div className="flex items-center gap-3 mb-2">
+                      <div className="p-2 rounded-lg bg-emerald-100 dark:bg-emerald-900">
+                        <Activity className="h-4 w-4 text-emerald-700 dark:text-emerald-300" />
+                      </div>
+                      <span className="text-xs text-gray-500 dark:text-gray-400 uppercase font-medium">Last Active</span>
+                    </div>
+                    <p className="text-sm font-semibold text-gray-900 dark:text-white">{formatRelativeTime(lastSignInTime)}</p>
+                  </div>
+                )}
+                
+                <div className="p-4 rounded-xl bg-gray-50 dark:bg-gray-900 border border-gray-100 dark:border-gray-800 hover:border-blue-200 dark:hover:border-blue-800 transition-all duration-200">
+                  <div className="flex items-center gap-3 mb-2">
+                    <div className="p-2 rounded-lg bg-blue-100 dark:bg-blue-900">
+                      <FileText className="h-4 w-4 text-blue-700 dark:text-blue-300" />
+                    </div>
+                    <span className="text-xs text-gray-500 dark:text-gray-400 uppercase font-medium">Sessions</span>
+                  </div>
+                  <p className="text-sm font-semibold text-gray-900 dark:text-white">12 active</p>
                 </div>
                 
-                {/* Delete Account Button */}
-                <div className="group/button relative overflow-hidden">
-                  <Button 
-                    onClick={() => setShowDeleteDialog(true)}
-                    className="w-full justify-start gap-4 h-14 bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white border-0 shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300 font-medium"
-                  >
-                    <div className="p-2 rounded-lg bg-red-700/30 shadow-sm">
-                      <Trash2 className="h-4 w-4" />
+                <div className="p-4 rounded-xl bg-gray-50 dark:bg-gray-900 border border-gray-100 dark:border-gray-800 hover:border-amber-200 dark:hover:border-amber-800 transition-all duration-200">
+                  <div className="flex items-center gap-3 mb-2">
+                    <div className="p-2 rounded-lg bg-amber-100 dark:bg-amber-900">
+                      <UserCog className="h-4 w-4 text-amber-700 dark:text-amber-300" />
                     </div>
-                    <span>Delete Account</span>
-                  </Button>
+                    <span className="text-xs text-gray-500 dark:text-gray-400 uppercase font-medium">Status</span>
+                  </div>
+                  <p className="text-sm font-semibold text-gray-900 dark:text-white">Active</p>
                 </div>
               </div>
               
-              {/* Warning note */}
-              <div className="mt-6 p-4 rounded-xl bg-gradient-to-r from-yellow-50 to-amber-50 dark:from-yellow-900/20 dark:to-amber-900/20 border border-yellow-200/50 dark:border-yellow-700/30">
-                <p className="text-sm text-yellow-800 dark:text-yellow-200 flex items-start gap-2">
-                  <span className="text-yellow-500 mt-0.5">⚠️</span>
-                  <span>Account actions are permanent. Make sure you want to proceed before clicking any buttons above.</span>
-                </p>
+              {/* User ID Display */}
+              <div className="flex items-center gap-3 p-3 rounded-lg bg-gray-50 dark:bg-gray-900 border border-gray-100 dark:border-gray-800 max-w-lg">
+                <User2 className="h-4 w-4 text-gray-500 dark:text-gray-400" />
+                <span className="text-xs text-gray-500 dark:text-gray-400">User ID:</span>
+                <code className="bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded text-xs font-mono text-gray-700 dark:text-gray-300 flex-1">
+                  {user.uid.slice(0, 10)}...{user.uid.slice(-6)}
+                </code>
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  onClick={() => copyToClipboard(user.uid, 'uid')}
+                  className="h-6 w-6 p-0 rounded-md hover:bg-gray-200 dark:hover:bg-gray-800"
+                >
+                  {copiedField === 'uid' ? (
+                    <CheckCircle2 className="h-3 w-3 text-green-600" />
+                  ) : (
+                    <Copy className="h-3 w-3 text-gray-500" />
+                  )}
+                </Button>
               </div>
-            </CardContent>
-          </Card>
+            </div>
+          </div>
+          
+          {/* Profile Tabs and Content */}
+          <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+            {/* Sidebar Navigation */}
+            <div className="lg:col-span-1">
+              <Card className="shadow-md overflow-hidden border-0 bg-white dark:bg-gray-950">
+                <div className="p-4 bg-gray-50 dark:bg-gray-900 border-b border-gray-100 dark:border-gray-800">
+                  <h3 className="font-semibold text-gray-900 dark:text-white">Account Settings</h3>
+                </div>
+                <nav className="p-2">
+                  <ul className="space-y-1">
+                    <li>
+                      <Button 
+                        variant="ghost" 
+                        className="w-full justify-start text-left text-amber-600 dark:text-amber-400 hover:bg-amber-50 dark:hover:bg-amber-900/20"
+                        onClick={handleLogout}
+                      >
+                        <LogOut className="h-4 w-4 mr-3" />
+                        Sign Out
+                      </Button>
+                    </li>
+                    <li>
+                      <Button 
+                        variant="ghost" 
+                        className="w-full justify-start text-left text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20"
+                        onClick={() => setShowDeleteDialog(true)}
+                      >
+                        <Trash2 className="h-4 w-4 mr-3" />
+                        Delete Account
+                      </Button>
+                    </li>
+                  </ul>
+                </nav>
+              </Card>
+              
+            </div>
+            
+          </div>
         </div>
       </FeaturePageLayout>
       {/* Delete Account Confirmation Dialog */}

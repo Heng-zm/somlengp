@@ -1,6 +1,6 @@
 # 🚀 Page Display Performance Optimizations
 
-This document outlines all the performance optimizations implemented to improve page display speed and user experience in the VoiceScribe application.
+This document outlines all the performance optimizations implemented to improve page display speed and user experience in the Somleng application.
 
 ## 📊 Optimizations Implemented
 

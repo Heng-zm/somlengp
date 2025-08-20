@@ -27,14 +27,14 @@ export const viewport: Viewport = {
 
 export const metadata: Metadata = {
   title: {
-    default: 'VoiceScribe - Audio Transcription & PDF Tools',
-    template: '%s | VoiceScribe',
+    default: 'Somleng - Audio Transcription & PDF Tools',
+    template: '%s | Somleng',
   },
   description: 'An all-in-one toolkit for audio transcription, text-to-speech, and PDF utilities. Fast, accurate, and easy to use.',
   keywords: ['audio transcription', 'text-to-speech', 'PDF tools', 'voice recognition', 'speech to text'],
-  authors: [{ name: 'VoiceScribe Team' }],
-  creator: 'VoiceScribe',
-  publisher: 'VoiceScribe',
+  authors: [{ name: 'Somleng Team' }],
+  creator: 'Somleng',
+  publisher: 'Somleng',
   icons: {
     icon: [
       { url: '/icon.svg', type: 'image/svg+xml' },

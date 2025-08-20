@@ -4,13 +4,11 @@ import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { AuthGuard } from '@/components/auth/auth-guard';
 import { useAuth } from '@/contexts/auth-context';
-import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
-import { Separator } from '@/components/ui/separator';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -215,111 +213,114 @@ export default function AIAssistantPage() {
 
   return (
     <AuthGuard>
-      <div className="flex flex-col h-[100vh] sm:h-[calc(100vh-2rem)] max-w-4xl mx-auto p-2 sm:p-4 ai-assistant-container">
-        {/* Back to Home Button */}
-        <div className="mb-2 sm:mb-4">
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={goBackToHome}
-            className="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 transition-colors min-h-[44px] min-w-[44px]"
-            title="Back to Home"
-          >
-            <ArrowLeft className="w-5 h-5" />
-          </Button>
-        </div>
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-indigo-50 dark:from-slate-950 dark:via-blue-950/20 dark:to-indigo-950/30">
+        {/* Background Pattern */}
+        <div className="absolute inset-0 bg-grid-slate-200/50 dark:bg-grid-slate-800/25 bg-[size:40px_40px] [mask-image:radial-gradient(ellipse_at_center,white_50%,transparent_100%)]" />
         
-        {/* Header */}
-        <Card className="mb-2 sm:mb-4 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-950/20 dark:to-purple-950/20 border-blue-200 dark:border-blue-800">
-          <CardContent className="p-3 sm:p-6">
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-3 sm:space-y-0">
-              <div className="flex items-center space-x-3">
-                <div className="relative">
-                  <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
-                    <Sparkles className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
+        <div className="relative flex flex-col h-screen max-w-6xl mx-auto">
+          {/* Header */}
+          <header className="backdrop-blur-xl bg-white/80 dark:bg-slate-900/80 border-b border-slate-200/60 dark:border-slate-700/60 sticky top-0 z-40">
+            <div className="px-4 py-4 sm:px-6">
+              <div className="flex items-center justify-between">
+                {/* Left side - Back button and title */}
+                <div className="flex items-center gap-4">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={goBackToHome}
+                    className="h-10 w-10 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                  >
+                    <ArrowLeft className="h-5 w-5" />
+                  </Button>
+                  
+                  <div className="flex items-center gap-3">
+                    <div className="relative">
+                      <div className="h-12 w-12 rounded-2xl bg-gradient-to-br from-violet-500 via-purple-500 to-blue-500 flex items-center justify-center shadow-lg shadow-purple-500/25">
+                        <Sparkles className="h-6 w-6 text-white" />
+                      </div>
+                      <div className="absolute -bottom-1 -right-1 h-4 w-4 bg-emerald-500 rounded-full border-2 border-white dark:border-slate-900 animate-pulse" />
+                    </div>
+                    
+                    <div>
+                      <h1 className="text-xl font-bold bg-gradient-to-r from-slate-900 to-slate-700 dark:from-white dark:to-slate-300 bg-clip-text text-transparent">
+                        AI Assistant
+                      </h1>
+                      <div className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-400">
+                        <span className="text-base">{selectedModel.icon}</span>
+                        <span>Powered by {selectedModel.displayName}</span>
+                      </div>
+                    </div>
                   </div>
-                  <div className="absolute -top-1 -right-1 w-3 h-3 sm:w-4 sm:h-4 bg-green-500 rounded-full border-2 border-white dark:border-gray-900" />
                 </div>
-                <div>
-                  <h1 className="text-lg sm:text-2xl font-bold text-gray-900 dark:text-gray-100">
-                    AI Assistant
-                  </h1>
-                  <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 flex items-center gap-2">
-                    <span className="text-sm sm:text-lg">{selectedModel.icon}</span>
-                    <span className="hidden sm:inline">Powered by</span> {selectedModel.displayName}
-                  </p>
-                </div>
-              </div>
-              <div className="flex items-center justify-between sm:justify-end space-x-2 overflow-x-auto">
-                <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200 dark:bg-green-950/20 dark:text-green-400 dark:border-green-800 flex-shrink-0 text-xs">
-                  Online
-                </Badge>
                 
-                {/* AI Model Selector */}
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="flex min-h-[44px] text-xs sm:text-sm flex-shrink-0"
-                    >
-                      <Settings className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
-                      <span className="hidden sm:inline">{selectedModel.displayName}</span>
-                      <span className="sm:hidden">{selectedModel.icon}</span>
-                      <ChevronDown className="w-3 h-3 sm:w-4 sm:h-4 ml-1 sm:ml-2" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="w-56">
-                    <DropdownMenuLabel>Select AI Model</DropdownMenuLabel>
-                    <DropdownMenuSeparator />
-                    {AI_MODELS.map((model) => (
-                      <DropdownMenuItem
-                        key={model.id}
-                        onClick={() => setSelectedModel(model)}
-                        className={cn(
-                          "flex flex-col items-start space-y-1 cursor-pointer min-h-[44px]",
-                          selectedModel.id === model.id && "bg-blue-50 dark:bg-blue-950/20"
-                        )}
-                      >
-                        <div className="flex items-center space-x-2">
-                          <span className="text-lg">{model.icon}</span>
-                          <span className="font-medium">{model.displayName}</span>
-                          {selectedModel.id === model.id && (
-                            <Badge variant="secondary" className="text-xs">
-                              Active
-                            </Badge>
+                {/* Right side - Controls */}
+                <div className="flex items-center gap-3">
+                  <Badge className="bg-emerald-100 text-emerald-700 border-emerald-200 dark:bg-emerald-950/50 dark:text-emerald-400 dark:border-emerald-800">
+                    <div className="h-1.5 w-1.5 bg-emerald-500 rounded-full mr-2 animate-pulse" />
+                    Online
+                  </Badge>
+                  
+                  {/* Model Selector */}
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="outline" className="h-10 rounded-xl border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800">
+                        <Settings className="h-4 w-4 mr-2" />
+                        <span className="hidden sm:inline">{selectedModel.displayName}</span>
+                        <span className="sm:hidden">{selectedModel.icon}</span>
+                        <ChevronDown className="h-4 w-4 ml-2" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" className="w-72 backdrop-blur-xl bg-white/95 dark:bg-slate-900/95">
+                      <DropdownMenuLabel className="text-slate-900 dark:text-slate-100">Select AI Model</DropdownMenuLabel>
+                      <DropdownMenuSeparator />
+                      {AI_MODELS.map((model) => (
+                        <DropdownMenuItem
+                          key={model.id}
+                          onClick={() => setSelectedModel(model)}
+                          className={cn(
+                            "flex flex-col items-start p-3 cursor-pointer",
+                            selectedModel.id === model.id && "bg-violet-50 dark:bg-violet-950/20"
                           )}
-                        </div>
-                        <p className="text-xs text-gray-500 dark:text-gray-400">
-                          {model.description}
-                        </p>
-                      </DropdownMenuItem>
-                    ))}
-                  </DropdownMenuContent>
-                </DropdownMenu>
-                
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={clearChat}
-                  className="min-h-[44px] text-xs sm:text-sm hidden sm:flex flex-shrink-0"
-                >
-                  <Trash2 className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
-                  Clear Chat
-                </Button>
+                        >
+                          <div className="flex items-center gap-3 w-full">
+                            <span className="text-xl">{model.icon}</span>
+                            <div className="flex-1">
+                              <div className="flex items-center gap-2">
+                                <span className="font-medium text-slate-900 dark:text-slate-100">{model.displayName}</span>
+                                {selectedModel.id === model.id && (
+                                  <Badge variant="secondary" className="text-xs bg-violet-100 text-violet-700 dark:bg-violet-950/50 dark:text-violet-300">
+                                    Active
+                                  </Badge>
+                                )}
+                              </div>
+                              <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                                {model.description}
+                              </p>
+                            </div>
+                          </div>
+                        </DropdownMenuItem>
+                      ))}
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                  
+                  <Button
+                    variant="outline"
+                    onClick={clearChat}
+                    className="h-10 rounded-xl border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 hidden sm:flex"
+                  >
+                    <Trash2 className="h-4 w-4 mr-2" />
+                    Clear
+                  </Button>
+                </div>
               </div>
             </div>
-          </CardContent>
-        </Card>
+          </header>
 
-        {/* Chat Messages */}
-        <Card className="flex-1 flex flex-col">
-          <CardContent className="p-0 h-full flex flex-col">
-            <ScrollArea 
-              className="flex-1 p-2 sm:p-4 custom-scrollbar" 
-              ref={scrollAreaRef}
-            >
-              <div className="space-y-3 sm:space-y-4">
+          {/* Chat Area */}
+          <main className="flex-1 flex flex-col overflow-hidden">
+            {/* Messages */}
+            <ScrollArea className="flex-1 px-4 sm:px-6" ref={scrollAreaRef}>
+              <div className="py-6 space-y-6 max-w-4xl mx-auto">
                 <AnimatePresence>
                   {messages.map((message) => (
                     <motion.div
@@ -327,69 +328,77 @@ export default function AIAssistantPage() {
                       initial={{ opacity: 0, y: 20 }}
                       animate={{ opacity: 1, y: 0 }}
                       exit={{ opacity: 0, y: -20 }}
-                      transition={{ duration: 0.3 }}
+                      transition={{ duration: 0.4, ease: "easeOut" }}
                       className={cn(
-                        "flex items-start gap-2 sm:gap-3",
+                        "flex gap-4",
                         message.role === 'user' ? 'flex-row-reverse' : ''
                       )}
                     >
-                      <Avatar className="w-7 h-7 sm:w-8 sm:h-8 flex-shrink-0 ring-1 ring-white/20 shadow-sm">
-                        {message.role === 'user' ? (
-                          <>
-                            <AvatarImage 
-                              src={user?.photoURL || undefined} 
-                              className="avatar-image"
-                            />
-                            <AvatarFallback className="bg-blue-500 text-white">
-                              <User className="w-3 h-3 sm:w-4 sm:h-4" />
+                      {/* Avatar */}
+                      <div className="flex-shrink-0">
+                        <Avatar className="h-10 w-10 ring-2 ring-white dark:ring-slate-900 shadow-lg">
+                          {message.role === 'user' ? (
+                            <>
+                              <AvatarImage src={user?.photoURL || undefined} />
+                              <AvatarFallback className="bg-gradient-to-br from-blue-500 to-cyan-500 text-white">
+                                <User className="h-5 w-5" />
+                              </AvatarFallback>
+                            </>
+                          ) : (
+                            <AvatarFallback className="bg-gradient-to-br from-violet-500 to-purple-500 text-white">
+                              <Bot className="h-5 w-5" />
                             </AvatarFallback>
-                          </>
-                        ) : (
-                          <AvatarFallback className="bg-gradient-to-br from-purple-500 to-blue-600 text-white">
-                            <Bot className="w-3 h-3 sm:w-4 sm:h-4" />
-                          </AvatarFallback>
-                        )}
-                      </Avatar>
+                          )}
+                        </Avatar>
+                      </div>
                       
+                      {/* Message Content */}
                       <div className={cn(
-                        "flex-1 max-w-[calc(100%-3rem)] sm:max-w-[80%]",
+                        "flex-1 max-w-[75%]",
                         message.role === 'user' ? 'flex flex-col items-end' : ''
                       )}>
-                        <div className={cn(
-                          "rounded-lg p-2.5 sm:p-3 text-sm relative group",
-                          message.role === 'user'
-                            ? "bg-blue-500 text-white"
-                            : "bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-100"
-                        )}>
-                          <div className="whitespace-pre-wrap break-words leading-relaxed">
-                            {message.content}
+                        <div className="group relative">
+                          <div className={cn(
+                            "rounded-2xl px-4 py-3 text-sm leading-relaxed shadow-sm relative overflow-hidden",
+                            message.role === 'user'
+                              ? "bg-gradient-to-br from-blue-500 to-blue-600 text-white ml-auto"
+                              : "bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 border border-slate-200 dark:border-slate-700"
+                          )}>
+                            {message.role === 'assistant' && (
+                              <div className="absolute inset-0 bg-gradient-to-br from-violet-500/5 to-blue-500/5 dark:from-violet-400/10 dark:to-blue-400/10" />
+                            )}
+                            
+                            <div className="relative whitespace-pre-wrap break-words">
+                              {message.content}
+                            </div>
+                            
+                            {/* Copy button */}
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className={cn(
+                                "absolute -top-2 -right-2 h-7 w-7 p-0 opacity-0 group-hover:opacity-100 transition-all duration-200 shadow-md",
+                                message.role === 'user'
+                                  ? "bg-blue-400/90 hover:bg-blue-300 text-white backdrop-blur-sm"
+                                  : "bg-white dark:bg-slate-700 hover:bg-slate-50 dark:hover:bg-slate-600 border border-slate-200 dark:border-slate-600"
+                              )}
+                              onClick={() => copyMessage(message.content)}
+                            >
+                              <Copy className="h-3.5 w-3.5" />
+                            </Button>
                           </div>
                           
-                          {/* Copy button */}
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className={cn(
-                              "absolute -top-1 -right-1 sm:-top-2 sm:-right-2 opacity-0 group-hover:opacity-100 transition-opacity w-6 h-6 sm:w-7 sm:h-7 p-0 min-h-[44px] sm:min-h-0",
-                              message.role === 'user' 
-                                ? "bg-blue-400 hover:bg-blue-300 text-white" 
-                                : "bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600"
-                            )}
-                            onClick={() => copyMessage(message.content)}
-                          >
-                            <Copy className="w-3 h-3 sm:w-4 sm:h-4" />
-                          </Button>
+                          {/* Timestamp */}
+                          <p className={cn(
+                            "text-xs text-slate-500 dark:text-slate-400 mt-2 px-1",
+                            message.role === 'user' ? 'text-right' : 'text-left'
+                          )}>
+                            {message.timestamp.toLocaleTimeString([], { 
+                              hour: '2-digit', 
+                              minute: '2-digit' 
+                            })}
+                          </p>
                         </div>
-                        
-                        <p className={cn(
-                          "text-xs text-gray-500 dark:text-gray-400 mt-1",
-                          message.role === 'user' ? 'text-right' : 'text-left'
-                        )}>
-                          {message.timestamp.toLocaleTimeString([], { 
-                            hour: '2-digit', 
-                            minute: '2-digit' 
-                          })}
-                        </p>
                       </div>
                     </motion.div>
                   ))}
@@ -400,18 +409,19 @@ export default function AIAssistantPage() {
                   <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
-                    className="flex items-start space-x-3"
+                    className="flex gap-4"
                   >
-                    <Avatar className="w-8 h-8">
-                      <AvatarFallback className="bg-gradient-to-br from-purple-500 to-blue-600 text-white">
-                        <Bot className="w-4 h-4" />
+                    <Avatar className="h-10 w-10 ring-2 ring-white dark:ring-slate-900 shadow-lg">
+                      <AvatarFallback className="bg-gradient-to-br from-violet-500 to-purple-500 text-white">
+                        <Bot className="h-5 w-5" />
                       </AvatarFallback>
                     </Avatar>
-                    <div className="bg-gray-100 dark:bg-gray-800 rounded-lg p-3">
-                      <div className="flex space-x-1">
-                        <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" />
-                        <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }} />
-                        <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }} />
+                    
+                    <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl px-4 py-3 shadow-sm">
+                      <div className="flex gap-1.5">
+                        <div className="h-2 w-2 bg-slate-400 rounded-full animate-bounce" />
+                        <div className="h-2 w-2 bg-slate-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }} />
+                        <div className="h-2 w-2 bg-slate-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }} />
                       </div>
                     </div>
                   </motion.div>
@@ -419,49 +429,56 @@ export default function AIAssistantPage() {
               </div>
             </ScrollArea>
 
-            <Separator />
-            
             {/* Input Area */}
-            <div className="p-3 sm:p-4 bg-white dark:bg-gray-900">
-              <div className="flex items-end gap-2">
-                <div className="flex-1">
-                  <Input
-                    ref={inputRef}
-                    value={input}
-                    onChange={(e) => setInput(e.target.value)}
-                    onKeyPress={handleKeyPress}
-                    placeholder="Type your message..."
-                    disabled={isLoading}
-                    className="resize-none min-h-[48px] text-base sm:text-sm border-2 focus:border-blue-500 rounded-xl"
-                  />
+            <footer className="border-t border-slate-200/60 dark:border-slate-700/60 backdrop-blur-xl bg-white/80 dark:bg-slate-900/80">
+              <div className="px-4 py-4 sm:px-6">
+                <div className="max-w-4xl mx-auto">
+                  <div className="flex items-end gap-3">
+                    <div className="flex-1 relative">
+                      <Input
+                        ref={inputRef}
+                        value={input}
+                        onChange={(e) => setInput(e.target.value)}
+                        onKeyPress={handleKeyPress}
+                        placeholder="Type your message..."
+                        disabled={isLoading}
+                        className="min-h-[52px] pr-12 rounded-2xl border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 focus:ring-2 focus:ring-violet-500 focus:border-transparent transition-all duration-200 text-base resize-none"
+                      />
+                    </div>
+                    
+                    <Button
+                      onClick={sendMessage}
+                      disabled={!input.trim() || isLoading}
+                      className="h-[52px] w-[52px] rounded-2xl bg-gradient-to-r from-violet-500 to-purple-500 hover:from-violet-600 hover:to-purple-600 shadow-lg shadow-violet-500/25 transition-all duration-200 disabled:opacity-50 disabled:shadow-none"
+                    >
+                      {isLoading ? (
+                        <RefreshCw className="h-5 w-5 animate-spin" />
+                      ) : (
+                        <Send className="h-5 w-5" />
+                      )}
+                    </Button>
+                    
+                    <Button
+                      variant="outline"
+                      onClick={clearChat}
+                      className="h-[52px] w-[52px] rounded-2xl border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 sm:hidden"
+                    >
+                      <Trash2 className="h-5 w-5" />
+                    </Button>
+                  </div>
+                  
+                  <div className="flex items-center justify-between mt-3 text-xs text-slate-500 dark:text-slate-400">
+                    <span className="hidden sm:block">Press Enter to send, Shift+Enter for new line</span>
+                    <div className="flex items-center gap-2 ml-auto">
+                      <div className="h-2 w-2 bg-emerald-500 rounded-full animate-pulse" />
+                      <span>AI Assistant is online</span>
+                    </div>
+                  </div>
                 </div>
-                <Button
-                  onClick={sendMessage}
-                  disabled={!input.trim() || isLoading}
-                  className="min-h-[48px] min-w-[48px] px-3 sm:px-4 rounded-xl bg-blue-500 hover:bg-blue-600"
-                >
-                  {isLoading ? (
-                    <RefreshCw className="w-5 h-5 animate-spin" />
-                  ) : (
-                    <Send className="w-5 h-5" />
-                  )}
-                </Button>
-                <Button
-                  variant="outline"
-                  size="icon"
-                  onClick={clearChat}
-                  className="min-h-[48px] min-w-[48px] rounded-xl sm:hidden border-2"
-                >
-                  <Trash2 className="w-5 h-5" />
-                </Button>
               </div>
-              
-              <p className="text-xs text-gray-500 dark:text-gray-400 mt-2 text-center hidden sm:block">
-                Press Enter to send, Shift+Enter for new line
-              </p>
-            </div>
-          </CardContent>
-        </Card>
+            </footer>
+          </main>
+        </div>
       </div>
     </AuthGuard>
   );

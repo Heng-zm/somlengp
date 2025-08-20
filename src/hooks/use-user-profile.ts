@@ -1,59 +1,27 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/auth-context';
 import { 
-  updateUserProfile, 
   formatDate, 
-  formatRelativeTime,
-  formatAccountAge,
-  getUserId,
-  getUserCreationTime,
-  getUserLastSignInTime
+  formatRelativeTime
 } from '@/lib/user-profile';
-import { UserProfile } from '@/lib/types';
 
 /**
- * Custom hook for managing user profiles
+ * Simplified hook for user profile display
  */
 export function useUserProfile() {
-  const { user, userProfile } = useAuth();
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const { user } = useAuth();
 
   /**
-   * Updates the current user's profile
-   */
-  const updateProfile = async (updates: Partial<Omit<UserProfile, 'uid' | 'createdAt' | 'profileCreatedAt'>>) => {
-    if (!user) {
-      setError('No user logged in');
-      return false;
-    }
-
-    setLoading(true);
-    setError(null);
-    
-    try {
-      await updateUserProfile(user.uid, updates);
-      return true;
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Failed to update profile';
-      setError(errorMessage);
-      return false;
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  /**
-   * Gets formatted user information
+   * Gets basic user information for display
    */
   const getUserInfo = () => {
     if (!user) return null;
 
-    const creationTime = getUserCreationTime(user);
-    const lastSignInTime = getUserLastSignInTime(user);
+    const creationTime = user.metadata.creationTime ? new Date(user.metadata.creationTime) : null;
+    const lastSignInTime = user.metadata.lastSignInTime ? new Date(user.metadata.lastSignInTime) : null;
 
     return {
-      id: getUserId(user),
+      id: user.uid,
       displayName: user.displayName,
       email: user.email,
       photoURL: user.photoURL,
@@ -63,64 +31,57 @@ export function useUserProfile() {
       formattedLastSignInTime: formatDate(lastSignInTime),
       relativeCreationTime: formatRelativeTime(creationTime),
       relativeLastSignInTime: formatRelativeTime(lastSignInTime),
-      profileCreatedAt: userProfile?.profileCreatedAt,
-      profileUpdatedAt: userProfile?.profileUpdatedAt,
-      formattedProfileCreatedAt: formatDate(userProfile?.profileCreatedAt),
-      formattedProfileUpdatedAt: formatDate(userProfile?.profileUpdatedAt),
-      relativeProfileCreatedAt: formatRelativeTime(userProfile?.profileCreatedAt),
-      relativeProfileUpdatedAt: formatRelativeTime(userProfile?.profileUpdatedAt),
     };
   };
 
   /**
-   * Checks if the user profile was created today
+   * Checks if the user account was created today
    */
   const isNewUser = () => {
-    if (!userProfile?.profileCreatedAt) return false;
+    if (!user?.metadata.creationTime) return false;
     const today = new Date();
-    const profileDate = new Date(userProfile.profileCreatedAt);
+    const creationDate = new Date(user.metadata.creationTime);
     return (
-      today.getFullYear() === profileDate.getFullYear() &&
-      today.getMonth() === profileDate.getMonth() &&
-      today.getDate() === profileDate.getDate()
+      today.getFullYear() === creationDate.getFullYear() &&
+      today.getMonth() === creationDate.getMonth() &&
+      today.getDate() === creationDate.getDate()
     );
   };
 
   /**
-   * Gets the user's account age in days
+   * Gets the account age in days
    */
   const getAccountAge = () => {
     if (!user?.metadata.creationTime) return 0;
-    const creationDate = new Date(user.metadata.creationTime);
     const now = new Date();
+    const creationDate = new Date(user.metadata.creationTime);
     const diffInMs = now.getTime() - creationDate.getTime();
     return Math.floor(diffInMs / (1000 * 60 * 60 * 24));
   };
 
   /**
-   * Gets time since last sign in
+   * Gets detailed time since last sign in
    */
   const getTimeSinceLastSignIn = () => {
     if (!user?.metadata.lastSignInTime) return null;
-    const lastSignIn = new Date(user.metadata.lastSignInTime);
     const now = new Date();
-    const diffInMs = now.getTime() - lastSignIn.getTime();
+    const lastSignInDate = new Date(user.metadata.lastSignInTime);
+    const diffInMs = now.getTime() - lastSignInDate.getTime();
+    
+    const minutes = Math.floor(diffInMs / (1000 * 60));
+    const hours = Math.floor(diffInMs / (1000 * 60 * 60));
+    const days = Math.floor(diffInMs / (1000 * 60 * 60 * 24));
+    
     return {
-      milliseconds: diffInMs,
-      seconds: Math.floor(diffInMs / 1000),
-      minutes: Math.floor(diffInMs / (1000 * 60)),
-      hours: Math.floor(diffInMs / (1000 * 60 * 60)),
-      days: Math.floor(diffInMs / (1000 * 60 * 60 * 24)),
-      formatted: formatRelativeTime(lastSignIn)
+      minutes,
+      hours,
+      days,
+      formatted: formatRelativeTime(lastSignInDate)
     };
   };
 
   return {
     user,
-    userProfile,
-    loading,
-    error,
-    updateProfile,
     getUserInfo,
     isNewUser,
     getAccountAge,
@@ -128,7 +89,6 @@ export function useUserProfile() {
     // Utility functions
     formatDate,
     formatRelativeTime,
-    formatAccountAge,
   };
 }
 

@@ -1,4 +1,4 @@
-# **App Name**: VoiceScribe
+# **App Name**: Somleng
 
 ## Core Features:
 

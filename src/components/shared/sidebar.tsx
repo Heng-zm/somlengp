@@ -60,7 +60,7 @@ export const Sidebar = memo(function Sidebar({ language, toggleLanguage }: { lan
           <Link href="/home" className="flex items-center gap-2">
             <Image src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRfXQ6IUyl8D8fpZl8p9BvXg-PCxKPa-1vOp0oPC2-uKH-H_M1T" alt="logo" width={32} height={32} data-ai-hint="logo" className="rounded-full" />
             <div>
-              <h1 className="text-xl font-bold">VoiceScribe</h1>
+              <h1 className="text-xl font-bold">Somleng</h1>
               <p className="text-xs text-muted-foreground">Version 2.2.5</p>
             </div>
           </Link>
@@ -126,7 +126,7 @@ export const Sidebar = memo(function Sidebar({ language, toggleLanguage }: { lan
               {t.support}
             </Button>
           </SheetTrigger>
-          <SheetContent side="bottom" className="rounded-t-lg h-[80vh] flex flex-col bg-background/80 backdrop-blur-xl">
+          <SheetContent side="bottom" className="rounded-t-lg h-[80vh] flex flex-col bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
             <SheetHeader className="text-center mb-4">
               <SheetTitle>
                 <div className="flex items-center justify-center gap-2">

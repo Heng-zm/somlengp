@@ -156,7 +156,7 @@ const { language, toggleLanguage, theme, toggleTheme } = langContext;
 
   return (
     <div className="flex flex-col h-full text-foreground">
-      <header className="flex-shrink-0 flex items-center justify-between p-3 sm:p-4 md:p-6">
+      <header className="fixed top-0 left-0 right-0 z-50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b flex items-center justify-between p-3 sm:p-4 md:p-6">
         <div className="flex items-center gap-2 sm:gap-4 min-w-0 flex-1">
           <Image 
             src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRfXQ6IUyl8D8fpZl8p9BvXg-PCxKPa-1vOp0oPC2-uKH-H_M1T" 
@@ -197,7 +197,7 @@ const { language, toggleLanguage, theme, toggleTheme } = langContext;
                         <Menu className="h-6 w-6" />
                     </Button>
                 </SheetTrigger>
-                <SheetContent side="left" className="p-0 w-[300px] bg-background/80 backdrop-blur-lg">
+                <SheetContent side="left" className="p-0 w-[300px] bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
                   <SheetHeader className="p-4 border-b sr-only">
                       <SheetTitle>Main Menu</SheetTitle>
                   </SheetHeader>
@@ -207,7 +207,7 @@ const { language, toggleLanguage, theme, toggleTheme } = langContext;
         </div>
       </header>
 
-      <ScrollArea className="flex-grow">
+      <ScrollArea className="flex-grow pt-20 sm:pt-24 md:pt-28">
         <main className="p-4 sm:p-6 space-y-8">
             <Link href={primaryFeature.href} passHref>
                 <Card className="w-full p-6 sm:p-8 md:p-10 flex flex-col justify-between overflow-hidden transition-all duration-300 ease-in-out bg-gradient-to-br from-primary/10 via-background to-background hover:shadow-2xl hover:border-primary/20 group">

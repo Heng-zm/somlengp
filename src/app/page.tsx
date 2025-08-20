@@ -10,7 +10,7 @@ function LoadingFallback() {
     <div className="flex h-screen w-full items-center justify-center bg-background">
       <div className="text-center space-y-4">
         <ThreeDotsLoader />
-        <p className="text-muted-foreground text-sm">Loading VoiceScribe...</p>
+        <p className="text-muted-foreground text-sm">Loading Somleng...</p>
       </div>
     </div>
   );

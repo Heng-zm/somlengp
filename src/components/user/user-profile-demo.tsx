@@ -172,30 +172,6 @@ export function UserProfileDemo() {
               </div>
             </div>
 
-            {/* Profile Timestamps */}
-            {userInfo.profileCreatedAt && (
-              <div className="flex items-center justify-between">
-                <span className="font-medium">Profile Created</span>
-                <div className="text-right">
-                  <p className="text-sm">{userInfo.relativeProfileCreatedAt}</p>
-                  <p className="text-xs text-gray-500 font-mono">
-                    {userInfo.formattedProfileCreatedAt}
-                  </p>
-                </div>
-              </div>
-            )}
-
-            {userInfo.profileUpdatedAt && userInfo.profileUpdatedAt !== userInfo.profileCreatedAt && (
-              <div className="flex items-center justify-between">
-                <span className="font-medium">Profile Updated</span>
-                <div className="text-right">
-                  <p className="text-sm">{userInfo.relativeProfileUpdatedAt}</p>
-                  <p className="text-xs text-gray-500 font-mono">
-                    {userInfo.formattedProfileUpdatedAt}
-                  </p>
-                </div>
-              </div>
-            )}
 
             {/* Time Since Last Sign In Details */}
             {timeSinceLastSignIn && (
