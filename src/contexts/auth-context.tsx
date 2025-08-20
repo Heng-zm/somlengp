@@ -8,7 +8,7 @@ import {
   showAuthSuccessToast, 
   showAuthErrorToast 
 } from '@/lib/toast-utils';
-import { createUserProfile, getUserProfile, updateLastSignInTime, deleteUserProfile } from '@/lib/user-profile';
+import { createUserProfile, getUserProfile, updateLastSignInTime, deleteUserProfile } from '@/lib/user-profile-db';
 import { isEmailPasswordUser, isGoogleUser } from '@/lib/auth-utils';
 import { UserProfile } from '@/lib/types';
 
