@@ -7,10 +7,22 @@ interface VisitorData {
   count: number;
 }
 
-const visitorDocRef: DocumentReference<VisitorData> = doc(db, 'visitors', 'global') as DocumentReference<VisitorData>;
+function getVisitorDocRef(): DocumentReference<VisitorData> {
+  if (!db) {
+    throw new Error('Firebase is not initialized');
+  }
+  return doc(db, 'visitors', 'global') as DocumentReference<VisitorData>;
+}
 
 async function getCount(): Promise<number> {
+  // Check if Firebase is properly initialized
+  if (!db) {
+    console.error('Firebase is not initialized. Check your environment variables.');
+    return 0;
+  }
+  
   try {
+    const visitorDocRef = getVisitorDocRef();
     const docSnap = await getDoc(visitorDocRef);
     if (docSnap.exists()) {
       return docSnap.data().count || 0;
@@ -26,7 +38,14 @@ async function getCount(): Promise<number> {
 }
 
 async function incrementCount(): Promise<number> {
+    // Check if Firebase is properly initialized
+    if (!db) {
+        console.error('Firebase is not initialized. Check your environment variables.');
+        return 0;
+    }
+    
     try {
+        const visitorDocRef = getVisitorDocRef();
         const newCount = await runTransaction(db, async (transaction) => {
             const visitorDoc = await transaction.get(visitorDocRef);
             if (!visitorDoc.exists()) {

@@ -10,8 +10,8 @@
   "/_not-found/page": "app/_not-found/page.js",
   "/ai-assistant/page": "app/ai-assistant/page.js",
   "/ai-test/page": "app/ai-test/page.js",
-  "/combine-pdf/page": "app/combine-pdf/page.js",
   "/auth-test/page": "app/auth-test/page.js",
+  "/combine-pdf/page": "app/combine-pdf/page.js",
   "/convert-image-format/page": "app/convert-image-format/page.js",
   "/history/page": "app/history/page.js",
   "/home/page": "app/home/page.js",
@@ -23,6 +23,6 @@
   "/privacy/page": "app/privacy/page.js",
   "/profile/page": "app/profile/page.js",
   "/signup/page": "app/signup/page.js",
-  "/voice-transcript/page": "app/voice-transcript/page.js",
-  "/text-to-speech/page": "app/text-to-speech/page.js"
+  "/text-to-speech/page": "app/text-to-speech/page.js",
+  "/voice-transcript/page": "app/voice-transcript/page.js"
 }

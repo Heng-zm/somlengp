@@ -43,6 +43,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [loading]);
 
   useEffect(() => {
+    // Check if Firebase auth is initialized
+    if (!auth) {
+      console.error('Firebase auth is not initialized');
+      setLoading(false);
+      return;
+    }
+    
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       setUser(user);
       
@@ -107,6 +114,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const signInWithGoogle = async (useRedirect = false) => {
+    if (!auth || !googleProvider) {
+      showAuthErrorToast("Firebase authentication is not properly initialized.");
+      return;
+    }
+    
     try {
       setLoading(true);
       
@@ -177,6 +189,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const signInWithEmail = async (email: string, password: string) => {
+    if (!auth) {
+      showAuthErrorToast("Firebase authentication is not properly initialized.");
+      throw new Error("Firebase auth not initialized");
+    }
+    
     try {
       setLoading(true);
       await signInWithEmailAndPassword(auth, email, password);
@@ -210,6 +227,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const signUpWithEmail = async (email: string, password: string) => {
+    if (!auth) {
+      showAuthErrorToast("Firebase authentication is not properly initialized.");
+      throw new Error("Firebase auth not initialized");
+    }
+    
     try {
       setLoading(true);
       await createUserWithEmailAndPassword(auth, email, password);
@@ -241,6 +263,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const resetPassword = async (email: string) => {
+    if (!auth) {
+      showAuthErrorToast("Firebase authentication is not properly initialized.");
+      throw new Error("Firebase auth not initialized");
+    }
+    
     try {
       await sendPasswordResetEmail(auth, email);
       showSuccessToast("Password Reset Sent", "Check your email for password reset instructions.");
@@ -265,6 +292,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const logout = async () => {
+    if (!auth) {
+      showAuthErrorToast("Firebase authentication is not properly initialized.");
+      return;
+    }
+    
     try {
       setLoading(true);
       await signOut(auth);
@@ -304,6 +336,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           }
         } else if (isGoogleUser(user)) {
           // For Google users, reauthenticate with popup
+          if (!googleProvider) {
+            throw new Error('Google provider is not initialized');
+          }
           await reauthenticateWithPopup(user, googleProvider);
         } else {
           // For other providers, still attempt basic reauthentication

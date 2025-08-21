@@ -15,8 +15,11 @@ import { UserProfile, UserCounter } from '@/lib/types';
  * Gets the next available user ID by incrementing a counter in Firestore
  */
 async function getNextUserId(): Promise<number> {
+  if (!db) {
+    throw new Error('Firestore is not initialized.');
+  }
   return await runTransaction(db, async (transaction) => {
-    const counterRef = doc(db, 'metadata', 'userCounter');
+    const counterRef = doc(db!, 'metadata', 'userCounter');
     const counterDoc = await transaction.get(counterRef);
     
     let nextUserId = 1;
@@ -40,6 +43,9 @@ async function getNextUserId(): Promise<number> {
  * Gets a user profile from Firestore
  */
 export async function getUserProfile(uid: string): Promise<UserProfile | null> {
+  if (!db) {
+    throw new Error('Firestore is not initialized.');
+  }
   try {
     const userRef = doc(db, 'users', uid);
     const userDoc = await getDoc(userRef);
@@ -72,6 +78,9 @@ export async function getUserProfile(uid: string): Promise<UserProfile | null> {
  * Creates a new user profile in Firestore
  */
 export async function createUserProfile(user: User): Promise<UserProfile> {
+  if (!db) {
+    throw new Error('Firestore is not initialized.');
+  }
   try {
     const userId = await getNextUserId();
     const now = new Date();
@@ -85,7 +94,6 @@ export async function createUserProfile(user: User): Promise<UserProfile> {
       createdAt: now,
       lastSignInTime: now,
     };
-    
     const userRef = doc(db, 'users', user.uid);
     
     // Use serverTimestamp for profile metadata
@@ -110,6 +118,9 @@ export async function createUserProfile(user: User): Promise<UserProfile> {
  * Updates the last sign-in time for a user
  */
 export async function updateLastSignInTime(uid: string): Promise<void> {
+  if (!db) {
+    throw new Error('Firestore is not initialized.');
+  }
   try {
     const userRef = doc(db, 'users', uid);
     await updateDoc(userRef, {
@@ -126,6 +137,9 @@ export async function updateLastSignInTime(uid: string): Promise<void> {
  * Deletes a user profile from Firestore
  */
 export async function deleteUserProfile(uid: string): Promise<void> {
+  if (!db) {
+    throw new Error('Firestore is not initialized.');
+  }
   try {
     const userRef = doc(db, 'users', uid);
     await deleteDoc(userRef);
@@ -142,6 +156,9 @@ export async function updateUserProfile(
   uid: string, 
   updates: Partial<Pick<UserProfile, 'email' | 'displayName' | 'photoURL'>>
 ): Promise<void> {
+  if (!db) {
+    throw new Error('Firestore is not initialized.');
+  }
   try {
     const userRef = doc(db, 'users', uid);
     await updateDoc(userRef, {

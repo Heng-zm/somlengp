@@ -15,49 +15,58 @@ const firebaseConfig = {
 };
 
 // Validate Firebase configuration
-if (typeof window !== 'undefined') {
-  
-  // Check for missing required fields
+function validateFirebaseConfig() {
   const requiredFields = ['apiKey', 'authDomain', 'projectId'];
   const missingFields = requiredFields.filter(field => !firebaseConfig[field as keyof typeof firebaseConfig]);
   
   if (missingFields.length > 0) {
-    console.error('Missing required Firebase configuration fields:', missingFields);
+    const errorMsg = `Missing required Firebase configuration fields: ${missingFields.join(', ')}`;
+    console.error(errorMsg);
     console.error('Please check your environment variables and ensure all required NEXT_PUBLIC_FIREBASE_* variables are set');
-    console.error('Current environment:', process.env.NODE_ENV);
-    console.error('Current domain:', window.location.hostname);
     
-    // Show deployment-specific instructions
-    if (process.env.NODE_ENV === 'production') {
-      console.error('🚨 PRODUCTION DEPLOYMENT ISSUE:');
-      console.error('1. Set environment variables in your deployment platform (Vercel, Netlify, etc.)');
-      console.error('2. Add this domain to Firebase Console > Authentication > Settings > Authorized domains');
-      console.error('3. Add this domain to Google Cloud Console > APIs & Services > Credentials');
+    if (typeof window !== 'undefined') {
+      console.error('Current environment:', process.env.NODE_ENV);
+      console.error('Current domain:', window.location.hostname);
+      
+      // Show deployment-specific instructions
+      if (process.env.NODE_ENV === 'production') {
+        console.error('🚨 PRODUCTION DEPLOYMENT ISSUE:');
+        console.error('1. Set environment variables in your deployment platform (Vercel, Netlify, etc.)');
+        console.error('2. Add this domain to Firebase Console > Authentication > Settings > Authorized domains');
+        console.error('3. Add this domain to Google Cloud Console > APIs & Services > Credentials');
+      }
     }
-  }
-  
-  // Production-specific domain validation (errors only)
-  if (process.env.NODE_ENV === 'production') {
-    // Silent in production - only log if there are actual errors
+    
+    throw new Error(errorMsg);
   }
 }
 
-// Initialize Firebase
-let app;
+// Initialize Firebase with better error handling
+let app: ReturnType<typeof initializeApp> | null = null;
+let db: ReturnType<typeof getFirestore> | null = null;
+let auth: ReturnType<typeof getAuth> | null = null;
+let googleProvider: GoogleAuthProvider | null = null;
+
 try {
+  validateFirebaseConfig();
   app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
+  db = getFirestore(app);
+  auth = getAuth(app);
+  googleProvider = new GoogleAuthProvider();
+  
+  // Configure Google provider
+  googleProvider.addScope('email');
+  googleProvider.addScope('profile');
+  
 } catch (error) {
   console.error('Firebase initialization error:', error);
-  throw error;
+  
+  // During build time, we might not have access to environment variables
+  // So we'll create null exports and handle this in the API routes
+  if (process.env.NODE_ENV === 'development' || process.env.NODE_ENV === 'production') {
+    console.warn('Firebase will be initialized at runtime when needed');
+  }
 }
-
-const db = getFirestore(app);
-const auth = getAuth(app);
-const googleProvider = new GoogleAuthProvider();
-
-// Configure Google provider
-googleProvider.addScope('email');
-googleProvider.addScope('profile');
 
 
 export { db, auth, googleProvider };

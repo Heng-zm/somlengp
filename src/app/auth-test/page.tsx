@@ -30,6 +30,12 @@ export default function AuthTestPage() {
     setIsTestingDirect(true);
     addResult('Testing direct Firebase popup...');
     
+    if (!auth || !googleProvider) {
+      addResult('❌ Firebase auth is not initialized');
+      setIsTestingDirect(false);
+      return;
+    }
+    
     try {
       const result = await signInWithPopup(auth, googleProvider);
       addResult(`✅ Direct popup successful: ${result.user.email}`);
@@ -43,6 +49,11 @@ export default function AuthTestPage() {
 
   const testDirectRedirect = async () => {
     addResult('Testing direct Firebase redirect...');
+    
+    if (!auth || !googleProvider) {
+      addResult('❌ Firebase auth is not initialized');
+      return;
+    }
     
     try {
       await signInWithRedirect(auth, googleProvider);

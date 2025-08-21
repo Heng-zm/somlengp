@@ -48,6 +48,9 @@ export async function reauthenticateWithPassword(user: User, password: string): 
 export async function reauthenticateWithGoogle(user: User): Promise<void> {
   try {
     // Try popup first
+    if (!googleProvider) {
+      throw new Error('Google provider not initialized.');
+    }
     await reauthenticateWithPopup(user, googleProvider);
   } catch (error: unknown) {
     // If popup fails, provide more context
