@@ -254,8 +254,8 @@
       "static/chunks/default-_app-pages-browser_src_contexts_auth-context_tsx.js",
       "static/chunks/default-_app-pages-browser_src_layouts_feature-page-layout_tsx.js",
       "static/chunks/default-_app-pages-browser_src_components_auth_auth-guard_tsx-_app-pages-browser_src_componen-6702c8.js",
-      "static/chunks/app/profile/page.js",
-      "static/css/app/profile/page.css"
+      "static/css/app/profile/page.css",
+      "static/chunks/app/profile/page.js"
     ]
   }
 }

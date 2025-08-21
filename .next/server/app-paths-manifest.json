@@ -1,7 +1,6 @@
 {
-  "/api/visit/route": "app/api/visit/route.js",
   "/home/page": "app/home/page.js",
-  "/text-to-speech/page": "app/text-to-speech/page.js",
   "/ai-assistant/page": "app/ai-assistant/page.js",
+  "/text-to-speech/page": "app/text-to-speech/page.js",
   "/profile/page": "app/profile/page.js"
 }
