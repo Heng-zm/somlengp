@@ -126,7 +126,7 @@ export const Sidebar = memo(function Sidebar({ language, toggleLanguage }: { lan
               {t.support}
             </Button>
           </SheetTrigger>
-          <SheetContent side="bottom" className="rounded-t-lg h-[80vh] flex flex-col bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+          <SheetContent side="bottom" className="rounded-t-lg h-[80vh] flex flex-col bg-background border-t shadow-lg">
             <SheetHeader className="text-center mb-4">
               <SheetTitle>
                 <div className="flex items-center justify-center gap-2">

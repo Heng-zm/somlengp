@@ -57,6 +57,20 @@ const AI_MODELS: AIModel[] = [
     displayName: 'Gemini 2.0 Flash (Experimental)',
     description: 'Latest experimental model with enhanced capabilities',
     icon: '✨'
+  },
+  {
+    id: 'grok-beta',
+    name: 'grok-beta',
+    displayName: 'Grok Beta',
+    description: 'xAI\'s conversational AI with real-time knowledge',
+    icon: '🤖'
+  },
+  {
+    id: 'grok-vision-beta',
+    name: 'grok-vision-beta',
+    displayName: 'Grok Vision Beta',
+    description: 'Grok with advanced vision capabilities',
+    icon: '👁️'
   }
 ];
 
@@ -215,85 +229,95 @@ export default function AIAssistantPage() {
     <AuthGuard>
       <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-indigo-50 dark:from-slate-950 dark:via-blue-950/20 dark:to-indigo-950/30">
         {/* Background Pattern */}
-        <div className="absolute inset-0 bg-grid-slate-200/50 dark:bg-grid-slate-800/25 bg-[size:40px_40px] [mask-image:radial-gradient(ellipse_at_center,white_50%,transparent_100%)]" />
+        <div className="absolute inset-0 bg-grid-slate-200/50 dark:bg-grid-slate-800/25 bg-[size:20px_20px] sm:bg-[size:40px_40px] [mask-image:radial-gradient(ellipse_at_center,white_50%,transparent_100%)]" />
         
-        <div className="relative flex flex-col h-screen max-w-6xl mx-auto">
+        <div className="relative flex flex-col h-screen max-w-7xl mx-auto">
           {/* Header */}
           <header className="backdrop-blur-xl bg-white/80 dark:bg-slate-900/80 border-b border-slate-200/60 dark:border-slate-700/60 sticky top-0 z-40">
-            <div className="px-4 py-4 sm:px-6">
-              <div className="flex items-center justify-between">
+            <div className="px-3 py-3 sm:px-4 sm:py-4 md:px-6">
+              <div className="flex items-center justify-between gap-2 sm:gap-4">
                 {/* Left side - Back button and title */}
-                <div className="flex items-center gap-4">
+                <div className="flex items-center gap-2 sm:gap-3 md:gap-4 flex-1 min-w-0">
                   <Button
                     variant="ghost"
                     size="icon"
                     onClick={goBackToHome}
-                    className="h-10 w-10 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                    className="h-8 w-8 sm:h-10 sm:w-10 rounded-xl bg-white/50 hover:bg-slate-100 dark:bg-slate-800/50 dark:hover:bg-slate-700 transition-all duration-200 flex-shrink-0 backdrop-blur-sm border border-slate-200/60 dark:border-slate-700/60 hover:border-slate-300 dark:hover:border-slate-600 hover:shadow-md active:scale-95"
+                    aria-label="Go back to home"
+                    title="Back to Home"
                   >
-                    <ArrowLeft className="h-5 w-5" />
+                    <ArrowLeft className="h-4 w-4 sm:h-5 sm:w-5 text-slate-700 dark:text-slate-200" />
                   </Button>
                   
-                  <div className="flex items-center gap-3">
-                    <div className="relative">
-                      <div className="h-12 w-12 rounded-2xl bg-gradient-to-br from-violet-500 via-purple-500 to-blue-500 flex items-center justify-center shadow-lg shadow-purple-500/25">
-                        <Sparkles className="h-6 w-6 text-white" />
+                  <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
+                    <div className="relative flex-shrink-0">
+                      <div className="h-8 w-8 sm:h-10 sm:w-10 md:h-12 md:w-12 rounded-xl sm:rounded-2xl bg-gradient-to-br from-violet-500 via-purple-500 to-blue-500 flex items-center justify-center shadow-md sm:shadow-lg shadow-purple-500/25">
+                        <Sparkles className="h-3 w-3 sm:h-5 sm:w-5 md:h-6 md:w-6 text-white" />
                       </div>
-                      <div className="absolute -bottom-1 -right-1 h-4 w-4 bg-emerald-500 rounded-full border-2 border-white dark:border-slate-900 animate-pulse" />
+                      <div className="absolute -bottom-0.5 -right-0.5 sm:-bottom-1 sm:-right-1 h-3 w-3 sm:h-4 sm:w-4 bg-emerald-500 rounded-full border-2 border-white dark:border-slate-900 animate-pulse" />
                     </div>
                     
-                    <div>
-                      <h1 className="text-xl font-bold bg-gradient-to-r from-slate-900 to-slate-700 dark:from-white dark:to-slate-300 bg-clip-text text-transparent">
+                    <div className="min-w-0 flex-1">
+                      <h1 className="text-base sm:text-lg md:text-xl font-bold bg-gradient-to-r from-slate-900 to-slate-700 dark:from-white dark:to-slate-300 bg-clip-text text-transparent truncate">
                         AI Assistant
                       </h1>
-                      <div className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-400">
-                        <span className="text-base">{selectedModel.icon}</span>
-                        <span>Powered by {selectedModel.displayName}</span>
+                      <div className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm text-slate-600 dark:text-slate-400">
+                        <span className="text-sm sm:text-base flex-shrink-0">{selectedModel.icon}</span>
+                        <span className="truncate">
+                          <span className="hidden sm:inline">Powered by </span>
+                          {selectedModel.displayName}
+                        </span>
                       </div>
                     </div>
                   </div>
                 </div>
                 
                 {/* Right side - Controls */}
-                <div className="flex items-center gap-3">
-                  <Badge className="bg-emerald-100 text-emerald-700 border-emerald-200 dark:bg-emerald-950/50 dark:text-emerald-400 dark:border-emerald-800">
-                    <div className="h-1.5 w-1.5 bg-emerald-500 rounded-full mr-2 animate-pulse" />
+                <div className="flex items-center gap-1 sm:gap-2 md:gap-3 flex-shrink-0">
+                  <Badge className="hidden sm:flex bg-emerald-100 text-emerald-700 border-emerald-200 dark:bg-emerald-950/50 dark:text-emerald-400 dark:border-emerald-800 text-xs">
+                    <div className="h-1.5 w-1.5 bg-emerald-500 rounded-full mr-1.5 animate-pulse" />
                     Online
                   </Badge>
                   
                   {/* Model Selector */}
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
-                      <Button variant="outline" className="h-10 rounded-xl border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800">
-                        <Settings className="h-4 w-4 mr-2" />
-                        <span className="hidden sm:inline">{selectedModel.displayName}</span>
-                        <span className="sm:hidden">{selectedModel.icon}</span>
-                        <ChevronDown className="h-4 w-4 ml-2" />
+                      <Button 
+                        variant="outline" 
+                        className="h-8 w-8 sm:h-10 sm:w-auto rounded-xl bg-white/50 hover:bg-slate-50 dark:bg-slate-800/50 dark:hover:bg-slate-700 border border-slate-200/60 dark:border-slate-700/60 hover:border-violet-300 dark:hover:border-violet-500/50 transition-all duration-200 p-0 sm:px-3 backdrop-blur-sm shadow-sm hover:shadow-md active:scale-95 text-slate-700 dark:text-slate-200"
+                        title="Select AI Model"
+                        aria-label="Select AI Model"
+                      >
+                        <Settings className="h-4 w-4 sm:mr-2 text-slate-600 dark:text-slate-300" />
+                        <span className="hidden md:inline max-w-24 lg:max-w-none truncate font-medium">{selectedModel.displayName}</span>
+                        <span className="hidden sm:inline md:hidden text-base">{selectedModel.icon}</span>
+                        <ChevronDown className="h-4 w-4 hidden sm:inline sm:ml-2 text-slate-500 dark:text-slate-400" />
                       </Button>
                     </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end" className="w-72 backdrop-blur-xl bg-white/95 dark:bg-slate-900/95">
-                      <DropdownMenuLabel className="text-slate-900 dark:text-slate-100">Select AI Model</DropdownMenuLabel>
+                    <DropdownMenuContent align="end" className="w-[90vw] max-w-sm sm:w-72 backdrop-blur-xl bg-white/95 dark:bg-slate-900/95 mx-2 sm:mx-0">
+                      <DropdownMenuLabel className="text-slate-900 dark:text-slate-100 px-3 py-2">Select AI Model</DropdownMenuLabel>
                       <DropdownMenuSeparator />
                       {AI_MODELS.map((model) => (
                         <DropdownMenuItem
                           key={model.id}
                           onClick={() => setSelectedModel(model)}
                           className={cn(
-                            "flex flex-col items-start p-3 cursor-pointer",
+                            "flex flex-col items-start p-3 cursor-pointer min-h-[60px]",
                             selectedModel.id === model.id && "bg-violet-50 dark:bg-violet-950/20"
                           )}
                         >
                           <div className="flex items-center gap-3 w-full">
-                            <span className="text-xl">{model.icon}</span>
-                            <div className="flex-1">
-                              <div className="flex items-center gap-2">
-                                <span className="font-medium text-slate-900 dark:text-slate-100">{model.displayName}</span>
+                            <span className="text-lg sm:text-xl flex-shrink-0">{model.icon}</span>
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center gap-2 mb-1">
+                                <span className="font-medium text-slate-900 dark:text-slate-100 text-sm sm:text-base truncate">{model.displayName}</span>
                                 {selectedModel.id === model.id && (
-                                  <Badge variant="secondary" className="text-xs bg-violet-100 text-violet-700 dark:bg-violet-950/50 dark:text-violet-300">
+                                  <Badge variant="secondary" className="text-xs bg-violet-100 text-violet-700 dark:bg-violet-950/50 dark:text-violet-300 flex-shrink-0">
                                     Active
                                   </Badge>
                                 )}
                               </div>
-                              <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                              <p className="text-xs text-slate-500 dark:text-slate-400 line-clamp-2">
                                 {model.description}
                               </p>
                             </div>
@@ -306,7 +330,9 @@ export default function AIAssistantPage() {
                   <Button
                     variant="outline"
                     onClick={clearChat}
-                    className="h-10 rounded-xl border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 hidden sm:flex"
+                    className="h-10 rounded-xl bg-white/50 hover:bg-red-50 dark:bg-slate-800/50 dark:hover:bg-red-900/20 border border-slate-200/60 dark:border-slate-700/60 hover:border-red-300 dark:hover:border-red-500/50 text-slate-700 hover:text-red-600 dark:text-slate-200 dark:hover:text-red-400 transition-all duration-200 hidden sm:flex backdrop-blur-sm shadow-sm hover:shadow-md active:scale-95"
+                    title="Clear chat history"
+                    aria-label="Clear chat history"
                   >
                     <Trash2 className="h-4 w-4 mr-2" />
                     Clear
@@ -319,8 +345,8 @@ export default function AIAssistantPage() {
           {/* Chat Area */}
           <main className="flex-1 flex flex-col overflow-hidden">
             {/* Messages */}
-            <ScrollArea className="flex-1 px-4 sm:px-6" ref={scrollAreaRef}>
-              <div className="py-6 space-y-6 max-w-4xl mx-auto">
+            <ScrollArea className="flex-1 px-3 sm:px-4 md:px-6" ref={scrollAreaRef}>
+              <div className="py-4 sm:py-6 space-y-4 sm:space-y-6 max-w-4xl mx-auto">
                 <AnimatePresence>
                   {messages.map((message) => (
                     <motion.div
@@ -330,23 +356,23 @@ export default function AIAssistantPage() {
                       exit={{ opacity: 0, y: -20 }}
                       transition={{ duration: 0.4, ease: "easeOut" }}
                       className={cn(
-                        "flex gap-4",
+                        "flex gap-2 sm:gap-3 md:gap-4",
                         message.role === 'user' ? 'flex-row-reverse' : ''
                       )}
                     >
                       {/* Avatar */}
                       <div className="flex-shrink-0">
-                        <Avatar className="h-10 w-10 ring-2 ring-white dark:ring-slate-900 shadow-lg">
+                        <Avatar className="h-8 w-8 sm:h-9 sm:w-9 md:h-10 md:w-10 ring-2 ring-white dark:ring-slate-900 shadow-md sm:shadow-lg">
                           {message.role === 'user' ? (
                             <>
                               <AvatarImage src={user?.photoURL || undefined} />
                               <AvatarFallback className="bg-gradient-to-br from-blue-500 to-cyan-500 text-white">
-                                <User className="h-5 w-5" />
+                                <User className="h-4 w-4 sm:h-5 sm:w-5" />
                               </AvatarFallback>
                             </>
                           ) : (
                             <AvatarFallback className="bg-gradient-to-br from-violet-500 to-purple-500 text-white">
-                              <Bot className="h-5 w-5" />
+                              <Bot className="h-4 w-4 sm:h-5 sm:w-5" />
                             </AvatarFallback>
                           )}
                         </Avatar>
@@ -354,12 +380,12 @@ export default function AIAssistantPage() {
                       
                       {/* Message Content */}
                       <div className={cn(
-                        "flex-1 max-w-[75%]",
+                        "flex-1 max-w-[85%] sm:max-w-[80%] md:max-w-[75%]",
                         message.role === 'user' ? 'flex flex-col items-end' : ''
                       )}>
                         <div className="group relative">
                           <div className={cn(
-                            "rounded-2xl px-4 py-3 text-sm leading-relaxed shadow-sm relative overflow-hidden",
+                            "rounded-2xl px-3 py-2.5 sm:px-4 sm:py-3 text-sm sm:text-base leading-relaxed shadow-sm relative overflow-hidden",
                             message.role === 'user'
                               ? "bg-gradient-to-br from-blue-500 to-blue-600 text-white ml-auto"
                               : "bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 border border-slate-200 dark:border-slate-700"
@@ -368,7 +394,7 @@ export default function AIAssistantPage() {
                               <div className="absolute inset-0 bg-gradient-to-br from-violet-500/5 to-blue-500/5 dark:from-violet-400/10 dark:to-blue-400/10" />
                             )}
                             
-                            <div className="relative whitespace-pre-wrap break-words">
+                            <div className="relative whitespace-pre-wrap break-words word-break">
                               {message.content}
                             </div>
                             
@@ -377,20 +403,25 @@ export default function AIAssistantPage() {
                               variant="ghost"
                               size="sm"
                               className={cn(
-                                "absolute -top-2 -right-2 h-7 w-7 p-0 opacity-0 group-hover:opacity-100 transition-all duration-200 shadow-md",
+                                "absolute -top-1.5 -right-1.5 sm:-top-2 sm:-right-2 h-7 w-7 sm:h-8 sm:w-8 p-0 rounded-full transition-all duration-300 transform hover:scale-110 active:scale-95 touch-manipulation",
+                                // Visibility states - Always visible on mobile, hover on desktop
+                                "opacity-100 md:opacity-0 md:group-hover:opacity-100",
+                                // User message styling (blue theme)
                                 message.role === 'user'
-                                  ? "bg-blue-400/90 hover:bg-blue-300 text-white backdrop-blur-sm"
-                                  : "bg-white dark:bg-slate-700 hover:bg-slate-50 dark:hover:bg-slate-600 border border-slate-200 dark:border-slate-600"
+                                  ? "bg-blue-600/90 hover:bg-blue-500/95 active:bg-blue-700/90 text-white shadow-lg shadow-blue-500/30 hover:shadow-blue-400/40 backdrop-blur-sm border border-blue-400/30 hover:border-blue-300/50"
+                                  : "bg-white/95 dark:bg-slate-700/90 hover:bg-slate-50 dark:hover:bg-slate-600/90 active:bg-slate-100 dark:active:bg-slate-500/90 text-slate-600 hover:text-slate-700 dark:text-slate-300 dark:hover:text-slate-200 shadow-lg shadow-slate-500/15 hover:shadow-slate-400/20 border border-slate-200/70 dark:border-slate-600/70 hover:border-slate-300/80 dark:hover:border-slate-500/80 backdrop-blur-sm"
                               )}
                               onClick={() => copyMessage(message.content)}
+                              title="Copy message"
+                              aria-label="Copy message to clipboard"
                             >
-                              <Copy className="h-3.5 w-3.5" />
+                              <Copy className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                             </Button>
                           </div>
                           
                           {/* Timestamp */}
                           <p className={cn(
-                            "text-xs text-slate-500 dark:text-slate-400 mt-2 px-1",
+                            "text-xs text-slate-500 dark:text-slate-400 mt-1.5 sm:mt-2 px-1",
                             message.role === 'user' ? 'text-right' : 'text-left'
                           )}>
                             {message.timestamp.toLocaleTimeString([], { 
@@ -409,15 +440,15 @@ export default function AIAssistantPage() {
                   <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
-                    className="flex gap-4"
+                    className="flex gap-2 sm:gap-3 md:gap-4"
                   >
-                    <Avatar className="h-10 w-10 ring-2 ring-white dark:ring-slate-900 shadow-lg">
+                    <Avatar className="h-8 w-8 sm:h-9 sm:w-9 md:h-10 md:w-10 ring-2 ring-white dark:ring-slate-900 shadow-md sm:shadow-lg">
                       <AvatarFallback className="bg-gradient-to-br from-violet-500 to-purple-500 text-white">
-                        <Bot className="h-5 w-5" />
+                        <Bot className="h-4 w-4 sm:h-5 sm:w-5" />
                       </AvatarFallback>
                     </Avatar>
                     
-                    <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl px-4 py-3 shadow-sm">
+                    <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl px-3 py-2.5 sm:px-4 sm:py-3 shadow-sm">
                       <div className="flex gap-1.5">
                         <div className="h-2 w-2 bg-slate-400 rounded-full animate-bounce" />
                         <div className="h-2 w-2 bg-slate-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }} />
@@ -431,9 +462,9 @@ export default function AIAssistantPage() {
 
             {/* Input Area */}
             <footer className="border-t border-slate-200/60 dark:border-slate-700/60 backdrop-blur-xl bg-white/80 dark:bg-slate-900/80">
-              <div className="px-4 py-4 sm:px-6">
+              <div className="px-3 py-3 sm:px-4 sm:py-4 md:px-6">
                 <div className="max-w-4xl mx-auto">
-                  <div className="flex items-end gap-3">
+                  <div className="flex items-end gap-2 sm:gap-3">
                     <div className="flex-1 relative">
                       <Input
                         ref={inputRef}
@@ -442,36 +473,40 @@ export default function AIAssistantPage() {
                         onKeyPress={handleKeyPress}
                         placeholder="Type your message..."
                         disabled={isLoading}
-                        className="min-h-[52px] pr-12 rounded-2xl border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 focus:ring-2 focus:ring-violet-500 focus:border-transparent transition-all duration-200 text-base resize-none"
+                        className="min-h-[48px] sm:min-h-[52px] pr-2 sm:pr-3 rounded-xl sm:rounded-2xl border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 focus:ring-2 focus:ring-violet-500 focus:border-transparent transition-all duration-200 text-sm sm:text-base resize-none touch-manipulation"
                       />
                     </div>
                     
                     <Button
                       onClick={sendMessage}
                       disabled={!input.trim() || isLoading}
-                      className="h-[52px] w-[52px] rounded-2xl bg-gradient-to-r from-violet-500 to-purple-500 hover:from-violet-600 hover:to-purple-600 shadow-lg shadow-violet-500/25 transition-all duration-200 disabled:opacity-50 disabled:shadow-none"
+                      className="h-[48px] w-[48px] sm:h-[52px] sm:w-[52px] rounded-xl sm:rounded-2xl bg-gradient-to-r from-violet-500 via-purple-500 to-indigo-500 hover:from-violet-600 hover:via-purple-600 hover:to-indigo-600 active:from-violet-700 active:via-purple-700 active:to-indigo-700 shadow-lg shadow-violet-500/25 hover:shadow-xl hover:shadow-violet-500/30 transition-all duration-200 disabled:opacity-50 disabled:shadow-none disabled:cursor-not-allowed touch-manipulation transform hover:scale-105 active:scale-95 backdrop-blur-sm border border-violet-400/20 hover:border-violet-300/30"
+                      title={isLoading ? "Sending message..." : "Send message"}
+                      aria-label={isLoading ? "Sending message..." : "Send message"}
                     >
                       {isLoading ? (
-                        <RefreshCw className="h-5 w-5 animate-spin" />
+                        <RefreshCw className="h-4 w-4 sm:h-5 sm:w-5 animate-spin text-white" />
                       ) : (
-                        <Send className="h-5 w-5" />
+                        <Send className="h-4 w-4 sm:h-5 sm:w-5 text-white" />
                       )}
                     </Button>
                     
                     <Button
                       variant="outline"
                       onClick={clearChat}
-                      className="h-[52px] w-[52px] rounded-2xl border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 sm:hidden"
+                      className="h-[48px] w-[48px] sm:h-[52px] sm:w-[52px] rounded-xl sm:rounded-2xl bg-white/50 hover:bg-red-50 dark:bg-slate-800/50 dark:hover:bg-red-900/20 border border-slate-200/60 dark:border-slate-700/60 hover:border-red-300 dark:hover:border-red-500/50 text-slate-700 hover:text-red-600 dark:text-slate-200 dark:hover:text-red-400 transition-all duration-200 sm:hidden touch-manipulation backdrop-blur-sm shadow-sm hover:shadow-md active:scale-95"
+                      title="Clear chat history"
+                      aria-label="Clear chat history"
                     >
-                      <Trash2 className="h-5 w-5" />
+                      <Trash2 className="h-4 w-4 sm:h-5 sm:w-5" />
                     </Button>
                   </div>
                   
-                  <div className="flex items-center justify-between mt-3 text-xs text-slate-500 dark:text-slate-400">
+                  <div className="flex items-center justify-between mt-2 sm:mt-3 text-xs text-slate-500 dark:text-slate-400">
                     <span className="hidden sm:block">Press Enter to send, Shift+Enter for new line</span>
-                    <div className="flex items-center gap-2 ml-auto">
-                      <div className="h-2 w-2 bg-emerald-500 rounded-full animate-pulse" />
-                      <span>AI Assistant is online</span>
+                    <div className="flex items-center gap-1.5 sm:gap-2 ml-auto">
+                      <div className="h-1.5 w-1.5 sm:h-2 sm:w-2 bg-emerald-500 rounded-full animate-pulse" />
+                      <span className="text-xs">AI Assistant is online</span>
                     </div>
                   </div>
                 </div>

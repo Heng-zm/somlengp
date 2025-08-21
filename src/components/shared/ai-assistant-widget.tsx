@@ -19,11 +19,14 @@ import {
   Maximize2,
   Minimize2,
   RefreshCw,
-  X
+  X,
+  Copy
 } from 'lucide-react';
 import {
   showAuthRequiredToast,
-  showAIAssistantErrorToast
+  showAIAssistantErrorToast,
+  showSuccessToast,
+  showErrorToast
 } from '@/lib/toast-utils';
 import { cn } from '@/lib/utils';
 import { generateMessageId } from '@/lib/id-utils';
@@ -166,6 +169,15 @@ export function AIAssistantWidget({ className, variant = 'compact' }: AIAssistan
     router.push('/ai-assistant');
   }, [router]);
 
+  const copyMessage = useCallback(async (content: string) => {
+    try {
+      await navigator.clipboard.writeText(content);
+      showSuccessToast("Copied!", "Message copied to clipboard");
+    } catch {
+      showErrorToast("Copy Error", "Failed to copy message");
+    }
+  }, []);
+
   // Compact floating button
   if (!isOpen) {
     return (
@@ -177,7 +189,9 @@ export function AIAssistantWidget({ className, variant = 'compact' }: AIAssistan
         <Button
           size="lg"
           onClick={() => setIsOpen(true)}
-          className="h-12 w-12 sm:h-14 sm:w-14 rounded-full bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 shadow-lg hover:shadow-xl transition-all duration-300 min-h-[48px] min-w-[48px]"
+          className="h-12 w-12 sm:h-14 sm:w-14 rounded-full bg-gradient-to-r from-violet-500 via-purple-500 to-indigo-500 hover:from-violet-600 hover:via-purple-600 hover:to-indigo-600 active:from-violet-700 active:via-purple-700 active:to-indigo-700 shadow-lg shadow-violet-500/30 hover:shadow-xl hover:shadow-violet-500/40 transition-all duration-300 min-h-[48px] min-w-[48px] transform hover:scale-110 active:scale-95 backdrop-blur-sm border border-violet-400/20 hover:border-violet-300/30"
+          title="Open AI Assistant"
+          aria-label="Open AI Assistant chat"
         >
           <MessageCircle className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
         </Button>
@@ -194,8 +208,8 @@ export function AIAssistantWidget({ className, variant = 'compact' }: AIAssistan
       className={cn(
         "fixed z-50 bg-background border rounded-lg shadow-2xl",
         isExpanded 
-          ? "bottom-2 right-2 left-2 sm:bottom-4 sm:right-4 sm:left-auto w-auto sm:w-96 h-[calc(100vh-1rem)] sm:h-[500px]" 
-          : "bottom-4 right-4 left-4 sm:bottom-6 sm:right-6 sm:left-auto w-auto sm:w-80 h-80 sm:h-96",
+          ? "bottom-2 right-2 left-2 sm:bottom-4 sm:right-4 sm:left-auto w-auto sm:w-96 h-[calc(100vh-1rem)] sm:h-[500px] max-h-[calc(100vh-1rem)]" 
+          : "bottom-4 right-4 left-4 sm:bottom-6 sm:right-6 sm:left-auto w-auto sm:w-80 h-80 sm:h-96 max-h-[calc(100vh-8rem)]",
         className
       )}
     >
@@ -221,7 +235,9 @@ export function AIAssistantWidget({ className, variant = 'compact' }: AIAssistan
                 variant="ghost"
                 size="sm"
                 onClick={() => setIsExpanded(!isExpanded)}
-                className="h-8 w-8 p-0"
+                className="h-8 w-8 p-0 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-600 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200 transition-all duration-200 hover:scale-105 active:scale-95"
+                title={isExpanded ? "Minimize window" : "Maximize window"}
+                aria-label={isExpanded ? "Minimize window" : "Maximize window"}
               >
                 {isExpanded ? (
                   <Minimize2 className="h-4 w-4" />
@@ -233,16 +249,19 @@ export function AIAssistantWidget({ className, variant = 'compact' }: AIAssistan
                 variant="ghost"
                 size="sm"
                 onClick={openFullAssistant}
-                className="h-8 w-8 p-0"
-                title="Open full AI Assistant"
+                className="h-8 w-8 p-0 rounded-lg hover:bg-violet-100 dark:hover:bg-violet-900/20 text-slate-600 hover:text-violet-700 dark:text-slate-400 dark:hover:text-violet-400 transition-all duration-200 hover:scale-105 active:scale-95"
+                title="Open full AI Assistant page"
+                aria-label="Open full AI Assistant page"
               >
-                <Maximize2 className="h-4 w-4" />
+                <MessageCircle className="h-4 w-4" />
               </Button>
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={() => setIsOpen(false)}
-                className="h-8 w-8 p-0"
+                className="h-8 w-8 p-0 rounded-lg hover:bg-red-100 dark:hover:bg-red-900/20 text-slate-600 hover:text-red-700 dark:text-slate-400 dark:hover:text-red-400 transition-all duration-200 hover:scale-105 active:scale-95"
+                title="Close AI Assistant"
+                aria-label="Close AI Assistant"
               >
                 <X className="h-4 w-4" />
               </Button>
@@ -288,26 +307,48 @@ export function AIAssistantWidget({ className, variant = 'compact' }: AIAssistan
                       "flex-1 max-w-[80%]",
                       message.role === 'user' ? 'flex flex-col items-end' : ''
                     )}>
-                      <div className={cn(
-                        "rounded-lg p-2 text-xs",
-                        message.role === 'user'
-                          ? "bg-blue-500 text-white"
-                          : "bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-100"
-                      )}>
-                        <div className="whitespace-pre-wrap break-words">
-                          {message.content}
+                      <div className="group relative">
+                        <div className={cn(
+                          "rounded-lg p-2 text-xs relative",
+                          message.role === 'user'
+                            ? "bg-blue-500 text-white"
+                            : "bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-100"
+                        )}>
+                          <div className="whitespace-pre-wrap break-words">
+                            {message.content}
+                          </div>
+                          
+                          {/* Copy button */}
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className={cn(
+                              "absolute -top-1.5 -right-1.5 h-6 w-6 p-0 rounded-full transition-all duration-300 transform hover:scale-110 active:scale-95",
+                              // Visibility states - always visible on mobile, hover on desktop
+                              "opacity-100 sm:opacity-0 sm:group-hover:opacity-100",
+                              // Styling based on message role
+                              message.role === 'user'
+                                ? "bg-blue-600/90 hover:bg-blue-500/95 text-white shadow-sm shadow-blue-500/30 border border-blue-400/30"
+                                : "bg-white/95 dark:bg-slate-700/90 hover:bg-slate-50 dark:hover:bg-slate-600/90 text-slate-600 dark:text-slate-300 shadow-sm shadow-slate-500/15 border border-slate-200/70 dark:border-slate-600/70"
+                            )}
+                            onClick={() => copyMessage(message.content)}
+                            title="Copy message"
+                            aria-label="Copy message to clipboard"
+                          >
+                            <Copy className="h-3 w-3" />
+                          </Button>
                         </div>
+                        
+                        <p className={cn(
+                          "text-xs text-gray-500 dark:text-gray-400 mt-1",
+                          message.role === 'user' ? 'text-right' : 'text-left'
+                        )}>
+                          {message.timestamp.toLocaleTimeString([], { 
+                            hour: '2-digit', 
+                            minute: '2-digit' 
+                          })}
+                        </p>
                       </div>
-                      
-                      <p className={cn(
-                        "text-xs text-gray-500 dark:text-gray-400 mt-1",
-                        message.role === 'user' ? 'text-right' : 'text-left'
-                      )}>
-                        {message.timestamp.toLocaleTimeString([], { 
-                          hour: '2-digit', 
-                          minute: '2-digit' 
-                        })}
-                      </p>
                     </div>
                   </motion.div>
                 ))}
@@ -355,12 +396,14 @@ export function AIAssistantWidget({ className, variant = 'compact' }: AIAssistan
                 size="sm"
                 onClick={sendMessage}
                 disabled={!input.trim() || isLoading}
-                className="min-h-[44px] min-w-[44px] sm:h-8 sm:w-8 p-0 rounded-lg"
+                className="min-h-[44px] min-w-[44px] sm:h-8 sm:w-8 p-0 rounded-lg bg-gradient-to-r from-violet-500 to-purple-500 hover:from-violet-600 hover:to-purple-600 active:from-violet-700 active:to-purple-700 shadow-sm shadow-violet-500/25 hover:shadow-md hover:shadow-violet-500/30 transition-all duration-200 disabled:opacity-50 disabled:shadow-none disabled:cursor-not-allowed transform hover:scale-105 active:scale-95 backdrop-blur-sm border border-violet-400/20 hover:border-violet-300/30"
+                title={isLoading ? "Sending message..." : "Send message"}
+                aria-label={isLoading ? "Sending message..." : "Send message"}
               >
                 {isLoading ? (
-                  <RefreshCw className="w-4 h-4 sm:w-3 sm:h-3 animate-spin" />
+                  <RefreshCw className="w-4 h-4 sm:w-3 sm:h-3 animate-spin text-white" />
                 ) : (
-                  <Send className="w-4 h-4 sm:w-3 sm:h-3" />
+                  <Send className="w-4 h-4 sm:w-3 sm:h-3 text-white" />
                 )}
               </Button>
             </div>

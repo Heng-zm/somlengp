@@ -9,6 +9,7 @@ globalThis.__BUILD_MANIFEST = {
     "static/chunks/webpack.js",
     "static/chunks/vendors-node_modules_a.js",
     "static/chunks/vendors-node_modules_c.js",
+    "static/chunks/vendors-node_modules_firebase_a.js",
     "static/chunks/vendors-node_modules_firebase_firestore_dist_index_esm2017_js-489970a2.js",
     "static/chunks/vendors-node_modules_firebase_util_dist_i.js",
     "static/chunks/vendors-node_modules_fi.js",

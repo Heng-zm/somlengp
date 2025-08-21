@@ -104,6 +104,17 @@ body {
         scrollbar-width: none;  /* Firefox */
     }
 
+    /* Override problematic backdrop-filter and background styles */
+    @supports (backdrop-filter: var(--tw)) {
+        .supports-\[backdrop-filter\]\:bg-background\/60 {
+            background-color: hsl(var(--background)) !important;
+        }
+    }
+    
+    .bg-black\/80 {
+        background-color: hsl(240deg 10% 99% / 0%) !important;
+    }
+
     .glass-card {
        @apply bg-card/95 backdrop-blur-sm border rounded-2xl shadow-lg;
     }
