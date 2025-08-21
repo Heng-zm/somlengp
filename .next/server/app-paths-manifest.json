@@ -1,6 +1,6 @@
 {
-  "/home/page": "app/home/page.js",
   "/ai-assistant/page": "app/ai-assistant/page.js",
+  "/home/page": "app/home/page.js",
   "/text-to-speech/page": "app/text-to-speech/page.js",
   "/profile/page": "app/profile/page.js"
 }
