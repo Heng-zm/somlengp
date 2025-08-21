@@ -7,7 +7,6 @@ logEnvironmentStatus();
 
 // Initialize the AI APIs with environment configuration
 const GEMINI_API_KEY = ENV_CONFIG.GEMINI_API_KEY;
-const GROK_API_KEY = ENV_CONFIG.GROK_API_KEY;
 
 let genAI: GoogleGenerativeAI | null = null;
 
@@ -19,92 +18,6 @@ try {
   console.error('❌ Failed to initialize Gemini AI:', initError);
 }
 
-// Function to call Grok AI
-async function callGrokAI(messages: { role: string; content: string }[], model: string, systemPrompt?: string): Promise<string> {
-  if (!GROK_API_KEY) {
-    throw new Error('Grok API key not configured');
-  }
-
-  // Map frontend model names to actual Grok API model names
-  const grokModelMap: { [key: string]: string } = {
-    'grok-beta': 'grok-beta',
-    'grok-vision-beta': 'grok-vision-beta',
-  };
-
-  const actualGrokModel = grokModelMap[model] || 'grok-beta';
-  console.log('🔄 Mapped model:', model, '→', actualGrokModel);
-
-  const grokMessages = [];
-  
-  // Add system prompt if provided
-  if (systemPrompt) {
-    grokMessages.push({ role: 'system', content: systemPrompt });
-  }
-  
-  // Convert messages to Grok format
-  messages.forEach(msg => {
-    if (msg.role === 'user' || msg.role === 'assistant') {
-      grokMessages.push({
-        role: msg.role,
-        content: msg.content
-      });
-    }
-  });
-
-  try {
-    console.log('🔄 Calling Grok API with model:', actualGrokModel);
-    console.log('📝 Grok messages count:', grokMessages.length);
-    
-    const response = await fetch('https://api.x.ai/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${GROK_API_KEY}`,
-      },
-      body: JSON.stringify({
-        messages: grokMessages,
-        model: actualGrokModel,
-        stream: false,
-        temperature: 0.7,
-        max_tokens: 2048,
-      }),
-    });
-
-    console.log('🔍 Grok API response status:', response.status);
-
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error('❌ Grok API error response:', errorText);
-      
-      let errorData;
-      try {
-        errorData = JSON.parse(errorText);
-      } catch {
-        errorData = { error: { message: errorText } };
-      }
-      
-      throw new Error(`Grok API error: ${response.status} - ${errorData.error?.message || errorData.message || 'Unknown error'}`);
-    }
-
-    const data = await response.json();
-    console.log('✅ Grok API response received');
-    
-    if (!data.choices || !data.choices[0] || !data.choices[0].message) {
-      console.error('❌ Invalid Grok API response format:', data);
-      throw new Error('Invalid response format from Grok API');
-    }
-
-    return data.choices[0].message.content;
-  } catch (error) {
-    console.error('❌ Grok AI Error:', error);
-    throw error;
-  }
-}
-
-// Function to determine if model is Grok
-function isGrokModel(modelName: string): boolean {
-  return modelName.toLowerCase().includes('grok');
-}
 
 // Function to get model instance
 function getModel(modelName: string = "gemini-1.5-flash"): ReturnType<GoogleGenerativeAI['getGenerativeModel']> | null {
@@ -115,6 +28,7 @@ function getModel(modelName: string = "gemini-1.5-flash"): ReturnType<GoogleGene
     const modelMap: { [key: string]: string } = {
       'gemini-1.5-flash': 'gemini-1.5-flash',
       'gemini-2.0-flash-exp': 'gemini-2.0-flash-exp', // Experimental model
+      'gemini-2.5-flash': 'gemini-2.5-flash', // Next-generation model
     };
     
     const actualModelName = modelMap[modelName] || 'gemini-1.5-flash';
@@ -176,90 +90,75 @@ export async function POST(request: NextRequest) {
     // Add system prompt as context if provided
     const systemMessage = systemPrompt || `You are a helpful AI assistant powered by ${modelName}. You are knowledgeable, friendly, and provide accurate information. Please be concise but thorough in your responses.`;
 
-    let text: string;
+    // Handle Gemini models only
+    if (!GEMINI_API_KEY) {
+      console.error('❌ GEMINI_API_KEY not found for Gemini model');
+      return NextResponse.json(
+        { error: 'Gemini API configuration error. Please check server configuration.' },
+        { status: 500 }
+      );
+    }
     
-    if (isGrokModel(modelName)) {
-      // Handle Grok AI models
-      if (!GROK_API_KEY) {
-        console.error('❌ GROK_API_KEY not found for Grok model');
-        return NextResponse.json(
-          { error: 'Grok API configuration error. Please check server configuration.' },
-          { status: 500 }
-        );
-      }
-      
-      text = await callGrokAI(messages, modelName, systemMessage);
+    const model = getModel(modelName);
+    
+    if (!model) {
+      console.error(`❌ Failed to get model instance for ${modelName}`);
+      return NextResponse.json(
+        { error: 'Failed to initialize AI model. Please try again.' },
+        { status: 500 }
+      );
+    }
+    
+    // Get the last user message
+    const lastMessage = messages[messages.length - 1];
+    
+    let result;
+    if (messages.length === 1) {
+      // First message - no history
+      const prompt = `${systemMessage}\n\nUser: ${lastMessage.content}`;
+      result = await model.generateContent(prompt);
     } else {
-      // Handle Gemini models
-      if (!GEMINI_API_KEY) {
-        console.error('❌ GEMINI_API_KEY not found for Gemini model');
-        return NextResponse.json(
-          { error: 'Gemini API configuration error. Please check server configuration.' },
-          { status: 500 }
-        );
-      }
+      // Multiple messages - use chat history
       
-      const model = getModel(modelName);
+      // Prepare the conversation history for Gemini (exclude welcome message and last message)
+      const historyMessages = messages.slice(1, -1); // Skip welcome message and last message
+      const history = [];
       
-      if (!model) {
-        console.error(`❌ Failed to get model instance for ${modelName}`);
-        return NextResponse.json(
-          { error: 'Failed to initialize AI model. Please try again.' },
-          { status: 500 }
-        );
-      }
-      
-      // Get the last user message
-      const lastMessage = messages[messages.length - 1];
-      
-      let result;
-      if (messages.length === 1) {
-        // First message - no history
-        const prompt = `${systemMessage}\n\nUser: ${lastMessage.content}`;
-        result = await model.generateContent(prompt);
-      } else {
-        // Multiple messages - use chat history
+      for (let i = 0; i < historyMessages.length; i += 2) {
+        const userMsg = historyMessages[i];
+        const assistantMsg = historyMessages[i + 1];
         
-        // Prepare the conversation history for Gemini (exclude welcome message and last message)
-        const historyMessages = messages.slice(1, -1); // Skip welcome message and last message
-        const history = [];
-        
-        for (let i = 0; i < historyMessages.length; i += 2) {
-          const userMsg = historyMessages[i];
-          const assistantMsg = historyMessages[i + 1];
-          
-          if (userMsg && userMsg.role === 'user') {
-            history.push({
-              role: 'user',
-              parts: [{ text: userMsg.content }],
-            });
-          }
-          
-          if (assistantMsg && assistantMsg.role === 'assistant') {
-            history.push({
-              role: 'model',
-              parts: [{ text: assistantMsg.content }],
-            });
-          }
+        if (userMsg && userMsg.role === 'user') {
+          history.push({
+            role: 'user',
+            parts: [{ text: userMsg.content }],
+          });
         }
         
-        // Start a chat session with history
-        const chat = model.startChat({
-          history: history,
-          generationConfig: {
-            temperature: 0.7,
-            topK: 40,
-            topP: 0.95,
-            maxOutputTokens: 2048,
-          },
-        });
-        
-        // Send the current message
-        result = await chat.sendMessage(lastMessage.content);
+        if (assistantMsg && assistantMsg.role === 'assistant') {
+          history.push({
+            role: 'model',
+            parts: [{ text: assistantMsg.content }],
+          });
+        }
       }
-      const response = result.response;
-      text = response.text();
+      
+      // Start a chat session with history
+      const chat = model.startChat({
+        history: history,
+        generationConfig: {
+          temperature: 0.7,
+          topK: 40,
+          topP: 0.95,
+          maxOutputTokens: 2048,
+        },
+      });
+      
+      // Send the current message
+      result = await chat.sendMessage(lastMessage.content);
     }
+    const response = result.response;
+    const text = response.text();
 
     return NextResponse.json({
       success: true,

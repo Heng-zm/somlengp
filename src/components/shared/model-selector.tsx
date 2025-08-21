@@ -37,18 +37,11 @@ const DEFAULT_AI_MODELS: AIModel[] = [
     icon: '✨'
   },
   {
-    id: 'grok-beta',
-    name: 'grok-beta',
-    displayName: 'Grok Beta',
-    description: 'xAI\'s conversational AI with real-time knowledge',
-    icon: '🤖'
-  },
-  {
-    id: 'grok-vision-beta',
-    name: 'grok-vision-beta',
-    displayName: 'Grok Vision Beta',
-    description: 'Grok with advanced vision capabilities',
-    icon: '👁️'
+    id: 'gemini-2.5-flash',
+    name: 'gemini-2.5-flash',
+    displayName: 'Gemini 2.5 Flash',
+    description: 'Next-generation model with improved performance and capabilities',
+    icon: '🚀'
   }
 ];
 

@@ -53,9 +53,8 @@ async function testAllModels() {
   // Test all models
   const models = [
     'gemini-1.5-flash',
-    'gemini-2.0-flash-exp', 
-    'grok-beta',
-    'grok-vision-beta'
+    'gemini-2.0-flash-exp',
+    'gemini-2.5-flash'
   ];
 
   for (const model of models) {
