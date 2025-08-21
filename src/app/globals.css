@@ -2,6 +2,9 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Import advanced animation system */
+@import '../styles/animations.css';
+
 /* Improve rendering performance */
 * {
   box-sizing: border-box;
@@ -126,6 +129,174 @@ body {
         @apply bg-white/30 border-white/20;
     }
 
+    /* Enhanced Login Page Responsive Utilities */
+    .login-container {
+        @apply min-h-screen p-4 sm:p-6 lg:p-8;
+        /* Safe area support for mobile devices */
+        padding-top: max(1rem, env(safe-area-inset-top));
+        padding-bottom: max(1rem, env(safe-area-inset-bottom));
+        padding-left: max(1rem, env(safe-area-inset-left));
+        padding-right: max(1rem, env(safe-area-inset-right));
+    }
+
+    .login-card {
+        @apply w-full max-w-md mx-auto;
+        /* Progressive enhancement for larger screens */
+    }
+
+    @media (min-width: 640px) {
+        .login-card {
+            @apply max-w-lg;
+        }
+    }
+
+    @media (min-width: 1024px) {
+        .login-card {
+            @apply max-w-xl;
+        }
+    }
+
+    /* Responsive Typography Scale */
+    .login-title {
+        @apply text-2xl sm:text-3xl lg:text-4xl font-bold leading-tight;
+    }
+
+    .login-subtitle {
+        @apply text-sm sm:text-base lg:text-lg text-gray-600 dark:text-gray-400;
+    }
+
+    /* Enhanced Input Styles */
+    .login-input {
+        @apply h-12 sm:h-14 text-sm sm:text-base;
+        /* Improved touch targets */
+        min-height: 44px;
+        /* Prevent zoom on iOS */
+        font-size: max(16px, 1rem);
+    }
+
+    /* Responsive Button Sizing */
+    .login-button {
+        @apply h-12 sm:h-14 text-sm sm:text-base font-semibold;
+        min-height: 44px;
+        /* Better touch interaction */
+        touch-action: manipulation;
+        -webkit-tap-highlight-color: transparent;
+    }
+
+    /* Mobile-optimized animations */
+    @media (prefers-reduced-motion: no-preference) {
+        .login-animation {
+            @apply transition-all duration-300 ease-out;
+        }
+        
+        .login-animation-slow {
+            @apply transition-all duration-500 ease-out;
+        }
+    }
+
+    /* Respect user's motion preferences */
+    @media (prefers-reduced-motion: reduce) {
+        .login-animation,
+        .login-animation-slow {
+            transition: none;
+            animation: none;
+        }
+    }
+
+    /* Enhanced Focus States */
+    .login-focus {
+        @apply focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:ring-offset-2;
+        /* High contrast focus for accessibility */
+        @apply focus-visible:ring-blue-600 focus-visible:ring-offset-2;
+    }
+
+    /* Mobile-specific utilities */
+    @media (max-width: 640px) {
+        .mobile-spacing {
+            @apply space-y-4;
+        }
+        
+        .mobile-padding {
+            @apply p-4;
+        }
+        
+        .mobile-text {
+            font-size: max(16px, 1rem); /* Prevent zoom on iOS */
+        }
+    }
+
+    /* Enhanced Accessibility Utilities */
+    .login-focus {
+        @apply focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:ring-offset-2;
+        /* High contrast focus for accessibility */
+        @apply focus-visible:ring-blue-600 focus-visible:ring-offset-2;
+    }
+
+    /* Enhanced contrast for better readability */
+    @media (prefers-contrast: high) {
+        .login-input {
+            border-width: 3px !important;
+        }
+        
+        .login-button {
+            border-width: 2px !important;
+        }
+        
+        .login-title {
+            /* Ensure text remains readable in high contrast mode */
+            background: none !important;
+            color: var(--foreground) !important;
+            -webkit-background-clip: unset !important;
+            background-clip: unset !important;
+        }
+    }
+
+    /* Screen reader utilities */
+    .sr-only {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        padding: 0;
+        margin: -1px;
+        overflow: hidden;
+        clip: rect(0, 0, 0, 0);
+        white-space: nowrap;
+        border: 0;
+    }
+
+    /* Focus visible utilities for keyboard navigation */
+    .login-button:focus-visible,
+    .login-input:focus-visible {
+        outline: 2px solid var(--ring);
+        outline-offset: 2px;
+    }
+
+    /* Improved error states */
+    .error-state {
+        @apply border-red-500 bg-red-50/50 dark:bg-red-900/10;
+        @apply focus:border-red-600 focus:ring-red-500/20;
+    }
+
+    /* Success states */
+    .success-state {
+        @apply border-green-500 bg-green-50/50 dark:bg-green-900/10;
+    }
+
+    /* Loading states */
+    .loading-state {
+        @apply opacity-60 cursor-not-allowed;
+        pointer-events: none;
+    }
+
+    /* Enhanced visual hierarchy */
+    .login-header {
+        @apply mb-6 sm:mb-8 lg:mb-10;
+    }
+
+    .login-section {
+        @apply mb-6 sm:mb-8;
+    }
+
 
     /* Custom scrollbar for better UI */
     .custom-scrollbar::-webkit-scrollbar {
@@ -235,5 +406,33 @@ body {
     .avatar-image {
       @apply aspect-square h-full w-full object-cover object-center;
       border-radius: inherit;
+    }
+
+    /* Blob animations for modern login page */
+    @keyframes blob {
+      0% {
+        transform: translate(0px, 0px) scale(1);
+      }
+      33% {
+        transform: translate(30px, -50px) scale(1.1);
+      }
+      66% {
+        transform: translate(-20px, 20px) scale(0.9);
+      }
+      100% {
+        transform: translate(0px, 0px) scale(1);
+      }
+    }
+
+    .animate-blob {
+      animation: blob 7s infinite;
+    }
+
+    .animation-delay-2000 {
+      animation-delay: 2s;
+    }
+
+    .animation-delay-4000 {
+      animation-delay: 4s;
     }
 }

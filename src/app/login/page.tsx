@@ -1,11 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
   Form,
@@ -31,7 +30,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { cn } from "@/lib/utils";
-import { Mail, Lock, Eye, EyeOff, LogIn, CheckCircle2, ArrowLeft } from "lucide-react";
+import { Mail, Lock, Eye, EyeOff, LogIn, ArrowLeft, Loader2 } from "lucide-react";
 
 // Google Icon Component
 const GoogleIcon = () => (
@@ -132,262 +131,253 @@ export default function LoginPage() {
     }
   };
 
-  return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800 p-4">
-      <div className="w-full max-w-md">
-        {/* Back to home button */}
-        <div className="mb-6">
-          <Link href="/home">
-            <Button variant="ghost" className="text-gray-600 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200">
-              <ArrowLeft className="mr-2 h-4 w-4" />
-              Back to Home
-            </Button>
-          </Link>
-        </div>
+  // Load remembered email on mount
+  useEffect(() => {
+    const rememberedEmail = localStorage.getItem('rememberedEmail');
+    if (rememberedEmail) {
+      form.setValue('email', rememberedEmail);
+      setRememberMe(true);
+    }
+  }, [form]);
 
-        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-8">
-          {/* Header */}
-          <div className="text-center mb-8">
-            <div className="mx-auto w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center shadow-lg mb-4">
-              <LogIn className="w-8 h-8 text-white" />
-            </div>
-            
-            <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-              Welcome Back
-            </h1>
-            
-            <p className="text-gray-600 dark:text-gray-400 mt-2">
-              Sign in to your account to continue
-            </p>
+  return (
+    <div className="min-h-screen relative overflow-hidden bg-gradient-to-br from-emerald-50 via-blue-50 to-purple-100 dark:from-gray-900 dark:via-emerald-950 dark:to-blue-950">
+      {/* Animated background orbs */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="bg-orb absolute -top-10 -right-10 w-32 h-32 bg-gradient-to-br from-emerald-400/30 to-blue-500/30 rounded-full blur-xl" />
+        <div className="bg-orb absolute top-1/3 -left-20 w-48 h-48 bg-gradient-to-br from-purple-400/20 to-pink-500/20 rounded-full blur-2xl" />
+        <div className="bg-orb absolute bottom-20 right-1/4 w-40 h-40 bg-gradient-to-br from-blue-400/25 to-cyan-500/25 rounded-full blur-xl" />
+        <div className="bg-orb absolute -bottom-32 -left-32 w-64 h-64 bg-gradient-to-br from-emerald-400/15 to-teal-500/15 rounded-full blur-3xl" />
+      </div>
+
+      {/* Main content container */}
+      <div className="login-container flex items-center justify-center">
+        <div className="login-card">
+          {/* Back Navigation */}
+          <div className="flex justify-start animate-slide-in-top">
+            <Link href="/home">
+              <Button 
+                variant="ghost" 
+                size="sm"
+                className="text-gray-600 dark:text-white/70 hover:text-gray-800 dark:hover:text-white hover:bg-white/10 border border-gray-300/20 dark:border-white/20 hover:border-gray-400/30 dark:hover:border-white/30 transition-all duration-300"
+              >
+                <ArrowLeft className="mr-2 h-4 w-4" />
+                Back to Home
+              </Button>
+            </Link>
           </div>
 
-          {/* Google Sign In */}
-          <div className="mb-6">
-            <Button
-              onClick={handleGoogleSignIn}
-              disabled={isLoading}
-              className={cn(
-                "w-full h-12 bg-white hover:bg-gray-50 text-gray-900 border border-gray-300",
-                "shadow-sm hover:shadow-md transition-all duration-300 hover:scale-[1.01]",
-                "dark:bg-gray-900 dark:text-gray-100 dark:border-gray-600 dark:hover:bg-gray-800",
-                "focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
-              )}
-            >
-              <GoogleIcon />
-              <span className="ml-3 font-medium">Continue with Google</span>
-            </Button>
-            
-            <div className="relative my-6">
+          {/* Animated form container */}
+          <div className="login-form-container glass-card p-6 sm:p-8 lg:p-10 backdrop-blur-sm bg-white/95 dark:bg-gray-900/95 border border-white/20 dark:border-gray-700/50 shadow-2xl">
+            {/* Header */}
+            <div className="text-center mb-8 login-field-group">
+              <div className="mx-auto w-20 h-20 bg-gradient-to-r from-cyan-400 to-blue-500 rounded-2xl flex items-center justify-center mb-6 shadow-lg animate-rotate-in">
+                <LogIn className="h-10 w-10 text-white" />
+              </div>
+              <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-2 animate-fade-in-scale">
+                Welcome Back
+              </h1>
+              <p className="text-gray-600 dark:text-white/70 text-lg animate-slide-in-bottom animate-stagger-1">
+                Sign in to continue your journey
+              </p>
+            </div>
+
+            {/* Google Sign In */}
+            <div className="mb-6 login-field-group">
+              <Button
+                onClick={handleGoogleSignIn}
+                disabled={isLoading}
+                className="w-full h-12 bg-white hover:bg-gray-50 text-gray-900 border-0 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 font-medium btn-press-feedback"
+              >
+                <GoogleIcon />
+                <span className="ml-3">Continue with Google</span>
+              </Button>
+            </div>
+
+            {/* Divider */}
+            <div className="relative my-6 login-field-group">
               <div className="absolute inset-0 flex items-center">
-                <span className="w-full border-t border-gray-200 dark:border-gray-700" />
+                <div className="w-full border-t border-gray-200 dark:border-white/20" />
               </div>
               <div className="relative flex justify-center text-sm">
-                <span className="bg-white dark:bg-gray-800 px-4 text-gray-500 dark:text-gray-400 font-medium">
-                  Or sign in with email
+                <span className="px-4 bg-white dark:bg-gray-900 text-gray-500 dark:text-white/70">
+                  Or continue with email
                 </span>
               </div>
             </div>
-          </div>
 
-          {/* Email/Password Form */}
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
-              <FormField
-                control={form.control}
-                name="email"
-                render={({ field, fieldState }) => (
-                  <FormItem>
-                    <FormLabel className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                      Email Address
-                    </FormLabel>
-                    <FormControl>
-                      <div className="relative group">
-                        <Mail className={cn(
-                          "absolute left-3 top-3.5 h-4 w-4 transition-colors",
-                          fieldState.error ? "text-red-500" : "text-gray-400 group-focus-within:text-blue-500"
-                        )} />
-                        <Input
-                          placeholder="your.email@example.com"
-                          className={cn(
-                            "pl-10 h-12 text-sm border-gray-200 dark:border-gray-700",
-                            "focus:border-blue-500 focus:ring-blue-500/20 focus:ring-2",
-                            "transition-all duration-200",
-                            fieldState.error && "border-red-500 focus:border-red-500 focus:ring-red-500/20"
-                          )}
-                          type="email"
-                          autoComplete="email"
-                          {...field}
-                        />
-                        {!fieldState.error && field.value && field.value.includes('@') && (
-                          <CheckCircle2 className="absolute right-3 top-3.5 h-4 w-4 text-green-500" />
-                        )}
-                      </div>
-                    </FormControl>
-                    <FormMessage className="text-xs" />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="password"
-                render={({ field, fieldState }) => (
-                  <FormItem>
-                    <FormLabel className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                      Password
-                    </FormLabel>
-                    <FormControl>
-                      <div className="relative group">
-                        <Lock className={cn(
-                          "absolute left-3 top-3.5 h-4 w-4 transition-colors",
-                          fieldState.error ? "text-red-500" : "text-gray-400 group-focus-within:text-blue-500"
-                        )} />
-                        <Input
-                          placeholder="Enter your password"
-                          className={cn(
-                            "pl-10 pr-10 h-12 text-sm border-gray-200 dark:border-gray-700",
-                            "focus:border-blue-500 focus:ring-blue-500/20 focus:ring-2",
-                            "transition-all duration-200",
-                            fieldState.error && "border-red-500 focus:border-red-500 focus:ring-red-500/20"
-                          )}
-                          type={showPassword ? "text" : "password"}
-                          autoComplete="current-password"
-                          {...field}
-                        />
-                        <button
-                          type="button"
-                          onClick={() => setShowPassword(!showPassword)}
-                          className="absolute right-3 top-3.5 h-4 w-4 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
-                        >
-                          {showPassword ? <EyeOff /> : <Eye />}
-                        </button>
-                      </div>
-                    </FormControl>
-                    <FormMessage className="text-xs" />
-                  </FormItem>
-                )}
-              />
-
-              {/* Remember Me & Forgot Password */}
-              <div className="flex items-center justify-between pt-2">
-                <div className="flex items-center space-x-2">
-                  <Checkbox 
-                    id="remember-me"
-                    checked={rememberMe}
-                    onCheckedChange={(checked) => setRememberMe(!!checked)}
-                    className="data-[state=checked]:bg-blue-600 data-[state=checked]:border-blue-600"
+            {/* Form */}
+            <Form {...form}>
+              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+                {/* Email Field */}
+                <div className="login-field-group">
+                  <FormField
+                    control={form.control}
+                    name="email"
+                    render={({ field, fieldState }) => (
+                      <FormItem>
+                        <FormLabel className="text-gray-700 dark:text-white font-medium text-sm">
+                          Email Address
+                        </FormLabel>
+                        <FormControl>
+                          <div className="relative">
+                            <Mail className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400 dark:text-white/50" />
+                            <Input
+                              {...field}
+                              type="email"
+                              autoComplete="email"
+                              placeholder="Enter your email"
+                              className={cn(
+                                "pl-12 h-12 bg-gray-50 dark:bg-white/10 border border-gray-200 dark:border-white/20 rounded-xl text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-white/50",
+                                "focus:bg-white dark:focus:bg-white/20 focus:border-emerald-400 focus:ring-2 focus:ring-emerald-400/50",
+                                "backdrop-blur-sm transition-all duration-300",
+                                fieldState.error && "border-red-400 focus:border-red-400 focus:ring-red-400/50"
+                              )}
+                            />
+                          </div>
+                        </FormControl>
+                        <FormMessage className="text-red-500 text-sm mt-1" />
+                      </FormItem>
+                    )}
                   />
-                  <Label 
-                    htmlFor="remember-me" 
-                    className="text-sm text-gray-600 dark:text-gray-400 cursor-pointer select-none"
-                  >
-                    Keep me signed in
-                  </Label>
                 </div>
-                
-                <AlertDialog open={showResetDialog} onOpenChange={setShowResetDialog}>
-                  <AlertDialogTrigger asChild>
-                    <Button 
-                      variant="link" 
-                      className="px-0 font-medium text-sm text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300"
-                      type="button"
-                    >
-                      Forgot password?
-                    </Button>
-                  </AlertDialogTrigger>
-                  <AlertDialogContent className="sm:max-w-md">
-                    <AlertDialogHeader>
-                      <AlertDialogTitle className="flex items-center gap-3 text-lg">
-                        <div className="w-10 h-10 bg-blue-100 dark:bg-blue-900/20 rounded-full flex items-center justify-center">
-                          <Mail className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+
+                {/* Password Field */}
+                <div className="login-field-group">
+                  <FormField
+                    control={form.control}
+                    name="password"
+                    render={({ field, fieldState }) => (
+                      <FormItem>
+                        <FormLabel className="text-gray-700 dark:text-white font-medium text-sm">
+                          Password
+                        </FormLabel>
+                        <FormControl>
+                          <div className="relative">
+                            <Lock className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400 dark:text-white/50" />
+                            <Input
+                              {...field}
+                              type={showPassword ? "text" : "password"}
+                              autoComplete="current-password"
+                              placeholder="Enter your password"
+                              className={cn(
+                                "pl-12 pr-12 h-12 bg-gray-50 dark:bg-white/10 border border-gray-200 dark:border-white/20 rounded-xl text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-white/50",
+                                "focus:bg-white dark:focus:bg-white/20 focus:border-emerald-400 focus:ring-2 focus:ring-emerald-400/50",
+                                "backdrop-blur-sm transition-all duration-300",
+                                fieldState.error && "border-red-400 focus:border-red-400 focus:ring-red-400/50"
+                              )}
+                            />
+                            <button
+                              type="button"
+                              onClick={() => setShowPassword(!showPassword)}
+                              className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-white/50 hover:text-gray-600 dark:hover:text-white transition-colors duration-200"
+                            >
+                              {showPassword ? (
+                                <EyeOff className="h-5 w-5" />
+                              ) : (
+                                <Eye className="h-5 w-5" />
+                              )}
+                            </button>
+                          </div>
+                        </FormControl>
+                        <FormMessage className="text-red-500 text-sm mt-1" />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+
+                {/* Remember me and Forgot password */}
+                <div className="flex items-center justify-between login-field-group">
+                  <div className="flex items-center">
+                    <Checkbox
+                      id="remember-me"
+                      checked={rememberMe}
+                      onCheckedChange={(checked) => setRememberMe(!!checked)}
+                      className="h-4 w-4 rounded border-gray-300 dark:border-white/30 bg-white dark:bg-white/10 text-emerald-600 focus:ring-emerald-400"
+                    />
+                    <label htmlFor="remember-me" className="ml-2 text-sm text-gray-600 dark:text-white/70">
+                      Remember me
+                    </label>
+                  </div>
+
+                  <div className="text-sm">
+                    <AlertDialog open={showResetDialog} onOpenChange={setShowResetDialog}>
+                      <AlertDialogTrigger asChild>
+                        <Button variant="link" className="px-0 text-emerald-600 hover:text-emerald-500 dark:text-emerald-400 dark:hover:text-emerald-300 text-sm">
+                          Forgot password?
+                        </Button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent className="bg-white/95 dark:bg-gray-900/95 backdrop-blur-lg border border-white/20 dark:border-gray-700/50">
+                        <AlertDialogHeader>
+                          <AlertDialogTitle className="text-gray-900 dark:text-white">Reset Password</AlertDialogTitle>
+                          <AlertDialogDescription className="text-gray-600 dark:text-gray-400">
+                            Enter your email address and we&apos;ll send you a link to reset your password.
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <div className="py-4">
+                          <Input
+                            type="email"
+                            placeholder="Enter your email"
+                            value={resetEmail}
+                            onChange={(e) => setResetEmail(e.target.value)}
+                            className="border-gray-300 focus:border-emerald-500 focus:ring-emerald-500"
+                          />
                         </div>
-                        Reset Password
-                      </AlertDialogTitle>
-                      <AlertDialogDescription className="text-gray-600 dark:text-gray-400">
-                        Enter your email address and we&apos;ll send you a secure link to reset your password.
-                      </AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <div className="py-4">
-                      <div className="relative">
-                        <Mail className="absolute left-3 top-3.5 h-4 w-4 text-gray-400" />
-                        <Input
-                          placeholder="your.email@example.com"
-                          className="pl-10 h-12"
-                          type="email"
-                          value={resetEmail}
-                          onChange={(e) => setResetEmail(e.target.value)}
-                          onKeyDown={(e) => {
-                            if (e.key === 'Enter' && resetEmail && resetEmail.includes('@')) {
-                              handlePasswordReset();
-                            }
-                          }}
-                        />
-                      </div>
-                    </div>
-                    <AlertDialogFooter>
-                      <AlertDialogCancel className="mt-0">Cancel</AlertDialogCancel>
-                      <AlertDialogAction
-                        onClick={handlePasswordReset}
-                        disabled={!resetEmail || !resetEmail.includes('@')}
-                        className="bg-blue-600 hover:bg-blue-700"
-                      >
-                        Send Reset Link
-                      </AlertDialogAction>
-                    </AlertDialogFooter>
-                  </AlertDialogContent>
-                </AlertDialog>
-              </div>
-
-              {/* Submit Button */}
-              <div className="space-y-4 pt-4">
-                <Button
-                  type="submit"
-                  disabled={isLoading}
-                  className={cn(
-                    "w-full h-12 bg-gradient-to-r from-blue-600 to-purple-600",
-                    "hover:from-blue-700 hover:to-purple-700",
-                    "text-white font-medium shadow-lg hover:shadow-xl",
-                    "transition-all duration-300 hover:scale-[1.02]",
-                    "focus:ring-2 focus:ring-blue-500 focus:ring-offset-2",
-                    "disabled:opacity-60 disabled:cursor-not-allowed disabled:hover:scale-100"
-                  )}
-                >
-                  {isLoading ? (
-                    <>
-                      <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent mr-2" />
-                      Signing in...
-                    </>
-                  ) : (
-                    <>
-                      <LogIn className="w-4 h-4 mr-2" />
-                      Sign In
-                    </>
-                  )}
-                </Button>
-                
-                {/* Switch to Sign Up */}
-                <div className="text-center">
-                  <span className="text-sm text-gray-600 dark:text-gray-400">
-                    Don&apos;t have an account?{" "}
-                  </span>
-                  <Link
-                    href="/signup"
-                    className="text-sm font-semibold text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 transition-colors"
-                  >
-                    Create account
-                  </Link>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel className="border-gray-300">Cancel</AlertDialogCancel>
+                          <AlertDialogAction 
+                            onClick={handlePasswordReset}
+                            className="bg-gradient-to-r from-emerald-500 to-blue-600 hover:from-emerald-600 hover:to-blue-700"
+                          >
+                            Send Reset Link
+                          </AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
+                  </div>
                 </div>
-              </div>
-            </form>
-          </Form>
 
-          {/* Security Notice */}
-          <div className="flex items-center justify-center space-x-2 text-xs text-gray-500 dark:text-gray-400 mt-6">
-            <Lock className="w-3 h-3" />
-            <span>Your data is protected with industry-standard encryption</span>
+                {/* Submit Button */}
+                <div className="login-field-group">
+                  <Button
+                    type="submit"
+                    disabled={isLoading}
+                    className="w-full h-12 bg-gradient-to-r from-emerald-500 to-blue-600 hover:from-emerald-600 hover:to-blue-700 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transform hover:scale-[1.02] transition-all duration-300 disabled:opacity-50 disabled:transform-none btn-press-feedback"
+                  >
+                    {isLoading ? (
+                      <>
+                        <Loader2 className="animate-spin -ml-1 mr-3 h-5 w-5" />
+                        Signing in...
+                      </>
+                    ) : (
+                      <>
+                        <LogIn className="h-5 w-5 mr-2" />
+                        Sign In
+                      </>
+                    )}
+                  </Button>
+                </div>
+              </form>
+            </Form>
+
+            {/* Sign up link */}
+            <div className="text-center mt-6 pt-6 border-t border-gray-200 dark:border-white/10 login-field-group">
+              <p className="text-gray-600 dark:text-white/70 text-sm">
+                New to our platform?{' '}
+                <Link
+                  href="/signup"
+                  className="text-emerald-600 hover:text-emerald-500 dark:text-emerald-400 dark:hover:text-emerald-300 font-medium transition-colors duration-200"
+                >
+                  Create an account
+                </Link>
+              </p>
+            </div>
           </div>
         </div>
       </div>
+
+      {/* Bottom decorative element */}
+      <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-emerald-500/50 to-transparent" />
     </div>
   );
 }

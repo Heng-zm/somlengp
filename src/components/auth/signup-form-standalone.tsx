@@ -116,40 +116,51 @@ export function SignupFormStandalone({ onSuccess, onSwitchToLogin }: SignupFormS
 
   return (
     <div className="space-y-6">
-      <div className="text-center">
-        <div className="mx-auto w-16 h-16 bg-gradient-to-br from-green-500 to-blue-600 rounded-full flex items-center justify-center shadow-lg mb-4">
+      {/* Animated header */}
+      <div className="login-header text-center">
+        <div className="login-field-group mx-auto w-16 h-16 bg-gradient-to-br from-emerald-500 to-blue-600 rounded-full flex items-center justify-center shadow-lg mb-4 hover-scale will-change-transform">
           <UserPlus className="w-8 h-8 text-white" />
         </div>
         
-        <h2 className="text-2xl font-bold text-center bg-gradient-to-r from-green-600 to-blue-600 bg-clip-text text-transparent">
+        <h2 className="login-title login-field-group font-bold text-center bg-gradient-to-r from-emerald-600 to-blue-600 bg-clip-text text-transparent">
           Create Account
         </h2>
         
-        <p className="text-center text-gray-600 dark:text-gray-400 mt-2">
+        <p className="login-subtitle login-field-group text-center mt-2">
           Join us today and get started in seconds
         </p>
       </div>
 
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-          <div className="grid grid-cols-2 gap-4">
+        <form onSubmit={form.handleSubmit(onSubmit)} className="login-section space-y-4">
+          {/* Name fields with staggered animation */}
+          <div className="login-field-group grid grid-cols-2 gap-4">
             <FormField
               control={form.control}
               name="firstName"
-              render={({ field }) => (
+              render={({ field, fieldState }) => (
                 <FormItem>
-                  <FormLabel>First Name</FormLabel>
+                  <FormLabel className="text-sm font-medium text-gray-700 dark:text-gray-300">First Name</FormLabel>
                   <FormControl>
-                    <div className="relative">
-                      <User className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                    <div className="relative group">
+                      <User className={cn(
+                        "absolute left-3 top-3.5 h-4 w-4 transition-colors duration-200",
+                        fieldState.error ? "text-red-500" : "text-gray-400 group-focus-within:text-emerald-500"
+                      )} />
                       <Input
                         placeholder="First name"
-                        className="pl-10"
+                        className={cn(
+                          "login-input pl-10 border-gray-200 dark:border-gray-700",
+                          "focus:border-emerald-500 focus:ring-emerald-500/20 focus:ring-2",
+                          "hover-lift transition-all duration-200",
+                          fieldState.error && "error-state border-red-500 focus:border-red-500"
+                        )}
+                        autoComplete="given-name"
                         {...field}
                       />
                     </div>
                   </FormControl>
-                  <FormMessage />
+                  <FormMessage className="text-xs animate-fade-in-scale" />
                 </FormItem>
               )}
             />
@@ -157,180 +168,259 @@ export function SignupFormStandalone({ onSuccess, onSwitchToLogin }: SignupFormS
             <FormField
               control={form.control}
               name="lastName"
-              render={({ field }) => (
+              render={({ field, fieldState }) => (
                 <FormItem>
-                  <FormLabel>Last Name</FormLabel>
+                  <FormLabel className="text-sm font-medium text-gray-700 dark:text-gray-300">Last Name</FormLabel>
                   <FormControl>
-                    <div className="relative">
-                      <User className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                    <div className="relative group">
+                      <User className={cn(
+                        "absolute left-3 top-3.5 h-4 w-4 transition-colors duration-200",
+                        fieldState.error ? "text-red-500" : "text-gray-400 group-focus-within:text-emerald-500"
+                      )} />
                       <Input
                         placeholder="Last name"
-                        className="pl-10"
+                        className={cn(
+                          "login-input pl-10 border-gray-200 dark:border-gray-700",
+                          "focus:border-emerald-500 focus:ring-emerald-500/20 focus:ring-2",
+                          "hover-lift transition-all duration-200",
+                          fieldState.error && "error-state border-red-500 focus:border-red-500"
+                        )}
+                        autoComplete="family-name"
                         {...field}
                       />
                     </div>
                   </FormControl>
-                  <FormMessage />
+                  <FormMessage className="text-xs animate-fade-in-scale" />
                 </FormItem>
               )}
             />
           </div>
 
+          {/* Email field */}
           <FormField
             control={form.control}
             name="email"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Email</FormLabel>
+            render={({ field, fieldState }) => (
+              <FormItem className="login-field-group">
+                <FormLabel className="text-sm font-medium text-gray-700 dark:text-gray-300">Email Address</FormLabel>
                 <FormControl>
-                  <div className="relative">
-                    <Mail className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                  <div className="relative group">
+                    <Mail className={cn(
+                      "absolute left-3 top-3.5 h-4 w-4 transition-colors duration-200",
+                      fieldState.error ? "text-red-500" : "text-gray-400 group-focus-within:text-emerald-500"
+                    )} />
                     <Input
-                      placeholder="Enter your email"
-                      className="pl-10"
+                      placeholder="your.email@example.com"
+                      className={cn(
+                        "login-input pl-10 border-gray-200 dark:border-gray-700",
+                        "focus:border-emerald-500 focus:ring-emerald-500/20 focus:ring-2",
+                        "hover-lift transition-all duration-200",
+                        fieldState.error && "error-state border-red-500 focus:border-red-500"
+                      )}
                       type="email"
+                      autoComplete="email"
                       {...field}
                     />
                   </div>
                 </FormControl>
-                <FormMessage />
+                <FormMessage className="text-xs animate-fade-in-scale" />
               </FormItem>
             )}
           />
 
+          {/* Password fields */}
+          <div className="space-y-4">
+            <FormField
+              control={form.control}
+              name="password"
+              render={({ field, fieldState }) => (
+                <FormItem className="login-field-group">
+                  <FormLabel className="text-sm font-medium text-gray-700 dark:text-gray-300">Password</FormLabel>
+                  <FormControl>
+                    <div className="relative group">
+                      <Lock className={cn(
+                        "absolute left-3 top-3.5 h-4 w-4 transition-colors duration-200",
+                        fieldState.error ? "text-red-500" : "text-gray-400 group-focus-within:text-emerald-500"
+                      )} />
+                      <Input
+                        placeholder="Create a strong password"
+                        className={cn(
+                          "login-input pl-10 pr-10 border-gray-200 dark:border-gray-700",
+                          "focus:border-emerald-500 focus:ring-emerald-500/20 focus:ring-2",
+                          "hover-lift transition-all duration-200",
+                          fieldState.error && "error-state border-red-500 focus:border-red-500"
+                        )}
+                        type={showPassword ? "text" : "password"}
+                        autoComplete="new-password"
+                        {...field}
+                      />
+                      <button
+                        type="button"
+                        onClick={toggleShowPassword}
+                        className="absolute right-3 top-3.5 h-4 w-4 text-gray-400 hover:text-emerald-500 dark:hover:text-emerald-400 transition-colors duration-200 icon-spin-on-hover"
+                      >
+                        {showPassword ? <EyeOff /> : <Eye />}
+                      </button>
+                    </div>
+                  </FormControl>
+                  <FormMessage className="text-xs animate-fade-in-scale" />
+                </FormItem>
+              )}
+            />
 
-          <FormField
-            control={form.control}
-            name="password"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Password</FormLabel>
-                <FormControl>
-                  <div className="relative">
-                    <Lock className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                    <Input
-                      placeholder="Create a password"
-                      className="pl-10 pr-10"
-                      type={showPassword ? "text" : "password"}
-                      {...field}
-                    />
-                    <button
-                      type="button"
-                      onClick={toggleShowPassword}
-                      className="absolute right-3 top-3 h-4 w-4 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
-                    >
-                      {showPassword ? <EyeOff /> : <Eye />}
-                    </button>
-                  </div>
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+            <FormField
+              control={form.control}
+              name="confirmPassword"
+              render={({ field, fieldState }) => (
+                <FormItem className="login-field-group">
+                  <FormLabel className="text-sm font-medium text-gray-700 dark:text-gray-300">Confirm Password</FormLabel>
+                  <FormControl>
+                    <div className="relative group">
+                      <Lock className={cn(
+                        "absolute left-3 top-3.5 h-4 w-4 transition-colors duration-200",
+                        fieldState.error ? "text-red-500" : "text-gray-400 group-focus-within:text-emerald-500"
+                      )} />
+                      <Input
+                        placeholder="Confirm your password"
+                        className={cn(
+                          "login-input pl-10 pr-10 border-gray-200 dark:border-gray-700",
+                          "focus:border-emerald-500 focus:ring-emerald-500/20 focus:ring-2",
+                          "hover-lift transition-all duration-200",
+                          fieldState.error && "error-state border-red-500 focus:border-red-500"
+                        )}
+                        type={showConfirmPassword ? "text" : "password"}
+                        autoComplete="new-password"
+                        {...field}
+                      />
+                      <button
+                        type="button"
+                        onClick={toggleShowConfirmPassword}
+                        className="absolute right-3 top-3.5 h-4 w-4 text-gray-400 hover:text-emerald-500 dark:hover:text-emerald-400 transition-colors duration-200 icon-spin-on-hover"
+                      >
+                        {showConfirmPassword ? <EyeOff /> : <Eye />}
+                      </button>
+                    </div>
+                  </FormControl>
+                  <FormMessage className="text-xs animate-fade-in-scale" />
+                </FormItem>
+              )}
+            />
+          </div>
 
-          <FormField
-            control={form.control}
-            name="confirmPassword"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Confirm Password</FormLabel>
-                <FormControl>
-                  <div className="relative">
-                    <Lock className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                    <Input
-                      placeholder="Confirm your password"
-                      className="pl-10 pr-10"
-                      type={showConfirmPassword ? "text" : "password"}
-                      {...field}
-                    />
-                    <button
-                      type="button"
-                      onClick={toggleShowConfirmPassword}
-                      className="absolute right-3 top-3 h-4 w-4 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
-                    >
-                      {showConfirmPassword ? <EyeOff /> : <Eye />}
-                    </button>
-                  </div>
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
+          {/* Terms checkbox */}
           <FormField
             control={form.control}
             name="termsAccepted"
-            render={({ field }) => (
-              <FormItem>
-                <div className="flex items-start space-x-2">
+            render={({ field, fieldState }) => (
+              <FormItem className="login-field-group">
+                <div className="flex items-start space-x-3 pt-2">
                   <FormControl>
                     <input
                       type="checkbox"
-                      className="mt-1 rounded"
+                      className={cn(
+                        "mt-0.5 rounded transition-colors duration-200",
+                        "focus:ring-2 focus:ring-emerald-500/20",
+                        fieldState.error ? "border-red-500" : "border-gray-300 dark:border-gray-600",
+                        field.value && "bg-emerald-600 border-emerald-600"
+                      )}
                       checked={field.value}
                       onChange={field.onChange}
                     />
                   </FormControl>
-                  <Label className="text-xs text-gray-600 dark:text-gray-400 cursor-pointer">
+                  <Label className="text-sm text-gray-600 dark:text-gray-400 cursor-pointer select-none leading-5">
                     I agree to the{" "}
-                    <Button variant="link" className="h-auto p-0 text-xs text-blue-600 hover:text-blue-700">
+                    <Button 
+                      variant="link" 
+                      className="h-auto p-0 text-sm text-emerald-600 hover:text-emerald-700 dark:text-emerald-400 dark:hover:text-emerald-300 underline hover-lift"
+                      type="button"
+                    >
                       Terms of Service
-                    </Button>{" "}
-                    and{" "}
-                    <Button variant="link" className="h-auto p-0 text-xs text-blue-600 hover:text-blue-700">
+                    </Button>
+                    {" "}and{" "}
+                    <Button 
+                      variant="link" 
+                      className="h-auto p-0 text-sm text-emerald-600 hover:text-emerald-700 dark:text-emerald-400 dark:hover:text-emerald-300 underline hover-lift"
+                      type="button"
+                    >
                       Privacy Policy
                     </Button>
                   </Label>
                 </div>
-                <FormMessage />
+                <FormMessage className="text-xs animate-fade-in-scale" />
               </FormItem>
             )}
           />
 
-          <Button
-            type="submit"
-            disabled={isLoading}
-            className="w-full h-12 bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-700 hover:to-blue-700 text-white border-0 shadow-lg hover:shadow-xl transition-all duration-300"
-          >
-            {isLoading ? (
-              <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent mr-2" />
-            ) : null}
-            Create Account
-          </Button>
+          {/* Submit button */}
+          <div className="login-field-group pt-4">
+            <Button
+              type="submit"
+              disabled={isLoading}
+              className={cn(
+                "login-button w-full bg-gradient-to-r from-emerald-600 to-blue-600",
+                "hover:from-emerald-700 hover:to-blue-700",
+                "text-white font-medium shadow-lg hover:shadow-xl",
+                "btn-press-feedback hover-scale will-change-transform",
+                "focus-ring-animated transition-all duration-300",
+                "disabled:opacity-60 disabled:cursor-not-allowed disabled:hover:scale-100",
+                isLoading && "loading-state"
+              )}
+            >
+              {isLoading ? (
+                <>
+                  <div className="animate-bounce-dot w-4 h-4 bg-white rounded-full mr-2" />
+                  <span>Creating account...</span>
+                </>
+              ) : (
+                <>
+                  <UserPlus className="w-4 h-4 mr-2" />
+                  <span>Create Account</span>
+                </>
+              )}
+            </Button>
+          </div>
         </form>
       </Form>
 
-      <div className="relative">
+      {/* Divider with animation */}
+      <div className="login-field-group relative">
         <div className="absolute inset-0 flex items-center">
-          <span className="w-full border-t border-gray-300 dark:border-gray-600" />
+          <span className="w-full border-t border-gray-200 dark:border-gray-700" />
         </div>
         <div className="relative flex justify-center text-xs uppercase">
-          <span className="bg-background px-2 text-gray-500 dark:text-gray-400">
+          <span className="bg-background px-4 text-gray-500 dark:text-gray-400 font-medium">
             Or sign up with
           </span>
         </div>
       </div>
 
-      <Button
-        onClick={handleGoogleSignIn}
-        className={cn(
-          "w-full h-12 bg-white hover:bg-gray-50 text-gray-700 border border-gray-300 shadow-sm",
-          "transition-all duration-300 hover:shadow-lg hover:scale-[1.02]",
-          "dark:bg-gray-900 dark:text-gray-200 dark:border-gray-600 dark:hover:bg-gray-800"
-        )}
-      >
-        <GoogleIcon />
-        <span className="ml-3 font-medium">Sign up with Google</span>
-      </Button>
+      {/* Google signup button */}
+      <div className="login-field-group">
+        <Button
+          onClick={handleGoogleSignIn}
+          disabled={isLoading}
+          className={cn(
+            "w-full login-button bg-white hover:bg-gray-50 text-gray-700 border border-gray-200 shadow-sm",
+            "hover:shadow-md btn-press-feedback hover-scale will-change-transform",
+            "focus-ring-animated transition-all duration-300",
+            "dark:bg-gray-900 dark:text-gray-200 dark:border-gray-600 dark:hover:bg-gray-800",
+            "disabled:opacity-60 disabled:cursor-not-allowed"
+          )}
+        >
+          <GoogleIcon />
+          <span className="ml-3 font-medium">Sign up with Google</span>
+        </Button>
+      </div>
 
+      {/* Switch to login */}
       {onSwitchToLogin && (
-        <div className="text-center">
+        <div className="login-field-group text-center">
           <span className="text-sm text-gray-600 dark:text-gray-400">
             Already have an account?{" "}
           </span>
           <Button
             variant="link"
-            className="px-0 font-semibold text-blue-600 hover:text-blue-700"
+            className="px-0 font-semibold text-emerald-600 hover:text-emerald-700 dark:text-emerald-400 dark:hover:text-emerald-300 hover-lift"
             onClick={onSwitchToLogin}
           >
             Sign in instead
@@ -338,7 +428,8 @@ export function SignupFormStandalone({ onSuccess, onSwitchToLogin }: SignupFormS
         </div>
       )}
 
-      <div className="flex items-center space-x-2 text-xs text-gray-500 dark:text-gray-400 justify-center">
+      {/* Security notice */}
+      <div className="login-field-group flex items-center space-x-2 text-xs text-gray-500 dark:text-gray-400 justify-center">
         <Lock className="w-3 h-3" />
         <span>Your data is protected with industry-standard encryption</span>
       </div>

@@ -150,60 +150,74 @@ export function LoginForm({ onSwitchToSignup }: LoginFormProps) {
           variant="outline" 
           size="sm"
           className={cn(
-            "relative overflow-hidden bg-gradient-to-r from-blue-50 to-purple-50 hover:from-blue-100 hover:to-purple-100",
-            "text-gray-700 border border-blue-200 shadow-sm",
-            "transition-all duration-300 hover:shadow-lg hover:scale-[1.02] hover:border-blue-300",
-            "dark:from-blue-950/30 dark:to-purple-950/30 dark:hover:from-blue-900/40 dark:hover:to-purple-900/40",
-            "dark:bg-gray-900 dark:text-gray-200 dark:border-blue-600 dark:hover:bg-gray-800",
-            "h-8 px-3 text-xs sm:h-9 sm:px-4 sm:text-sm w-full sm:w-auto group"
+            "relative overflow-hidden backdrop-blur-sm bg-white/70 hover:bg-white/90",
+            "border border-white/30 shadow-lg hover:shadow-xl",
+            "transition-all duration-500 hover:scale-[1.02] hover:border-blue-300/50",
+            "dark:bg-gray-900/70 dark:hover:bg-gray-900/90 dark:border-white/10 dark:hover:border-blue-400/50",
+            "h-8 px-3 text-xs sm:h-10 sm:px-5 sm:text-sm w-full sm:w-auto group",
+            "before:absolute before:inset-0 before:bg-gradient-to-r before:from-blue-500/10 before:to-purple-500/10",
+            "before:opacity-0 hover:before:opacity-100 before:transition-opacity before:duration-500"
           )}
         >
-          <div className="bg-gradient-to-br from-blue-500 to-purple-600 rounded-full p-1 mr-2 shadow-sm group-hover:shadow-md transition-all duration-300">
-            <LogIn className="h-3 w-3 sm:h-4 sm:w-4 text-white group-hover:scale-110 transition-transform duration-300" />
+          <div className="bg-gradient-to-br from-blue-500 to-purple-600 rounded-full p-1.5 mr-3 shadow-md group-hover:shadow-lg transition-all duration-500 group-hover:from-blue-400 group-hover:to-purple-500">
+            <LogIn className="h-3 w-3 sm:h-4 sm:w-4 text-white group-hover:scale-110 group-hover:rotate-12 transition-all duration-500" />
           </div>
-          <span className="font-medium bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent group-hover:from-blue-700 group-hover:to-purple-700 transition-all duration-300">Login</span>
+          <span className="font-semibold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent group-hover:from-blue-500 group-hover:to-purple-500 transition-all duration-500 relative z-10">Login</span>
         </Button>
       </SheetTrigger>
       
-      <SheetContent side="right" className="w-full sm:max-w-md overflow-y-auto">
-        <SheetHeader className="space-y-4">
-          <div className="mx-auto w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center shadow-lg">
-            <LogIn className="w-8 h-8 text-white" />
+      <SheetContent side="right" className="w-full sm:max-w-md overflow-y-auto backdrop-blur-xl bg-white/95 dark:bg-gray-900/95 border-l border-white/20 dark:border-gray-700/50">
+        <SheetHeader className="space-y-4 sm:space-y-6 pt-4 sm:pt-6">
+          <div className="relative mx-auto">
+            <div className="absolute inset-0 bg-gradient-to-br from-blue-500/20 to-purple-600/20 rounded-full blur-xl animate-pulse"></div>
+            <div className="relative w-16 h-16 sm:w-20 sm:h-20 bg-gradient-to-br from-blue-500 via-purple-500 to-indigo-600 rounded-full flex items-center justify-center shadow-2xl ring-2 sm:ring-4 ring-white/50 dark:ring-gray-800/50">
+              <LogIn className="w-7 h-7 sm:w-9 sm:h-9 text-white drop-shadow-lg" />
+            </div>
           </div>
           
-          <SheetTitle className="text-2xl font-bold text-center bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-            Welcome Back
-          </SheetTitle>
-          
-          <SheetDescription className="text-center text-gray-600 dark:text-gray-400">
-            Sign in to your account to continue
-          </SheetDescription>
+          <div className="space-y-2">
+            <SheetTitle className="login-title text-center bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 bg-clip-text text-transparent">
+              Welcome Back
+            </SheetTitle>
+            
+            <SheetDescription className="login-subtitle text-center leading-relaxed px-2">
+              Sign in to your account to continue your journey
+            </SheetDescription>
+          </div>
         </SheetHeader>
 
-        <div className="mt-8 space-y-6">
+        <div className="mt-10 space-y-8 px-1">
           {/* Quick Social Login Section */}
-          <div className="space-y-4">
+          <div className="space-y-6">
             <Button
               onClick={handleGoogleSignIn}
               disabled={isLoading}
               className={cn(
-                "w-full h-12 bg-white hover:bg-gray-50 text-gray-900 border border-gray-300",
-                "shadow-sm hover:shadow-md transition-all duration-300 hover:scale-[1.01]",
-                "dark:bg-gray-900 dark:text-gray-100 dark:border-gray-600 dark:hover:bg-gray-800",
-                "focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                "group relative w-full h-14 bg-white hover:bg-gray-50 text-gray-900",
+                "border border-gray-200 hover:border-gray-300 rounded-xl",
+                "shadow-lg hover:shadow-xl transition-all duration-500 hover:scale-[1.02]",
+                "dark:bg-gray-800 dark:text-gray-100 dark:border-gray-600 dark:hover:bg-gray-700",
+                "focus:ring-2 focus:ring-blue-500/20 focus:ring-offset-2 focus:outline-none",
+                "disabled:opacity-60 disabled:cursor-not-allowed disabled:hover:scale-100",
+                "before:absolute before:inset-0 before:bg-gradient-to-r before:from-blue-500/5 before:to-purple-500/5",
+                "before:opacity-0 hover:before:opacity-100 before:transition-opacity before:duration-500 before:rounded-xl"
               )}
             >
-              <GoogleIcon />
-              <span className="ml-3 font-medium">Continue with Google</span>
+              <div className="flex items-center justify-center space-x-3">
+                <div className="p-1 bg-gradient-to-br from-blue-100 to-purple-100 dark:from-blue-900/30 dark:to-purple-900/30 rounded-lg group-hover:scale-110 transition-transform duration-300">
+                  <GoogleIcon />
+                </div>
+                <span className="font-semibold text-base">Continue with Google</span>
+              </div>
             </Button>
             
-            <div className="relative my-6">
+            <div className="relative my-8">
               <div className="absolute inset-0 flex items-center">
-                <span className="w-full border-t border-gray-200 dark:border-gray-700" />
+                <div className="w-full border-t border-gradient-to-r from-transparent via-gray-300 to-transparent dark:via-gray-600"></div>
               </div>
-              <div className="relative flex justify-center text-sm">
-                <span className="bg-white dark:bg-gray-900 px-4 text-gray-500 dark:text-gray-400 font-medium">
-                  Or sign in with email
+              <div className="relative flex justify-center">
+                <span className="bg-white dark:bg-gray-900 px-6 text-sm font-medium text-gray-500 dark:text-gray-400 tracking-wide">
+                  Or continue with email
                 </span>
               </div>
             </div>
@@ -211,39 +225,42 @@ export function LoginForm({ onSwitchToSignup }: LoginFormProps) {
 
           {/* Email/Password Form */}
           <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
               <FormField
                 control={form.control}
                 name="email"
                 render={({ field, fieldState }) => (
-                  <FormItem>
-                    <FormLabel className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                  <FormItem className="space-y-3">
+                    <FormLabel className="text-sm font-semibold text-gray-700 dark:text-gray-300 tracking-wide">
                       Email Address
                     </FormLabel>
                     <FormControl>
                       <div className="relative group">
                         <Mail className={cn(
-                          "absolute left-3 top-3.5 h-4 w-4 transition-colors",
-                          fieldState.error ? "text-red-500" : "text-gray-400 group-focus-within:text-blue-500"
+                          "absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 transition-all duration-300",
+                          fieldState.error ? "text-red-500" : "text-gray-400 group-focus-within:text-blue-500 group-focus-within:scale-110"
                         )} />
                         <Input
                           placeholder="your.email@example.com"
                           className={cn(
-                            "pl-10 h-12 text-sm border-gray-200 dark:border-gray-700",
-                            "focus:border-blue-500 focus:ring-blue-500/20 focus:ring-2",
-                            "transition-all duration-200",
-                            fieldState.error && "border-red-500 focus:border-red-500 focus:ring-red-500/20"
+                            "login-input pl-12 pr-12 rounded-xl border-2 mobile-text",
+                            "bg-gray-50/50 hover:bg-white dark:bg-gray-800/50 dark:hover:bg-gray-800",
+                            "border-gray-200 hover:border-gray-300 dark:border-gray-700 dark:hover:border-gray-600",
+                            "focus:border-blue-500 focus:bg-white dark:focus:bg-gray-800 login-focus",
+                            "focus:ring-4 focus:ring-blue-500/10 login-animation",
+                            "placeholder:text-gray-400 dark:placeholder:text-gray-500",
+                            fieldState.error && "border-red-500 bg-red-50/50 dark:bg-red-900/10 focus:border-red-500 focus:ring-red-500/10"
                           )}
                           type="email"
                           autoComplete="email"
                           {...field}
                         />
                         {!fieldState.error && field.value && field.value.includes('@') && (
-                          <CheckCircle2 className="absolute right-3 top-3.5 h-4 w-4 text-green-500" />
+                          <CheckCircle2 className="absolute right-4 top-1/2 -translate-y-1/2 h-5 w-5 text-green-500 animate-in zoom-in-75 duration-200" />
                         )}
                       </div>
                     </FormControl>
-                    <FormMessage className="text-xs" />
+                    <FormMessage className="text-xs text-red-500 font-medium" />
                   </FormItem>
                 )}
               />
@@ -252,23 +269,26 @@ export function LoginForm({ onSwitchToSignup }: LoginFormProps) {
                 control={form.control}
                 name="password"
                 render={({ field, fieldState }) => (
-                  <FormItem>
-                    <FormLabel className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                  <FormItem className="space-y-3">
+                    <FormLabel className="text-sm font-semibold text-gray-700 dark:text-gray-300 tracking-wide">
                       Password
                     </FormLabel>
                     <FormControl>
                       <div className="relative group">
                         <Lock className={cn(
-                          "absolute left-3 top-3.5 h-4 w-4 transition-colors",
-                          fieldState.error ? "text-red-500" : "text-gray-400 group-focus-within:text-blue-500"
+                          "absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 transition-all duration-300",
+                          fieldState.error ? "text-red-500" : "text-gray-400 group-focus-within:text-blue-500 group-focus-within:scale-110"
                         )} />
                         <Input
                           placeholder="Enter your password"
                           className={cn(
-                            "pl-10 pr-10 h-12 text-sm border-gray-200 dark:border-gray-700",
-                            "focus:border-blue-500 focus:ring-blue-500/20 focus:ring-2",
-                            "transition-all duration-200",
-                            fieldState.error && "border-red-500 focus:border-red-500 focus:ring-red-500/20"
+                            "login-input pl-12 pr-12 rounded-xl border-2 mobile-text",
+                            "bg-gray-50/50 hover:bg-white dark:bg-gray-800/50 dark:hover:bg-gray-800",
+                            "border-gray-200 hover:border-gray-300 dark:border-gray-700 dark:hover:border-gray-600",
+                            "focus:border-blue-500 focus:bg-white dark:focus:bg-gray-800 login-focus",
+                            "focus:ring-4 focus:ring-blue-500/10 login-animation",
+                            "placeholder:text-gray-400 dark:placeholder:text-gray-500",
+                            fieldState.error && "border-red-500 bg-red-50/50 dark:bg-red-900/10 focus:border-red-500 focus:ring-red-500/10"
                           )}
                           type={showPassword ? "text" : "password"}
                           autoComplete="current-password"
@@ -277,29 +297,33 @@ export function LoginForm({ onSwitchToSignup }: LoginFormProps) {
                         <button
                           type="button"
                           onClick={() => setShowPassword(!showPassword)}
-                          className="absolute right-3 top-3.5 h-4 w-4 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+                          className="absolute right-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-all duration-300 hover:scale-110"
                         >
                           {showPassword ? <EyeOff /> : <Eye />}
                         </button>
                       </div>
                     </FormControl>
-                    <FormMessage className="text-xs" />
+                    <FormMessage className="text-xs text-red-500 font-medium" />
                   </FormItem>
                 )}
               />
 
               {/* Remember Me & Forgot Password */}
-              <div className="flex items-center justify-between pt-2">
-                <div className="flex items-center space-x-2">
+              <div className="flex items-center justify-between pt-4">
+                <div className="flex items-center space-x-3 group">
                   <Checkbox 
                     id="remember-me"
                     checked={rememberMe}
                     onCheckedChange={(checked) => setRememberMe(!!checked)}
-                    className="data-[state=checked]:bg-blue-600 data-[state=checked]:border-blue-600"
+                    className={cn(
+                      "data-[state=checked]:bg-gradient-to-r data-[state=checked]:from-blue-500 data-[state=checked]:to-purple-500",
+                      "data-[state=checked]:border-blue-500 border-2 rounded-md",
+                      "transition-all duration-300 group-hover:scale-105"
+                    )}
                   />
                   <Label 
                     htmlFor="remember-me" 
-                    className="text-sm text-gray-600 dark:text-gray-400 cursor-pointer select-none"
+                    className="text-sm font-medium text-gray-600 dark:text-gray-400 cursor-pointer select-none group-hover:text-gray-800 dark:group-hover:text-gray-200 transition-colors duration-300"
                   >
                     Keep me signed in
                   </Label>
@@ -309,7 +333,7 @@ export function LoginForm({ onSwitchToSignup }: LoginFormProps) {
                   <SheetTrigger asChild>
                     <Button 
                       variant="link" 
-                      className="px-0 font-medium text-sm text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300"
+                      className="px-0 font-semibold text-sm text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 transition-all duration-300 hover:scale-105"
                       type="button"
                     >
                       Forgot password?
@@ -394,53 +418,60 @@ export function LoginForm({ onSwitchToSignup }: LoginFormProps) {
               </div>
 
               {/* Submit Buttons */}
-              <div className="space-y-3 pt-4">
+              <div className="space-y-5 pt-6">
                 <Button
                   type="submit"
                   disabled={isLoading}
                   className={cn(
-                    "w-full h-12 bg-gradient-to-r from-blue-600 to-purple-600",
-                    "hover:from-blue-700 hover:to-purple-700",
-                    "text-white font-medium shadow-lg hover:shadow-xl",
-                    "transition-all duration-300 hover:scale-[1.02]",
-                    "focus:ring-2 focus:ring-blue-500 focus:ring-offset-2",
-                    "disabled:opacity-60 disabled:cursor-not-allowed disabled:hover:scale-100"
+                    "group relative w-full h-14 overflow-hidden rounded-xl",
+                    "bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600",
+                    "hover:from-blue-700 hover:via-purple-700 hover:to-indigo-700",
+                    "text-white font-semibold text-base shadow-2xl hover:shadow-blue-500/25",
+                    "transition-all duration-500 hover:scale-[1.02] active:scale-[0.98]",
+                    "focus:ring-4 focus:ring-blue-500/20 focus:outline-none",
+                    "disabled:opacity-60 disabled:cursor-not-allowed disabled:hover:scale-100",
+                    "before:absolute before:inset-0 before:bg-gradient-to-r before:from-white/20 before:via-white/10 before:to-white/20",
+                    "before:translate-x-[-100%] hover:before:translate-x-[100%] before:transition-transform before:duration-700"
                   )}
                 >
-                  {isLoading ? (
-                    <>
-                      <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent mr-2" />
-                      Signing in...
-                    </>
-                  ) : (
-                    <>
-                      <LogIn className="w-4 h-4 mr-2" />
-                      Sign In
-                    </>
-                  )}
+                  <div className="relative z-10 flex items-center justify-center">
+                    {isLoading ? (
+                      <>
+                        <div className="animate-spin rounded-full h-5 w-5 border-2 border-white border-t-transparent mr-3" />
+                        <span className="animate-pulse">Signing in...</span>
+                      </>
+                    ) : (
+                      <>
+                        <LogIn className="w-5 h-5 mr-3 group-hover:rotate-12 transition-transform duration-300" />
+                        Sign In
+                      </>
+                    )}
+                  </div>
                 </Button>
                 
                 {/* Switch to Sign Up */}
-                <div className="text-center pt-2">
-                  <span className="text-sm text-gray-600 dark:text-gray-400">
-                    Don&apos;t have an account?{" "}
-                  </span>
-                  <Button
-                    type="button"
-                    variant="link"
-                    className="px-0 font-semibold text-sm text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300"
-                    onClick={() => {
-                      setIsOpen(false);
-                      if (onSwitchToSignup) {
-                        onSwitchToSignup();
-                      } else {
-                        // Navigate to signup page if no callback is provided
-                        router.push('/signup');
-                      }
-                    }}
-                  >
-                    Create account
-                  </Button>
+                <div className="text-center pt-3">
+                  <div className="p-4 rounded-xl bg-gray-50/50 dark:bg-gray-800/30 backdrop-blur-sm">
+                    <span className="text-sm text-gray-600 dark:text-gray-400">
+                      Don&apos;t have an account?{" "}
+                    </span>
+                    <Button
+                      type="button"
+                      variant="link"
+                      className="px-0 font-bold text-sm bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent hover:from-blue-500 hover:to-purple-500 transition-all duration-300 hover:scale-105"
+                      onClick={() => {
+                        setIsOpen(false);
+                        if (onSwitchToSignup) {
+                          onSwitchToSignup();
+                        } else {
+                          // Navigate to signup page if no callback is provided
+                          router.push('/signup');
+                        }
+                      }}
+                    >
+                      Create account
+                    </Button>
+                  </div>
                 </div>
               </div>
             </form>

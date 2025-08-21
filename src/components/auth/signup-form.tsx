@@ -128,10 +128,11 @@ export function SignupForm({ onSwitchToLogin, isOpen: externalIsOpen, onOpenChan
         <Button 
           size="sm"
           className={cn(
-            "relative overflow-hidden bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600",
-            "hover:from-blue-700 hover:via-purple-700 hover:to-indigo-700",
+            "relative overflow-hidden bg-gradient-to-r from-emerald-600 via-blue-600 to-purple-600",
+            "hover:from-emerald-700 hover:via-blue-700 hover:to-purple-700",
             "text-white border-0 shadow-lg hover:shadow-xl",
-            "transition-all duration-300 hover:scale-[1.02]",
+            "btn-press-feedback hover-scale will-change-transform",
+            "transition-all duration-300",
             "h-8 px-3 text-xs sm:h-9 sm:px-4 sm:text-sm w-full sm:w-auto"
           )}
         >
@@ -143,16 +144,16 @@ export function SignupForm({ onSwitchToLogin, isOpen: externalIsOpen, onOpenChan
       </SheetTrigger>
       
       <SheetContent side="right" className="w-full sm:max-w-md overflow-y-auto">
-            <SheetHeader className="space-y-4">
-              <div className="mx-auto w-16 h-16 bg-gradient-to-br from-green-500 to-blue-600 rounded-full flex items-center justify-center shadow-lg">
+            <SheetHeader className="login-header space-y-4">
+              <div className="login-field-group mx-auto w-16 h-16 bg-gradient-to-br from-emerald-500 to-blue-600 rounded-full flex items-center justify-center shadow-lg hover-scale will-change-transform">
                 <UserPlus className="w-8 h-8 text-white" />
               </div>
               
-              <SheetTitle className="text-2xl font-bold text-center bg-gradient-to-r from-green-600 to-blue-600 bg-clip-text text-transparent">
+              <SheetTitle className="login-title login-field-group text-center bg-gradient-to-r from-emerald-600 to-blue-600 bg-clip-text text-transparent">
                 Create Account
               </SheetTitle>
               
-              <SheetDescription className="text-center text-gray-600 dark:text-gray-400">
+              <SheetDescription className="login-subtitle login-field-group text-center text-gray-600 dark:text-gray-400">
                 Join us today and get started in seconds
               </SheetDescription>
             </SheetHeader>
@@ -201,16 +202,16 @@ export function SignupForm({ onSwitchToLogin, isOpen: externalIsOpen, onOpenChan
                       <FormControl>
                         <div className="relative group">
                           <User className={cn(
-                            "absolute left-3 top-3.5 h-4 w-4 transition-colors",
-                            fieldState.error ? "text-red-500" : "text-gray-400 group-focus-within:text-green-500"
+                            "absolute left-3 top-3.5 h-4 w-4 transition-colors duration-200",
+                            fieldState.error ? "text-red-500" : "text-gray-400 group-focus-within:text-emerald-500"
                           )} />
                           <Input
                             placeholder="First name"
                             className={cn(
-                              "pl-10 h-12 text-sm border-gray-200 dark:border-gray-700",
-                              "focus:border-green-500 focus:ring-green-500/20 focus:ring-2",
-                              "transition-all duration-200",
-                              fieldState.error && "border-red-500 focus:border-red-500 focus:ring-red-500/20"
+                              "login-input pl-10 h-12 text-sm border-gray-200 dark:border-gray-700",
+                              "focus:border-emerald-500 focus:ring-emerald-500/20 focus:ring-2",
+                              "hover-lift transition-all duration-200",
+                              fieldState.error && "error-state border-red-500 focus:border-red-500 focus:ring-red-500/20"
                             )}
                             autoComplete="given-name"
                             {...field}
