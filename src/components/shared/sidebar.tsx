@@ -73,7 +73,7 @@ export const Sidebar = memo(function Sidebar({ language, toggleLanguage }: { lan
                 <Link key={item.href} href={item.href} passHref>
                   <Button
                     variant={pathname === item.href ? 'secondary' : 'ghost'}
-                    className="w-full justify-start text-base py-6 relative"
+                    className="w-full justify-start text-sm py-3 relative"
                     type="button"
                   >
                     <item.icon className="mr-3 h-5 w-5" />
@@ -97,7 +97,7 @@ export const Sidebar = memo(function Sidebar({ language, toggleLanguage }: { lan
                             <Link key={`history-${item.href}`} href={item.href} passHref>
                                 <Button
                                     variant='ghost'
-                                    className="w-full justify-start text-base py-6"
+                                    className="w-full justify-start text-sm py-3"
                                     type="button"
                                 >
                                     <item.icon className="mr-3 h-5 w-5" />
@@ -108,7 +108,7 @@ export const Sidebar = memo(function Sidebar({ language, toggleLanguage }: { lan
                     </div>
                     {history.length > 3 && (
                          <Link href="/history" passHref>
-                            <Button variant="link" className="w-full justify-start text-base py-6 text-primary" type="button">
+                            <Button variant="link" className="w-full justify-start text-sm py-3 text-primary" type="button">
                                 <ArrowRight className="mr-3 h-5 w-5" />
                                 {t.seeAll}
                             </Button>

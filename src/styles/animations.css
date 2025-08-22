@@ -345,16 +345,26 @@
   animation: fade-in-scale var(--motion-duration-slow) var(--motion-ease-out);
 }
 
+/* Base login field group - show by default, animate on load */
 .login-field-group {
-  opacity: 0;
-  transform: translateY(20px);
-  animation: slide-in-bottom var(--motion-duration-normal) var(--motion-ease-out) forwards;
+  opacity: 1;
+  transform: translateY(0);
+  animation: fade-in-up var(--motion-duration-normal) var(--motion-ease-out);
 }
 
-.login-field-group:nth-child(1) { animation-delay: 0.1s; }
-.login-field-group:nth-child(2) { animation-delay: 0.2s; }
-.login-field-group:nth-child(3) { animation-delay: 0.3s; }
-.login-field-group:nth-child(4) { animation-delay: 0.4s; }
+/* Override specific animations for login field groups */
+.login-field-group.animate-fade-in-up {
+  animation: fade-in-up var(--motion-duration-normal) var(--motion-ease-out) forwards;
+}
+
+.login-field-group.animate-slide-in-right {
+  transform: translateX(-30px);
+  animation: slide-in-right var(--motion-duration-normal) var(--motion-ease-out) forwards;
+}
+
+.login-field-group.animate-slide-in-bottom {
+  animation: slide-in-bottom var(--motion-duration-normal) var(--motion-ease-out) forwards;
+}
 
 /* Success states */
 .success-checkmark {
@@ -371,6 +381,104 @@
   animation: float 8s var(--motion-ease-in-out) infinite;
 }
 
-.bg-orb:nth-child(2) { animation-delay: 1s; }
-.bg-orb:nth-child(3) { animation-delay: 2s; }
-.bg-orb:nth-child(4) { animation-delay: 3s; }
+  .bg-orb:nth-child(2) { animation-delay: 1s; }
+  .bg-orb:nth-child(3) { animation-delay: 2s; }
+  .bg-orb:nth-child(4) { animation-delay: 3s; }
+
+/* === MISSING LOGIN PAGE ANIMATIONS === */
+
+/* Glow animation for elements */
+@keyframes glow {
+  0%, 100% {
+    box-shadow: 0 0 20px rgba(59, 130, 246, 0.3);
+    transform: scale(1);
+  }
+  50% {
+    box-shadow: 0 0 40px rgba(59, 130, 246, 0.6), 0 0 60px rgba(139, 92, 246, 0.4);
+    transform: scale(1.05);
+  }
+}
+
+/* Gradient X animation for moving gradients */
+@keyframes gradient-x {
+  0%, 100% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+}
+
+/* Fade in up animation */
+@keyframes fade-in-up {
+  0% {
+    transform: translateY(30px);
+    opacity: 0;
+  }
+  100% {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+/* Slide in right animation */
+@keyframes slide-in-right {
+  0% {
+    transform: translateX(-30px);
+    opacity: 0;
+  }
+  100% {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+/* Animation utility classes */
+.animate-glow {
+  animation: glow 3s ease-in-out infinite;
+}
+
+.animate-gradient-x {
+  background-size: 200% 200%;
+  animation: gradient-x 4s ease infinite;
+}
+
+.animate-fade-in-up {
+  animation: fade-in-up var(--motion-duration-normal) var(--motion-ease-out);
+}
+
+.animate-slide-in-right {
+  animation: slide-in-right var(--motion-duration-normal) var(--motion-ease-out);
+}
+
+/* Animation delay utilities */
+.animation-delay-2000 {
+  animation-delay: 2s;
+}
+
+.animation-delay-4000 {
+  animation-delay: 4s;
+}
+
+/* Responsive motion preferences */
+@media (prefers-reduced-motion: reduce) {
+  .animate-glow,
+  .animate-gradient-x,
+  .animate-fade-in-up,
+  .animate-slide-in-right,
+  .login-field-group {
+    animation: none;
+    opacity: 1;
+    transform: none;
+  }
+  
+  .animate-float {
+    animation: none;
+  }
+}
+
+/* Additional login page utilities */
+.backdrop-blur-xl {
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+}

@@ -1,8 +1,6 @@
 "use client";
 
-import { useState } from "react";
 import { LoginForm } from "./login-form";
-import { SignupForm } from "./signup-form";
 import { useAuth } from "@/contexts/auth-context";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -24,18 +22,6 @@ interface AuthFormsProps {
 
 export function AuthForms({ variant = 'default' }: AuthFormsProps) {
   const { user, loading, logout } = useAuth();
-  // const [activeForm, setActiveForm] = useState<'login' | 'signup'>('login');
-  const [signupFormOpen, setSignupFormOpen] = useState(false);
-
-  const switchToLogin = () => {
-    // setActiveForm('login');
-    setSignupFormOpen(false);
-  };
-
-  const switchToSignup = () => {
-    // setActiveForm('signup');
-    setSignupFormOpen(true);
-  };
 
   // Loading state
   if (loading) {
@@ -190,15 +176,10 @@ export function AuthForms({ variant = 'default' }: AuthFormsProps) {
     );
   }
 
-  // If user is not logged in, show auth forms
+  // If user is not logged in, show login form only
   return (
     <div className="flex items-center gap-2">
-      <LoginForm onSwitchToSignup={switchToSignup} />
-      <SignupForm 
-        isOpen={signupFormOpen} 
-        onOpenChange={setSignupFormOpen} 
-        onSwitchToLogin={switchToLogin} 
-      />
+      <LoginForm />
     </div>
   );
 }

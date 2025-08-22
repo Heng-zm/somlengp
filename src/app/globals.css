@@ -176,11 +176,29 @@ body {
 
     /* Responsive Button Sizing */
     .login-button {
-        @apply h-12 sm:h-14 text-sm sm:text-base font-semibold;
-        min-height: 44px;
+        @apply h-10 sm:h-11 text-sm sm:text-base font-semibold;
+        min-height: 40px;
         /* Better touch interaction */
         touch-action: manipulation;
         -webkit-tap-highlight-color: transparent;
+    }
+
+    /* Compact button utilities */
+    .btn-compact {
+        @apply h-8 px-2 py-1 text-xs;
+    }
+
+    .btn-compact-sm {
+        @apply h-9 px-3 py-1 text-sm;
+    }
+
+    .btn-minimal {
+        @apply h-7 px-2 py-0 text-xs leading-tight;
+    }
+
+    /* Remove excessive spacing from buttons */
+    .btn-tight {
+        @apply py-1 px-3;
     }
 
     /* Mobile-optimized animations */
@@ -434,5 +452,162 @@ body {
 
     .animation-delay-4000 {
       animation-delay: 4s;
+    }
+    
+    /* Modern Login Page Enhancements */
+    .bg-300% {
+      background-size: 300% 300%;
+    }
+    
+    /* Enhanced glass morphism */
+    .glass-enhanced {
+      background: rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+    }
+    
+    .glass-enhanced.dark {
+      background: rgba(0, 0, 0, 0.2);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    
+    /* Shimmer background animation */
+    .shimmer-bg {
+      background: linear-gradient(
+        90deg,
+        transparent,
+        rgba(255, 255, 255, 0.2),
+        transparent
+      );
+      background-size: 200% 100%;
+    }
+    
+    /* Enhanced button press feedback */
+    .btn-press-enhanced {
+      transition: transform 0.1s ease-in-out;
+    }
+    
+    .btn-press-enhanced:active {
+      transform: scale(0.98);
+    }
+    
+    /* Modern shadow styles */
+    .shadow-3xl {
+      box-shadow: 0 35px 60px -12px rgba(0, 0, 0, 0.25);
+    }
+    
+    .shadow-glow-blue {
+      box-shadow: 0 0 20px rgba(59, 130, 246, 0.3);
+    }
+    
+    .shadow-glow-purple {
+      box-shadow: 0 0 20px rgba(139, 92, 246, 0.3);
+    }
+    
+    /* Advanced gradient text */
+    .text-gradient-animated {
+      background: linear-gradient(
+        45deg,
+        #3B82F6,
+        #8B5CF6,
+        #06B6D4,
+        #10B981
+      );
+      background-size: 300% 300%;
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+      animation: gradient-shift 3s ease infinite;
+    }
+    
+    @keyframes gradient-shift {
+      0%, 100% {
+        background-position: 0% 50%;
+      }
+      50% {
+        background-position: 100% 50%;
+      }
+    }
+    
+    /* Enhanced form field animations */
+    .field-focus-glow {
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    
+    .field-focus-glow:focus-within {
+      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1),
+                  0 0 20px rgba(59, 130, 246, 0.2);
+      transform: translateY(-1px);
+    }
+    
+    /* Improved accessibility focus styles */
+    .focus-ring-modern {
+      @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/50 focus-visible:ring-offset-2 focus-visible:ring-offset-white;
+    }
+    
+    .dark .focus-ring-modern {
+      @apply focus-visible:ring-offset-gray-900;
+    }
+    
+    /* Particle animation system */
+    .particle {
+      position: absolute;
+      width: 4px;
+      height: 4px;
+      background: rgba(59, 130, 246, 0.6);
+      border-radius: 50%;
+      animation: float-particle 4s infinite ease-in-out;
+    }
+    
+    @keyframes float-particle {
+      0%, 100% {
+        transform: translateY(0px) translateX(0px) scale(1);
+        opacity: 0.6;
+      }
+      50% {
+        transform: translateY(-20px) translateX(10px) scale(1.2);
+        opacity: 1;
+      }
+    }
+    
+    /* Enhanced responsive typography */
+    .title-responsive {
+      font-size: clamp(1.875rem, 4vw + 1rem, 3rem);
+      line-height: 1.2;
+      letter-spacing: -0.02em;
+    }
+    
+    .subtitle-responsive {
+      font-size: clamp(0.875rem, 2vw + 0.5rem, 1.125rem);
+      line-height: 1.6;
+    }
+    
+    /* Modern border styles */
+    .border-gradient {
+      border: 1px solid;
+      border-image: linear-gradient(45deg, #3B82F6, #8B5CF6) 1;
+    }
+    
+    /* Advanced hover states */
+    .hover-lift {
+      transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    
+    .hover-lift:hover {
+      transform: translateY(-2px) scale(1.01);
+    }
+    
+    /* Performance optimizations */
+    .gpu-accelerated {
+      transform: translateZ(0);
+      will-change: transform;
+    }
+    
+    /* Smooth scroll behavior */
+    .smooth-scroll {
+      scroll-behavior: smooth;
+      -webkit-overflow-scrolling: touch;
     }
 }

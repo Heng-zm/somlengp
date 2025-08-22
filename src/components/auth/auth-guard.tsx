@@ -350,7 +350,7 @@ const AuthGuard = memo(function AuthGuard({ children, fallback }: AuthGuardProps
                               Forgot password?
                             </Button>
                           </AlertDialogTrigger>
-                          <AlertDialogContent className="sm:max-w-md">
+                          <AlertDialogContent className="sm:max-w-md rounded-xl">
                             <AlertDialogHeader>
                               <AlertDialogTitle className="flex items-center gap-3 text-lg">
                                 <div className="w-10 h-10 bg-blue-100 dark:bg-blue-900/20 rounded-full flex items-center justify-center">

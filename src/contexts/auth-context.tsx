@@ -234,8 +234,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     
     try {
       setLoading(true);
-      await createUserWithEmailAndPassword(auth, email, password);
-      showAuthSuccessToast("created account");
+      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      const newUser = userCredential.user;
+      
+      // Create user profile immediately after account creation
+      try {
+        await createUserProfile(newUser);
+      } catch (profileError) {
+        console.error('Error creating user profile during signup:', profileError);
+        // Don't fail signup if profile creation fails, but log it
+      }
+      
+      showAuthSuccessToast("account created successfully");
     } catch (error: unknown) {
       const authError = error as { code?: string; message?: string };
       console.error('Error signing up with email:', error);
@@ -252,6 +262,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         errorMessage = "Email/password sign-up is not enabled.";
       } else if (authError.code === 'auth/network-request-failed') {
         errorMessage = "Network error. Please check your connection.";
+      } else if (authError.code === 'auth/too-many-requests') {
+        errorMessage = "Too many attempts. Please try again later.";
       }
       
       showAuthErrorToast(errorMessage);

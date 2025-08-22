@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect, memo, useCallback } from "react";
-import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -67,13 +66,10 @@ const loginSchema = z.object({
 
 type LoginFormData = z.infer<typeof loginSchema>;
 
-interface LoginFormProps {
-  onSwitchToSignup?: () => void;
-}
+type LoginFormProps = Record<string, never>;
 
-export const LoginForm = memo(function LoginForm({ onSwitchToSignup }: LoginFormProps) {
+export const LoginForm = memo(function LoginForm({}: LoginFormProps) {
   const { signInWithGoogle, signInWithEmail, resetPassword } = useAuth();
-  const router = useRouter();
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
@@ -340,7 +336,7 @@ export const LoginForm = memo(function LoginForm({ onSwitchToSignup }: LoginForm
                       Forgot password?
                     </Button>
                   </SheetTrigger>
-                  <SheetContent side="right" className="w-full sm:max-w-md">
+                  <SheetContent side="right" className="w-full sm:max-w-md rounded-xl">
                     <SheetHeader className="space-y-4 pb-6">
                       <div className="mx-auto w-16 h-16 bg-gradient-to-br from-red-500 to-orange-500 rounded-full flex items-center justify-center shadow-lg">
                         <Mail className="w-8 h-8 text-white" />
@@ -449,31 +445,6 @@ export const LoginForm = memo(function LoginForm({ onSwitchToSignup }: LoginForm
                     )}
                   </div>
                 </Button>
-                
-                {/* Switch to Sign Up */}
-                <div className="text-center pt-3">
-                  <div className="p-4 rounded-xl bg-gray-50/50 dark:bg-gray-800/30 backdrop-blur-sm">
-                    <span className="text-sm text-gray-600 dark:text-gray-400">
-                      Don&apos;t have an account?{" "}
-                    </span>
-                    <Button
-                      type="button"
-                      variant="link"
-                      className="px-0 font-bold text-sm bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent hover:from-blue-500 hover:to-purple-500 transition-all duration-300 hover:scale-105"
-                      onClick={() => {
-                        setIsOpen(false);
-                        if (onSwitchToSignup) {
-                          onSwitchToSignup();
-                        } else {
-                          // Navigate to signup page if no callback is provided
-                          router.push('/signup');
-                        }
-                      }}
-                    >
-                      Create account
-                    </Button>
-                  </div>
-                </div>
               </div>
             </form>
           </Form>

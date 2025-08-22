@@ -30,7 +30,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { cn } from "@/lib/utils";
-import { Mail, Lock, Eye, EyeOff, LogIn, ArrowLeft, Loader2 } from "lucide-react";
+import { Mail, Lock, Eye, EyeOff, LogIn, Loader2 } from "lucide-react";
 
 // Google Icon Component
 const GoogleIcon = () => (
@@ -141,66 +141,55 @@ export default function LoginPage() {
   }, [form]);
 
   return (
-    <div className="min-h-screen relative overflow-hidden bg-gradient-to-br from-emerald-50 via-blue-50 to-purple-100 dark:from-gray-900 dark:via-emerald-950 dark:to-blue-950">
-      {/* Animated background orbs */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="bg-orb absolute -top-10 -right-10 w-32 h-32 bg-gradient-to-br from-emerald-400/30 to-blue-500/30 rounded-full blur-xl" />
-        <div className="bg-orb absolute top-1/3 -left-20 w-48 h-48 bg-gradient-to-br from-purple-400/20 to-pink-500/20 rounded-full blur-2xl" />
-        <div className="bg-orb absolute bottom-20 right-1/4 w-40 h-40 bg-gradient-to-br from-blue-400/25 to-cyan-500/25 rounded-full blur-xl" />
-        <div className="bg-orb absolute -bottom-32 -left-32 w-64 h-64 bg-gradient-to-br from-emerald-400/15 to-teal-500/15 rounded-full blur-3xl" />
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-blue-50 dark:from-gray-900 dark:via-gray-800 dark:to-blue-900 animate-gradient-x">
+      {/* Background decorative elements */}
+      <div className="absolute inset-0 overflow-hidden">
+        <div className="absolute -top-40 -right-32 w-80 h-80 bg-gradient-to-br from-blue-400/20 to-purple-400/20 rounded-full blur-3xl animate-float" />
+        <div className="absolute -bottom-32 -left-40 w-96 h-96 bg-gradient-to-br from-purple-400/20 to-pink-400/20 rounded-full blur-3xl animate-float" style={{animationDelay: '1s'}} />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full bg-grid-gray-100 dark:bg-grid-gray-800 opacity-50" />
       </div>
 
-      {/* Main content container */}
-      <div className="login-container flex items-center justify-center">
-        <div className="login-card">
-          {/* Back Navigation */}
-          <div className="flex justify-start animate-slide-in-top">
-            <Link href="/home">
-              <Button 
-                variant="ghost" 
-                size="sm"
-                className="text-gray-600 dark:text-white/70 hover:text-gray-800 dark:hover:text-white hover:bg-white/10 border border-gray-300/20 dark:border-white/20 hover:border-gray-400/30 dark:hover:border-white/30 transition-all duration-300"
-              >
-                <ArrowLeft className="mr-2 h-4 w-4" />
-                Back to Home
-              </Button>
-            </Link>
-          </div>
+      {/* Main container */}
+      <div className="relative min-h-screen flex items-center justify-center p-4 animate-fade-in-scale">
+        <div className="w-full max-w-md">
 
-          {/* Animated form container */}
-          <div className="login-form-container glass-card p-6 sm:p-8 lg:p-10 backdrop-blur-sm bg-white/95 dark:bg-gray-900/95 border border-white/20 dark:border-gray-700/50 shadow-2xl">
+          {/* Login card */}
+          <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl rounded-2xl shadow-2xl border border-white/20 dark:border-gray-700/20 p-8 will-change-transform">
             {/* Header */}
-            <div className="text-center mb-8 login-field-group">
-              <div className="mx-auto w-20 h-20 bg-gradient-to-r from-cyan-400 to-blue-500 rounded-2xl flex items-center justify-center mb-6 shadow-lg animate-rotate-in">
-                <LogIn className="h-10 w-10 text-white" />
+            <div className="text-center mb-8 login-field-group animate-fade-in-up" style={{animationDelay: '0.1s'}}>
+              <div className="mx-auto w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl flex items-center justify-center mb-6 shadow-lg animate-glow hover-scale">
+                <LogIn className="h-8 w-8 text-white icon-spin-on-hover" />
               </div>
-              <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-2 animate-fade-in-scale">
+              
+              <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
                 Welcome Back
               </h1>
-              <p className="text-gray-600 dark:text-white/70 text-lg animate-slide-in-bottom animate-stagger-1">
+              <p className="text-gray-600 dark:text-gray-400">
                 Sign in to continue your journey
               </p>
             </div>
 
-            {/* Google Sign In */}
-            <div className="mb-6 login-field-group">
-              <Button
-                onClick={handleGoogleSignIn}
-                disabled={isLoading}
-                className="w-full h-12 bg-white hover:bg-gray-50 text-gray-900 border-0 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 font-medium btn-press-feedback"
-              >
-                <GoogleIcon />
-                <span className="ml-3">Continue with Google</span>
-              </Button>
-            </div>
+            {/* Google Sign In Button */}
+            <Button
+              onClick={handleGoogleSignIn}
+              disabled={isLoading}
+              variant="outline"
+              className="w-full h-12 mb-6 bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700 transition-all duration-200 login-field-group animate-slide-in-right hover-lift btn-press-feedback"
+              style={{animationDelay: '0.2s'}}
+            >
+              <GoogleIcon />
+              <span className="ml-3 font-medium text-gray-700 dark:text-gray-300">
+                Continue with Google
+              </span>
+            </Button>
 
             {/* Divider */}
-            <div className="relative my-6 login-field-group">
+            <div className="relative my-6 login-field-group animate-fade-in-up" style={{animationDelay: '0.3s'}}>
               <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-gray-200 dark:border-white/20" />
+                <div className="w-full border-t border-gray-200 dark:border-gray-600" />
               </div>
               <div className="relative flex justify-center text-sm">
-                <span className="px-4 bg-white dark:bg-gray-900 text-gray-500 dark:text-white/70">
+                <span className="px-4 bg-white/80 dark:bg-gray-800/80 text-gray-500 dark:text-gray-400">
                   Or continue with email
                 </span>
               </div>
@@ -208,150 +197,148 @@ export default function LoginPage() {
 
             {/* Form */}
             <Form {...form}>
-              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
                 {/* Email Field */}
-                <div className="login-field-group">
+                <div className="login-field-group animate-slide-in-right" style={{animationDelay: '0.4s'}}>
                   <FormField
                     control={form.control}
                     name="email"
                     render={({ field, fieldState }) => (
                       <FormItem>
-                        <FormLabel className="text-gray-700 dark:text-white font-medium text-sm">
+                        <FormLabel className="text-sm font-medium text-gray-700 dark:text-gray-300">
                           Email Address
                         </FormLabel>
                         <FormControl>
                           <div className="relative">
-                            <Mail className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400 dark:text-white/50" />
+                            <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 dark:text-gray-500 icon-bounce-on-hover" />
                             <Input
                               {...field}
                               type="email"
                               autoComplete="email"
                               placeholder="Enter your email"
                               className={cn(
-                                "pl-12 h-12 bg-gray-50 dark:bg-white/10 border border-gray-200 dark:border-white/20 rounded-xl text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-white/50",
-                                "focus:bg-white dark:focus:bg-white/20 focus:border-emerald-400 focus:ring-2 focus:ring-emerald-400/50",
-                                "backdrop-blur-sm transition-all duration-300",
-                                fieldState.error && "border-red-400 focus:border-red-400 focus:ring-red-400/50"
+                                "pl-10 h-11 bg-gray-50 dark:bg-gray-700/50 border-gray-200 dark:border-gray-600 rounded-lg",
+                                "focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all focus-ring-animated hover-lift",
+                                "text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500",
+                                fieldState.error && "border-red-400 focus:border-red-400 focus:ring-red-400/20 error-shake"
                               )}
                             />
                           </div>
                         </FormControl>
-                        <FormMessage className="text-red-500 text-sm mt-1" />
+                        <FormMessage className="text-red-500 text-sm" />
                       </FormItem>
                     )}
                   />
                 </div>
 
                 {/* Password Field */}
-                <div className="login-field-group">
+                <div className="login-field-group animate-slide-in-right" style={{animationDelay: '0.5s'}}>
                   <FormField
                     control={form.control}
                     name="password"
                     render={({ field, fieldState }) => (
                       <FormItem>
-                        <FormLabel className="text-gray-700 dark:text-white font-medium text-sm">
+                        <FormLabel className="text-sm font-medium text-gray-700 dark:text-gray-300">
                           Password
                         </FormLabel>
                         <FormControl>
                           <div className="relative">
-                            <Lock className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400 dark:text-white/50" />
+                            <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 dark:text-gray-500 icon-bounce-on-hover" />
                             <Input
                               {...field}
                               type={showPassword ? "text" : "password"}
                               autoComplete="current-password"
                               placeholder="Enter your password"
                               className={cn(
-                                "pl-12 pr-12 h-12 bg-gray-50 dark:bg-white/10 border border-gray-200 dark:border-white/20 rounded-xl text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-white/50",
-                                "focus:bg-white dark:focus:bg-white/20 focus:border-emerald-400 focus:ring-2 focus:ring-emerald-400/50",
-                                "backdrop-blur-sm transition-all duration-300",
-                                fieldState.error && "border-red-400 focus:border-red-400 focus:ring-red-400/50"
+                                "pl-10 pr-10 h-11 bg-gray-50 dark:bg-gray-700/50 border-gray-200 dark:border-gray-600 rounded-lg",
+                                "focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all focus-ring-animated hover-lift",
+                                "text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500",
+                                fieldState.error && "border-red-400 focus:border-red-400 focus:ring-red-400/20 error-shake"
                               )}
                             />
                             <button
                               type="button"
                               onClick={() => setShowPassword(!showPassword)}
-                              className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-white/50 hover:text-gray-600 dark:hover:text-white transition-colors duration-200"
+                              className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 transition-colors hover-scale"
                             >
                               {showPassword ? (
-                                <EyeOff className="h-5 w-5" />
+                                <EyeOff className="h-4 w-4 icon-spin-on-hover" />
                               ) : (
-                                <Eye className="h-5 w-5" />
+                                <Eye className="h-4 w-4 icon-spin-on-hover" />
                               )}
                             </button>
                           </div>
                         </FormControl>
-                        <FormMessage className="text-red-500 text-sm mt-1" />
+                        <FormMessage className="text-red-500 text-sm" />
                       </FormItem>
                     )}
                   />
                 </div>
 
                 {/* Remember me and Forgot password */}
-                <div className="flex items-center justify-between login-field-group">
+                <div className="flex items-center justify-between login-field-group animate-fade-in-up" style={{animationDelay: '0.6s'}}>
                   <div className="flex items-center">
                     <Checkbox
                       id="remember-me"
                       checked={rememberMe}
                       onCheckedChange={(checked) => setRememberMe(!!checked)}
-                      className="h-4 w-4 rounded border-gray-300 dark:border-white/30 bg-white dark:bg-white/10 text-emerald-600 focus:ring-emerald-400"
+                      className="h-4 w-4 rounded border-gray-300 dark:border-gray-600 hover-scale transition-transform"
                     />
-                    <label htmlFor="remember-me" className="ml-2 text-sm text-gray-600 dark:text-white/70">
+                    <label htmlFor="remember-me" className="ml-2 text-sm text-gray-600 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition-colors cursor-pointer">
                       Remember me
                     </label>
                   </div>
 
-                  <div className="text-sm">
-                    <AlertDialog open={showResetDialog} onOpenChange={setShowResetDialog}>
-                      <AlertDialogTrigger asChild>
-                        <Button variant="link" className="px-0 text-emerald-600 hover:text-emerald-500 dark:text-emerald-400 dark:hover:text-emerald-300 text-sm">
-                          Forgot password?
-                        </Button>
-                      </AlertDialogTrigger>
-                      <AlertDialogContent className="bg-white/95 dark:bg-gray-900/95 backdrop-blur-lg border border-white/20 dark:border-gray-700/50">
-                        <AlertDialogHeader>
-                          <AlertDialogTitle className="text-gray-900 dark:text-white">Reset Password</AlertDialogTitle>
-                          <AlertDialogDescription className="text-gray-600 dark:text-gray-400">
-                            Enter your email address and we&apos;ll send you a link to reset your password.
-                          </AlertDialogDescription>
-                        </AlertDialogHeader>
-                        <div className="py-4">
-                          <Input
-                            type="email"
-                            placeholder="Enter your email"
-                            value={resetEmail}
-                            onChange={(e) => setResetEmail(e.target.value)}
-                            className="border-gray-300 focus:border-emerald-500 focus:ring-emerald-500"
-                          />
-                        </div>
-                        <AlertDialogFooter>
-                          <AlertDialogCancel className="border-gray-300">Cancel</AlertDialogCancel>
-                          <AlertDialogAction 
-                            onClick={handlePasswordReset}
-                            className="bg-gradient-to-r from-emerald-500 to-blue-600 hover:from-emerald-600 hover:to-blue-700"
-                          >
-                            Send Reset Link
-                          </AlertDialogAction>
-                        </AlertDialogFooter>
-                      </AlertDialogContent>
-                    </AlertDialog>
-                  </div>
+                  <AlertDialog open={showResetDialog} onOpenChange={setShowResetDialog}>
+                    <AlertDialogTrigger asChild>
+                      <Button variant="link" className="px-0 text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 text-sm font-medium hover-lift transition-all">
+                        Forgot password?
+                      </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 animate-fade-in-scale rounded-xl">
+                      <AlertDialogHeader>
+                        <AlertDialogTitle className="text-gray-900 dark:text-white">Reset Password</AlertDialogTitle>
+                        <AlertDialogDescription className="text-gray-600 dark:text-gray-400">
+                          Enter your email address and we&apos;ll send you a link to reset your password.
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <div className="py-4">
+                        <Input
+                          type="email"
+                          placeholder="Enter your email"
+                          value={resetEmail}
+                          onChange={(e) => setResetEmail(e.target.value)}
+                          className="bg-gray-50 dark:bg-gray-700 border-gray-200 dark:border-gray-600 focus-ring-animated hover-lift transition-all"
+                        />
+                      </div>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel className="hover-lift btn-press-feedback transition-all">Cancel</AlertDialogCancel>
+                        <AlertDialogAction 
+                          onClick={handlePasswordReset}
+                          className="bg-blue-600 hover:bg-blue-700 text-white hover-lift btn-press-feedback transition-all"
+                        >
+                          Send Reset Link
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
                 </div>
 
                 {/* Submit Button */}
-                <div className="login-field-group">
+                <div className="login-field-group animate-slide-in-bottom" style={{animationDelay: '0.7s'}}>
                   <Button
                     type="submit"
                     disabled={isLoading}
-                    className="w-full h-12 bg-gradient-to-r from-emerald-500 to-blue-600 hover:from-emerald-600 hover:to-blue-700 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transform hover:scale-[1.02] transition-all duration-300 disabled:opacity-50 disabled:transform-none btn-press-feedback"
+                    className="w-full h-12 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold rounded-lg shadow-lg hover:shadow-xl transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed hover-lift btn-press-feedback will-change-transform"
                   >
                     {isLoading ? (
                       <>
-                        <Loader2 className="animate-spin -ml-1 mr-3 h-5 w-5" />
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                         Signing in...
                       </>
                     ) : (
                       <>
-                        <LogIn className="h-5 w-5 mr-2" />
+                        <LogIn className="mr-2 h-4 w-4" />
                         Sign In
                       </>
                     )}
@@ -361,12 +348,12 @@ export default function LoginPage() {
             </Form>
 
             {/* Sign up link */}
-            <div className="text-center mt-6 pt-6 border-t border-gray-200 dark:border-white/10 login-field-group">
-              <p className="text-gray-600 dark:text-white/70 text-sm">
+            <div className="text-center mt-6 pt-6 border-t border-gray-200 dark:border-gray-600 login-field-group animate-fade-in-up" style={{animationDelay: '0.8s'}}>
+              <p className="text-gray-600 dark:text-gray-400 text-sm">
                 New to our platform?{' '}
                 <Link
                   href="/signup"
-                  className="text-emerald-600 hover:text-emerald-500 dark:text-emerald-400 dark:hover:text-emerald-300 font-medium transition-colors duration-200"
+                  className="text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 font-medium transition-colors duration-200 hover-lift"
                 >
                   Create an account
                 </Link>
@@ -375,9 +362,6 @@ export default function LoginPage() {
           </div>
         </div>
       </div>
-
-      {/* Bottom decorative element */}
-      <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-emerald-500/50 to-transparent" />
     </div>
   );
 }

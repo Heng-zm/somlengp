@@ -1,20 +1,10 @@
 "use client";
 
-import { useState, useCallback, useMemo } from "react";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
-import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetFooter,
-  SheetHeader,
-  SheetTitle,
-  SheetTrigger,
-} from "@/components/ui/sheet";
-import {
+import { 
   Form,
   FormControl,
   FormField,
@@ -25,28 +15,19 @@ import {
 import { useAuth } from "@/contexts/auth-context";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import * as z from "zod";
 import { cn } from "@/lib/utils";
-import { Mail, Lock, Eye, EyeOff, UserPlus, User, CheckCircle2 } from "lucide-react";
-import { z } from "zod";
-
-// Zod schema for form validation
-const signupSchema = z.object({
-  firstName: z.string().min(2, "First name must be at least 2 characters").max(50, "First name too long"),
-  lastName: z.string().min(2, "Last name must be at least 2 characters").max(50, "Last name too long"),
-  email: z.string().email("Please enter a valid email address"),
-  password: z.string()
-    .min(8, "Password must be at least 8 characters")
-    .regex(/[A-Z]/, "Password must contain at least one uppercase letter")
-    .regex(/[a-z]/, "Password must contain at least one lowercase letter")
-    .regex(/[0-9]/, "Password must contain at least one number")
-    .regex(/[^A-Za-z0-9]/, "Password must contain at least one special character"),
-  confirmPassword: z.string(),
-}).refine((data) => data.password === data.confirmPassword, {
-  message: "Passwords do not match",
-  path: ["confirmPassword"],
-});
-
-type SignupFormData = z.infer<typeof signupSchema>;
+import { 
+  Mail, 
+  Lock, 
+  Eye, 
+  EyeOff, 
+  UserPlus, 
+  Loader2, 
+  CheckCircle2,
+  User
+} from "lucide-react";
+import Link from "next/link";
 
 // Google Icon Component
 const GoogleIcon = () => (
@@ -70,453 +51,414 @@ const GoogleIcon = () => (
   </svg>
 );
 
+// Form validation schema
+const signupSchema = z.object({
+  firstName: z
+    .string()
+    .min(1, "First name is required")
+    .min(2, "First name must be at least 2 characters"),
+  lastName: z
+    .string()
+    .min(1, "Last name is required")
+    .min(2, "Last name must be at least 2 characters"),
+  email: z
+    .string()
+    .min(1, "Email is required")
+    .email("Please enter a valid email address"),
+  password: z
+    .string()
+    .min(1, "Password is required")
+    .min(6, "Password must be at least 6 characters")
+    .regex(
+      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/,
+      "Password must contain at least one uppercase letter, one lowercase letter, and one number"
+    ),
+  confirmPassword: z
+    .string()
+    .min(1, "Please confirm your password"),
+  agreeToTerms: z
+    .boolean()
+    .refine((val) => val === true, "You must agree to the terms and conditions"),
+}).refine((data) => data.password === data.confirmPassword, {
+  message: "Passwords don't match",
+  path: ["confirmPassword"],
+});
+
+type SignupFormData = z.infer<typeof signupSchema>;
+
 interface SignupFormProps {
-  onSwitchToLogin?: () => void;
-  isOpen?: boolean;
-  onOpenChange?: (open: boolean) => void;
+  onSuccess?: () => void;
+  onError?: (error: Error | unknown) => void;
+  className?: string;
+  showGoogleButton?: boolean;
+  showTitle?: boolean;
+  compact?: boolean;
 }
 
-export function SignupForm({ onSwitchToLogin, isOpen: externalIsOpen, onOpenChange }: SignupFormProps) {
+export function SignupForm({ 
+  onSuccess, 
+  onError, 
+  className,
+  showGoogleButton = true,
+  showTitle = true,
+  compact = false
+}: SignupFormProps) {
   const { signUpWithEmail, signInWithGoogle } = useAuth();
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [internalIsOpen, setInternalIsOpen] = useState(false);
-  
-  // Use external control if provided, otherwise use internal state
-  const isOpen = externalIsOpen !== undefined ? externalIsOpen : internalIsOpen;
-  const setIsOpen = onOpenChange || setInternalIsOpen;
-
-  const formDefaultValues = useMemo(() => ({
-    firstName: "",
-    lastName: "",
-    email: "",
-    password: "",
-    confirmPassword: "",
-  }), []);
+  const [isGoogleLoading, setIsGoogleLoading] = useState(false);
 
   const form = useForm<SignupFormData>({
     resolver: zodResolver(signupSchema),
-    defaultValues: formDefaultValues,
+    defaultValues: {
+      firstName: "",
+      lastName: "",
+      email: "",
+      password: "",
+      confirmPassword: "",
+      agreeToTerms: false,
+    },
   });
 
-  const onSubmit = useCallback(async (data: SignupFormData) => {
+  const onSubmit = async (data: SignupFormData) => {
     setIsLoading(true);
     try {
       await signUpWithEmail(data.email, data.password);
-      form.reset();
-      setIsOpen(false);
+      onSuccess?.();
     } catch (error) {
-      console.error("Sheet form: Signup error:", error);
+      console.error("Signup error:", error);
+      onError?.(error);
     } finally {
       setIsLoading(false);
     }
-  }, [signUpWithEmail, form, setIsOpen]);
+  };
 
-  const handleGoogleSignIn = useCallback(async () => {
+  const handleGoogleSignUp = async () => {
+    setIsGoogleLoading(true);
     try {
       await signInWithGoogle();
-      setIsOpen(false);
+      onSuccess?.();
     } catch (error) {
-      console.error("Google sign-in error:", error);
+      console.error("Google signup error:", error);
+      onError?.(error);
+    } finally {
+      setIsGoogleLoading(false);
     }
-  }, [signInWithGoogle, setIsOpen]);
+  };
 
   return (
-    <Sheet open={isOpen} onOpenChange={setIsOpen}>
-      <SheetTrigger asChild>
-        <Button 
-          size="sm"
-          className={cn(
-            "relative overflow-hidden bg-gradient-to-r from-emerald-600 via-blue-600 to-purple-600",
-            "hover:from-emerald-700 hover:via-blue-700 hover:to-purple-700",
-            "text-white border-0 shadow-lg hover:shadow-xl",
-            "btn-press-feedback hover-scale will-change-transform",
-            "transition-all duration-300",
-            "h-8 px-3 text-xs sm:h-9 sm:px-4 sm:text-sm w-full sm:w-auto"
-          )}
-        >
-          <div className="bg-white/20 rounded-full p-0.5 sm:p-1 mr-1 sm:mr-2">
-            <UserPlus className="w-3 h-3 sm:w-4 sm:h-4" />
+    <div className={cn("space-y-6", className)}>
+      {showTitle && (
+        <div className="text-center space-y-2">
+          <div className="mx-auto relative">
+            <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/20 via-blue-500/20 to-purple-600/20 rounded-full blur-xl animate-pulse"></div>
+            <div className="relative w-12 h-12 sm:w-16 sm:h-16 bg-gradient-to-br from-emerald-500 via-blue-500 to-purple-600 rounded-full flex items-center justify-center shadow-lg ring-2 ring-white/50 dark:ring-gray-800/50">
+              <UserPlus className="w-5 h-5 sm:w-7 sm:h-7 text-white drop-shadow-lg" />
+            </div>
           </div>
-          <span className="font-medium">Create Account</span>
-        </Button>
-      </SheetTrigger>
-      
-      <SheetContent side="right" className="w-full sm:max-w-md overflow-y-auto">
-            <SheetHeader className="login-header space-y-4">
-              <div className="login-field-group mx-auto w-16 h-16 bg-gradient-to-br from-emerald-500 to-blue-600 rounded-full flex items-center justify-center shadow-lg hover-scale will-change-transform">
-                <UserPlus className="w-8 h-8 text-white" />
-              </div>
-              
-              <SheetTitle className="login-title login-field-group text-center bg-gradient-to-r from-emerald-600 to-blue-600 bg-clip-text text-transparent">
-                Create Account
-              </SheetTitle>
-              
-              <SheetDescription className="login-subtitle login-field-group text-center text-gray-600 dark:text-gray-400">
-                Join us today and get started in seconds
-              </SheetDescription>
-            </SheetHeader>
-
-            <div className="mt-8 space-y-6">
-              {/* Quick Social Signup Section */}
-              <div className="space-y-4">
-                <Button
-                  onClick={handleGoogleSignIn}
-                  disabled={isLoading}
-                  className={cn(
-                    "w-full h-12 bg-white hover:bg-gray-50 text-gray-900 border border-gray-300",
-                    "shadow-sm hover:shadow-md transition-all duration-300 hover:scale-[1.01]",
-                    "dark:bg-gray-900 dark:text-gray-100 dark:border-gray-600 dark:hover:bg-gray-800",
-                    "focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
-                  )}
-                >
-                  <GoogleIcon />
-                  <span className="ml-3 font-medium">Continue with Google</span>
-                </Button>
-                
-                <div className="relative my-6">
-                  <div className="absolute inset-0 flex items-center">
-                    <span className="w-full border-t border-gray-200 dark:border-gray-700" />
-                  </div>
-                  <div className="relative flex justify-center text-sm">
-                    <span className="bg-white dark:bg-gray-900 px-4 text-gray-500 dark:text-gray-400 font-medium">
-                      Or create account with email
-                    </span>
-                  </div>
-                </div>
-              </div>
-          {/* Registration Form */}
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
-              {/* Name Fields */}
-              <div className="grid grid-cols-2 gap-4">
-                <FormField
-                  control={form.control}
-                  name="firstName"
-                  render={({ field, fieldState }) => (
-                    <FormItem>
-                      <FormLabel className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                        First Name
-                      </FormLabel>
-                      <FormControl>
-                        <div className="relative group">
-                          <User className={cn(
-                            "absolute left-3 top-3.5 h-4 w-4 transition-colors duration-200",
-                            fieldState.error ? "text-red-500" : "text-gray-400 group-focus-within:text-emerald-500"
-                          )} />
-                          <Input
-                            placeholder="First name"
-                            className={cn(
-                              "login-input pl-10 h-12 text-sm border-gray-200 dark:border-gray-700",
-                              "focus:border-emerald-500 focus:ring-emerald-500/20 focus:ring-2",
-                              "hover-lift transition-all duration-200",
-                              fieldState.error && "error-state border-red-500 focus:border-red-500 focus:ring-red-500/20"
-                            )}
-                            autoComplete="given-name"
-                            {...field}
-                          />
-                          {!fieldState.error && field.value && field.value.length >= 2 && (
-                            <CheckCircle2 className="absolute right-3 top-3.5 h-4 w-4 text-green-500" />
-                          )}
-                        </div>
-                      </FormControl>
-                      <FormMessage className="text-xs" />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="lastName"
-                  render={({ field, fieldState }) => (
-                    <FormItem>
-                      <FormLabel className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                        Last Name
-                      </FormLabel>
-                      <FormControl>
-                        <div className="relative group">
-                          <User className={cn(
-                            "absolute left-3 top-3.5 h-4 w-4 transition-colors",
-                            fieldState.error ? "text-red-500" : "text-gray-400 group-focus-within:text-green-500"
-                          )} />
-                          <Input
-                            placeholder="Last name"
-                            className={cn(
-                              "pl-10 h-12 text-sm border-gray-200 dark:border-gray-700",
-                              "focus:border-green-500 focus:ring-green-500/20 focus:ring-2",
-                              "transition-all duration-200",
-                              fieldState.error && "border-red-500 focus:border-red-500 focus:ring-red-500/20"
-                            )}
-                            autoComplete="family-name"
-                            {...field}
-                          />
-                          {!fieldState.error && field.value && field.value.length >= 2 && (
-                            <CheckCircle2 className="absolute right-3 top-3.5 h-4 w-4 text-green-500" />
-                          )}
-                        </div>
-                      </FormControl>
-                      <FormMessage className="text-xs" />
-                    </FormItem>
-                  )}
-                />
-              </div>
-
-              {/* Email Field */}
-              <FormField
-                control={form.control}
-                name="email"
-                render={({ field, fieldState }) => (
-                  <FormItem>
-                    <FormLabel className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                      Email Address
-                    </FormLabel>
-                    <FormControl>
-                      <div className="relative group">
-                        <Mail className={cn(
-                          "absolute left-3 top-3.5 h-4 w-4 transition-colors",
-                          fieldState.error ? "text-red-500" : "text-gray-400 group-focus-within:text-green-500"
-                        )} />
-                        <Input
-                          placeholder="your.email@example.com"
-                          className={cn(
-                            "pl-10 h-12 text-sm border-gray-200 dark:border-gray-700",
-                            "focus:border-green-500 focus:ring-green-500/20 focus:ring-2",
-                            "transition-all duration-200",
-                            fieldState.error && "border-red-500 focus:border-red-500 focus:ring-red-500/20"
-                          )}
-                          type="email"
-                          autoComplete="email"
-                          {...field}
-                        />
-                        {!fieldState.error && field.value && field.value.includes('@') && (
-                          <CheckCircle2 className="absolute right-3 top-3.5 h-4 w-4 text-green-500" />
-                        )}
-                      </div>
-                    </FormControl>
-                    <FormMessage className="text-xs" />
-                  </FormItem>
-                )}
-              />
-
-
-              {/* Password Fields */}
-              <div className="space-y-4">
-                <FormField
-                  control={form.control}
-                  name="password"
-                  render={({ field, fieldState }) => {
-                    const password = field.value;
-                    const hasUppercase = /[A-Z]/.test(password);
-                    const hasLowercase = /[a-z]/.test(password);
-                    const hasNumber = /[0-9]/.test(password);
-                    const hasSpecial = /[^A-Za-z0-9]/.test(password);
-                    const hasLength = password && password.length >= 8;
-                    
-                    return (
-                      <FormItem>
-                        <FormLabel className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                          Password
-                        </FormLabel>
-                        <FormControl>
-                          <div className="relative group">
-                            <Lock className={cn(
-                              "absolute left-3 top-3.5 h-4 w-4 transition-colors",
-                              fieldState.error ? "text-red-500" : "text-gray-400 group-focus-within:text-green-500"
-                            )} />
-                            <Input
-                              placeholder="Create a strong password"
-                              className={cn(
-                                "pl-10 pr-10 h-12 text-sm border-gray-200 dark:border-gray-700",
-                                "focus:border-green-500 focus:ring-green-500/20 focus:ring-2",
-                                "transition-all duration-200",
-                                fieldState.error && "border-red-500 focus:border-red-500 focus:ring-red-500/20"
-                              )}
-                              type={showPassword ? "text" : "password"}
-                              autoComplete="new-password"
-                              {...field}
-                            />
-                            <button
-                              type="button"
-                              onClick={() => setShowPassword(!showPassword)}
-                              className="absolute right-3 top-3.5 h-4 w-4 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
-                            >
-                              {showPassword ? <EyeOff /> : <Eye />}
-                            </button>
-                          </div>
-                        </FormControl>
-                        {password && (
-                          <div className="mt-2 space-y-1">
-                            <div className="flex flex-wrap gap-1 text-xs">
-                              <span className={cn(
-                                "px-2 py-1 rounded-full text-xs font-medium",
-                                hasLength ? "bg-green-100 text-green-700 dark:bg-green-900/20 dark:text-green-400" : "bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400"
-                              )}>
-                                8+ chars
-                              </span>
-                              <span className={cn(
-                                "px-2 py-1 rounded-full text-xs font-medium",
-                                hasUppercase ? "bg-green-100 text-green-700 dark:bg-green-900/20 dark:text-green-400" : "bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400"
-                              )}>
-                                A-Z
-                              </span>
-                              <span className={cn(
-                                "px-2 py-1 rounded-full text-xs font-medium",
-                                hasLowercase ? "bg-green-100 text-green-700 dark:bg-green-900/20 dark:text-green-400" : "bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400"
-                              )}>
-                                a-z
-                              </span>
-                              <span className={cn(
-                                "px-2 py-1 rounded-full text-xs font-medium",
-                                hasNumber ? "bg-green-100 text-green-700 dark:bg-green-900/20 dark:text-green-400" : "bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400"
-                              )}>
-                                0-9
-                              </span>
-                              <span className={cn(
-                                "px-2 py-1 rounded-full text-xs font-medium",
-                                hasSpecial ? "bg-green-100 text-green-700 dark:bg-green-900/20 dark:text-green-400" : "bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400"
-                              )}>
-                                !@#
-                              </span>
-                            </div>
-                          </div>
-                        )}
-                        <FormMessage className="text-xs" />
-                      </FormItem>
-                    );
-                  }}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="confirmPassword"
-                  render={({ field, fieldState }) => (
-                    <FormItem>
-                      <FormLabel className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                        Confirm Password
-                      </FormLabel>
-                      <FormControl>
-                        <div className="relative group">
-                          <Lock className={cn(
-                            "absolute left-3 top-3.5 h-4 w-4 transition-colors",
-                            fieldState.error ? "text-red-500" : "text-gray-400 group-focus-within:text-green-500"
-                          )} />
-                          <Input
-                            placeholder="Confirm your password"
-                            className={cn(
-                              "pl-10 pr-10 h-12 text-sm border-gray-200 dark:border-gray-700",
-                              "focus:border-green-500 focus:ring-green-500/20 focus:ring-2",
-                              "transition-all duration-200",
-                              fieldState.error && "border-red-500 focus:border-red-500 focus:ring-red-500/20"
-                            )}
-                            type={showConfirmPassword ? "text" : "password"}
-                            autoComplete="new-password"
-                            {...field}
-                          />
-                          <button
-                            type="button"
-                            onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                            className="absolute right-3 top-3.5 h-4 w-4 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
-                          >
-                            {showConfirmPassword ? <EyeOff /> : <Eye />}
-                          </button>
-                          {!fieldState.error && field.value && form.getValues('password') === field.value && (
-                            <CheckCircle2 className="absolute right-10 top-3.5 h-4 w-4 text-green-500" />
-                          )}
-                        </div>
-                      </FormControl>
-                      <FormMessage className="text-xs" />
-                    </FormItem>
-                  )}
-                />
-              </div>
-
-              {/* Terms Agreement */}
-              <div className="flex items-start space-x-3 pt-2">
-                <Checkbox 
-                  id="terms-agreement"
-                  required
-                  className="mt-0.5 data-[state=checked]:bg-green-600 data-[state=checked]:border-green-600"
-                />
-                <Label 
-                  htmlFor="terms-agreement"
-                  className="text-sm text-gray-600 dark:text-gray-400 cursor-pointer select-none leading-5"
-                >
-                  I agree to the{" "}
-                  <Button 
-                    variant="link" 
-                    className="h-auto p-0 text-sm text-green-600 hover:text-green-700 dark:text-green-400 dark:hover:text-green-300 underline"
-                    type="button"
-                  >
-                    Terms of Service
-                  </Button>
-                  {" "}and{" "}
-                  <Button 
-                    variant="link" 
-                    className="h-auto p-0 text-sm text-green-600 hover:text-green-700 dark:text-green-400 dark:hover:text-green-300 underline"
-                    type="button"
-                  >
-                    Privacy Policy
-                  </Button>
-                </Label>
-              </div>
-
-              {/* Submit Button */}
-              <div className="pt-4">
-                <Button
-                  type="submit"
-                  disabled={isLoading}
-                  className={cn(
-                    "w-full h-12 bg-gradient-to-r from-green-600 to-blue-600",
-                    "hover:from-green-700 hover:to-blue-700",
-                    "text-white font-medium shadow-lg hover:shadow-xl",
-                    "transition-all duration-300 hover:scale-[1.02]",
-                    "focus:ring-2 focus:ring-green-500 focus:ring-offset-2",
-                    "disabled:opacity-60 disabled:cursor-not-allowed disabled:hover:scale-100"
-                  )}
-                >
-                  {isLoading ? (
-                    <>
-                      <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent mr-2" />
-                      Creating account...
-                    </>
-                  ) : (
-                    <>
-                      <UserPlus className="w-4 h-4 mr-2" />
-                      Create Account
-                    </>
-                  )}
-                </Button>
-              </div>
-              
-              {/* Switch to Login */}
-              <div className="text-center pt-2">
-                <span className="text-sm text-gray-600 dark:text-gray-400">
-                  Already have an account?{" "}
-                </span>
-                <Button
-                  type="button"
-                  variant="link"
-                  className="px-0 font-semibold text-sm text-green-600 hover:text-green-700 dark:text-green-400 dark:hover:text-green-300"
-                  onClick={() => {
-                    setIsOpen(false);
-                    onSwitchToLogin?.();
-                  }}
-                >
-                  Sign in instead
-                </Button>
-              </div>
-            </form>
-          </Form>
+          <h2 className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-emerald-600 via-blue-600 to-purple-600 bg-clip-text text-transparent">
+            Create Account
+          </h2>
+          <p className="text-sm text-gray-600 dark:text-gray-400">
+            Join us today and start your journey
+          </p>
         </div>
+      )}
 
-            <SheetFooter className="mt-8">
-              <div className="flex items-center space-x-2 text-xs text-gray-500 dark:text-gray-400 mx-auto">
-                <Lock className="w-3 h-3" />
-                <span>Your data is protected with industry-standard encryption</span>
-              </div>
-            </SheetFooter>
-      </SheetContent>
-    </Sheet>
+      {showGoogleButton && (
+        <>
+          <Button
+            onClick={handleGoogleSignUp}
+            disabled={isGoogleLoading || isLoading}
+            className={cn(
+              "w-full bg-white hover:bg-gray-50 text-gray-900 dark:bg-gray-700 dark:hover:bg-gray-600 dark:text-gray-100",
+              "border border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500",
+              "shadow-md hover:shadow-lg transition-all duration-300 hover:scale-[1.02]",
+              "disabled:opacity-60 disabled:cursor-not-allowed disabled:hover:scale-100",
+              compact ? "h-10" : "h-12"
+            )}
+          >
+            {isGoogleLoading ? (
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            ) : (
+              <GoogleIcon />
+            )}
+            <span className="ml-2 font-medium">Continue with Google</span>
+          </Button>
+          
+          <div className="relative">
+            <div className="absolute inset-0 flex items-center">
+              <div className="w-full border-t border-gray-300 dark:border-gray-600"></div>
+            </div>
+            <div className="relative flex justify-center text-xs uppercase">
+              <span className="bg-white dark:bg-gray-800 px-3 text-gray-500 dark:text-gray-400 font-medium">
+                Or sign up with email
+              </span>
+            </div>
+          </div>
+        </>
+      )}
+
+      <Form {...form}>
+        <form onSubmit={form.handleSubmit(onSubmit)} className={cn("space-y-4", compact && "space-y-3")}>
+          {/* Name Fields */}
+          <div className="grid grid-cols-2 gap-3">
+            <FormField
+              control={form.control}
+              name="firstName"
+              render={({ field, fieldState }) => (
+                <FormItem>
+                  <FormLabel className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                    First Name
+                  </FormLabel>
+                  <FormControl>
+                    <div className="relative group">
+                      <User className={cn(
+                        "absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 transition-colors",
+                        fieldState.error ? "text-red-500" : "text-gray-400 group-focus-within:text-emerald-500"
+                      )} />
+                      <Input
+                        placeholder="First name"
+                        className={cn(
+                          "pl-10 border-2 transition-colors",
+                          "bg-gray-50/50 hover:bg-white dark:bg-gray-700/50 dark:hover:bg-gray-700",
+                          "border-gray-200 hover:border-gray-300 dark:border-gray-600 dark:hover:border-gray-500",
+                          "focus:border-emerald-500 focus:bg-white dark:focus:bg-gray-700",
+                          fieldState.error && "border-red-500 bg-red-50/50 dark:bg-red-900/10",
+                          compact ? "h-9" : "h-10"
+                        )}
+                        {...field}
+                      />
+                    </div>
+                  </FormControl>
+                  <FormMessage className="text-xs text-red-500" />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="lastName"
+              render={({ field, fieldState }) => (
+                <FormItem>
+                  <FormLabel className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                    Last Name
+                  </FormLabel>
+                  <FormControl>
+                    <div className="relative group">
+                      <User className={cn(
+                        "absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 transition-colors",
+                        fieldState.error ? "text-red-500" : "text-gray-400 group-focus-within:text-emerald-500"
+                      )} />
+                      <Input
+                        placeholder="Last name"
+                        className={cn(
+                          "pl-10 border-2 transition-colors",
+                          "bg-gray-50/50 hover:bg-white dark:bg-gray-700/50 dark:hover:bg-gray-700",
+                          "border-gray-200 hover:border-gray-300 dark:border-gray-600 dark:hover:border-gray-500",
+                          "focus:border-emerald-500 focus:bg-white dark:focus:bg-gray-700",
+                          fieldState.error && "border-red-500 bg-red-50/50 dark:bg-red-900/10",
+                          compact ? "h-9" : "h-10"
+                        )}
+                        {...field}
+                      />
+                    </div>
+                  </FormControl>
+                  <FormMessage className="text-xs text-red-500" />
+                </FormItem>
+              )}
+            />
+          </div>
+
+          {/* Email Field */}
+          <FormField
+            control={form.control}
+            name="email"
+            render={({ field, fieldState }) => (
+              <FormItem>
+                <FormLabel className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                  Email Address
+                </FormLabel>
+                <FormControl>
+                  <div className="relative group">
+                    <Mail className={cn(
+                      "absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 transition-colors",
+                      fieldState.error ? "text-red-500" : "text-gray-400 group-focus-within:text-blue-500"
+                    )} />
+                    <Input
+                      placeholder="your.email@example.com"
+                      className={cn(
+                        "pl-10 pr-10 border-2 transition-colors",
+                        "bg-gray-50/50 hover:bg-white dark:bg-gray-700/50 dark:hover:bg-gray-700",
+                        "border-gray-200 hover:border-gray-300 dark:border-gray-600 dark:hover:border-gray-500",
+                        "focus:border-blue-500 focus:bg-white dark:focus:bg-gray-700",
+                        fieldState.error && "border-red-500 bg-red-50/50 dark:bg-red-900/10",
+                        compact ? "h-9" : "h-10"
+                      )}
+                      type="email"
+                      autoComplete="email"
+                      {...field}
+                    />
+                    {!fieldState.error && field.value && field.value.includes('@') && (
+                      <CheckCircle2 className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-green-500" />
+                    )}
+                  </div>
+                </FormControl>
+                <FormMessage className="text-xs text-red-500" />
+              </FormItem>
+            )}
+          />
+
+          {/* Password Field */}
+          <FormField
+            control={form.control}
+            name="password"
+            render={({ field, fieldState }) => (
+              <FormItem>
+                <FormLabel className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                  Password
+                </FormLabel>
+                <FormControl>
+                  <div className="relative group">
+                    <Lock className={cn(
+                      "absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 transition-colors",
+                      fieldState.error ? "text-red-500" : "text-gray-400 group-focus-within:text-purple-500"
+                    )} />
+                    <Input
+                      placeholder="Create a strong password"
+                      className={cn(
+                        "pl-10 pr-10 border-2 transition-colors",
+                        "bg-gray-50/50 hover:bg-white dark:bg-gray-700/50 dark:hover:bg-gray-700",
+                        "border-gray-200 hover:border-gray-300 dark:border-gray-600 dark:hover:border-gray-500",
+                        "focus:border-purple-500 focus:bg-white dark:focus:bg-gray-700",
+                        fieldState.error && "border-red-500 bg-red-50/50 dark:bg-red-900/10",
+                        compact ? "h-9" : "h-10"
+                      )}
+                      type={showPassword ? "text" : "password"}
+                      autoComplete="new-password"
+                      {...field}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+                    >
+                      {showPassword ? <EyeOff /> : <Eye />}
+                    </button>
+                  </div>
+                </FormControl>
+                <FormMessage className="text-xs text-red-500" />
+              </FormItem>
+            )}
+          />
+
+          {/* Confirm Password Field */}
+          <FormField
+            control={form.control}
+            name="confirmPassword"
+            render={({ field, fieldState }) => (
+              <FormItem>
+                <FormLabel className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                  Confirm Password
+                </FormLabel>
+                <FormControl>
+                  <div className="relative group">
+                    <Lock className={cn(
+                      "absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 transition-colors",
+                      fieldState.error ? "text-red-500" : "text-gray-400 group-focus-within:text-purple-500"
+                    )} />
+                    <Input
+                      placeholder="Confirm your password"
+                      className={cn(
+                        "pl-10 pr-10 border-2 transition-colors",
+                        "bg-gray-50/50 hover:bg-white dark:bg-gray-700/50 dark:hover:bg-gray-700",
+                        "border-gray-200 hover:border-gray-300 dark:border-gray-600 dark:hover:border-gray-500",
+                        "focus:border-purple-500 focus:bg-white dark:focus:bg-gray-700",
+                        fieldState.error && "border-red-500 bg-red-50/50 dark:bg-red-900/10",
+                        compact ? "h-9" : "h-10"
+                      )}
+                      type={showConfirmPassword ? "text" : "password"}
+                      autoComplete="new-password"
+                      {...field}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+                    >
+                      {showConfirmPassword ? <EyeOff /> : <Eye />}
+                    </button>
+                  </div>
+                </FormControl>
+                <FormMessage className="text-xs text-red-500" />
+              </FormItem>
+            )}
+          />
+
+          {/* Terms Agreement */}
+          <FormField
+            control={form.control}
+            name="agreeToTerms"
+            render={({ field, fieldState }) => (
+              <FormItem className="flex flex-row items-start space-x-3 space-y-0 pt-1">
+                <FormControl>
+                  <Checkbox
+                    checked={field.value}
+                    onCheckedChange={field.onChange}
+                    className={cn(
+                      "mt-0.5",
+                      fieldState.error && "border-red-500"
+                    )}
+                  />
+                </FormControl>
+                <div className="space-y-1 leading-none">
+                  <FormLabel className={cn(
+                    "text-xs font-medium cursor-pointer select-none leading-relaxed",
+                    fieldState.error ? "text-red-500" : "text-gray-700 dark:text-gray-300"
+                  )}>
+                    I agree to the{" "}
+                    <Link href="/terms" className="text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 underline">
+                      Terms of Service
+                    </Link>{" "}
+                    and{" "}
+                    <Link href="/privacy" className="text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 underline">
+                      Privacy Policy
+                    </Link>
+                  </FormLabel>
+                  <FormMessage className="text-xs text-red-500" />
+                </div>
+              </FormItem>
+            )}
+          />
+
+          {/* Submit Button */}
+          <Button
+            type="submit"
+            disabled={isLoading || isGoogleLoading}
+            className={cn(
+              "w-full bg-gradient-to-r from-emerald-600 via-blue-600 to-purple-600",
+              "hover:from-emerald-700 hover:via-blue-700 hover:to-purple-700",
+              "text-white font-medium shadow-md hover:shadow-lg",
+              "transition-all duration-300 hover:scale-[1.02]",
+              "disabled:opacity-60 disabled:cursor-not-allowed disabled:hover:scale-100",
+              compact ? "h-10" : "h-11"
+            )}
+          >
+            {isLoading ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Creating Account...
+              </>
+            ) : (
+              <>
+                <UserPlus className="mr-2 h-4 w-4" />
+                Create Account
+              </>
+            )}
+          </Button>
+        </form>
+      </Form>
+    </div>
   );
 }
