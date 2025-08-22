@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { AuthGuard } from '@/components/auth/auth-guard';
 import { useAuth } from '@/contexts/auth-context';
@@ -120,7 +120,7 @@ export default function AIAssistantPage() {
     }
   }, [selectedModel.id, selectedModel.displayName, selectedModel.icon, selectedModel.description, messages.length]);
 
-  const sendMessage = async () => {
+  const sendMessage = useCallback(async () => {
     if (!input.trim() || isLoading || !user) return;
 
     const userMessage: Message = {
@@ -187,36 +187,36 @@ export default function AIAssistantPage() {
       setIsLoading(false);
       setIsTyping(false);
     }
-  };
+  }, [input, isLoading, user, messages, selectedModel.name]);
 
-  const clearChat = () => {
+  const clearChat = useCallback(() => {
     setMessages([{
       id: generateMessageId(),
       role: 'assistant',
       content: `Chat cleared! 🧹 I'm ready for a fresh conversation. What can I help you with?`,
       timestamp: new Date(),
     }]);
-  };
+  }, []);
 
-  const copyMessage = async (content: string) => {
+  const copyMessage = useCallback(async (content: string) => {
     try {
       await navigator.clipboard.writeText(content);
       showSuccessToast("Copied!", "Message copied to clipboard");
     } catch {
       showErrorToast("Copy Error", "Failed to copy message");
     }
-  };
+  }, []);
 
-  const handleKeyPress = (e: React.KeyboardEvent) => {
+  const handleKeyPress = useCallback((e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
       sendMessage();
     }
-  };
+  }, [sendMessage]);
 
-  const goBackToHome = () => {
+  const goBackToHome = useCallback(() => {
     router.push('/home');
-  };
+  }, [router]);
 
   return (
     <AuthGuard>

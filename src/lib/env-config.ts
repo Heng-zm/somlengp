@@ -21,12 +21,13 @@ export const validateEnvironment = () => {
 export const logEnvironmentStatus = () => {
   const validation = validateEnvironment();
   
-  if (ENV_CONFIG.GEMINI_API_KEY) {
-    console.log('✅ GEMINI API Key is configured (length:', ENV_CONFIG.GEMINI_API_KEY.length, ')');
-  } else {
-    console.error('❌ GEMINI API Key is not configured');
+  if (process.env.NODE_ENV === 'development') {
+    if (ENV_CONFIG.GEMINI_API_KEY) {
+      console.log('✅ GEMINI API Key is configured (length:', ENV_CONFIG.GEMINI_API_KEY.length, ')');
+    } else {
+      console.error('❌ GEMINI API Key is not configured');
+    }
   }
-  
   
   return validation;
 };
