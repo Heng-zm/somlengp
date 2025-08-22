@@ -3,6 +3,7 @@ import type {Metadata, Viewport} from 'next';
 import {Toaster} from '@/components/ui/toaster';
 import './globals.css';
 import { GoogleAnalytics } from '@next/third-parties/google'; // Keep this import
+import { Analytics } from '@vercel/analytics/next';
 import { AppLayout } from '@/layouts/app-layout';
 import { AuthProvider } from '@/contexts/auth-context';
 import { Kantumruy_Pro } from 'next/font/google';
@@ -82,6 +83,7 @@ export default function RootLayout({
           </AppLayout>
         </AuthProvider>
         <Toaster />
+        <Analytics />
 
         {/* This is the correct way to add Google Analytics in Next.js App Router */}
         {/* Only render if GA_ID is set, for development environments or conditional loading */}
