@@ -6,6 +6,7 @@ import { GoogleAnalytics } from '@next/third-parties/google'; // Keep this impor
 import { Analytics } from '@vercel/analytics/next';
 import { AppLayout } from '@/layouts/app-layout';
 import { AuthProvider } from '@/contexts/auth-context';
+import { PerformanceOverlay } from '@/components/shared/performance-dashboard';
 import { Kantumruy_Pro } from 'next/font/google';
 
 const kantumruy = Kantumruy_Pro({
@@ -84,6 +85,7 @@ export default function RootLayout({
         </AuthProvider>
         <Toaster />
         <Analytics />
+        <PerformanceOverlay />
 
         {/* This is the correct way to add Google Analytics in Next.js App Router */}
         {/* Only render if GA_ID is set, for development environments or conditional loading */}
