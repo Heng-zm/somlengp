@@ -1,6 +1,6 @@
 'use client';
 
-import { memo, useCallback, Suspense, lazy, useState, useRef, useEffect } from 'react';
+import { memo, Suspense, lazy, useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
 import { ArrowRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -101,12 +101,6 @@ const OptimizedFeatureCard = memo(function OptimizedFeatureCard({
     }
   }, [isVisible, isLoaded, onLoad]);
 
-  const handleClick = useCallback(() => {
-    // Prefetch the route when user interacts
-    import('next/router').then(({ default: Router }) => {
-      Router.prefetch(href);
-    });
-  }, [href]);
 
   return (
     <div ref={cardRef}>
@@ -122,7 +116,6 @@ const OptimizedFeatureCard = memo(function OptimizedFeatureCard({
               "group focus-visible:ring-2 focus-visible:ring-primary",
               "transform-gpu will-change-transform"
             )}
-            onMouseEnter={handleClick}
           >
             <div className="p-3 bg-secondary rounded-lg border motion-safe:will-change-transform">
               <Icon className="w-6 h-6 text-primary motion-safe:transition-colors motion-safe:group-hover:text-primary" />
