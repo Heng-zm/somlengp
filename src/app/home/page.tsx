@@ -9,6 +9,7 @@ import { allTranslations } from '@/lib/translations';
 import { getPerformanceTracker, DEFAULT_BUDGETS } from '@/lib/performance-tracker';
 import { OptimizedHomeHeader } from '@/components/home/optimized-home-header';
 import { OptimizedFeatureGrid } from '@/components/home/optimized-feature-grid';
+import { Footer } from '@/components/shared/footer';
 
 const VISITOR_SESSION_KEY = 'ozo-designer-session-visited';
 
@@ -176,6 +177,7 @@ const { language, toggleLanguage, theme, toggleTheme } = langContext;
             otherToolsText={t.otherTools}
           />
         </main>
+        <Footer />
       </ScrollArea>
     </div>
   );
