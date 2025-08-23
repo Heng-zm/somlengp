@@ -126,10 +126,15 @@ export const OptimizedHomeHeader = memo(function OptimizedHomeHeader({
   }, [onLanguageToggle]);
 
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b flex items-center justify-between p-3 sm:p-4 md:p-6">
-      <div className="flex items-center gap-2 sm:gap-4 min-w-0 flex-1">
-        <HomeLogo />
-        <div className="flex flex-col gap-1 min-w-0">
+    <header className="fixed top-0 left-0 right-0 z-50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b flex items-center p-3 sm:p-4 md:p-6">
+      {/* Left side - Menu button */}
+      <div className="flex items-center flex-shrink-0">
+        <MobileMenu language={language} onLanguageToggle={handleLanguageToggle} />
+      </div>
+      
+      {/* Center - Title */}
+      <div className="flex items-center justify-center gap-2 sm:gap-4 min-w-0 flex-1">
+        <div className="flex flex-col gap-1 min-w-0 text-center">
           <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-foreground truncate">
             Somleng
           </h1>
@@ -139,6 +144,7 @@ export const OptimizedHomeHeader = memo(function OptimizedHomeHeader({
         </div>
       </div>
       
+      {/* Right side - Auth and Theme toggle */}
       <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
         <div className="flex items-center">
           <Suspense fallback={<div className="w-20 h-8" />}>
@@ -146,7 +152,6 @@ export const OptimizedHomeHeader = memo(function OptimizedHomeHeader({
           </Suspense>
         </div>
         <ThemeToggleButton theme={theme} onToggle={handleThemeToggle} />
-        <MobileMenu language={language} onLanguageToggle={handleLanguageToggle} />
       </div>
     </header>
   );

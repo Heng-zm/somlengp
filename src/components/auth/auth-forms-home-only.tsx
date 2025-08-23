@@ -11,7 +11,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Badge } from "@/components/ui/badge";
-import { LogOut, User, LogIn } from "lucide-react";
+import { LogOut, User, LogIn, UserCheck } from "lucide-react";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 
@@ -180,28 +180,20 @@ export function AuthFormsHomeOnly({ variant = 'default' }: AuthFormsHomeOnlyProp
     <div className="flex items-center gap-2">
       <Link href="/login">
         <Button 
-          variant={variant === 'circle' ? 'ghost' : 'outline'}
-          size={variant === 'circle' ? 'icon' : 'sm'}
+          variant="ghost"
+          size="icon"
           className={cn(
-            "relative overflow-hidden",
-            variant === 'circle' 
-              ? "h-10 w-10 rounded-full p-0 bg-gradient-to-br from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white shadow-lg hover:shadow-xl border-0"
-              : "bg-gradient-to-r from-blue-50 to-purple-50 hover:from-blue-100 hover:to-purple-100 text-gray-700 border border-blue-200 shadow-sm hover:border-blue-300 dark:from-blue-950/30 dark:to-purple-950/30 dark:hover:from-blue-900/40 dark:hover:to-purple-900/40 dark:bg-gray-900 dark:text-gray-200 dark:border-blue-600 dark:hover:bg-gray-800 h-8 px-3 text-xs sm:h-9 sm:px-4 sm:text-sm w-full sm:w-auto group",
-            "transition-all duration-300 hover:shadow-lg hover:scale-[1.02]"
+            "relative overflow-hidden h-7 w-7 rounded-full p-0",
+            "bg-gradient-to-br from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700",
+            "text-white shadow-lg hover:shadow-xl border-0",
+            "transition-all duration-300 hover:scale-[1.05]"
           )}
         >
-          {variant === 'circle' ? (
-            <div className="relative flex items-center justify-center">
-              <LogIn className="h-4 w-4 text-white hover:scale-110 transition-transform duration-300" />
+          <div className="relative flex items-center justify-center">
+            <div className="border border-white/30 rounded-full p-0.5 hover:border-white/50 transition-all duration-300">
+              <User className="h-3 w-3 text-white hover:scale-110 transition-transform duration-300" />
             </div>
-          ) : (
-            <>
-              <div className="bg-gradient-to-br from-blue-500 to-purple-600 rounded-full p-1 mr-1 sm:mr-2 shadow-sm group-hover:shadow-md transition-all duration-300">
-                <LogIn className="h-3 w-3 sm:h-4 sm:w-4 text-white group-hover:scale-110 transition-transform duration-300" />
-              </div>
-              <span className="font-medium bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent group-hover:from-blue-700 group-hover:to-purple-700 transition-all duration-300">Sign in</span>
-            </>
-          )}
+          </div>
         </Button>
       </Link>
     </div>
