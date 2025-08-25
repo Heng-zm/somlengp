@@ -2,7 +2,7 @@
 'use client';
 
 import { useContext, useMemo, useState, useEffect, useCallback } from 'react';
-import { Mic, FileText, Combine, Image as ImageIcon, Wand2, AudioLines, Sparkles } from 'lucide-react';
+import { Mic, FileText, Combine, Image as ImageIcon, Wand2, AudioLines, Sparkles, QrCode } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { LanguageContext } from '@/contexts/language-context';
 import { allTranslations } from '@/lib/translations';
@@ -141,6 +141,7 @@ const { language, toggleLanguage, theme, toggleTheme } = langContext;
     { href: '/ai-assistant', title: 'AI Assistant', description: 'Chat with an intelligent AI assistant powered by Gemini 1.5 Flash for help with any questions or tasks.', icon: Sparkles },
     { href: '/pdf-transcript', title: t.pdfTranscript, description: t.pdfTranscriptDescription, icon: FileText },
     { href: '/text-to-speech', title: 'Text to Speech', description: 'Convert text into natural-sounding speech.', icon: AudioLines },
+    { href: '/generate-qr-code', title: t.generateQrCode, description: t.generateQrCodeDescription, icon: QrCode },
     { href: '/combine-pdf', title: t.combinePdf, description: t.combinePdfDescription, icon: Combine },
     { href: '/image-to-pdf', title: t.imageToPdf, description: t.imageToPdfDescription, icon: ImageIcon },
     { href: '/convert-image-format', title: t.convertImageFormat, description: t.convertImageFormatDescription, icon: Wand2 },

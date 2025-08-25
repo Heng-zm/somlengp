@@ -4,7 +4,7 @@
 import { useContext, useMemo, memo } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Languages, FileText, LifeBuoy, Mic, Combine, Image as ImageIcon, Wand2, FileHeart, AudioLines, Sun, Moon, History, ArrowRight, Home, Bot } from 'lucide-react';
+import { Languages, FileText, LifeBuoy, Mic, Combine, Image as ImageIcon, Wand2, FileHeart, AudioLines, Sun, Moon, History, ArrowRight, Home, Bot, QrCode } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { allTranslations } from '@/lib/translations';
@@ -32,6 +32,7 @@ export const Sidebar = memo(function Sidebar({ language, toggleLanguage }: { lan
     { href: '/ai-assistant', label: "AI Assistant", icon: Bot, premium: true },
     { href: '/voice-transcript', label: t.voiceScribe, icon: Mic },
     { href: '/text-to-speech', label: "Text to Speech", icon: AudioLines },
+    { href: '/generate-qr-code', label: "Generate QR Code", icon: QrCode },
     { href: '/pdf-transcript', label: t.pdfTranscript, icon: FileText },
     { href: '/combine-pdf', label: t.combinePdf, icon: Combine },
     { href: '/image-to-pdf', label: t.imageToPdf, icon: ImageIcon },
