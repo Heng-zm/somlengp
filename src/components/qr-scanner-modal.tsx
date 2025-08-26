@@ -57,10 +57,9 @@ export function QRScannerModal({ isOpen, onClose, onScanResult }: QRScannerModal
     }
   }, []);
 
-  // Check camera availability and auto-start camera
+  // Check camera availability and auto-start camera immediately when modal opens
   useEffect(() => {
     let mounted = true;
-    let timeoutId: NodeJS.Timeout | null = null;
     
     const checkCameraAndStart = async () => {
       if (!mounted) return;
@@ -95,12 +94,11 @@ export function QRScannerModal({ isOpen, onClose, onScanResult }: QRScannerModal
         if (cameras.length > 0) {
           setHasCamera(true);
           debug += '- Camera available via device enumeration\n';
-          // Auto-start camera when drawer opens
-          timeoutId = setTimeout(() => {
-            if (mounted && isOpen && !isInitializing) {
-              startCamera();
-            }
-          }, 500);
+          // Auto-start camera IMMEDIATELY when drawer opens and camera is available
+          if (mounted && isOpen && !isCameraActive) {
+            console.log('Auto-starting camera after device enumeration...');
+            startCamera();
+          }
         } else {
           debug += '- No cameras found in enumeration, trying test stream...\n';
           // Sometimes enumeration doesn't work without permission
@@ -112,12 +110,11 @@ export function QRScannerModal({ isOpen, onClose, onScanResult }: QRScannerModal
               setHasCamera(true);
               debug += '- Camera available via test stream\n';
               console.log('Camera available via test stream');
-              // Auto-start camera when drawer opens
-              timeoutId = setTimeout(() => {
-                if (mounted && isOpen && !isInitializing) {
-                  startCamera();
-                }
-              }, 500);
+              // Auto-start camera IMMEDIATELY when drawer opens and camera is available
+              if (mounted && isOpen && !isCameraActive) {
+                console.log('Auto-starting camera after test stream...');
+                startCamera();
+              }
             }
           } catch (testError) {
             if (mounted) {
@@ -168,26 +165,25 @@ export function QRScannerModal({ isOpen, onClose, onScanResult }: QRScannerModal
     
     return () => {
       mounted = false;
-      if (timeoutId) {
-        clearTimeout(timeoutId);
-      }
       // Additional cleanup on unmount
       if (scanningRef.current) {
         cancelAnimationFrame(scanningRef.current);
         scanningRef.current = null;
       }
     };
-  }, [isOpen, isInitializing, stream]);
+  }, [isOpen, isCameraActive]);
 
   const startCamera = useCallback(async () => {
-    // Prevent race conditions with ref-based check
-    if (initializationRef.current || isCameraActive || !mountedRef.current) {
-      console.log('Camera already starting or active, or component unmounted, skipping...');
+    // Simple check to prevent double initialization
+    if (isCameraActive || !mountedRef.current) {
+      console.log('Camera already active or component unmounted, skipping...', {
+        isCameraActive,
+        mountedRef: mountedRef.current
+      });
       return;
     }
     
     try {
-      initializationRef.current = true;
       setIsInitializing(true);
       console.log('Starting camera...');
       
@@ -288,7 +284,6 @@ export function QRScannerModal({ isOpen, onClose, onScanResult }: QRScannerModal
           if (mountedRef.current) {
             setIsScanning(true);
             setIsInitializing(false);
-            initializationRef.current = false;
             setTimeout(() => {
               if (isOpen && mountedRef.current) {
                 // Use a ref to get the latest scanQRCode function
@@ -489,7 +484,6 @@ export function QRScannerModal({ isOpen, onClose, onScanResult }: QRScannerModal
     setIsScanning(false);
     setFlashlightOn(false);
     setIsInitializing(false);
-    initializationRef.current = false;
   }, [stream]);
 
   const toggleFlashlight = async () => {
