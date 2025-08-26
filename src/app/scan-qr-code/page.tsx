@@ -1,31 +1,17 @@
 'use client';
 
-import React, { useState, useRef, useContext, useCallback, useEffect } from 'react';
+import React, { useState, useContext } from 'react';
 import Link from 'next/link';
-import { Camera, Upload, QrCode, Copy, ExternalLink, X, ScanLine } from 'lucide-react';
+import { QrCode, Copy, ExternalLink, X, ScanLine } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Label } from '@/components/ui/label';
 import { LanguageContext } from '@/contexts/language-context';
 import { useToast } from '@/hooks/use-toast';
 import { FeaturePageLayout } from '@/layouts/feature-page-layout';
-
-// QR code scanning library - we'll use jsqr for client-side scanning
-declare global {
-  interface Window {
-    jsQR: (data: Uint8ClampedArray, width: number, height: number) => { data: string } | null;
-  }
-}
+import { QRScannerModal } from '@/components/qr-scanner-modal';
 
 export default function ScanQRCodePage() {
   const [scannedData, setScannedData] = useState('');
-  const [isScanning, setIsScanning] = useState(false);
-  const [hasCamera, setHasCamera] = useState(false);
-  const [stream, setStream] = useState<MediaStream | null>(null);
-  const [isCameraActive, setIsCameraActive] = useState(false);
-  const [isFullscreenScan, setIsFullscreenScan] = useState(false);
-  const videoRef = useRef<HTMLVideoElement>(null);
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const { toast } = useToast();
   
   const langContext = useContext(LanguageContext);
@@ -36,166 +22,16 @@ export default function ScanQRCodePage() {
   // const { language } = langContext;
   // const t = allTranslations[language]; // Uncomment when translations are needed
 
-  // Load jsQR library
-  useEffect(() => {
-    const script = document.createElement('script');
-    script.src = 'https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js';
-    script.async = true;
-    document.head.appendChild(script);
-    
-    return () => {
-      document.head.removeChild(script);
-    };
-  }, []);
-
-  // Check camera availability
-  useEffect(() => {
-    const checkCamera = async () => {
-      try {
-        const devices = await navigator.mediaDevices.enumerateDevices();
-        const cameras = devices.filter(device => device.kind === 'videoinput');
-        setHasCamera(cameras.length > 0);
-      } catch (error) {
-        console.error('Error checking camera:', error);
-        setHasCamera(false);
-      }
-    };
-
-    if (navigator.mediaDevices) {
-      checkCamera();
-    }
-  }, []);
-
-  const startCamera = async () => {
-    try {
-      const mediaStream = await navigator.mediaDevices.getUserMedia({
-        video: { 
-          facingMode: 'environment', // Prefer back camera
-          width: { ideal: 1280 },
-          height: { ideal: 720 }
-        }
-      });
-      
-      setStream(mediaStream);
-      setIsCameraActive(true);
-      setIsFullscreenScan(true);
-      
-      if (videoRef.current) {
-        videoRef.current.srcObject = mediaStream;
-        videoRef.current.play();
-        
-        // Start scanning
-        setIsScanning(true);
-        scanQRCode();
-      }
-      
-      toast({
-        title: "Camera Started",
-        description: "Point your camera at a QR code to scan",
-      });
-    } catch (error) {
-      console.error('Error starting camera:', error);
-      toast({
-        title: "Camera Error",
-        description: "Could not access camera. Please check permissions.",
-        variant: "destructive",
-      });
-    }
+  const openModal = () => {
+    setIsModalOpen(true);
   };
 
-  const stopCamera = useCallback(() => {
-    if (stream) {
-      stream.getTracks().forEach(track => track.stop());
-      setStream(null);
-    }
-    setIsCameraActive(false);
-    setIsScanning(false);
-    setIsFullscreenScan(false);
-  }, [stream]);
+  const closeModal = () => {
+    setIsModalOpen(false);
+  };
 
-  const scanQRCode = useCallback(() => {
-    if (!isScanning || !videoRef.current || !canvasRef.current || !window.jsQR) {
-      return;
-    }
-
-    const video = videoRef.current;
-    const canvas = canvasRef.current;
-    const context = canvas.getContext('2d');
-
-    if (video.readyState === video.HAVE_ENOUGH_DATA && context) {
-      canvas.width = video.videoWidth;
-      canvas.height = video.videoHeight;
-      context.drawImage(video, 0, 0, canvas.width, canvas.height);
-      
-      const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
-      const code = window.jsQR(imageData.data, imageData.width, imageData.height);
-      
-      if (code) {
-        setScannedData(code.data);
-        setIsScanning(false);
-        stopCamera();
-        
-        toast({
-          title: "QR Code Detected!",
-          description: "Successfully scanned QR code",
-        });
-        return;
-      }
-    }
-
-    if (isScanning) {
-      requestAnimationFrame(scanQRCode);
-    }
-  }, [isScanning, toast, stopCamera]);
-
-  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
-
-    if (!file.type.startsWith('image/')) {
-      toast({
-        title: "Invalid File",
-        description: "Please select an image file",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      const img = document.createElement('img');
-      img.onload = () => {
-        if (!canvasRef.current || !window.jsQR) return;
-        
-        const canvas = canvasRef.current;
-        const context = canvas.getContext('2d');
-        
-        if (context) {
-          canvas.width = img.width;
-          canvas.height = img.height;
-          context.drawImage(img, 0, 0);
-          
-          const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
-          const code = window.jsQR(imageData.data, imageData.width, imageData.height);
-          
-          if (code) {
-            setScannedData(code.data);
-            toast({
-              title: "QR Code Found!",
-              description: "Successfully extracted QR code from image",
-            });
-          } else {
-            toast({
-              title: "No QR Code Found",
-              description: "Could not detect a QR code in this image",
-              variant: "destructive",
-            });
-          }
-        }
-      };
-      img.src = e.target?.result as string;
-    };
-    reader.readAsDataURL(file);
+  const handleScanResult = (data: string) => {
+    setScannedData(data);
   };
 
   const copyToClipboard = async () => {
@@ -271,84 +107,21 @@ export default function ScanQRCodePage() {
                   </p>
                 </div>
 
-                {/* Camera Section */}
-                {isCameraActive ? (
-                  <div className="space-y-4">
-                    <div className="relative bg-black rounded-2xl overflow-hidden">
-                      <video
-                        ref={videoRef}
-                        className="w-full h-64 object-cover rounded-2xl"
-                        autoPlay
-                        playsInline
-                        muted
-                      />
-                      {isScanning && (
-                        <div className="absolute inset-0 flex items-center justify-center">
-                          <div className="w-48 h-48 border-2 border-blue-500 rounded-lg animate-pulse">
-                            <div className="absolute inset-2 border border-blue-300/50 rounded-lg animate-pulse" style={{ animationDelay: '0.5s' }} />
-                            <ScanLine className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-blue-400 h-8 w-8 animate-bounce" />
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                    
-                    <Button
-                      onClick={stopCamera}
-                      variant="outline"
-                      className="w-full h-12 border-2 border-red-200 hover:border-red-300 hover:bg-red-50 rounded-2xl transition-all duration-200"
-                    >
-                      <X className="h-4 w-4 mr-2 text-red-600" />
-                      <span className="font-medium text-red-700">Stop Camera</span>
-                    </Button>
+                {/* Scan Button */}
+                <div className="space-y-4">
+                  <Button
+                    onClick={openModal}
+                    className="w-full h-16 text-lg font-semibold bg-gradient-to-r from-blue-500 via-purple-500 to-indigo-600 hover:from-blue-600 hover:via-purple-600 hover:to-indigo-700 text-white rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:scale-[1.02]"
+                  >
+                    <ScanLine className="h-6 w-6 mr-3" />
+                    📷 Start QR Scan
+                  </Button>
+                  
+                  <div className="bg-blue-50/50 border border-blue-200 rounded-2xl p-4 text-center">
+                    <p className="text-blue-700 font-medium">✨ Tap the button above to open scanner</p>
+                    <p className="text-blue-600 text-sm mt-1">Camera, flashlight, and upload options available</p>
                   </div>
-                ) : (
-                  <div className="space-y-4">
-                    {/* Camera Button */}
-                    {hasCamera && (
-                      <Button
-                        onClick={startCamera}
-                        className="w-full h-14 text-lg font-semibold bg-gradient-to-r from-blue-500 via-purple-500 to-indigo-600 hover:from-blue-600 hover:via-purple-600 hover:to-indigo-700 text-white rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:scale-[1.02]"
-                      >
-                        <Camera className="h-5 w-5 mr-3" />
-                        📷 Start Camera Scan
-                      </Button>
-                    )}
-                    
-                    {/* File Upload */}
-                    <div className="space-y-3">
-                      <Label className="text-base font-semibold text-gray-800 flex items-center gap-2">
-                        <span className="w-2 h-2 bg-green-500 rounded-full"></span>
-                        Upload Image
-                      </Label>
-                      
-                      <div
-                        onClick={() => fileInputRef.current?.click()}
-                        className="w-full h-32 border-2 border-dashed border-gray-300 hover:border-blue-400 rounded-2xl bg-gray-50/50 hover:bg-blue-50/50 transition-all duration-300 cursor-pointer flex flex-col items-center justify-center gap-3"
-                      >
-                        <Upload className="h-8 w-8 text-gray-400" />
-                        <div className="text-center">
-                          <p className="text-gray-600 font-medium">Click to upload image</p>
-                          <p className="text-gray-400 text-sm">PNG, JPG, GIF up to 10MB</p>
-                        </div>
-                      </div>
-                      
-                      <input
-                        ref={fileInputRef}
-                        type="file"
-                        accept="image/*"
-                        onChange={handleFileUpload}
-                        className="hidden"
-                      />
-                    </div>
-                  </div>
-                )}
-                
-                {!hasCamera && (
-                  <div className="bg-yellow-50 border border-yellow-200 rounded-2xl p-4 text-center">
-                    <p className="text-yellow-700 font-medium">📱 Camera not available</p>
-                    <p className="text-yellow-600 text-sm mt-1">You can still upload images to scan QR codes</p>
-                  </div>
-                )}
+                </div>
               </div>
             </div>
 
@@ -456,104 +229,13 @@ export default function ScanQRCodePage() {
           </div>
         </div>
         
-        {/* Hidden canvas for QR processing */}
-        <canvas ref={canvasRef} className="hidden" />
-        
-        {/* Fullscreen Scanning UI */}
-        {isFullscreenScan && (
-          <div className="fixed inset-0 z-50 bg-black">
-            {/* Fullscreen Video */}
-            <video
-              ref={videoRef}
-              className="absolute inset-0 w-full h-full object-cover"
-              autoPlay
-              playsInline
-              muted
-            />
-            
-            {/* Overlay with scanning frame */}
-            <div className="absolute inset-0 flex items-center justify-center">
-              {/* Dark overlay with transparent center */}
-              <div className="absolute inset-0 bg-black/60" />
-              
-              {/* Scanning frame container */}
-              <div className="relative z-10">
-                {/* Main scanning square */}
-                <div className="w-72 h-72 relative">
-                  {/* Transparent center area */}
-                  <div className="w-full h-full border-2 border-white/30 rounded-2xl" />
-                  
-                  {/* Corner brackets */}
-                  <div className="absolute -top-1 -left-1 w-8 h-8 border-t-4 border-l-4 border-white rounded-tl-xl" />
-                  <div className="absolute -top-1 -right-1 w-8 h-8 border-t-4 border-r-4 border-white rounded-tr-xl" />
-                  <div className="absolute -bottom-1 -left-1 w-8 h-8 border-b-4 border-l-4 border-white rounded-bl-xl" />
-                  <div className="absolute -bottom-1 -right-1 w-8 h-8 border-b-4 border-r-4 border-white rounded-br-xl" />
-                  
-                  {/* Animated scanning line */}
-                  {isScanning && (
-                    <div className="absolute inset-0 flex items-center justify-center overflow-hidden rounded-2xl">
-                      <div className="w-full h-1 bg-gradient-to-r from-transparent via-blue-400 to-transparent animate-pulse" 
-                           style={{
-                             animation: 'scanline 2s ease-in-out infinite'
-                           }} />
-                    </div>
-                  )}
-                  
-                  {/* Center crosshair */}
-                  <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
-                    <div className="w-6 h-6 border-2 border-white rounded-full opacity-60">
-                      <div className="absolute top-1/2 left-1/2 w-2 h-2 bg-white rounded-full transform -translate-x-1/2 -translate-y-1/2" />
-                    </div>
-                  </div>
-                </div>
-                
-                {/* Instructions */}
-                <div className="text-center mt-8 space-y-3">
-                  <h2 className="text-2xl font-bold text-white drop-shadow-lg">
-                    Scan QR Code
-                  </h2>
-                  <p className="text-white/80 text-lg drop-shadow-md">
-                    Position the QR code within the frame
-                  </p>
-                  <div className="flex items-center justify-center gap-2">
-                    <div className="w-2 h-2 bg-blue-400 rounded-full animate-bounce" style={{animationDelay: '0ms'}} />
-                    <div className="w-2 h-2 bg-blue-400 rounded-full animate-bounce" style={{animationDelay: '200ms'}} />
-                    <div className="w-2 h-2 bg-blue-400 rounded-full animate-bounce" style={{animationDelay: '400ms'}} />
-                  </div>
-                </div>
-              </div>
-            </div>
-            
-            {/* Close button */}
-            <button
-              onClick={stopCamera}
-              className="absolute top-6 right-6 z-20 w-12 h-12 bg-black/50 hover:bg-black/70 text-white rounded-full flex items-center justify-center transition-colors"
-            >
-              <X className="h-6 w-6" />
-            </button>
-            
-            {/* Bottom actions */}
-            <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 z-20">
-              <button
-                onClick={() => fileInputRef.current?.click()}
-                className="bg-white/20 hover:bg-white/30 text-white px-6 py-3 rounded-full backdrop-blur-md transition-colors flex items-center gap-2"
-              >
-                <Upload className="h-5 w-5" />
-                Upload Image
-              </button>
-            </div>
-          </div>
-        )}
+        {/* QR Scanner Modal */}
+        <QRScannerModal 
+          isOpen={isModalOpen}
+          onClose={closeModal}
+          onScanResult={handleScanResult}
+        />
       </div>
-      
-      {/* CSS for scanning animation */}
-      <style jsx global>{`
-        @keyframes scanline {
-          0% { transform: translateY(-100%); }
-          50% { transform: translateY(0%); }
-          100% { transform: translateY(100%); }
-        }
-      `}</style>
     </FeaturePageLayout>
   );
 }
