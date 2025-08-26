@@ -23,8 +23,9 @@ export const logEnvironmentStatus = () => {
   
   if (process.env.NODE_ENV === 'development') {
     if (ENV_CONFIG.GEMINI_API_KEY) {
-      console.log('✅ GEMINI API Key is configured (length:', ENV_CONFIG.GEMINI_API_KEY.length, ')');
+      // Removed console.log for production
     } else {
+      // Log errors are still shown in production for critical issues
       console.error('❌ GEMINI API Key is not configured');
     }
   }

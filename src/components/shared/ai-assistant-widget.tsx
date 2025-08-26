@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef, useCallback, memo } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/auth-context';
 import { Button } from '@/components/ui/button';
@@ -44,7 +44,7 @@ interface AIAssistantWidgetProps {
   variant?: 'compact' | 'expanded';
 }
 
-export function AIAssistantWidget({ className, variant = 'compact' }: AIAssistantWidgetProps) {
+export const AIAssistantWidget = memo(function AIAssistantWidget({ className, variant = 'compact' }: AIAssistantWidgetProps) {
   const { user } = useAuth();
   const router = useRouter();
   
@@ -369,8 +369,8 @@ export function AIAssistantWidget({ className, variant = 'compact' }: AIAssistan
                   <div className="bg-gray-100 dark:bg-gray-800 rounded-lg p-2">
                     <div className="flex space-x-1">
                       <div className="w-1 h-1 bg-gray-400 rounded-full animate-bounce" />
-                      <div className="w-1 h-1 bg-gray-400 rounded-full animate-bounce" style={{animationDelay: '0.1s'}} />
-                      <div className="w-1 h-1 bg-gray-400 rounded-full animate-bounce" style={{animationDelay: '0.2s'}} />
+                      <div className="w-1 h-1 bg-gray-400 rounded-full animate-bounce [animation-delay:0.1s]" />
+                      <div className="w-1 h-1 bg-gray-400 rounded-full animate-bounce [animation-delay:0.2s]" />
                     </div>
                   </div>
                 </motion.div>
@@ -416,4 +416,4 @@ export function AIAssistantWidget({ className, variant = 'compact' }: AIAssistan
       </Card>
     </motion.div>
   );
-}
+});

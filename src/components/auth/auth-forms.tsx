@@ -1,5 +1,6 @@
 "use client";
 
+import { memo } from 'react';
 import { LoginForm } from "./login-form";
 import { useAuth } from "@/contexts/auth-context";
 import { Button } from "@/components/ui/button";
@@ -20,7 +21,7 @@ interface AuthFormsProps {
   variant?: 'default' | 'circle';
 }
 
-export function AuthForms({ variant = 'default' }: AuthFormsProps) {
+export const AuthForms = memo(function AuthForms({ variant = 'default' }: AuthFormsProps) {
   const { user, loading, logout } = useAuth();
 
   // Loading state
@@ -182,4 +183,4 @@ export function AuthForms({ variant = 'default' }: AuthFormsProps) {
       <LoginForm />
     </div>
   );
-}
+});

@@ -63,9 +63,7 @@ export const PerformanceWrapper = React.memo<PerformanceWrapperProps>(function P
   const { renderCount } = usePerformanceMonitor(name);
   
   // Log renders in development with logRenders flag
-  if (logRenders && process.env.NODE_ENV === 'development') {
-    console.log(`🔄 ${name} rendered (render #${renderCount})`);
-  }
+  // Removed console.log for production
   
   return <>{children}</>;
 });

@@ -221,11 +221,15 @@ class PerformanceTracker implements IPerformanceTracker {
   }
 
   private logVital(vital: WebVital) {
-    const color = this.getVitalColor(vital);
-    console.log(
-      `%c${vital.name}: ${Math.round(vital.value * 100) / 100}ms`,
-      `color: ${color}; font-weight: bold;`
-    );
+    // Performance logging removed for production
+    // Metrics are still tracked and available via getPerformanceData()
+    if (process.env.NODE_ENV === 'development') {
+      const color = this.getVitalColor(vital);
+      console.log(
+        `%c${vital.name}: ${Math.round(vital.value * 100) / 100}ms`,
+        `color: ${color}; font-weight: bold;`
+      );
+    }
   }
 
   private getVitalColor(vital: WebVital): string {

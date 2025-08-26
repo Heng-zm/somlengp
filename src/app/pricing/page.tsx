@@ -1,6 +1,7 @@
 'use client'
 
 import Link from 'next/link'
+import Image from 'next/image'
 import { useState } from 'react'
 import { ArrowRight, Check, Star, Sparkles, Zap, Crown, Users, Shield } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -381,9 +382,11 @@ export default function PricingPage() {
                     &quot;{testimonial.content}&quot;
                   </blockquote>
                   <div className="flex items-center">
-                    <img 
+                    <Image 
                       src={testimonial.avatar} 
                       alt={testimonial.name}
+                      width={40}
+                      height={40}
                       className="w-10 h-10 rounded-full mr-4"
                     />
                     <div>

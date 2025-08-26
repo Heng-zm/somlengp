@@ -11,7 +11,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Badge } from "@/components/ui/badge";
-import { LogOut, User, LogIn, UserCheck } from "lucide-react";
+import { LogOut, User } from "lucide-react";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 

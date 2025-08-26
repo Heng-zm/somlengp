@@ -24,23 +24,6 @@ interface HomeHeaderProps {
   onLanguageToggle: () => void;
 }
 
-// Memoized logo component
-const HomeLogo = memo(function HomeLogo() {
-  return (
-    <OptimizedImage 
-      src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRfXQ6IUyl8D8fpZl8p9BvXg-PCxKPa-1vOp0oPC2-uKH-H_M1T" 
-      alt="Somleng logo" 
-      width={32} 
-      height={32} 
-      priority
-      quality={90}
-      placeholder="blur"
-      blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAABAAEDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAhEAACAQMDBQAAAAAAAAAAAAABAgMABAUGIWGRkqGx0f/EABUBAQEAAAAAAAAAAAAAAAAAAAMF/8QAGhEAAgIDAAAAAAAAAAAAAAAAAAECEgMRkf/aAAwDAQACEQMRAD8AltJagyeH0AthI5xdrLcNM91BF5pX2HaH9bcfaSXWGaRmknyJckliyjqTzSlT54b6bk+h0R//2Q=="
-      data-ai-hint="logo" 
-      className="rounded-full flex-shrink-0 transition-opacity duration-200" 
-    />
-  );
-});
 
 // Memoized visitor count display
 const VisitorCount = memo(function VisitorCount({ count }: { count: number | null }) {

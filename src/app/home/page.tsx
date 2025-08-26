@@ -55,13 +55,16 @@ const { language, toggleLanguage, theme, toggleTheme } = langContext;
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), 5000);
         
-        const response = await fetch('/api/visit', { 
+        // Memoized request options to prevent re-renders
+        const requestOptions = {
           method: isIncrement ? 'POST' : 'GET',
           signal: controller.signal,
           headers: {
             'Cache-Control': 'no-cache',
           }
-        });
+        };
+        
+        const response = await fetch('/api/visit', requestOptions);
         
         clearTimeout(timeoutId);
         
