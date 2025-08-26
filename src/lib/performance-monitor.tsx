@@ -57,13 +57,9 @@ interface PerformanceWrapperProps {
 
 export const PerformanceWrapper = React.memo<PerformanceWrapperProps>(function PerformanceWrapper({ 
   name, 
-  children, 
-  logRenders = false 
+  children 
 }) {
-  const { renderCount } = usePerformanceMonitor(name);
-  
-  // Log renders in development with logRenders flag
-  // Removed console.log for production
+  usePerformanceMonitor(name);
   
   return <>{children}</>;
 });

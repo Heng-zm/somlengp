@@ -1,17 +1,16 @@
 'use client';
 
-import React, { useState, useRef, useContext, useMemo, useCallback } from 'react';
+import React, { useState, useRef, useContext, useCallback } from 'react';
 import Image from 'next/image';
-import { Download, Copy, QrCode, Share2, Palette } from 'lucide-react';
+import Link from 'next/link';
+import { Download, Copy, QrCode, Share2, ScanLine } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { LanguageContext } from '@/contexts/language-context';
-import { allTranslations } from '@/lib/translations';
 import { useToast } from '@/hooks/use-toast';
 import { FeaturePageLayout } from '@/layouts/feature-page-layout';
 import QRCodeLib from 'qrcode';
@@ -33,49 +32,6 @@ export default function GenerateQRCodePage() {
     throw new Error('GenerateQRCodePage must be used within a LanguageProvider');
   }
   
-  const { language } = langContext;
-  const t = allTranslations[language];
-
-  // Memoized toast configurations to prevent re-renders
-  const toastConfigs = useMemo(() => ({
-    error: {
-      title: "Error",
-      description: "Please enter text or URL to generate QR code",
-      variant: "destructive" as const,
-    },
-    success: {
-      title: "Success",
-      description: "QR code generated successfully!",
-    },
-    generateError: {
-      title: "Error",
-      description: "Failed to generate QR code. Please try again.",
-      variant: "destructive" as const,
-    },
-    downloaded: {
-      title: "Downloaded",
-      description: "QR code saved as qr-code.png",
-    },
-    copied: {
-      title: "Copied",
-      description: "QR code copied to clipboard",
-    },
-    copyError: {
-      title: "Error",
-      description: "Failed to copy QR code to clipboard",
-      variant: "destructive" as const,
-    },
-    shareError: {
-      title: "Error",
-      description: "Sharing not supported on this device",
-      variant: "destructive" as const,
-    },
-    shareError2: {
-      title: "Error",
-      description: "Failed to share QR code",
-      variant: "destructive" as const,
-    }
-  }), []);
 
   const generateQRCode = useCallback(async () => {
     if (!inputText.trim()) {
@@ -203,6 +159,27 @@ export default function GenerateQRCodePage() {
     <FeaturePageLayout title="QR Code Generator">
       <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-purple-50/30">
         <div className="container mx-auto px-4 py-8 max-w-6xl">
+          
+          {/* Navigation Buttons */}
+          <div className="flex justify-center gap-4 mb-8">
+            <Button 
+              className="bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white px-8 py-3 rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105 font-semibold text-lg"
+              disabled
+            >
+              <QrCode className="h-5 w-5 mr-2" />
+              CREATE QR
+            </Button>
+            
+            <Link href="/scan-qr-code">
+              <Button 
+                variant="outline"
+                className="border-2 border-blue-500 text-blue-600 hover:bg-blue-50 px-8 py-3 rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105 font-semibold text-lg"
+              >
+                <ScanLine className="h-5 w-5 mr-2" />
+                SCAN QR
+              </Button>
+            </Link>
+          </div>
 
         <div className="grid gap-8 lg:grid-cols-2">
           {/* Input Section */}

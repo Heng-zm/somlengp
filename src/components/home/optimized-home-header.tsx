@@ -4,7 +4,6 @@ import { memo, useCallback, Suspense, lazy } from 'react';
 import { Sun, Moon, Menu, Users } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
-import { OptimizedImage } from '@/components/shared/optimized-image';
 import type { Language } from '@/lib/translations';
 
 // Lazy load sheet components
