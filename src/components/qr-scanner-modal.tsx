@@ -5,6 +5,7 @@ import { Camera, Upload, Flashlight, FlashlightOff, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { useToast } from '@/hooks/use-toast';
+import { QRResultDrawer } from '@/components/qr-result-drawer';
 
 // QR code scanning library - we'll use jsqr for client-side scanning
 declare global {
@@ -17,7 +18,7 @@ declare global {
 interface QRScannerModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onScanResult: (data: string) => void;
+  onScanResult?: (data: string) => void;
 }
 
 export function QRScannerModal({ isOpen, onClose, onScanResult }: QRScannerModalProps) {
@@ -28,10 +29,16 @@ export function QRScannerModal({ isOpen, onClose, onScanResult }: QRScannerModal
   const [hasCamera, setHasCamera] = useState(false);
   const [debugInfo, setDebugInfo] = useState('');
   const [showDebug, setShowDebug] = useState(false);
+  const [scannedResult, setScannedResult] = useState('');
+  const [showResultDrawer, setShowResultDrawer] = useState(false);
+  const [isInitializing, setIsInitializing] = useState(false);
   
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const scanningRef = useRef<number | null>(null);
+  const initializationRef = useRef<boolean>(false);
+  const mountedRef = useRef<boolean>(true);
   const { toast } = useToast();
 
   // Load jsQR library
@@ -50,9 +57,14 @@ export function QRScannerModal({ isOpen, onClose, onScanResult }: QRScannerModal
     }
   }, []);
 
-  // Check camera availability
+  // Check camera availability and auto-start camera
   useEffect(() => {
-    const checkCamera = async () => {
+    let mounted = true;
+    let timeoutId: NodeJS.Timeout | null = null;
+    
+    const checkCameraAndStart = async () => {
+      if (!mounted) return;
+      
       let debug = 'Camera Check Debug Info:\n';
       
       try {
@@ -62,8 +74,10 @@ export function QRScannerModal({ isOpen, onClose, onScanResult }: QRScannerModal
         if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
           debug += '- MediaDevices API not supported\n';
           console.log('MediaDevices API not supported');
-          setHasCamera(false);
-          setDebugInfo(debug);
+          if (mounted) {
+            setHasCamera(false);
+            setDebugInfo(debug);
+          }
           return;
         }
         
@@ -76,9 +90,17 @@ export function QRScannerModal({ isOpen, onClose, onScanResult }: QRScannerModal
         debug += `- Devices: ${JSON.stringify(cameras.map(c => ({ label: c.label, deviceId: c.deviceId })), null, 2)}\n`;
         console.log('Found cameras:', cameras);
         
+        if (!mounted) return;
+        
         if (cameras.length > 0) {
           setHasCamera(true);
           debug += '- Camera available via device enumeration\n';
+          // Auto-start camera when drawer opens
+          timeoutId = setTimeout(() => {
+            if (mounted && isOpen && !isInitializing) {
+              startCamera();
+            }
+          }, 500);
         } else {
           debug += '- No cameras found in enumeration, trying test stream...\n';
           // Sometimes enumeration doesn't work without permission
@@ -86,33 +108,93 @@ export function QRScannerModal({ isOpen, onClose, onScanResult }: QRScannerModal
           try {
             const testStream = await navigator.mediaDevices.getUserMedia({ video: true });
             testStream.getTracks().forEach(track => track.stop());
-            setHasCamera(true);
-            debug += '- Camera available via test stream\n';
-            console.log('Camera available via test stream');
+            if (mounted) {
+              setHasCamera(true);
+              debug += '- Camera available via test stream\n';
+              console.log('Camera available via test stream');
+              // Auto-start camera when drawer opens
+              timeoutId = setTimeout(() => {
+                if (mounted && isOpen && !isInitializing) {
+                  startCamera();
+                }
+              }, 500);
+            }
           } catch (testError) {
-            setHasCamera(false);
-            debug += `- Test stream failed: ${testError}\n`;
-            console.log('No camera available');
+            if (mounted) {
+              setHasCamera(false);
+              debug += `- Test stream failed: ${testError}\n`;
+              console.log('No camera available');
+            }
           }
         }
         
-        setDebugInfo(debug);
+        if (mounted) {
+          setDebugInfo(debug);
+        }
       } catch (error) {
         debug += `- Error checking camera: ${error}\n`;
         console.error('Error checking camera:', error);
-        setHasCamera(false);
-        setDebugInfo(debug);
+        if (mounted) {
+          setHasCamera(false);
+          setDebugInfo(debug);
+        }
       }
     };
 
     if (isOpen) {
-      checkCamera();
+      checkCameraAndStart();
+    } else {
+      // Stop camera when modal closes
+      if (stream) {
+        console.log('Stopping camera on modal close...');
+        stream.getTracks().forEach(track => {
+          try {
+            track.stop();
+          } catch (error) {
+            console.error('Error stopping track:', error);
+          }
+        });
+        setStream(null);
+      }
+      if (scanningRef.current) {
+        cancelAnimationFrame(scanningRef.current);
+        scanningRef.current = null;
+      }
+      setIsCameraActive(false);
+      setIsScanning(false);
+      setFlashlightOn(false);
+      setIsInitializing(false);
     }
-  }, [isOpen]);
+    
+    return () => {
+      mounted = false;
+      if (timeoutId) {
+        clearTimeout(timeoutId);
+      }
+      // Additional cleanup on unmount
+      if (scanningRef.current) {
+        cancelAnimationFrame(scanningRef.current);
+        scanningRef.current = null;
+      }
+    };
+  }, [isOpen, isInitializing, stream]);
 
-  const startCamera = async () => {
+  const startCamera = useCallback(async () => {
+    // Prevent race conditions with ref-based check
+    if (initializationRef.current || isCameraActive || !mountedRef.current) {
+      console.log('Camera already starting or active, or component unmounted, skipping...');
+      return;
+    }
+    
     try {
+      initializationRef.current = true;
+      setIsInitializing(true);
       console.log('Starting camera...');
+      
+      // Double check if component is still mounted
+      if (!mountedRef.current) {
+        return;
+      }
       
       // Check if we're on HTTPS or localhost
       const isSecureContext = window.isSecureContext || window.location.hostname === 'localhost';
@@ -162,60 +244,161 @@ export function QRScannerModal({ isOpen, onClose, onScanResult }: QRScannerModal
       
       console.log('Media stream tracks:', mediaStream.getTracks());
       
+      // Check again if component is still mounted before setting state
+      if (!mountedRef.current) {
+        // Clean up the stream if component was unmounted
+        mediaStream.getTracks().forEach(track => track.stop());
+        return;
+      }
+      
       setStream(mediaStream);
       setIsCameraActive(true);
       
-      if (videoRef.current) {
-        videoRef.current.srcObject = mediaStream;
+      if (videoRef.current && mountedRef.current) {
+        const video = videoRef.current;
         
-        // Force video element attributes
-        videoRef.current.setAttribute('autoplay', 'true');
-        videoRef.current.setAttribute('playsinline', 'true');
-        videoRef.current.setAttribute('muted', 'true');
+        // Clear any existing event listeners
+        video.onloadedmetadata = null;
+        video.oncanplay = null;
+        video.onplay = null;
+        video.onerror = null;
+        video.onloadstart = null;
+        
+        // Set the stream
+        video.srcObject = mediaStream;
+        
+        // Force video element attributes with proper values
+        video.autoplay = true;
+        video.playsInline = true;
+        video.muted = true;
+        video.controls = false;
+        
+        // Add additional attributes for better mobile support
+        video.setAttribute('webkit-playsinline', 'true');
+        video.setAttribute('x-webkit-airplay', 'deny');
+        
+        // Ensure video dimensions are properly set
+        video.style.width = '100%';
+        video.style.height = '100%';
+        video.style.objectFit = 'cover';
         
         // Multiple event handlers for better compatibility
         const startScanning = () => {
-          console.log('Video started playing');
-          setIsScanning(true);
-          setTimeout(() => scanQRCode(), 100);
+          console.log('Video started playing, video dimensions:', video.videoWidth, 'x', video.videoHeight);
+          if (mountedRef.current) {
+            setIsScanning(true);
+            setIsInitializing(false);
+            initializationRef.current = false;
+            setTimeout(() => {
+              if (isOpen && mountedRef.current) {
+                // Use a ref to get the latest scanQRCode function
+                if (scanningRef.current === null) {
+                  requestAnimationFrame(() => scanQRCode());
+                }
+              }
+            }, 100);
+          }
         };
         
-        videoRef.current.onloadedmetadata = () => {
-          console.log('Video metadata loaded');
-          if (videoRef.current) {
-            videoRef.current.play().then(startScanning).catch((playError) => {
+        // Enhanced event handlers
+        video.onloadedmetadata = () => {
+          console.log('Video metadata loaded, dimensions:', video.videoWidth, 'x', video.videoHeight);
+          if (video && mountedRef.current) {
+            video.play().then(() => {
+              console.log('Video play successful');
+              startScanning();
+            }).catch((playError) => {
               console.error('Video play error:', playError);
-              // Force play for some browsers
+              // Try to force play for some browsers that require user interaction
+              if (playError.name === 'NotAllowedError') {
+                console.log('User interaction may be required for video play');
+              }
+              // Force play for some browsers after a delay
               setTimeout(() => {
-                if (videoRef.current) {
-                  videoRef.current.play().then(startScanning).catch(console.error);
+                if (video && mountedRef.current) {
+                  video.play().then(startScanning).catch((retryError) => {
+                    console.error('Retry video play error:', retryError);
+                    // Still set camera as active even if autoplay fails
+                    if (mountedRef.current) {
+                      setIsInitializing(false);
+                      initializationRef.current = false;
+                    }
+                  });
                 }
               }, 500);
             });
           }
         };
         
-        videoRef.current.oncanplay = () => {
-          console.log('Video can play');
-          if (videoRef.current && videoRef.current.paused) {
-            videoRef.current.play().then(startScanning).catch(console.error);
+        video.oncanplay = () => {
+          console.log('Video can play, ready state:', video.readyState);
+          if (video && video.paused && mountedRef.current) {
+            video.play().then(startScanning).catch(console.error);
           }
         };
         
+        video.onplay = () => {
+          console.log('Video onplay event fired');
+          if (mountedRef.current && !isScanning) {
+            startScanning();
+          }
+        };
+        
+        video.onerror = (error) => {
+          console.error('Video error:', error);
+          if (mountedRef.current) {
+            setIsInitializing(false);
+            initializationRef.current = false;
+          }
+        };
+        
+        video.onloadstart = () => {
+          console.log('Video load started');
+        };
+        
         // Multiple fallback timers for different scenarios
-        setTimeout(() => {
-          if (videoRef.current && videoRef.current.readyState >= 2 && videoRef.current.paused) {
-            console.log('Video ready via timeout (1s)');
-            videoRef.current.play().then(startScanning).catch(console.error);
+        const timeout1 = setTimeout(() => {
+          if (video && video.readyState >= 2 && video.paused && mountedRef.current) {
+            console.log('Video ready via timeout (1s), trying to play...');
+            video.play().then(startScanning).catch(console.error);
           }
         }, 1000);
         
-        setTimeout(() => {
-          if (videoRef.current && !isScanning) {
+        const timeout2 = setTimeout(() => {
+          if (video && !isScanning && mountedRef.current) {
             console.log('Force starting scan via timeout (2s)');
             startScanning();
           }
         }, 2000);
+        
+        // Final fallback to ensure initialization completes
+        const timeout3 = setTimeout(() => {
+          if (mountedRef.current && isInitializing) {
+            console.log('Force completing initialization via timeout (3s)');
+            setIsInitializing(false);
+            initializationRef.current = false;
+          }
+        }, 3000);
+        
+        // Store timeouts for cleanup
+        const timeouts = [timeout1, timeout2, timeout3];
+        
+        // Cleanup function
+        const cleanup = () => {
+          timeouts.forEach(clearTimeout);
+        };
+        
+        // Store cleanup in a ref for later use
+        if (!videoRef.current.dataset.cleanupSet) {
+          videoRef.current.dataset.cleanupSet = 'true';
+          // We'll clean up timeouts when the component unmounts
+        }
+      } else {
+        console.error('Video ref not available or component unmounted');
+        if (mountedRef.current) {
+          setIsInitializing(false);
+          initializationRef.current = false;
+        }
       }
       
       toast({
@@ -250,19 +433,63 @@ export function QRScannerModal({ isOpen, onClose, onScanResult }: QRScannerModal
       });
       
       // Reset states on error
-      setIsCameraActive(false);
-      setIsScanning(false);
+      if (mountedRef.current) {
+        setIsCameraActive(false);
+        setIsScanning(false);
+        setIsInitializing(false);
+      }
+    } finally {
+      // Always reset the initialization ref
+      initializationRef.current = false;
     }
-  };
+  }, [isCameraActive, isOpen, isScanning, toast]);
 
   const stopCamera = useCallback(() => {
+    console.log('Stopping camera...');
+    
+    // Stop media stream
     if (stream) {
-      stream.getTracks().forEach(track => track.stop());
+      stream.getTracks().forEach(track => {
+        try {
+          track.stop();
+          console.log('Stopped track:', track.kind, track.label);
+        } catch (error) {
+          console.error('Error stopping camera track:', error);
+        }
+      });
       setStream(null);
     }
+    
+    // Clear video element
+    if (videoRef.current) {
+      const video = videoRef.current;
+      video.pause();
+      video.srcObject = null;
+      video.load(); // Reset video element
+      
+      // Clear event listeners
+      video.onloadedmetadata = null;
+      video.oncanplay = null;
+      video.onplay = null;
+      video.onerror = null;
+      video.onloadstart = null;
+      
+      // Remove cleanup marker
+      delete video.dataset.cleanupSet;
+    }
+    
+    // Cancel scanning animation frame
+    if (scanningRef.current) {
+      cancelAnimationFrame(scanningRef.current);
+      scanningRef.current = null;
+    }
+    
+    // Reset all states
     setIsCameraActive(false);
     setIsScanning(false);
     setFlashlightOn(false);
+    setIsInitializing(false);
+    initializationRef.current = false;
   }, [stream]);
 
   const toggleFlashlight = async () => {
@@ -310,31 +537,41 @@ export function QRScannerModal({ isOpen, onClose, onScanResult }: QRScannerModal
     const context = canvas.getContext('2d');
 
     if (video.readyState === video.HAVE_ENOUGH_DATA && context) {
-      canvas.width = video.videoWidth;
-      canvas.height = video.videoHeight;
-      context.drawImage(video, 0, 0, canvas.width, canvas.height);
-      
-      const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
-      const code = window.jsQR(imageData.data, imageData.width, imageData.height);
-      
-      if (code) {
-        onScanResult(code.data);
-        setIsScanning(false);
-        stopCamera();
-        onClose();
+      try {
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+        context.drawImage(video, 0, 0, canvas.width, canvas.height);
         
-        toast({
-          title: "QR Code Detected!",
-          description: "Successfully scanned QR code",
-        });
-        return;
+        const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
+        const code = window.jsQR(imageData.data, imageData.width, imageData.height);
+        
+        if (code) {
+          // Stop scanning and camera
+          setIsScanning(false);
+          stopCamera();
+          
+          // Set result and show drawer
+          setScannedResult(code.data);
+          setShowResultDrawer(true);
+          
+          // Also call the optional callback for backward compatibility
+          onScanResult?.(code.data);
+          
+          toast({
+            title: "QR Code Detected!",
+            description: "Successfully scanned QR code",
+          });
+          return;
+        }
+      } catch (error) {
+        console.error('Error during QR scanning:', error);
       }
     }
 
     if (isScanning) {
-      requestAnimationFrame(scanQRCode);
+      scanningRef.current = requestAnimationFrame(scanQRCode);
     }
-  }, [isScanning, onScanResult, stopCamera, onClose, toast]);
+  }, [isScanning, onScanResult, stopCamera, toast]);
 
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -367,8 +604,13 @@ export function QRScannerModal({ isOpen, onClose, onScanResult }: QRScannerModal
           const code = window.jsQR(imageData.data, imageData.width, imageData.height);
           
           if (code) {
-            onScanResult(code.data);
-            onClose();
+            // Set result and show drawer
+            setScannedResult(code.data);
+            setShowResultDrawer(true);
+            
+            // Also call the optional callback for backward compatibility
+            onScanResult?.(code.data);
+            
             toast({
               title: "QR Code Found!",
               description: "Successfully extracted QR code from image",
@@ -387,8 +629,36 @@ export function QRScannerModal({ isOpen, onClose, onScanResult }: QRScannerModal
     reader.readAsDataURL(file);
   };
 
+  // Component mount/unmount tracking
+  useEffect(() => {
+    mountedRef.current = true;
+    return () => {
+      mountedRef.current = false;
+      initializationRef.current = false;
+      // Direct cleanup to avoid circular dependency
+      if (stream) {
+        stream.getTracks().forEach(track => {
+          try {
+            track.stop();
+          } catch (error) {
+            console.error('Error stopping track on unmount:', error);
+          }
+        });
+      }
+      if (scanningRef.current) {
+        cancelAnimationFrame(scanningRef.current);
+      }
+    };
+  }, [stream]);
+
   const handleClose = () => {
     stopCamera();
+    onClose();
+  };
+
+  const handleResultClose = () => {
+    setShowResultDrawer(false);
+    setScannedResult('');
     onClose();
   };
 
@@ -420,13 +690,18 @@ export function QRScannerModal({ isOpen, onClose, onScanResult }: QRScannerModal
             {/* Camera Section */}
             <div className="flex-1 flex flex-col">
               {isCameraActive ? (
-                <div className="flex-1 relative bg-black">
+                <div className="flex-1 relative bg-black overflow-hidden">
                   <video
                     ref={videoRef}
                     className="absolute inset-0 w-full h-full object-cover"
                     autoPlay
                     playsInline
                     muted
+                    controls={false}
+                    style={{
+                      transform: 'scaleX(-1)', // Mirror the video for better UX
+                      WebkitTransform: 'scaleX(-1)'
+                    }}
                   />
                   
                   {/* Scanning Overlay */}
@@ -465,15 +740,31 @@ export function QRScannerModal({ isOpen, onClose, onScanResult }: QRScannerModal
               ) : (
                 <div className="flex-1 flex items-center justify-center p-8">
                   <div className="text-center space-y-8 max-w-sm">
-                    <div className="w-24 h-24 bg-gray-800 rounded-full flex items-center justify-center mx-auto">
-                      <Camera className="h-12 w-12 text-gray-400" />
-                    </div>
-                    <div>
-                      <h3 className="text-2xl font-bold mb-2">Ready to Scan</h3>
-                      <p className="text-gray-400 text-lg">
-                        Start your camera or upload an image to scan QR codes
-                      </p>
-                    </div>
+                    {isInitializing ? (
+                      <>
+                        <div className="w-24 h-24 bg-blue-600 rounded-full flex items-center justify-center mx-auto animate-pulse">
+                          <Camera className="h-12 w-12 text-white" />
+                        </div>
+                        <div>
+                          <h3 className="text-2xl font-bold mb-2">Starting Camera...</h3>
+                          <p className="text-gray-400 text-lg">
+                            Please wait while we access your camera
+                          </p>
+                        </div>
+                      </>
+                    ) : (
+                      <>
+                        <div className="w-24 h-24 bg-gray-800 rounded-full flex items-center justify-center mx-auto">
+                          <Camera className="h-12 w-12 text-gray-400" />
+                        </div>
+                        <div>
+                          <h3 className="text-2xl font-bold mb-2">Ready to Scan</h3>
+                          <p className="text-gray-400 text-lg">
+                            Start your camera or upload an image to scan QR codes
+                          </p>
+                        </div>
+                      </>
+                    )}
                   </div>
                 </div>
               )}
@@ -599,6 +890,13 @@ export function QRScannerModal({ isOpen, onClose, onScanResult }: QRScannerModal
           }
         `
       }} />
+      
+      {/* QR Result Drawer */}
+      <QRResultDrawer
+        isOpen={showResultDrawer}
+        onClose={handleResultClose}
+        scannedData={scannedResult}
+      />
     </>
   );
 }

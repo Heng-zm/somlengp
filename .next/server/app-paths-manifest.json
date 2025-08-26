@@ -1,11 +1,11 @@
 {
   "/api/ai-assistant/route": "app/api/ai-assistant/route.js",
   "/api/debug/route": "app/api/debug/route.js",
-  "/api/feedback/route": "app/api/feedback/route.js",
   "/api/otp/resend/route": "app/api/otp/resend/route.js",
+  "/api/feedback/route": "app/api/feedback/route.js",
   "/api/otp/send/route": "app/api/otp/send/route.js",
-  "/api/test/route": "app/api/test/route.js",
   "/api/otp/verify/route": "app/api/otp/verify/route.js",
+  "/api/test/route": "app/api/test/route.js",
   "/api/visit/route": "app/api/visit/route.js",
   "/_not-found/page": "app/_not-found/page.js",
   "/ai-assistant/page": "app/ai-assistant/page.js",
@@ -16,8 +16,8 @@
   "/contact/page": "app/contact/page.js",
   "/convert-image-format/page": "app/convert-image-format/page.js",
   "/features/page": "app/features/page.js",
-  "/generate-qr-code/page": "app/generate-qr-code/page.js",
   "/history/page": "app/history/page.js",
+  "/generate-qr-code/page": "app/generate-qr-code/page.js",
   "/image-to-pdf/page": "app/image-to-pdf/page.js",
   "/home/page": "app/home/page.js",
   "/login/page": "app/login/page.js",
@@ -28,8 +28,8 @@
   "/privacy/page": "app/privacy/page.js",
   "/profile/page": "app/profile/page.js",
   "/scan-qr-code/page": "app/scan-qr-code/page.js",
+  "/text-to-speech/page": "app/text-to-speech/page.js",
   "/signup-debug/page": "app/signup-debug/page.js",
   "/signup/page": "app/signup/page.js",
-  "/text-to-speech/page": "app/text-to-speech/page.js",
   "/voice-transcript/page": "app/voice-transcript/page.js"
 }
