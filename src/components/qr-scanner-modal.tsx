@@ -26,6 +26,8 @@ export function QRScannerModal({ isOpen, onClose, onScanResult }: QRScannerModal
   const [isCameraActive, setIsCameraActive] = useState(false);
   const [flashlightOn, setFlashlightOn] = useState(false);
   const [hasCamera, setHasCamera] = useState(false);
+  const [debugInfo, setDebugInfo] = useState('');
+  const [showDebug, setShowDebug] = useState(false);
   
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -51,41 +53,169 @@ export function QRScannerModal({ isOpen, onClose, onScanResult }: QRScannerModal
   // Check camera availability
   useEffect(() => {
     const checkCamera = async () => {
+      let debug = 'Camera Check Debug Info:\n';
+      
       try {
+        debug += '- Checking camera availability...\n';
+        console.log('Checking camera availability...');
+        
+        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+          debug += '- MediaDevices API not supported\n';
+          console.log('MediaDevices API not supported');
+          setHasCamera(false);
+          setDebugInfo(debug);
+          return;
+        }
+        
+        debug += '- MediaDevices API supported\n';
+        
+        // First check if we can enumerate devices
         const devices = await navigator.mediaDevices.enumerateDevices();
         const cameras = devices.filter(device => device.kind === 'videoinput');
-        setHasCamera(cameras.length > 0);
+        debug += `- Found ${cameras.length} video input devices\n`;
+        debug += `- Devices: ${JSON.stringify(cameras.map(c => ({ label: c.label, deviceId: c.deviceId })), null, 2)}\n`;
+        console.log('Found cameras:', cameras);
+        
+        if (cameras.length > 0) {
+          setHasCamera(true);
+          debug += '- Camera available via device enumeration\n';
+        } else {
+          debug += '- No cameras found in enumeration, trying test stream...\n';
+          // Sometimes enumeration doesn't work without permission
+          // Try a test getUserMedia call
+          try {
+            const testStream = await navigator.mediaDevices.getUserMedia({ video: true });
+            testStream.getTracks().forEach(track => track.stop());
+            setHasCamera(true);
+            debug += '- Camera available via test stream\n';
+            console.log('Camera available via test stream');
+          } catch (testError) {
+            setHasCamera(false);
+            debug += `- Test stream failed: ${testError}\n`;
+            console.log('No camera available');
+          }
+        }
+        
+        setDebugInfo(debug);
       } catch (error) {
+        debug += `- Error checking camera: ${error}\n`;
         console.error('Error checking camera:', error);
         setHasCamera(false);
+        setDebugInfo(debug);
       }
     };
 
-    if (navigator.mediaDevices && isOpen) {
+    if (isOpen) {
       checkCamera();
     }
   }, [isOpen]);
 
   const startCamera = async () => {
     try {
-      const mediaStream = await navigator.mediaDevices.getUserMedia({
-        video: { 
-          facingMode: 'environment',
-          width: { ideal: 1280 },
-          height: { ideal: 720 }
+      console.log('Starting camera...');
+      
+      // Check if we're on HTTPS or localhost
+      const isSecureContext = window.isSecureContext || window.location.hostname === 'localhost';
+      if (!isSecureContext) {
+        throw new Error('Camera access requires HTTPS or localhost');
+      }
+      
+      // Check for getUserMedia support
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        throw new Error('getUserMedia is not supported in this browser');
+      }
+      
+      // First try with basic constraints
+      let constraints: MediaStreamConstraints = {
+        video: {
+          facingMode: { ideal: 'environment' },
+          width: { ideal: 1280, min: 640 },
+          height: { ideal: 720, min: 480 }
         }
-      });
+      };
+      
+      let mediaStream;
+      
+      try {
+        mediaStream = await navigator.mediaDevices.getUserMedia(constraints);
+        console.log('Got media stream with environment camera');
+      } catch (envError) {
+        console.log('Environment camera failed, trying any camera:', envError);
+        // Fallback to any available camera with more relaxed constraints
+        constraints = {
+          video: {
+            width: { ideal: 1280, min: 320 },
+            height: { ideal: 720, min: 240 }
+          }
+        };
+        
+        try {
+          mediaStream = await navigator.mediaDevices.getUserMedia(constraints);
+          console.log('Got media stream with any camera');
+        } catch (fallbackError) {
+          console.log('Fallback failed, trying most basic constraints:', fallbackError);
+          // Final fallback with minimal constraints
+          mediaStream = await navigator.mediaDevices.getUserMedia({ video: true });
+          console.log('Got media stream with minimal constraints');
+        }
+      }
+      
+      console.log('Media stream tracks:', mediaStream.getTracks());
       
       setStream(mediaStream);
       setIsCameraActive(true);
       
       if (videoRef.current) {
         videoRef.current.srcObject = mediaStream;
-        videoRef.current.play();
         
-        // Start scanning
-        setIsScanning(true);
-        scanQRCode();
+        // Force video element attributes
+        videoRef.current.setAttribute('autoplay', 'true');
+        videoRef.current.setAttribute('playsinline', 'true');
+        videoRef.current.setAttribute('muted', 'true');
+        
+        // Multiple event handlers for better compatibility
+        const startScanning = () => {
+          console.log('Video started playing');
+          setIsScanning(true);
+          setTimeout(() => scanQRCode(), 100);
+        };
+        
+        videoRef.current.onloadedmetadata = () => {
+          console.log('Video metadata loaded');
+          if (videoRef.current) {
+            videoRef.current.play().then(startScanning).catch((playError) => {
+              console.error('Video play error:', playError);
+              // Force play for some browsers
+              setTimeout(() => {
+                if (videoRef.current) {
+                  videoRef.current.play().then(startScanning).catch(console.error);
+                }
+              }, 500);
+            });
+          }
+        };
+        
+        videoRef.current.oncanplay = () => {
+          console.log('Video can play');
+          if (videoRef.current && videoRef.current.paused) {
+            videoRef.current.play().then(startScanning).catch(console.error);
+          }
+        };
+        
+        // Multiple fallback timers for different scenarios
+        setTimeout(() => {
+          if (videoRef.current && videoRef.current.readyState >= 2 && videoRef.current.paused) {
+            console.log('Video ready via timeout (1s)');
+            videoRef.current.play().then(startScanning).catch(console.error);
+          }
+        }, 1000);
+        
+        setTimeout(() => {
+          if (videoRef.current && !isScanning) {
+            console.log('Force starting scan via timeout (2s)');
+            startScanning();
+          }
+        }, 2000);
       }
       
       toast({
@@ -94,11 +224,34 @@ export function QRScannerModal({ isOpen, onClose, onScanResult }: QRScannerModal
       });
     } catch (error) {
       console.error('Error starting camera:', error);
+      
+      let errorMessage = "Could not access camera. ";
+      
+      if (error instanceof Error) {
+        if (error.name === 'NotAllowedError') {
+          errorMessage += "Please allow camera permissions in your browser.";
+        } else if (error.name === 'NotFoundError') {
+          errorMessage += "No camera found on this device.";
+        } else if (error.name === 'NotReadableError') {
+          errorMessage += "Camera is being used by another application.";
+        } else if (error.name === 'OverconstrainedError') {
+          errorMessage += "Camera constraints not supported.";
+        } else if (error.message.includes('HTTPS') || error.message.includes('localhost')) {
+          errorMessage += "Camera requires HTTPS connection or localhost.";
+        } else {
+          errorMessage += `Error: ${error.message}`;
+        }
+      }
+      
       toast({
         title: "Camera Error",
-        description: "Could not access camera. Please check permissions.",
+        description: errorMessage,
         variant: "destructive",
       });
+      
+      // Reset states on error
+      setIsCameraActive(false);
+      setIsScanning(false);
     }
   };
 
@@ -393,9 +546,26 @@ export function QRScannerModal({ isOpen, onClose, onScanResult }: QRScannerModal
               )}
               
               {!hasCamera && (
-                <div className="bg-yellow-900/50 border border-yellow-600 rounded-2xl p-4 text-center">
+                <div className="bg-yellow-900/50 border border-yellow-600 rounded-2xl p-4 text-center space-y-3">
                   <p className="text-yellow-200 font-medium">Camera not available</p>
-                  <p className="text-yellow-300 text-sm mt-1">You can upload images to scan QR codes</p>
+                  <p className="text-yellow-300 text-sm">You can upload images to scan QR codes</p>
+                  
+                  <Button
+                    onClick={() => setShowDebug(!showDebug)}
+                    variant="outline"
+                    size="sm"
+                    className="bg-yellow-800 border-yellow-600 hover:bg-yellow-700 text-yellow-200 text-xs"
+                  >
+                    {showDebug ? 'Hide' : 'Show'} Debug Info
+                  </Button>
+                  
+                  {showDebug && (
+                    <div className="bg-black/30 rounded-lg p-2 text-left">
+                      <pre className="text-xs text-yellow-200 whitespace-pre-wrap">
+                        {debugInfo || 'No debug info yet'}
+                      </pre>
+                    </div>
+                  )}
                 </div>
               )}
             </div>
@@ -415,18 +585,20 @@ export function QRScannerModal({ isOpen, onClose, onScanResult }: QRScannerModal
       {/* Hidden canvas for QR processing */}
       <canvas ref={canvasRef} className="hidden" />
       
-      {/* CSS for scanning animation */}
-      <style jsx>{`
-        .scan-line {
-          animation: scanline 2s ease-in-out infinite;
-        }
-        
-        @keyframes scanline {
-          0% { transform: translateY(-100%); }
-          50% { transform: translateY(0%); }
-          100% { transform: translateY(100%); }
-        }
-      `}</style>
+      {/* CSS for scanning animation is handled by Tailwind classes */}
+      <style dangerouslySetInnerHTML={{
+        __html: `
+          .scan-line {
+            animation: scanline 2s ease-in-out infinite;
+          }
+          
+          @keyframes scanline {
+            0% { transform: translateY(-100%); }
+            50% { transform: translateY(0%); }
+            100% { transform: translateY(100%); }
+          }
+        `
+      }} />
     </>
   );
 }
