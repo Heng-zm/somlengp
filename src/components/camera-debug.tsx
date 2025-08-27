@@ -241,7 +241,6 @@ export function CameraDebug() {
               </div>
             </div>
           )}
-        </div>
 
           {/* Video Preview */}
           {stream && (

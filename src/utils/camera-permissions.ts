@@ -34,7 +34,7 @@ export interface CameraDeviceInfo {
 export function isCameraSupported(): boolean {
   return !!(
     navigator.mediaDevices &&
-    navigator.mediaDevices.getUserMedia &&
+    typeof navigator.mediaDevices.getUserMedia === 'function' &&
     window.isSecureContext
   );
 }
