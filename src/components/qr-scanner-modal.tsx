@@ -295,33 +295,46 @@ export function QRScannerModal({ isOpen, onClose, onScanResult }: QRScannerModal
           }
         };
         
-        // Enhanced event handlers
+        // Enhanced event handlers with better autoplay handling
         video.onloadedmetadata = () => {
           console.log('Video metadata loaded, dimensions:', video.videoWidth, 'x', video.videoHeight);
           if (video && mountedRef.current) {
-            video.play().then(() => {
-              console.log('Video play successful');
-              startScanning();
-            }).catch((playError) => {
-              console.error('Video play error:', playError);
-              // Try to force play for some browsers that require user interaction
-              if (playError.name === 'NotAllowedError') {
-                console.log('User interaction may be required for video play');
-              }
-              // Force play for some browsers after a delay
-              setTimeout(() => {
-                if (video && mountedRef.current) {
-                  video.play().then(startScanning).catch((retryError) => {
-                    console.error('Retry video play error:', retryError);
-                    // Still set camera as active even if autoplay fails
-                    if (mountedRef.current) {
-                      setIsInitializing(false);
-                      initializationRef.current = false;
+            // Ensure video is ready to play
+            if (video.readyState >= video.HAVE_CURRENT_DATA) {
+              video.play().then(() => {
+                console.log('Video play successful');
+                startScanning();
+              }).catch((playError) => {
+                console.error('Video play error:', playError);
+                // Handle autoplay restrictions gracefully
+                if (playError.name === 'NotAllowedError') {
+                  console.log('Autoplay blocked - video will play when user interacts');
+                  // Set scanning state even if autoplay is blocked
+                  if (mountedRef.current) {
+                    setIsInitializing(false);
+                    // The video is ready, just waiting for user interaction
+                    startScanning();
+                  }
+                } else {
+                  // For other errors, try again after a short delay
+                  setTimeout(() => {
+                    if (video && mountedRef.current && video.paused) {
+                      video.play().then(startScanning).catch((retryError) => {
+                        console.error('Retry video play error:', retryError);
+                        // Still proceed with initialization
+                        if (mountedRef.current) {
+                          setIsInitializing(false);
+                          startScanning();
+                        }
+                      });
                     }
-                  });
+                  }, 200);
                 }
-              }, 500);
-            });
+              });
+            } else {
+              // Wait for video to have enough data
+              console.log('Video not ready yet, waiting...');
+            }
           }
         };
         
@@ -687,14 +700,22 @@ export function QRScannerModal({ isOpen, onClose, onScanResult }: QRScannerModal
                 <div className="flex-1 relative bg-black overflow-hidden">
                   <video
                     ref={videoRef}
-                    className="absolute inset-0 w-full h-full object-cover"
+                    className="absolute inset-0 w-full h-full object-cover bg-black cursor-pointer"
                     autoPlay
                     playsInline
                     muted
                     controls={false}
+                    onClick={() => {
+                      // Click-to-play fallback for browsers that block autoplay
+                      if (videoRef.current && videoRef.current.paused) {
+                        console.log('User clicked to play video');
+                        videoRef.current.play().catch(console.error);
+                      }
+                    }}
                     style={{
-                      transform: 'scaleX(-1)', // Mirror the video for better UX
-                      WebkitTransform: 'scaleX(-1)'
+                      minWidth: '100%',
+                      minHeight: '100%',
+                      backgroundColor: '#000'
                     }}
                   />
                   
