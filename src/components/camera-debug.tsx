@@ -240,7 +240,7 @@ export function CameraDebug() {
                 <span className="text-sm text-blue-700">Requesting camera access...</span>
               </div>
             </div>
-          )}</r
+          )}
         </div>
 
           {/* Video Preview */}
