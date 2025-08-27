@@ -17,13 +17,15 @@
       "static/chunks/vendors-node_modules_next_d.js",
       "static/chunks/vendors-node_modules_p.js",
       "static/chunks/main-app.js",
-      "static/chunks/ui-node_modules_l.js",
-      "static/chunks/ui-node_modules_radix-ui_react-p.js",
+      "static/chunks/ui-node_modules_lucide-react_dist_esm_I.js",
+      "static/chunks/ui-node_modules_radix-ui_n.js",
+      "static/chunks/ui-node_modules_radix-ui_react-po.js",
+      "static/chunks/ui-node_modules_radix-ui_react-s.js",
       "static/chunks/ai-node_modules_firebase_a.js",
       "static/chunks/ai-node_modules_firebase_node_modules_firebase_auth_dist_esm2017_index-35c79a8a_js-7adbce0d.js",
-      "static/chunks/app/layout-_.js",
-      "static/css/app/layout-n.css",
-      "static/chunks/app/layout-src_lib_a.js"
+      "static/chunks/default-_app-pages-browser_src_hooks_use-toast_ts-_app-pages-browser_src_layouts_feature-page-5eec5d.js",
+      "static/css/app/layout.css",
+      "static/chunks/app/layout.js"
     ],
     "/not-found": [
       "static/chunks/webpack.js",
@@ -42,11 +44,13 @@
       "static/chunks/vendors-node_modules_next_d.js",
       "static/chunks/vendors-node_modules_p.js",
       "static/chunks/main-app.js",
-      "static/chunks/ui-node_modules_l.js",
-      "static/chunks/ui-node_modules_radix-ui_react-p.js",
+      "static/chunks/ui-node_modules_lucide-react_dist_esm_I.js",
+      "static/chunks/ui-node_modules_radix-ui_n.js",
+      "static/chunks/ui-node_modules_radix-ui_react-po.js",
+      "static/chunks/ui-node_modules_radix-ui_react-s.js",
       "static/chunks/app/not-found.js"
     ],
-    "/camera-debug/page": [
+    "/scan-qr-code/page": [
       "static/chunks/webpack.js",
       "static/chunks/vendors-node_modules_a.js",
       "static/chunks/vendors-node_modules_firebase_firestore_dist_index_esm2017_js-489970a2.js",
@@ -63,9 +67,14 @@
       "static/chunks/vendors-node_modules_next_d.js",
       "static/chunks/vendors-node_modules_p.js",
       "static/chunks/main-app.js",
-      "static/chunks/ui-node_modules_l.js",
-      "static/chunks/ui-node_modules_radix-ui_react-p.js",
-      "static/chunks/app/camera-debug/page.js"
+      "static/chunks/ui-node_modules_lucide-react_dist_esm_I.js",
+      "static/chunks/ui-node_modules_radix-ui_n.js",
+      "static/chunks/ui-node_modules_radix-ui_react-po.js",
+      "static/chunks/ui-node_modules_radix-ui_react-s.js",
+      "static/chunks/default-_app-pages-browser_src_hooks_use-toast_ts-_app-pages-browser_src_layouts_feature-page-5eec5d.js",
+      "static/chunks/app/scan-qr-code/page-_.js",
+      "static/chunks/app/scan-qr-code/page-src_components_q.js",
+      "static/chunks/app/scan-qr-code/page-src_utils_qr-d.js"
     ]
   }
 }
