@@ -1,44 +1,116 @@
 import { toast } from '@/hooks/use-toast';
+import { safeSync, ValidationError, errorHandler } from './error-utils';
 
 // Modern toast utility functions with emoji icons for enhanced UX
+// All functions include comprehensive error handling and input validation
+
+// Constants for validation
+const MAX_TITLE_LENGTH = 100;
+const MAX_DESCRIPTION_LENGTH = 500;
+const MAX_FILE_NAME_LENGTH = 100;
+
+/**
+ * Validates and sanitizes toast input parameters
+ */
+function validateToastInput(
+  title: string, 
+  description?: string, 
+  context: Record<string, any> = {}
+): { sanitizedTitle: string; sanitizedDescription?: string } {
+  // Validate title
+  if (!title || typeof title !== 'string') {
+    throw new ValidationError('Toast title must be a non-empty string', { title, ...context });
+  }
+  
+  let sanitizedTitle = title.trim();
+  if (sanitizedTitle.length === 0) {
+    throw new ValidationError('Toast title cannot be empty after trimming', { title, ...context });
+  }
+  
+  // Truncate title if too long
+  if (sanitizedTitle.length > MAX_TITLE_LENGTH) {
+    console.warn(`Toast title truncated from ${sanitizedTitle.length} to ${MAX_TITLE_LENGTH} characters`);
+    sanitizedTitle = sanitizedTitle.substring(0, MAX_TITLE_LENGTH - 3) + '...';
+  }
+  
+  let sanitizedDescription = description;
+  if (description !== undefined) {
+    if (typeof description !== 'string') {
+      throw new ValidationError('Toast description must be a string', { description, ...context });
+    }
+    
+    sanitizedDescription = description.trim();
+    
+    // Truncate description if too long
+    if (sanitizedDescription.length > MAX_DESCRIPTION_LENGTH) {
+      console.warn(`Toast description truncated from ${sanitizedDescription.length} to ${MAX_DESCRIPTION_LENGTH} characters`);
+      sanitizedDescription = sanitizedDescription.substring(0, MAX_DESCRIPTION_LENGTH - 3) + '...';
+    }
+  }
+  
+  return { sanitizedTitle, sanitizedDescription };
+}
+
+/**
+ * Safe wrapper for creating toast notifications with error handling
+ */
+function safeToast(
+  variant: string,
+  title: string,
+  description?: string,
+  context: Record<string, any> = {}
+): ReturnType<typeof toast> | null {
+  const { data: result, error } = safeSync(
+    () => {
+      const { sanitizedTitle, sanitizedDescription } = validateToastInput(title, description, context);
+      
+      return toast({
+        variant: variant as any,
+        title: sanitizedTitle,
+        description: sanitizedDescription,
+      });
+    },
+    null,
+    { operation: 'createToast', variant, ...context }
+  );
+  
+  if (error) {
+    errorHandler.handle(error, { function: 'safeToast', variant, title: title?.substring(0, 50) });
+    
+    // Create fallback toast with safe content
+    try {
+      return toast({
+        variant: 'destructive' as any,
+        title: 'Error',
+        description: 'Failed to display toast message',
+      });
+    } catch (fallbackError) {
+      console.error('Even fallback toast failed:', fallbackError);
+      return null;
+    }
+  }
+  
+  return result;
+}
 
 export const showSuccessToast = (title: string, description?: string) => {
-  return toast({
-    variant: "success",
-    title: `✅ ${title}`,
-    description,
-  });
+  return safeToast('success', `✅ ${title}`, description, { type: 'success' });
 };
 
 export const showErrorToast = (title: string, description?: string) => {
-  return toast({
-    variant: "error",
-    title: `❌ ${title}`,
-    description,
-  });
+  return safeToast('error', `❌ ${title}`, description, { type: 'error' });
 };
 
 export const showWarningToast = (title: string, description?: string) => {
-  return toast({
-    variant: "warning",
-    title: `⚠️ ${title}`,
-    description,
-  });
+  return safeToast('warning', `⚠️ ${title}`, description, { type: 'warning' });
 };
 
 export const showInfoToast = (title: string, description?: string) => {
-  return toast({
-    variant: "info",
-    title: `ℹ️ ${title}`,
-    description,
-  });
+  return safeToast('info', `ℹ️ ${title}`, description, { type: 'info' });
 };
 
 export const showLoadingToast = (title: string, description?: string) => {
-  return toast({
-    title: `⏳ ${title}`,
-    description,
-  });
+  return safeToast('default', `⏳ ${title}`, description, { type: 'loading' });
 };
 
 // Specialized toast functions for common use cases
@@ -56,61 +128,113 @@ export const showAuthErrorToast = (error: string) => {
   );
 };
 
-// File processing toast functions
+// File processing toast functions with enhanced error handling
 export const showFileProcessingSuccessToast = (action: string, fileName?: string, fileCount?: number) => {
-  let title: string;
-  let description: string;
-  
-  if (fileCount && fileCount > 1) {
-    title = "✅ Files Processed Successfully!";
-    description = `${fileCount} files have been ${action} successfully and are ready for download.`;
-  } else if (fileName) {
-    title = "✅ File Processing Complete!";
-    description = `${fileName} has been ${action} successfully. Your file is ready!`;
-  } else {
-    title = "✅ Processing Complete!";
-    description = `File has been ${action} successfully and is ready for download.`;
-  }
-  
-  return toast({
-    variant: "success",
-    title,
-    description,
-  });
+  return safeSync(
+    () => {
+      // Validate inputs
+      if (!action || typeof action !== 'string') {
+        throw new ValidationError('Action must be a non-empty string', { action });
+      }
+      
+      if (fileName && typeof fileName !== 'string') {
+        throw new ValidationError('fileName must be a string', { fileName });
+      }
+      
+      if (fileCount && (!Number.isInteger(fileCount) || fileCount <= 0)) {
+        throw new ValidationError('fileCount must be a positive integer', { fileCount });
+      }
+      
+      // Sanitize filename
+      const safeFileName = fileName ? fileName.substring(0, MAX_FILE_NAME_LENGTH) : undefined;
+      
+      let title: string;
+      let description: string;
+      
+      if (fileCount && fileCount > 1) {
+        title = "✅ Files Processed Successfully!";
+        description = `${fileCount} files have been ${action} successfully and are ready for download.`;
+      } else if (safeFileName) {
+        title = "✅ File Processing Complete!";
+        description = `${safeFileName} has been ${action} successfully. Your file is ready!`;
+      } else {
+        title = "✅ Processing Complete!";
+        description = `File has been ${action} successfully and is ready for download.`;
+      }
+      
+      return safeToast('success', title, description, { type: 'file-processing', action, fileName: safeFileName, fileCount });
+    },
+    null,
+    { operation: 'showFileProcessingSuccessToast', action, fileName, fileCount }
+  ).data;
 };
 
 export const showFileProcessingErrorToast = (error: string, fileName?: string) => {
-  const title = fileName ? `❌ Failed to Process ${fileName}` : "❌ File Processing Failed";
-  return toast({
-    variant: "error",
-    title,
-    description: `${error} Please try again or contact support if the issue persists.`,
-  });
+  return safeSync(
+    () => {
+      if (!error || typeof error !== 'string') {
+        throw new ValidationError('Error message must be a non-empty string', { error });
+      }
+      
+      const safeFileName = fileName ? fileName.substring(0, MAX_FILE_NAME_LENGTH) : undefined;
+      const title = safeFileName ? `❌ Failed to Process ${safeFileName}` : "❌ File Processing Failed";
+      
+      return safeToast('error', title, `${error} Please try again or contact support if the issue persists.`, 
+        { type: 'file-processing-error', error, fileName: safeFileName });
+    },
+    null,
+    { operation: 'showFileProcessingErrorToast', error, fileName }
+  ).data;
 };
 
 export const showFileProcessingStartToast = (action: string, fileCount?: number) => {
-  const title = fileCount && fileCount > 1 
-    ? `⏳ Processing ${fileCount} Files...` 
-    : "⏳ Processing File...";
-  const description = `Your ${action} operation is in progress. This may take a moment.`;
-  return toast({
-    title,
-    description,
-  });
+  return safeSync(
+    () => {
+      if (!action || typeof action !== 'string') {
+        throw new ValidationError('Action must be a non-empty string', { action });
+      }
+      
+      if (fileCount && (!Number.isInteger(fileCount) || fileCount <= 0)) {
+        throw new ValidationError('fileCount must be a positive integer', { fileCount });
+      }
+      
+      const title = fileCount && fileCount > 1 
+        ? `⏳ Processing ${fileCount} Files...` 
+        : "⏳ Processing File...";
+      const description = `Your ${action} operation is in progress. This may take a moment.`;
+      
+      return safeToast('default', title, description, { type: 'file-processing-start', action, fileCount });
+    },
+    null,
+    { operation: 'showFileProcessingStartToast', action, fileCount }
+  ).data;
 };
 
 export const showFileUploadSuccessToast = (fileName: string, fileCount?: number) => {
-  const title = fileCount && fileCount > 1 
-    ? `✅ ${fileCount} Files Uploaded!` 
-    : "✅ File Uploaded Successfully!";
-  const description = fileCount && fileCount > 1 
-    ? `${fileCount} files have been uploaded and are ready for processing.`
-    : `${fileName} has been uploaded successfully. Ready to proceed!`;
-  return toast({
-    variant: "success",
-    title,
-    description,
-  });
+  return safeSync(
+    () => {
+      if (!fileName || typeof fileName !== 'string') {
+        throw new ValidationError('fileName must be a non-empty string', { fileName });
+      }
+      
+      if (fileCount && (!Number.isInteger(fileCount) || fileCount <= 0)) {
+        throw new ValidationError('fileCount must be a positive integer', { fileCount });
+      }
+      
+      const safeFileName = fileName.substring(0, MAX_FILE_NAME_LENGTH);
+      
+      const title = fileCount && fileCount > 1 
+        ? `✅ ${fileCount} Files Uploaded!` 
+        : "✅ File Uploaded Successfully!";
+      const description = fileCount && fileCount > 1 
+        ? `${fileCount} files have been uploaded and are ready for processing.`
+        : `${safeFileName} has been uploaded successfully. Ready to proceed!`;
+        
+      return safeToast('success', title, description, { type: 'file-upload', fileName: safeFileName, fileCount });
+    },
+    null,
+    { operation: 'showFileUploadSuccessToast', fileName, fileCount }
+  ).data;
 };
 
 export const showFileValidationErrorToast = (fileName: string, reason: string) => {
@@ -294,30 +418,58 @@ export const showImportSuccessToast = (format: string, itemCount?: number) => {
   return showSuccessToast(title, description);
 };
 
-// Additional utility functions
+// Additional utility functions with error handling
 export const showNotificationToast = (title: string, message: string, isImportant = false) => {
-  return toast({
-    variant: isImportant ? "info" : "default",
-    title: `🔔 ${title}`,
-    description: message,
-  });
-};
-
-export const showConfirmationToast = (action: string, details?: string) => {
-  return showSuccessToast(
-    "Action Confirmed", 
-    `${action}${details ? ` - ${details}` : ''}`
+  return safeToast(
+    isImportant ? 'info' : 'default',
+    `🔔 ${title}`,
+    message,
+    { type: 'notification', isImportant }
   );
 };
 
+export const showConfirmationToast = (action: string, details?: string) => {
+  return safeSync(
+    () => {
+      if (!action || typeof action !== 'string') {
+        throw new ValidationError('Action must be a non-empty string', { action });
+      }
+      
+      return showSuccessToast(
+        "Action Confirmed", 
+        `${action}${details ? ` - ${details}` : ''}`
+      );
+    },
+    null,
+    { operation: 'showConfirmationToast', action, details }
+  ).data;
+};
+
 export const showProgressToast = (title: string, progress: number, total?: number) => {
-  const progressText = total 
-    ? `${progress}/${total}` 
-    : `${Math.round(progress)}%`;
-  
-  return toast({
-    title: `⏳ ${title} (${progressText})`,
-  });
+  return safeSync(
+    () => {
+      if (!title || typeof title !== 'string') {
+        throw new ValidationError('Title must be a non-empty string', { title });
+      }
+      
+      if (typeof progress !== 'number' || progress < 0) {
+        throw new ValidationError('Progress must be a non-negative number', { progress });
+      }
+      
+      if (total && (typeof total !== 'number' || total <= 0)) {
+        throw new ValidationError('Total must be a positive number', { total });
+      }
+      
+      const progressText = total 
+        ? `${Math.min(progress, total)}/${total}` 
+        : `${Math.min(Math.round(progress), 100)}%`;
+      
+      return safeToast('default', `⏳ ${title} (${progressText})`, undefined, 
+        { type: 'progress', progress, total });
+    },
+    null,
+    { operation: 'showProgressToast', title, progress, total }
+  ).data;
 };
 
 export const showUpdateAvailableToast = (version: string) => {

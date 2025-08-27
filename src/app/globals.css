@@ -572,6 +572,114 @@ body {
       }
     }
     
+    /* QR Scanner Enhanced Animations */
+    .qr-scanner-enter {
+      animation: qr-scanner-slide-up 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+    
+    @keyframes qr-scanner-slide-up {
+      from {
+        transform: translateY(100%);
+        opacity: 0;
+      }
+      to {
+        transform: translateY(0);
+        opacity: 1;
+      }
+    }
+    
+    .qr-result-drawer-enter {
+      animation: qr-drawer-slide-up 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+    
+    @keyframes qr-drawer-slide-up {
+      from {
+        transform: translateY(100%) scale(0.95);
+        opacity: 0;
+      }
+      to {
+        transform: translateY(0) scale(1);
+        opacity: 1;
+      }
+    }
+    
+    /* Enhanced QR Scanning Frame Animations */
+    .scanning-frame-enhanced {
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .scanning-frame-enhanced::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(
+        90deg,
+        transparent,
+        rgba(6, 182, 212, 0.4),
+        transparent
+      );
+      animation: scanner-sweep 3s infinite ease-in-out;
+    }
+    
+    @keyframes scanner-sweep {
+      0% { left: -100%; }
+      50% { left: 100%; }
+      100% { left: 100%; }
+    }
+    
+    /* Modern Card Hover Effects */
+    .card-hover-lift {
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    
+    .card-hover-lift:hover {
+      transform: translateY(-8px) scale(1.02);
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+    }
+    
+    /* Button Ripple Effect */
+    .btn-ripple {
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .btn-ripple::before {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 0;
+      height: 0;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.3);
+      transform: translate(-50%, -50%);
+      transition: width 0.6s, height 0.6s;
+    }
+    
+    .btn-ripple:active::before {
+      width: 300px;
+      height: 300px;
+    }
+    
+    /* Glassmorphism Effects */
+    .glass-card-enhanced {
+      background: rgba(255, 255, 255, 0.15);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+    }
+    
+    .glass-card-enhanced:hover {
+      background: rgba(255, 255, 255, 0.25);
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      box-shadow: 0 12px 48px rgba(0, 0, 0, 0.18);
+    }
+    
     /* Enhanced responsive typography */
     .title-responsive {
       font-size: clamp(1.875rem, 4vw + 1rem, 3rem);

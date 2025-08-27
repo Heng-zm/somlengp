@@ -158,18 +158,24 @@ class RealTimePerformanceMonitor {
     }
   }
 
+  private memoryCheckInterval?: NodeJS.Timeout;
+  
   private startMemoryMonitoring() {
     const checkMemory = () => {
-      if ('memory' in performance) {
-        const memInfo = (performance as unknown as { memory: { usedJSHeapSize: number } }).memory;
-        if (memInfo) {
-          this.updateMetric('memoryUsage', memInfo.usedJSHeapSize);
+      try {
+        if ('memory' in performance) {
+          const memInfo = (performance as any).memory;
+          if (memInfo && typeof memInfo.usedJSHeapSize === 'number') {
+            this.updateMetric('memoryUsage', memInfo.usedJSHeapSize);
+          }
         }
+      } catch (error) {
+        console.warn('Memory monitoring not supported:', error);
       }
     };
 
     checkMemory();
-    setInterval(checkMemory, 5000); // Check every 5 seconds
+    this.memoryCheckInterval = setInterval(checkMemory, 5000); // Check every 5 seconds
   }
 
   private updateMetric(key: Exclude<keyof PerformanceMetrics, 'connectionType'>, value: number) {
@@ -202,7 +208,12 @@ class RealTimePerformanceMonitor {
 
   public destroy() {
     this.observers.forEach(observer => observer.disconnect());
+    this.observers = [];
     this.callbacks = [];
+    if (this.memoryCheckInterval) {
+      clearInterval(this.memoryCheckInterval);
+      this.memoryCheckInterval = undefined;
+    }
   }
 }
 

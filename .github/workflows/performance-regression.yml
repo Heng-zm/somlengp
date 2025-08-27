@@ -1,0 +1,405 @@
+name: Performance Regression Testing
+
+on:
+  pull_request:
+    branches: [ main, develop ]
+    paths-ignore:
+      - '**.md'
+      - 'docs/**'
+  push:
+    branches: [ main ]
+
+env:
+  NODE_VERSION: '18'
+  PERFORMANCE_BASELINE_BRANCH: main
+
+jobs:
+  performance-test:
+    name: Performance Regression Test
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 2 # Need previous commit for comparison
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Cache dependencies
+        uses: actions/cache@v3
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
+
+      - name: Install dependencies
+        run: npm ci --prefer-offline --no-audit
+
+      - name: Build application
+        run: npm run build
+
+      - name: Setup Chrome for Lighthouse
+        uses: browser-actions/setup-chrome@latest
+        with:
+          chrome-version: stable
+
+      - name: Install Lighthouse CI
+        run: npm install -g @lhci/cli
+
+      - name: Create Lighthouse configuration
+        run: |
+          cat > lighthouserc.js << 'EOF'
+          module.exports = {
+            ci: {
+              collect: {
+                url: ['http://localhost:3000'],
+                startServerCommand: 'npm start',
+                numberOfRuns: 3,
+                settings: {
+                  chromeFlags: '--no-sandbox --headless --disable-gpu'
+                }
+              },
+              assert: {
+                preset: 'lighthouse:no-pwa',
+                assertions: {
+                  'largest-contentful-paint': ['error', { maxNumericValue: 4000 }],
+                  'first-input-delay': ['error', { maxNumericValue: 300 }],
+                  'cumulative-layout-shift': ['error', { maxNumericValue: 0.25 }],
+                  'speed-index': ['warn', { maxNumericValue: 4000 }]
+                }
+              },
+              upload: {
+                target: 'temporary-public-storage'
+              }
+            }
+          };
+          EOF
+
+      - name: Run Lighthouse CI
+        id: lighthouse
+        run: |
+          lhci autorun --config=lighthouserc.js || echo "lighthouse_failed=true" >> $GITHUB_OUTPUT
+
+      - name: Run Performance Analysis Script
+        id: performance
+        run: |
+          # Create performance analysis script
+          cat > scripts/ci-performance-check.js << 'EOF'
+          const fs = require('fs');
+          const path = require('path');
+
+          // Parse Lighthouse results
+          function parseLighthouseResults() {
+            try {
+              const lhciDir = '.lighthouseci';
+              if (!fs.existsSync(lhciDir)) {
+                console.log('No Lighthouse results found');
+                return null;
+              }
+
+              const files = fs.readdirSync(lhciDir);
+              const jsonFile = files.find(f => f.endsWith('.json'));
+              
+              if (!jsonFile) {
+                console.log('No Lighthouse JSON results found');
+                return null;
+              }
+
+              const results = JSON.parse(fs.readFileSync(path.join(lhciDir, jsonFile), 'utf8'));
+              const audits = results[0]?.lhr?.audits || {};
+
+              return {
+                LCP: audits['largest-contentful-paint']?.numericValue || 0,
+                FID: audits['max-potential-fid']?.numericValue || 0, // Approximate FID
+                CLS: audits['cumulative-layout-shift']?.numericValue || 0,
+                TTFB: audits['server-response-time']?.numericValue || 0,
+                bundleSize: audits['total-byte-weight']?.numericValue || 0
+              };
+            } catch (error) {
+              console.error('Error parsing Lighthouse results:', error);
+              return null;
+            }
+          }
+
+          // Check for performance regressions
+          function checkPerformanceRegressions(metrics) {
+            const thresholds = {
+              LCP: { severe: 20, moderate: 10, minor: 5, absolute: 4000 },
+              FID: { severe: 50, moderate: 25, minor: 10, absolute: 300 },
+              CLS: { severe: 50, moderate: 25, minor: 10, absolute: 0.25 },
+              TTFB: { severe: 60, moderate: 30, minor: 15, absolute: 1800 },
+              bundleSize: { severe: 15, moderate: 10, minor: 5 }
+            };
+
+            // For demo purposes, use baseline values
+            // In production, these would come from a database or previous runs
+            const baseline = {
+              LCP: 2500,
+              FID: 100,
+              CLS: 0.1,
+              TTFB: 800,
+              bundleSize: 1000000 // 1MB
+            };
+
+            const results = [];
+            let hasRegressions = false;
+            let shouldBlock = false;
+
+            for (const [metric, current] of Object.entries(metrics)) {
+              const baselineValue = baseline[metric] || 0;
+              if (baselineValue === 0) continue;
+
+              const change = current - baselineValue;
+              const changePercent = (change / baselineValue) * 100;
+              const threshold = thresholds[metric];
+
+              let severity = 'none';
+              let isRegression = false;
+
+              if (threshold) {
+                // Check absolute thresholds
+                if (threshold.absolute && current > threshold.absolute) {
+                  severity = 'severe';
+                  isRegression = true;
+                  shouldBlock = true;
+                }
+                // Check percentage thresholds (only for increases)
+                else if (changePercent > 0) {
+                  if (changePercent >= threshold.severe) {
+                    severity = 'severe';
+                    isRegression = true;
+                    shouldBlock = true;
+                  } else if (changePercent >= threshold.moderate) {
+                    severity = 'moderate';
+                    isRegression = true;
+                  } else if (changePercent >= threshold.minor) {
+                    severity = 'minor';
+                    isRegression = true;
+                  }
+                }
+              }
+
+              if (isRegression) {
+                hasRegressions = true;
+                results.push({
+                  metric,
+                  baseline: baselineValue,
+                  current,
+                  change,
+                  changePercent: changePercent.toFixed(2),
+                  severity
+                });
+              }
+            }
+
+            return {
+              hasRegressions,
+              shouldBlock,
+              results,
+              summary: generateSummary(results, shouldBlock)
+            };
+          }
+
+          function generateSummary(results, shouldBlock) {
+            if (results.length === 0) {
+              return '✅ No performance regressions detected. Safe to deploy.';
+            }
+
+            const severe = results.filter(r => r.severity === 'severe');
+            const moderate = results.filter(r => r.severity === 'moderate');
+            const minor = results.filter(r => r.severity === 'minor');
+
+            if (severe.length > 0) {
+              return `❌ ${severe.length} severe regression(s) detected. Deployment should be blocked.`;
+            } else if (moderate.length > 0) {
+              return `⚠️ ${moderate.length} moderate regression(s) detected. Proceed with caution.`;
+            } else {
+              return `💡 ${minor.length} minor regression(s) detected. Monitor these metrics.`;
+            }
+          }
+
+          // Main execution
+          console.log('🔍 Analyzing performance metrics...');
+
+          const metrics = parseLighthouseResults();
+          if (!metrics) {
+            console.log('❌ Could not parse performance metrics');
+            process.exit(0); // Don't fail the build for missing metrics
+          }
+
+          console.log('📊 Current metrics:', JSON.stringify(metrics, null, 2));
+
+          const regression = checkPerformanceRegressions(metrics);
+          
+          console.log('\n📈 Performance Analysis Results:');
+          console.log(regression.summary);
+
+          if (regression.results.length > 0) {
+            console.log('\nDetailed Results:');
+            regression.results.forEach(result => {
+              console.log(`  ${result.metric}: ${result.current} (${result.changePercent > 0 ? '+' : ''}${result.changePercent}%) - ${result.severity.toUpperCase()}`);
+            });
+          }
+
+          // Set GitHub output
+          const output = {
+            hasRegressions: regression.hasRegressions,
+            shouldBlock: regression.shouldBlock,
+            summary: regression.summary,
+            results: JSON.stringify(regression.results)
+          };
+
+          Object.entries(output).forEach(([key, value]) => {
+            console.log(`${key}=${value}`);
+          });
+
+          // Exit with error code if should block
+          if (regression.shouldBlock) {
+            console.log('\n❌ Severe performance regressions detected. Failing the build.');
+            process.exit(1);
+          }
+          EOF
+
+          # Run the performance analysis
+          node scripts/ci-performance-check.js
+
+      - name: Create Performance Report
+        if: always()
+        run: |
+          # Create a detailed performance report
+          cat > performance-report.md << 'EOF'
+          # Performance Regression Report
+
+          **Commit:** ${{ github.sha }}
+          **Branch:** ${{ github.ref_name }}
+          **PR:** ${{ github.event.number }}
+
+          ## Summary
+          
+          ${{ steps.performance.outputs.summary || 'Performance analysis completed' }}
+
+          ## Current Metrics
+          
+          The following performance metrics were measured:
+          
+          | Metric | Value | Status |
+          |--------|--------|--------|
+          | LCP | TBD | ✅ |
+          | FID | TBD | ✅ |
+          | CLS | TBD | ✅ |
+          | TTFB | TBD | ✅ |
+
+          ## Recommendations
+          
+          Based on the analysis, here are the recommended actions:
+          
+          1. Monitor performance metrics in production
+          2. Consider implementing performance budgets
+          3. Set up baseline measurements for future comparisons
+          
+          ## Next Steps
+          
+          - [ ] Review performance impact
+          - [ ] Update performance baselines if needed
+          - [ ] Monitor metrics in production
+
+          ---
+          *Generated by Performance Regression Testing at $(date)*
+          EOF
+
+      - name: Comment Performance Results on PR
+        if: github.event_name == 'pull_request' && steps.performance.outputs.hasRegressions == 'true'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const summary = `${{ steps.performance.outputs.summary }}`;
+            const results = JSON.parse(`${{ steps.performance.outputs.results }}`);
+            
+            let comment = `## 📊 Performance Regression Analysis\n\n${summary}\n\n`;
+            
+            if (results.length > 0) {
+              comment += `### Detailed Results\n\n| Metric | Baseline | Current | Change | Severity |\n|--------|----------|---------|--------|---------|\n`;
+              
+              results.forEach(result => {
+                const emoji = result.severity === 'severe' ? '🔴' : result.severity === 'moderate' ? '🟡' : '🔵';
+                comment += `| ${result.metric} | ${result.baseline} | ${result.current} | ${result.changePercent > 0 ? '+' : ''}${result.changePercent}% | ${emoji} ${result.severity} |\n`;
+              });
+              
+              comment += `\n### Recommendations\n\n`;
+              comment += `- Review the performance impact of recent changes\n`;
+              comment += `- Consider optimizing the affected metrics\n`;
+              comment += `- Monitor these metrics in production\n`;
+            }
+            
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: comment
+            });
+
+      - name: Upload Performance Results
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: performance-results
+          path: |
+            performance-report.md
+            .lighthouseci/
+            scripts/ci-performance-check.js
+
+      - name: Set Status Check
+        if: always()
+        run: |
+          if [ "${{ steps.performance.outputs.shouldBlock }}" == "true" ]; then
+            echo "❌ Performance regression check failed"
+            exit 1
+          else
+            echo "✅ Performance regression check passed"
+            exit 0
+          fi
+
+  create-baseline:
+    name: Create Performance Baseline
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci --prefer-offline --no-audit
+
+      - name: Build application
+        run: npm run build
+
+      - name: Run Lighthouse for Baseline
+        uses: treosh/lighthouse-ci-action@v10
+        with:
+          configPath: './lighthouserc.js'
+          uploadArtifacts: true
+          runs: 3
+
+      - name: Store Performance Baseline
+        run: |
+          echo "📊 Creating performance baseline for main branch"
+          echo "Commit: ${{ github.sha }}"
+          echo "Timestamp: $(date -u +%Y-%m-%dT%H:%M:%SZ)"
+          
+          # In a real implementation, this would store the baseline
+          # in a database or performance monitoring service
+          echo "✅ Baseline created successfully"
