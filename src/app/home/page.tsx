@@ -139,6 +139,7 @@ const { language, toggleLanguage, theme, toggleTheme } = langContext;
     }
   }, []);
   
+
   const featureCards = useMemo(() => [
     { href: '/voice-transcript', title: t.voiceScribe, description: t.voiceTranscriptDescription, icon: Mic },
     { href: '/ai-assistant', title: 'AI Assistant', description: 'Chat with an intelligent AI assistant powered by Gemini 1.5 Flash for help with any questions or tasks.', icon: Sparkles },
@@ -163,27 +164,29 @@ const { language, toggleLanguage, theme, toggleTheme } = langContext;
   }, [toggleLanguage]);
 
   return (
-    <div className="flex flex-col h-full text-foreground">
-      <OptimizedHomeHeader
-        visitorCount={visitorCount}
-        theme={theme}
-        language={language}
-        onThemeToggle={handleThemeToggle}
-        onLanguageToggle={handleLanguageToggle}
-      />
+    <>
+      <div className="flex flex-col h-full text-foreground">
+        <OptimizedHomeHeader
+          visitorCount={visitorCount}
+          theme={theme}
+          language={language}
+          onThemeToggle={handleThemeToggle}
+          onLanguageToggle={handleLanguageToggle}
+        />
 
-      <ScrollArea className="flex-grow pt-20 sm:pt-24 md:pt-28">
-        <main className="p-4 sm:p-6 space-y-8">
-          <OptimizedFeatureGrid
-            primaryFeature={primaryFeature}
-            otherFeatures={otherFeatures}
-            startNowText={t.startNow}
-            otherToolsText={t.otherTools}
-          />
-        </main>
-        <Footer />
-      </ScrollArea>
-    </div>
+        <ScrollArea className="flex-grow pt-20 sm:pt-24 md:pt-28">
+          <main className="p-4 sm:p-6 space-y-8">
+            <OptimizedFeatureGrid
+              primaryFeature={primaryFeature}
+              otherFeatures={otherFeatures}
+              startNowText={t.startNow}
+              otherToolsText={t.otherTools}
+            />
+          </main>
+          <Footer />
+        </ScrollArea>
+      </div>
+    </>
   );
 }
 

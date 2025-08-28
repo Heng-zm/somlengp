@@ -13,7 +13,8 @@ import { useIntersectionObserver } from '@/lib/performance';
 const AIAssistantWidget = lazy(() => import('@/components/shared/ai-assistant-widget').then(mod => ({ default: mod.AIAssistantWidget })));
 
 interface FeatureCardData {
-  href: string;
+  href?: string;
+  action?: () => void;
   title: string;
   description: string;
   icon: React.ElementType;
@@ -80,6 +81,7 @@ const PrimaryFeatureCard = memo(function PrimaryFeatureCard({
 // Optimized feature card with lazy loading
 const OptimizedFeatureCard = memo(function OptimizedFeatureCard({ 
   href, 
+  action,
   title, 
   description, 
   icon: Icon, 
@@ -101,32 +103,41 @@ const OptimizedFeatureCard = memo(function OptimizedFeatureCard({
     }
   }, [isVisible, isLoaded, onLoad]);
 
+  const cardContent = (
+    <Card 
+      className={cn(
+        "w-full h-full p-5 flex items-center gap-5",
+        "bg-card text-card-foreground border",
+        "motion-safe:transition-all motion-safe:duration-300 motion-safe:ease-in-out",
+        "motion-safe:hover:scale-[1.02] hover:shadow-xl hover:border-primary/20",
+        "motion-reduce:hover:bg-secondary/50",
+        "group focus-visible:ring-2 focus-visible:ring-primary",
+        "transform-gpu will-change-transform",
+        action ? "cursor-pointer" : ""
+      )}
+      onClick={action}
+    >
+      <div className="p-3 bg-secondary rounded-lg border motion-safe:will-change-transform">
+        <Icon className="w-6 h-6 text-primary motion-safe:transition-colors motion-safe:group-hover:text-primary" />
+      </div>
+      <div className="flex-grow">
+        <h2 className="text-lg font-semibold">{title}</h2>
+        <p className="text-sm text-muted-foreground mt-1 line-clamp-2">{description}</p>
+      </div>
+      <ArrowRight className="text-muted-foreground/50 motion-safe:transition-transform motion-safe:group-hover:translate-x-1 motion-safe:will-change-transform" />
+    </Card>
+  );
 
   return (
     <div ref={cardRef}>
       {isVisible ? (
-        <Link href={href} passHref>
-          <Card 
-            className={cn(
-              "w-full h-full p-5 flex items-center gap-5",
-              "bg-card text-card-foreground border",
-              "motion-safe:transition-all motion-safe:duration-300 motion-safe:ease-in-out",
-              "motion-safe:hover:scale-[1.02] hover:shadow-xl hover:border-primary/20",
-              "motion-reduce:hover:bg-secondary/50",
-              "group focus-visible:ring-2 focus-visible:ring-primary",
-              "transform-gpu will-change-transform"
-            )}
-          >
-            <div className="p-3 bg-secondary rounded-lg border motion-safe:will-change-transform">
-              <Icon className="w-6 h-6 text-primary motion-safe:transition-colors motion-safe:group-hover:text-primary" />
-            </div>
-            <div className="flex-grow">
-              <h2 className="text-lg font-semibold">{title}</h2>
-              <p className="text-sm text-muted-foreground mt-1 line-clamp-2">{description}</p>
-            </div>
-            <ArrowRight className="text-muted-foreground/50 motion-safe:transition-transform motion-safe:group-hover:translate-x-1 motion-safe:will-change-transform" />
-          </Card>
-        </Link>
+        href ? (
+          <Link href={href} passHref>
+            {cardContent}
+          </Link>
+        ) : (
+          cardContent
+        )
       ) : (
         <Card className="w-full h-full p-5 flex items-center gap-5 animate-pulse">
           <Skeleton className="w-12 h-12 rounded-lg" />
@@ -192,7 +203,7 @@ const VirtualFeatureGrid = memo(function VirtualFeatureGrid({
     >
       {visibleFeatures.map((feature, index) => (
         <div 
-          key={feature.href} 
+          key={feature.href || feature.title} 
           data-index={visibleRange.start + index}
         >
           <Suspense fallback={
@@ -206,6 +217,7 @@ const VirtualFeatureGrid = memo(function VirtualFeatureGrid({
           }>
             <OptimizedFeatureCard
               href={feature.href}
+              action={feature.action}
               title={feature.title}
               description={feature.description}
               icon={feature.icon}
