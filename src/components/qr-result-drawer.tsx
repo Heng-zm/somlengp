@@ -215,13 +215,13 @@ export function QRResultDrawer({ isOpen, onClose, scannedData, showBackButton = 
                           </div>
                         )}
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                          {parsedData.parsed.phone && (
+                          {'phone' in parsedData.parsed && parsedData.parsed.phone && (
                             <div className="bg-green-50 rounded-lg p-3 border border-green-100">
                               <div className="text-xs font-medium text-green-600 mb-1">Phone</div>
                               <div className="font-semibold text-green-800">{parsedData.parsed.phone}</div>
                             </div>
                           )}
-                          {parsedData.parsed.email && (
+                          {'email' in parsedData.parsed && parsedData.parsed.email && (
                             <div className="bg-purple-50 rounded-lg p-3 border border-purple-100">
                               <div className="text-xs font-medium text-purple-600 mb-1">Email</div>
                               <div className="font-semibold text-purple-800 break-all">{parsedData.parsed.email}</div>

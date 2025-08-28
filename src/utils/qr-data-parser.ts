@@ -3,11 +3,11 @@
 import { errorHandler, ParserError, safeSync, safeClipboard, validateInput, commonValidations } from '@/lib/error-utils';
 
 export interface ParsedQRData {
-  type: 'url' | 'email' | 'phone' | 'sms' | 'wifi' | 'contact' | 'text' | 'geo' | 'event';
+  type: 'url' | 'email' | 'phone' | 'sms' | 'wifi' | 'contact' | 'text' | 'geo' | 'event' | 'crypto' | 'social' | 'app' | 'payment' | 'identity' | 'document';
   icon: string;
   label: string;
   data: string;
-  parsed?: WiFiData | ContactData | SMSData | GeoData | EventData | { email: string; subject?: string; body?: string } | { phone: string } | Record<string, string>;
+  parsed?: WiFiData | ContactData | SMSData | GeoData | EventData | CryptoData | SocialData | AppData | PaymentData | IdentityData | DocumentData | { email: string; subject?: string; body?: string } | { phone: string } | Record<string, string>;
   actions: QRAction[];
 }
 
@@ -50,6 +50,50 @@ export interface EventData {
   start?: Date;
   end?: Date;
   location?: string;
+  description?: string;
+}
+
+export interface CryptoData {
+  type: 'bitcoin' | 'ethereum' | 'other';
+  address: string;
+  amount?: number;
+  label?: string;
+  message?: string;
+  network?: string;
+}
+
+export interface SocialData {
+  platform: 'twitter' | 'instagram' | 'facebook' | 'linkedin' | 'tiktok' | 'snapchat' | 'whatsapp' | 'telegram' | 'discord' | 'other';
+  username?: string;
+  url?: string;
+  action?: string;
+}
+
+export interface AppData {
+  platform: 'ios' | 'android' | 'web' | 'windows' | 'mac';
+  identifier: string;
+  name?: string;
+  url: string;
+}
+
+export interface PaymentData {
+  type: 'paypal' | 'venmo' | 'cashapp' | 'zelle' | 'other';
+  recipient?: string;
+  amount?: number;
+  currency?: string;
+  note?: string;
+  url: string;
+}
+
+export interface IdentityData {
+  type: 'passport' | 'id_card' | 'driver_license' | 'other';
+  data: Record<string, string>;
+}
+
+export interface DocumentData {
+  type: 'pdf' | 'doc' | 'spreadsheet' | 'presentation' | 'other';
+  url: string;
+  title?: string;
   description?: string;
 }
 
@@ -502,6 +546,375 @@ export const parseQRData = (data: string): ParsedQRData => {
       }
     }
   
+    // Cryptocurrency detection
+    if (trimmedData.match(/^(bitcoin|btc):/i)) {
+      try {
+        const cryptoMatch = trimmedData.match(/^(bitcoin|btc):([^?]+)(\?(.+))?/i);
+        if (cryptoMatch) {
+          const address = cryptoMatch[2];
+          const params = cryptoMatch[4] || '';
+          const amount = params.match(/amount=([^&]+)/i)?.[1] || undefined;
+          const label = params.match(/label=([^&]+)/i)?.[1] || undefined;
+          const message = params.match(/message=([^&]+)/i)?.[1] || undefined;
+          
+          return {
+            type: 'crypto',
+            icon: '₿',
+            label: 'Bitcoin Payment',
+            data: trimmedData,
+            parsed: { 
+              type: 'bitcoin', 
+              address, 
+              amount: amount ? parseFloat(amount) : undefined,
+              label: label ? decodeURIComponent(label) : undefined,
+              message: message ? decodeURIComponent(message) : undefined
+            } as CryptoData,
+            actions: [
+              {
+                label: 'Open Bitcoin Wallet',
+                icon: '₿',
+                action: () => {
+                  try {
+                    window.open(trimmedData);
+                  } catch (error) {
+                    errorHandler.handle(error, { action: 'openBitcoin', address });
+                    throw new ParserError('Failed to open Bitcoin wallet', { address });
+                  }
+                },
+                primary: true
+              },
+              {
+                label: 'Copy Address',
+                icon: '📋',
+                action: async () => {
+                  const clipboard = safeClipboard();
+                  const success = await clipboard.writeText(address);
+                  if (!success) {
+                    throw new ParserError('Failed to copy Bitcoin address to clipboard', { address });
+                  }
+                }
+              }
+            ]
+          };
+        }
+      } catch (error) {
+        errorHandler.handle(error, { section: 'bitcoin_detection', data: trimmedData });
+      }
+    }
+  
+    // Ethereum detection
+    if (trimmedData.match(/^ethereum:/i) || trimmedData.match(/^0x[a-fA-F0-9]{40}$/)) {
+      try {
+        let address = '';
+        let amount, label, message;
+        
+        if (trimmedData.startsWith('ethereum:')) {
+          const ethMatch = trimmedData.match(/^ethereum:([^?@]+)(?:@[^?]+)?(\?(.+))?/i);
+          if (ethMatch) {
+            address = ethMatch[1];
+            const params = ethMatch[3] || '';
+            amount = params.match(/value=([^&]+)/i)?.[1];
+            label = params.match(/label=([^&]+)/i)?.[1];
+            message = params.match(/message=([^&]+)/i)?.[1];
+          }
+        } else {
+          address = trimmedData;
+        }
+        
+        return {
+          type: 'crypto',
+          icon: 'Ξ',
+          label: 'Ethereum Address',
+          data: trimmedData,
+          parsed: { 
+            type: 'ethereum', 
+            address,
+            amount: amount ? parseFloat(amount) : undefined,
+            label: label ? decodeURIComponent(label) : undefined,
+            message: message ? decodeURIComponent(message) : undefined
+          } as CryptoData,
+          actions: [
+            {
+              label: 'Open Ethereum Wallet',
+              icon: 'Ξ',
+              action: () => {
+                try {
+                  const ethUrl = trimmedData.startsWith('ethereum:') ? trimmedData : `ethereum:${trimmedData}`;
+                  window.open(ethUrl);
+                } catch (error) {
+                  errorHandler.handle(error, { action: 'openEthereum', address });
+                  throw new ParserError('Failed to open Ethereum wallet', { address });
+                }
+              },
+              primary: true
+            },
+            {
+              label: 'Copy Address',
+              icon: '📋',
+              action: async () => {
+                const clipboard = safeClipboard();
+                const success = await clipboard.writeText(address);
+                if (!success) {
+                  throw new ParserError('Failed to copy Ethereum address to clipboard', { address });
+                }
+              }
+            }
+          ]
+        };
+      } catch (error) {
+        errorHandler.handle(error, { section: 'ethereum_detection', data: trimmedData });
+      }
+    }
+  
+    // Social media detection
+    const socialPlatforms = [
+      { pattern: /^https?:\/\/(www\.)?(twitter\.com|x\.com)\/([^\/?]+)/i, platform: 'twitter', icon: '🐦' },
+      { pattern: /^https?:\/\/(www\.)?instagram\.com\/([^\/?]+)/i, platform: 'instagram', icon: '📸' },
+      { pattern: /^https?:\/\/(www\.)?facebook\.com\/([^\/?]+)/i, platform: 'facebook', icon: '👤' },
+      { pattern: /^https?:\/\/(www\.)?linkedin\.com\/(in|company)\/([^\/?]+)/i, platform: 'linkedin', icon: '💼' },
+      { pattern: /^https?:\/\/(www\.)?tiktok\.com\/@([^\/?]+)/i, platform: 'tiktok', icon: '🎵' },
+      { pattern: /^https?:\/\/(www\.)?snapchat\.com\/(add|u)\/([^\/?]+)/i, platform: 'snapchat', icon: '👻' },
+      { pattern: /^https?:\/\/(wa\.me|whatsapp\.com)\/([^\/?]+)/i, platform: 'whatsapp', icon: '💬' },
+      { pattern: /^https?:\/\/(t\.me|telegram\.me)\/([^\/?]+)/i, platform: 'telegram', icon: '✈️' },
+      { pattern: /^https?:\/\/(discord\.gg|discord\.com\/invite)\/([^\/?]+)/i, platform: 'discord', icon: '🎮' },
+    ];
+  
+    for (const { pattern, platform, icon } of socialPlatforms) {
+      const match = trimmedData.match(pattern);
+      if (match) {
+        try {
+          const username = match[3] || match[2] || '';
+          
+          return {
+            type: 'social',
+            icon,
+            label: `${platform.charAt(0).toUpperCase() + platform.slice(1)} Profile`,
+            data: trimmedData,
+            parsed: { platform: platform as any, username, url: trimmedData } as SocialData,
+            actions: [
+              {
+                label: `Open ${platform.charAt(0).toUpperCase() + platform.slice(1)}`,
+                icon,
+                action: () => {
+                  try {
+                    window.open(trimmedData, '_blank');
+                  } catch (error) {
+                    errorHandler.handle(error, { action: 'openSocial', platform, url: trimmedData });
+                    throw new ParserError(`Failed to open ${platform}`, { url: trimmedData });
+                  }
+                },
+                primary: true
+              },
+              {
+                label: 'Copy Profile Link',
+                icon: '📋',
+                action: async () => {
+                  const clipboard = safeClipboard();
+                  const success = await clipboard.writeText(trimmedData);
+                  if (!success) {
+                    throw new ParserError('Failed to copy profile link to clipboard', { url: trimmedData });
+                  }
+                }
+              },
+              {
+                label: 'Copy Username',
+                icon: '👤',
+                action: async () => {
+                  const clipboard = safeClipboard();
+                  const success = await clipboard.writeText(username);
+                  if (!success) {
+                    throw new ParserError('Failed to copy username to clipboard', { username });
+                  }
+                }
+              }
+            ]
+          };
+        } catch (error) {
+          errorHandler.handle(error, { section: 'social_detection', platform, data: trimmedData });
+        }
+        break;
+      }
+    }
+  
+    // App store links detection
+    const appStorePatterns = [
+      { pattern: /^https?:\/\/apps\.apple\.com\/.*\/app\/([^\/]+)\/id(\d+)/i, platform: 'ios', icon: '📱' },
+      { pattern: /^https?:\/\/itunes\.apple\.com\/.*\/app\/([^\/]+)\/id(\d+)/i, platform: 'ios', icon: '📱' },
+      { pattern: /^https?:\/\/play\.google\.com\/store\/apps\/details\?id=([^&]+)/i, platform: 'android', icon: '🤖' },
+      { pattern: /^https?:\/\/www\.microsoft\.com\/.*\/p\/([^\/]+)\/(\w+)/i, platform: 'windows', icon: '🪟' },
+      { pattern: /^https?:\/\/apps\.microsoft\.com\/.*\/detail\/([^\/]+)\/(\w+)/i, platform: 'windows', icon: '🪟' }
+    ];
+  
+    for (const { pattern, platform, icon } of appStorePatterns) {
+      const match = trimmedData.match(pattern);
+      if (match) {
+        try {
+          const identifier = match[2] || match[1];
+          const name = match[1].replace(/[-_]/g, ' ');
+          
+          return {
+            type: 'app',
+            icon,
+            label: `${platform.charAt(0).toUpperCase() + platform.slice(1)} App`,
+            data: trimmedData,
+            parsed: { platform: platform as any, identifier, name, url: trimmedData } as AppData,
+            actions: [
+              {
+                label: `Open in App Store`,
+                icon,
+                action: () => {
+                  try {
+                    window.open(trimmedData, '_blank');
+                  } catch (error) {
+                    errorHandler.handle(error, { action: 'openAppStore', platform, url: trimmedData });
+                    throw new ParserError(`Failed to open app store`, { url: trimmedData });
+                  }
+                },
+                primary: true
+              },
+              {
+                label: 'Copy App Link',
+                icon: '📋',
+                action: async () => {
+                  const clipboard = safeClipboard();
+                  const success = await clipboard.writeText(trimmedData);
+                  if (!success) {
+                    throw new ParserError('Failed to copy app link to clipboard', { url: trimmedData });
+                  }
+                }
+              }
+            ]
+          };
+        } catch (error) {
+          errorHandler.handle(error, { section: 'app_detection', platform, data: trimmedData });
+        }
+        break;
+      }
+    }
+  
+    // Payment links detection
+    const paymentPatterns = [
+      { pattern: /^https?:\/\/(www\.)?paypal\.(me|com)\/([^\/?]+)/i, type: 'paypal', icon: '💳' },
+      { pattern: /^https?:\/\/venmo\.com\/([^\/?]+)/i, type: 'venmo', icon: '💸' },
+      { pattern: /^https?:\/\/(cash\.app|\$)([^\/?]+)/i, type: 'cashapp', icon: '💰' },
+    ];
+  
+    for (const { pattern, type, icon } of paymentPatterns) {
+      const match = trimmedData.match(pattern);
+      if (match) {
+        try {
+          const recipient = match[3] || match[2] || match[1];
+          
+          return {
+            type: 'payment',
+            icon,
+            label: `${type.charAt(0).toUpperCase() + type.slice(1)} Payment`,
+            data: trimmedData,
+            parsed: { type: type as any, recipient, url: trimmedData } as PaymentData,
+            actions: [
+              {
+                label: `Send ${type.charAt(0).toUpperCase() + type.slice(1)} Payment`,
+                icon,
+                action: () => {
+                  try {
+                    window.open(trimmedData, '_blank');
+                  } catch (error) {
+                    errorHandler.handle(error, { action: 'openPayment', type, url: trimmedData });
+                    throw new ParserError(`Failed to open ${type}`, { url: trimmedData });
+                  }
+                },
+                primary: true
+              },
+              {
+                label: 'Copy Payment Link',
+                icon: '📋',
+                action: async () => {
+                  const clipboard = safeClipboard();
+                  const success = await clipboard.writeText(trimmedData);
+                  if (!success) {
+                    throw new ParserError('Failed to copy payment link to clipboard', { url: trimmedData });
+                  }
+                }
+              }
+            ]
+          };
+        } catch (error) {
+          errorHandler.handle(error, { section: 'payment_detection', type, data: trimmedData });
+        }
+        break;
+      }
+    }
+  
+    // Document links detection
+    const documentPatterns = [
+      { pattern: /\.(pdf)(\?|$|#)/i, type: 'pdf', icon: '📄' },
+      { pattern: /\.(docx?|odt)(\?|$|#)/i, type: 'doc', icon: '📝' },
+      { pattern: /\.(xlsx?|ods|csv)(\?|$|#)/i, type: 'spreadsheet', icon: '📊' },
+      { pattern: /\.(pptx?|odp)(\?|$|#)/i, type: 'presentation', icon: '📽️' },
+    ];
+  
+    if (trimmedData.match(/^https?:\/\/.+/i)) {
+      for (const { pattern, type, icon } of documentPatterns) {
+        if (trimmedData.match(pattern)) {
+          try {
+            return {
+              type: 'document',
+              icon,
+              label: `${type.toUpperCase()} Document`,
+              data: trimmedData,
+              parsed: { type: type as any, url: trimmedData } as DocumentData,
+              actions: [
+                {
+                  label: 'Open Document',
+                  icon,
+                  action: () => {
+                    try {
+                      window.open(trimmedData, '_blank');
+                    } catch (error) {
+                      errorHandler.handle(error, { action: 'openDocument', type, url: trimmedData });
+                      throw new ParserError('Failed to open document', { url: trimmedData });
+                    }
+                  },
+                  primary: true
+                },
+                {
+                  label: 'Copy Document Link',
+                  icon: '📋',
+                  action: async () => {
+                    const clipboard = safeClipboard();
+                    const success = await clipboard.writeText(trimmedData);
+                    if (!success) {
+                      throw new ParserError('Failed to copy document link to clipboard', { url: trimmedData });
+                    }
+                  }
+                },
+                {
+                  label: 'Download Document',
+                  icon: '⬇️',
+                  action: () => {
+                    try {
+                      const a = document.createElement('a');
+                      a.href = trimmedData;
+                      a.download = '';
+                      document.body.appendChild(a);
+                      a.click();
+                      document.body.removeChild(a);
+                    } catch (error) {
+                      errorHandler.handle(error, { action: 'downloadDocument', url: trimmedData });
+                      throw new ParserError('Failed to download document', { url: trimmedData });
+                    }
+                  }
+                }
+              ]
+            };
+          } catch (error) {
+            errorHandler.handle(error, { section: 'document_detection', type, data: trimmedData });
+          }
+          break;
+        }
+      }
+    }
+  
     // Calendar event detection
     if (trimmedData.match(/^BEGIN:VEVENT/i)) {
       try {
@@ -636,7 +1049,13 @@ export const getQRTypeColor = (type: ParsedQRData['type']): string => {
       contact: 'pink',
       text: 'gray',
       geo: 'red',
-      event: 'yellow'
+      event: 'yellow',
+      crypto: 'amber',
+      social: 'indigo',
+      app: 'emerald',
+      payment: 'rose',
+      identity: 'violet',
+      document: 'slate'
     };
     return colors[type] || 'gray';
   } catch (error) {
