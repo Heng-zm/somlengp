@@ -64,7 +64,7 @@ export function SimpleQRScanner({ onScanResult, onClose }: SimpleQRScannerProps)
           document.head.removeChild(script);
         }
       };
-    } else if (window.jsQR) {
+} else if (typeof window.jsQR === 'function') {
       setJsQRLoaded(true);
     }
   }, [toast]);

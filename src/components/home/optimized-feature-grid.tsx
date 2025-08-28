@@ -43,37 +43,45 @@ const PrimaryFeatureCard = memo(function PrimaryFeatureCard({
   const cardRef = useRef<HTMLDivElement>(null);
   const isVisible = useIntersectionObserver(cardRef, { threshold: 0.1 });
 
+  const cardContent = (
+    <Card className={cn(
+      "w-full p-6 sm:p-8 md:p-10 flex flex-col justify-between overflow-hidden",
+      "transition-all duration-300 ease-in-out",
+      "bg-gradient-to-br from-primary/10 via-background to-background",
+      "hover:shadow-2xl hover:border-primary/20 group",
+      "transform-gpu", // Force GPU acceleration
+      isVisible ? "opacity-100" : "opacity-50"
+    )}>
+      <div className="flex flex-col sm:flex-row items-start gap-6">
+        <div className="p-4 bg-primary/20 rounded-xl w-fit border border-primary/30 will-change-transform">
+          <Icon className="w-8 h-8 text-primary" />
+        </div>
+        <div className="flex-grow">
+          <h2 className="text-3xl font-bold">{title}</h2>
+          <p className="text-muted-foreground mt-2 max-w-lg">{description}</p>
+        </div>
+      </div>
+      <div className="flex justify-end mt-6">
+        <Button 
+          variant="default" 
+          className="group-hover:bg-primary/90 will-change-transform"
+        >
+          {startNowText}
+          <ArrowRight className="ml-2 transition-transform group-hover:translate-x-1 will-change-transform" />
+        </Button>
+      </div>
+    </Card>
+  );
+
   return (
     <div ref={cardRef}>
-      <Link href={href} passHref>
-        <Card className={cn(
-          "w-full p-6 sm:p-8 md:p-10 flex flex-col justify-between overflow-hidden",
-          "transition-all duration-300 ease-in-out",
-          "bg-gradient-to-br from-primary/10 via-background to-background",
-          "hover:shadow-2xl hover:border-primary/20 group",
-          "transform-gpu", // Force GPU acceleration
-          isVisible ? "opacity-100" : "opacity-50"
-        )}>
-          <div className="flex flex-col sm:flex-row items-start gap-6">
-            <div className="p-4 bg-primary/20 rounded-xl w-fit border border-primary/30 will-change-transform">
-              <Icon className="w-8 h-8 text-primary" />
-            </div>
-            <div className="flex-grow">
-              <h2 className="text-3xl font-bold">{title}</h2>
-              <p className="text-muted-foreground mt-2 max-w-lg">{description}</p>
-            </div>
-          </div>
-          <div className="flex justify-end mt-6">
-            <Button 
-              variant="default" 
-              className="group-hover:bg-primary/90 will-change-transform"
-            >
-              {startNowText}
-              <ArrowRight className="ml-2 transition-transform group-hover:translate-x-1 will-change-transform" />
-            </Button>
-          </div>
-        </Card>
-      </Link>
+      {href ? (
+        <Link href={href} passHref>
+          {cardContent}
+        </Link>
+      ) : (
+        cardContent
+      )}
     </div>
   );
 });
