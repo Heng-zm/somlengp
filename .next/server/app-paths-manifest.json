@@ -1,8 +1,5 @@
 {
-  "/api/visit/route": "app/api/visit/route.js",
-  "/page": "app/page.js",
-  "/_not-found/page": "app/_not-found/page.js",
   "/scan-qr-code/page": "app/scan-qr-code/page-src_c.js",
-  "/home/page": "app/home/page.js",
-  "/generate-qr-code/page": "app/generate-qr-code/page.js"
+  "/generate-qr-code/page": "app/generate-qr-code/page.js",
+  "/home/page": "app/home/page.js"
 }

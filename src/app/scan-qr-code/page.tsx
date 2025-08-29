@@ -2,7 +2,7 @@
 
 import React, { useState, useContext, Suspense, lazy } from 'react';
 import Link from 'next/link';
-import { QrCode, ScanLine, Camera, History, Zap } from 'lucide-react';
+import { QrCode, ScanLine, Camera, History } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { LanguageContext } from '@/contexts/language-context';
 import { FeaturePageLayout } from '@/layouts/feature-page-layout';
@@ -160,28 +160,6 @@ export default function ScanQRCodePage() {
             </Link>
           </div>
 
-          {/* Enhanced Features Grid - Only 2 Tasks */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-16 animate-in fade-in duration-700 delay-500 max-w-4xl mx-auto">
-            <div className="glass-card-enhanced rounded-3xl p-8 border border-white/30 shadow-xl hover:shadow-2xl transition-all duration-300 card-hover-lift group">
-              <div className="w-12 h-12 bg-gradient-to-r from-green-500 to-emerald-500 rounded-xl flex items-center justify-center mb-4">
-                <Zap className="h-6 w-6 text-white" />
-              </div>
-              <h3 className="text-lg font-bold text-gray-800 mb-2">Smart Recognition</h3>
-              <p className="text-gray-600 text-sm leading-relaxed">
-                Automatically detects and parses different QR code types including URLs, WiFi, contacts, locations, and more with intelligent actions.
-              </p>
-            </div>
-
-            <div className="glass-card-enhanced rounded-3xl p-8 border border-white/30 shadow-xl hover:shadow-2xl transition-all duration-300 card-hover-lift group">
-              <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-cyan-500 rounded-xl flex items-center justify-center mb-4">
-                <Camera className="h-6 w-6 text-white" />
-              </div>
-              <h3 className="text-lg font-bold text-gray-800 mb-2">Camera & Upload</h3>
-              <p className="text-gray-600 text-sm leading-relaxed">
-                Scan with your device camera or upload images from your gallery. Works with various image formats.
-              </p>
-            </div>
-          </div>
         </div>
         
         {/* QR Scanner Modal with Suspense for lazy loading */}
