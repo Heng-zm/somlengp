@@ -2,7 +2,7 @@
 
 import React, { useState, useContext, Suspense, lazy } from 'react';
 import Link from 'next/link';
-import { QrCode, ScanLine, Camera, Upload, History, Zap, Star, TrendingUp } from 'lucide-react';
+import { QrCode, ScanLine, Camera, History, Zap } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { LanguageContext } from '@/contexts/language-context';
 import { FeaturePageLayout } from '@/layouts/feature-page-layout';
@@ -160,8 +160,8 @@ export default function ScanQRCodePage() {
             </Link>
           </div>
 
-          {/* Enhanced Features Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-16 animate-in fade-in duration-700 delay-500">
+          {/* Enhanced Features Grid - Only 2 Tasks */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-16 animate-in fade-in duration-700 delay-500 max-w-4xl mx-auto">
             <div className="glass-card-enhanced rounded-3xl p-8 border border-white/30 shadow-xl hover:shadow-2xl transition-all duration-300 card-hover-lift group">
               <div className="w-12 h-12 bg-gradient-to-r from-green-500 to-emerald-500 rounded-xl flex items-center justify-center mb-4">
                 <Zap className="h-6 w-6 text-white" />
@@ -172,53 +172,13 @@ export default function ScanQRCodePage() {
               </p>
             </div>
 
-            <div className="bg-white/70 backdrop-blur-sm rounded-2xl p-6 border border-white/40 shadow-lg hover:shadow-xl transition-all duration-300">
-              <div className="w-12 h-12 bg-gradient-to-r from-purple-500 to-violet-500 rounded-xl flex items-center justify-center mb-4">
-                <History className="h-6 w-6 text-white" />
-              </div>
-              <h3 className="text-lg font-bold text-gray-800 mb-2">Scan History</h3>
-              <p className="text-gray-600 text-sm leading-relaxed">
-                Keep track of all your scans with persistent history, favorites, categories, and powerful search capabilities.
-              </p>
-            </div>
-
-            <div className="bg-white/70 backdrop-blur-sm rounded-2xl p-6 border border-white/40 shadow-lg hover:shadow-xl transition-all duration-300">
-              <div className="w-12 h-12 bg-gradient-to-r from-orange-500 to-red-500 rounded-xl flex items-center justify-center mb-4">
-                <TrendingUp className="h-6 w-6 text-white" />
-              </div>
-              <h3 className="text-lg font-bold text-gray-800 mb-2">Performance Tracking</h3>
-              <p className="text-gray-600 text-sm leading-relaxed">
-                Monitor scanning performance with detailed analytics, success rates, and optimization insights.
-              </p>
-            </div>
-
-            <div className="bg-white/70 backdrop-blur-sm rounded-2xl p-6 border border-white/40 shadow-lg hover:shadow-xl transition-all duration-300">
+            <div className="glass-card-enhanced rounded-3xl p-8 border border-white/30 shadow-xl hover:shadow-2xl transition-all duration-300 card-hover-lift group">
               <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-cyan-500 rounded-xl flex items-center justify-center mb-4">
                 <Camera className="h-6 w-6 text-white" />
               </div>
               <h3 className="text-lg font-bold text-gray-800 mb-2">Camera & Upload</h3>
               <p className="text-gray-600 text-sm leading-relaxed">
                 Scan with your device camera or upload images from your gallery. Works with various image formats.
-              </p>
-            </div>
-
-            <div className="bg-white/70 backdrop-blur-sm rounded-2xl p-6 border border-white/40 shadow-lg hover:shadow-xl transition-all duration-300">
-              <div className="w-12 h-12 bg-gradient-to-r from-pink-500 to-rose-500 rounded-xl flex items-center justify-center mb-4">
-                <Star className="h-6 w-6 text-white" />
-              </div>
-              <h3 className="text-lg font-bold text-gray-800 mb-2">Favorites & Tags</h3>
-              <p className="text-gray-600 text-sm leading-relaxed">
-                Mark important QR codes as favorites, add custom tags, and organize your scans for easy retrieval.
-              </p>
-            </div>
-
-            <div className="bg-white/70 backdrop-blur-sm rounded-2xl p-6 border border-white/40 shadow-lg hover:shadow-xl transition-all duration-300">
-              <div className="w-12 h-12 bg-gradient-to-r from-indigo-500 to-blue-600 rounded-xl flex items-center justify-center mb-4">
-                <Upload className="h-6 w-6 text-white" />
-              </div>
-              <h3 className="text-lg font-bold text-gray-800 mb-2">Export & Import</h3>
-              <p className="text-gray-600 text-sm leading-relaxed">
-                Export your scan history for backup or import previous scans to sync across devices.
               </p>
             </div>
           </div>
