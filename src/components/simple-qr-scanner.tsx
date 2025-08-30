@@ -288,37 +288,41 @@ export function SimpleQRScanner({ onScanResult, onClose }: SimpleQRScannerProps)
   return (
     <div 
       ref={containerRef}
-      className={`fixed inset-0 flex flex-col z-50 transition-all duration-300 ${
+      className={`fixed inset-0 flex flex-col z-50 transition-all duration-500 ${
         isFullscreen 
           ? 'bg-black' 
-          : 'bg-gradient-to-br from-gray-900 via-black to-gray-800'
+          : 'bg-gradient-to-br from-slate-900 via-gray-900 to-indigo-900'
       }`}
     >
-      {/* Header */}
-      <div className={`flex items-center justify-between p-4 border-b border-white/10 backdrop-blur-sm ${
-        isFullscreen ? 'bg-black/50' : 'bg-black/30'
+      {/* Enhanced Header with modern glassmorphism */}
+      <div className={`flex items-center justify-between p-4 sm:p-6 border-b border-white/20 backdrop-blur-2xl transition-all duration-300 ${
+        isFullscreen ? 'bg-black/70' : 'bg-black/40'
       }`}>
-        <h2 className="text-white text-xl font-bold flex items-center gap-2">
-          <div className="p-2 bg-gradient-to-r from-blue-600 to-cyan-600 rounded-full">
-            <Camera className="h-5 w-5 text-white" />
+        <h2 className="text-white text-xl sm:text-2xl font-bold flex items-center gap-3">
+          <div className="relative">
+            <div className="p-3 bg-gradient-to-br from-blue-600 via-cyan-600 to-purple-600 rounded-2xl shadow-xl shadow-blue-500/30">
+              <Camera className="h-6 w-6 text-white animate-pulse" />
+            </div>
+            {/* Glow effect */}
+            <div className="absolute inset-0 bg-gradient-to-br from-blue-600 to-cyan-600 rounded-2xl blur-lg opacity-30 animate-pulse"></div>
           </div>
-          <span className="bg-gradient-to-r from-blue-400 to-cyan-400 bg-clip-text text-transparent">
+          <span className="bg-gradient-to-r from-cyan-400 via-blue-400 to-purple-400 bg-clip-text text-transparent font-black tracking-wide">
             QR Scanner
           </span>
         </h2>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-3">
           {document.fullscreenEnabled && (
             <Button
               variant="ghost"
               size="icon"
               onClick={toggleFullscreen}
-              className="text-white hover:bg-white/10 transition-colors"
+              className="text-white/80 hover:text-white hover:bg-white/15 transition-all duration-300 rounded-xl w-12 h-12 backdrop-blur-sm border border-white/10 hover:border-white/30 group"
               title={isFullscreen ? 'Exit Fullscreen' : 'Enter Fullscreen'}
             >
               {isFullscreen ? (
-                <Minimize className="h-5 w-5" />
+                <Minimize className="h-5 w-5 group-hover:scale-110 transition-transform duration-200" />
               ) : (
-                <Maximize className="h-5 w-5" />
+                <Maximize className="h-5 w-5 group-hover:scale-110 transition-transform duration-200" />
               )}
             </Button>
           )}
@@ -326,9 +330,9 @@ export function SimpleQRScanner({ onScanResult, onClose }: SimpleQRScannerProps)
             variant="ghost"
             size="icon"
             onClick={onClose}
-            className="text-white hover:bg-white/10 transition-colors"
+            className="text-white/80 hover:text-white hover:bg-red-500/20 transition-all duration-300 rounded-xl w-12 h-12 backdrop-blur-sm border border-white/10 hover:border-red-400/50 group"
           >
-            <X className="h-6 w-6" />
+            <X className="h-6 w-6 group-hover:rotate-90 transition-transform duration-300" />
           </Button>
         </div>
       </div>

@@ -29,6 +29,8 @@ export function QRScannerModal({ isOpen, onClose, onScanResult }: QRScannerModal
   const [showDebug, setShowDebug] = useState(false);
   const [scannedResult, setScannedResult] = useState('');
   const [showResultDrawer, setShowResultDrawer] = useState(false);
+  const [scanAttempts, setScanAttempts] = useState(0);
+  const [lastScanTime, setLastScanTime] = useState(0);
   
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -54,9 +56,10 @@ export function QRScannerModal({ isOpen, onClose, onScanResult }: QRScannerModal
     refreshDevices
   } = useBackCamera(false, 'high'); // Don't auto-start, use high quality
 
-  // Define scanQRCode function early to avoid circular dependency
+  // Define scanQRCode function with proper cleanup and error handling
   const scanQRCode = useCallback(() => {
-    if (!isScanning || !videoRef.current || !canvasRef.current || !window.jsQR) {
+    // Early exit if component is unmounted or conditions not met
+    if (!mountedRef.current || !isScanning || !videoRef.current || !canvasRef.current || !window.jsQR) {
       return;
     }
 
@@ -64,14 +67,22 @@ export function QRScannerModal({ isOpen, onClose, onScanResult }: QRScannerModal
     const canvas = canvasRef.current;
     const context = canvas.getContext('2d');
 
-    if (video.readyState === video.HAVE_ENOUGH_DATA && context) {
+    if (video.readyState === video.HAVE_ENOUGH_DATA && context && mountedRef.current) {
       try {
-        // Record scan attempt for performance monitoring
+        // Update scan attempts for performance monitoring
+        setScanAttempts(prev => prev + 1);
+        setLastScanTime(Date.now());
         qrPerformanceMonitor.recordScanAttempt();
         
         // Optimize canvas size for better performance
         const targetWidth = Math.min(video.videoWidth, 800);
         const targetHeight = (video.videoHeight * targetWidth) / video.videoWidth;
+        
+        // Ensure valid dimensions
+        if (targetWidth <= 0 || targetHeight <= 0) {
+          console.warn('Invalid video dimensions detected');
+          return;
+        }
         
         canvas.width = targetWidth;
         canvas.height = targetHeight;
@@ -84,13 +95,23 @@ export function QRScannerModal({ isOpen, onClose, onScanResult }: QRScannerModal
         const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
         const code = window.jsQR(imageData.data, imageData.width, imageData.height);
         
-        if (code) {
+        if (code && mountedRef.current) {
           // Record successful scan
           qrPerformanceMonitor.recordSuccessfulScan(code.data);
+          
+          // Clear any pending scan timeouts first
+          if (scanningRef.current) {
+            clearTimeout(scanningRef.current);
+            scanningRef.current = null;
+          }
           
           // Stop scanning and camera
           setIsScanning(false);
           stopCamera();
+          
+          // Reset scan stats
+          setScanAttempts(0);
+          setLastScanTime(0);
           
           // Set result and show drawer
           setScannedResult(code.data);
@@ -100,21 +121,35 @@ export function QRScannerModal({ isOpen, onClose, onScanResult }: QRScannerModal
           onScanResult?.(code.data);
           
           toast({
-            title: "QR Code Detected!",
-            description: "Successfully scanned QR code",
+            title: "🎉 QR Code Detected!",
+            description: `Successfully scanned: ${code.data.length > 50 ? code.data.substring(0, 50) + '...' : code.data}`,
           });
           return;
         }
       } catch (error) {
         console.error('Error during QR scanning:', error);
+        // On error, stop scanning to prevent further issues
+        if (mountedRef.current) {
+          setIsScanning(false);
+        }
+        return;
       }
     }
 
-    if (isScanning) {
-      // Throttle scanning to 10 FPS for better performance
+    // Continue scanning only if still mounted and scanning is enabled
+    if (isScanning && mountedRef.current) {
+      // Clear any existing timeout first to prevent multiple timeouts
+      if (scanningRef.current) {
+        clearTimeout(scanningRef.current);
+      }
+      
+          // Adaptive scanning frequency based on performance
+      const scanDelay = scanAttempts > 50 ? 150 : 100; // Slow down after many attempts
       scanningRef.current = setTimeout(() => {
-        requestAnimationFrame(scanQRCode);
-      }, 100);
+        if (mountedRef.current && isScanning) {
+          requestAnimationFrame(scanQRCode);
+        }
+      }, scanDelay);
     }
   }, [isScanning, onScanResult, stopCamera, toast]);
 
@@ -155,33 +190,78 @@ export function QRScannerModal({ isOpen, onClose, onScanResult }: QRScannerModal
 
   // Auto-start back camera when modal opens, with cleanup when it closes
   useEffect(() => {
-    if (isOpen && isSupported && !stream) {
+    let isCancelled = false;
+    
+    if (isOpen && isSupported && !stream && mountedRef.current) {
       // Auto-start the back camera with fallback when modal opens
       console.log('Auto-starting back camera for QR scanning...');
-      requestBackCameraWithFallback('high').then((result) => {
-        if (result.success) {
-          console.log('Back camera started successfully for QR scanning');
-          toast({
-            title: "Camera Ready",
-            description: "Point your camera at a QR code to scan",
-          });
-        } else if (result.error) {
-          console.error('Failed to start back camera:', result.error);
+      
+      const startCamera = async () => {
+        try {
+          const result = await requestBackCameraWithFallback('high');
+          
+          // Check if the effect was cancelled or component unmounted
+          if (isCancelled || !mountedRef.current) {
+            if (result.success && result.stream) {
+              // Clean up the stream if component was unmounted
+              result.stream.getTracks().forEach(track => track.stop());
+            }
+            return;
+          }
+          
+          if (result.success) {
+            console.log('Back camera started successfully for QR scanning');
+            toast({
+              title: "Camera Ready",
+              description: "Point your camera at a QR code to scan",
+            });
+          } else if (result.error) {
+            console.error('Failed to start back camera:', result.error);
+            toast({
+              title: "Camera Error",
+              description: result.error.message || "Failed to access camera",
+              variant: "destructive",
+            });
+          }
+        } catch (error) {
+          console.error('Unexpected error starting camera:', error);
+          if (!isCancelled && mountedRef.current) {
+            toast({
+              title: "Camera Error",
+              description: "An unexpected error occurred while starting the camera",
+              variant: "destructive",
+            });
+          }
         }
-      });
-    } else if (!isOpen && stream) {
-      // Stop camera when modal closes
-      console.log('Stopping camera as modal is closing...');
-      stopCamera();
+      };
+      
+      startCamera();
+    } else if (!isOpen) {
+      // Stop camera and clear scanning when modal closes
+      if (stream) {
+        console.log('Stopping camera as modal is closing...');
+        stopCamera();
+      }
+      
+      // Reset states
       setIsScanning(false);
       setFlashlightOn(false);
+      setScannedResult('');
+      setShowResultDrawer(false);
+      setScanAttempts(0);
+      setLastScanTime(0);
+      
+      // Clear any pending scan timeouts
+      if (scanningRef.current) {
+        clearTimeout(scanningRef.current);
+        scanningRef.current = null;
+      }
     }
     
-    // Cleanup scanning timeout on modal state change
-    if (!isOpen && scanningRef.current) {
-      clearTimeout(scanningRef.current);
-      scanningRef.current = null;
-    }
+    // Cleanup function for effect cancellation
+    return () => {
+      isCancelled = true;
+    };
   }, [isOpen, isSupported, stream, requestBackCameraWithFallback, stopCamera, toast]);
 
   // Set up video element when stream is available from the hook
@@ -242,42 +322,54 @@ export function QRScannerModal({ isOpen, onClose, onScanResult }: QRScannerModal
     }
   }, [stream, scanQRCode]);
 
-  const toggleFlashlight = async () => {
-    if (!stream) return;
+  const toggleFlashlight = useCallback(async () => {
+    if (!stream || !mountedRef.current) return;
     
     try {
-      const videoTrack = stream.getVideoTracks()[0];
+      const videoTracks = stream.getVideoTracks();
+      if (videoTracks.length === 0) {
+        throw new Error('No video tracks available');
+      }
+      
+      const videoTrack = videoTracks[0];
       const capabilities = videoTrack.getCapabilities();
       
       if (videoTrack && 'torch' in capabilities) {
         await videoTrack.applyConstraints({
           advanced: [{ torch: !flashlightOn } as MediaTrackConstraintSet]
         });
-        setFlashlightOn(!flashlightOn);
         
-        toast({
-          title: flashlightOn ? "Flashlight Off" : "Flashlight On",
-          description: `Flashlight ${flashlightOn ? 'disabled' : 'enabled'}`,
-        });
+        if (mountedRef.current) {
+          setFlashlightOn(!flashlightOn);
+          
+          toast({
+            title: flashlightOn ? "Flashlight Off" : "Flashlight On",
+            description: `Flashlight ${flashlightOn ? 'disabled' : 'enabled'}`,
+          });
+        }
       } else {
-        toast({
-          title: "Flashlight Not Available",
-          description: "Your device doesn't support flashlight control",
-          variant: "destructive",
-        });
+        if (mountedRef.current) {
+          toast({
+            title: "Flashlight Not Available",
+            description: "Your device doesn't support flashlight control",
+            variant: "destructive",
+          });
+        }
       }
     } catch (error) {
       console.error('Error toggling flashlight:', error);
-      toast({
-        title: "Flashlight Error",
-        description: "Could not control flashlight",
-        variant: "destructive",
-      });
+      if (mountedRef.current) {
+        toast({
+          title: "Flashlight Error",
+          description: "Could not control flashlight",
+          variant: "destructive",
+        });
+      }
     }
-  };
+  }, [stream, flashlightOn, toast]);
 
 
-  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileUpload = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
 
@@ -292,46 +384,91 @@ export function QRScannerModal({ isOpen, onClose, onScanResult }: QRScannerModal
 
     const reader = new FileReader();
     reader.onload = (e) => {
+      if (!mountedRef.current) return;
+      
       const img = document.createElement('img');
       img.onload = () => {
-        if (!canvasRef.current || !window.jsQR) return;
+        if (!mountedRef.current || !canvasRef.current || !window.jsQR) {
+          return;
+        }
         
         const canvas = canvasRef.current;
         const context = canvas.getContext('2d');
         
         if (context) {
-          canvas.width = img.width;
-          canvas.height = img.height;
-          context.drawImage(img, 0, 0);
-          
-          const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
-          const code = window.jsQR(imageData.data, imageData.width, imageData.height);
-          
-          if (code) {
-            // Set result and show drawer
-            setScannedResult(code.data);
-            setShowResultDrawer(true);
+          try {
+            // Validate image dimensions
+            if (img.width <= 0 || img.height <= 0) {
+              throw new Error('Invalid image dimensions');
+            }
             
-            // Also call the optional callback for backward compatibility
-            onScanResult?.(code.data);
+            canvas.width = img.width;
+            canvas.height = img.height;
+            context.drawImage(img, 0, 0);
             
-            toast({
-              title: "QR Code Found!",
-              description: "Successfully extracted QR code from image",
-            });
-          } else {
-            toast({
-              title: "No QR Code Found",
-              description: "Could not detect a QR code in this image",
-              variant: "destructive",
-            });
+            const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
+            const code = window.jsQR(imageData.data, imageData.width, imageData.height);
+            
+            if (code && mountedRef.current) {
+              // Record successful scan
+              qrPerformanceMonitor.recordSuccessfulScan(code.data);
+              
+              // Set result and show drawer
+              setScannedResult(code.data);
+              setShowResultDrawer(true);
+              
+              // Also call the optional callback for backward compatibility
+              onScanResult?.(code.data);
+              
+              toast({
+                title: "QR Code Found!",
+                description: "Successfully extracted QR code from image",
+              });
+            } else if (mountedRef.current) {
+              toast({
+                title: "No QR Code Found",
+                description: "Could not detect a QR code in this image",
+                variant: "destructive",
+              });
+            }
+          } catch (error) {
+            console.error('Error processing uploaded image:', error);
+            if (mountedRef.current) {
+              toast({
+                title: "Processing Error",
+                description: "Failed to process the uploaded image",
+                variant: "destructive",
+              });
+            }
           }
         }
       };
+      
+      img.onerror = () => {
+        if (mountedRef.current) {
+          toast({
+            title: "Invalid Image",
+            description: "Could not load the selected image",
+            variant: "destructive",
+          });
+        }
+      };
+      
       img.src = e.target?.result as string;
     };
+    
+    reader.onerror = () => {
+      if (mountedRef.current) {
+        toast({
+          title: "File Error",
+          description: "Could not read the selected file",
+          variant: "destructive",
+        });
+      }
+    };
+    
     reader.readAsDataURL(file);
-  };
+  }, [toast, onScanResult]);
 
   // Component mount/unmount tracking
   useEffect(() => {
@@ -368,30 +505,36 @@ export function QRScannerModal({ isOpen, onClose, onScanResult }: QRScannerModal
   return (
     <>
       <Sheet open={isOpen} onOpenChange={handleClose}>
-        <SheetContent side="bottom" className="h-[90vh] sm:h-[95vh] rounded-t-3xl border-0 p-0 overflow-hidden">
-          <div className="flex flex-col h-full bg-gradient-to-br from-slate-900 via-gray-900 to-black text-white relative">
-            {/* Animated background overlay */}
-            <div className="absolute inset-0 bg-gradient-to-br from-blue-600/10 via-purple-600/10 to-cyan-600/10 animate-gradient-x opacity-60"></div>
-            <div className="absolute top-0 left-1/4 w-96 h-96 bg-blue-500/20 rounded-full blur-3xl animate-pulse"></div>
-            <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-purple-500/20 rounded-full blur-3xl animate-pulse animation-delay-2000"></div>
-            {/* Enhanced Header with Glassmorphism */}
-            <SheetHeader className="relative z-10 p-4 sm:p-6 pb-3 sm:pb-4 border-b border-white/10 bg-black/20 backdrop-blur-xl">
+        <SheetContent side="bottom" className="h-[92vh] sm:h-[96vh] rounded-t-3xl border-0 p-0 overflow-hidden bg-gradient-to-br from-slate-900 via-gray-900 to-indigo-900">
+          <div className="flex flex-col h-full text-white relative">
+            {/* Enhanced animated background overlay with multiple layers */}
+            <div className="absolute inset-0 bg-gradient-to-br from-blue-600/5 via-purple-600/5 to-cyan-600/5 animate-pulse opacity-80"></div>
+            <div className="absolute -top-32 -left-32 w-96 h-96 bg-gradient-to-br from-blue-500/20 via-cyan-500/15 to-purple-500/20 rounded-full blur-3xl animate-pulse opacity-60"></div>
+            <div className="absolute -bottom-32 -right-32 w-96 h-96 bg-gradient-to-tr from-purple-500/20 via-violet-500/15 to-pink-500/20 rounded-full blur-3xl animate-pulse opacity-60" style={{animationDelay: '2s'}}></div>
+            <div className="absolute top-1/3 right-1/4 w-64 h-64 bg-gradient-to-r from-emerald-500/15 to-teal-500/15 rounded-full blur-2xl animate-pulse opacity-40" style={{animationDelay: '4s'}}></div>
+            
+            {/* Enhanced Header with Glassmorphism and better spacing */}
+            <SheetHeader className="relative z-10 p-4 sm:p-6 pb-4 sm:pb-5 border-b border-white/15 bg-black/25 backdrop-blur-2xl">
               <div className="flex items-center justify-between">
-                <SheetTitle className="text-lg sm:text-2xl font-bold text-white flex items-center gap-2 sm:gap-3">
-                  <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-2xl flex items-center justify-center shadow-lg shadow-blue-500/30 animate-glow">
-                    <Camera className="h-5 w-5 sm:h-6 sm:w-6 animate-pulse" />
+                <SheetTitle className="text-lg sm:text-2xl font-bold text-white flex items-center gap-3 sm:gap-4">
+                  <div className="relative">
+                    <div className="w-12 h-12 sm:w-14 sm:h-14 bg-gradient-to-br from-blue-500 via-cyan-500 to-purple-500 rounded-2xl flex items-center justify-center shadow-2xl shadow-blue-500/40 border border-white/20">
+                      <Camera className="h-6 w-6 sm:h-7 sm:w-7 animate-pulse text-white" />
+                    </div>
+                    {/* Glow effect */}
+                    <div className="absolute inset-0 bg-gradient-to-br from-blue-500 via-cyan-500 to-purple-500 rounded-2xl blur-md opacity-30 animate-pulse"></div>
                   </div>
                   <div>
-                    <div className="hidden sm:block text-gradient-animated font-black">Scan QR Code</div>
-                    <div className="sm:hidden text-gradient-animated font-black">Scan QR</div>
-                    <div className="text-xs text-cyan-300 font-normal mt-1 opacity-80">AI-Powered Recognition</div>
+                    <div className="hidden sm:block bg-gradient-to-r from-cyan-400 via-blue-400 to-purple-400 bg-clip-text text-transparent font-black tracking-wide">Scan QR Code</div>
+                    <div className="sm:hidden bg-gradient-to-r from-cyan-400 via-blue-400 to-purple-400 bg-clip-text text-transparent font-black tracking-wide">Scan QR</div>
+                    <div className="text-xs text-cyan-300/90 font-semibold mt-1 opacity-90 tracking-wider">AI-Powered Recognition</div>
                   </div>
                 </SheetTitle>
                 <Button 
                   variant="ghost" 
                   size="icon"
                   onClick={handleClose}
-                  className="text-white/70 hover:text-white hover:bg-white/10 rounded-full w-10 h-10 sm:w-12 sm:h-12 backdrop-blur-sm border border-white/10 transition-all duration-300 hover:shadow-lg hover:shadow-white/20 group"
+                  className="text-white/70 hover:text-white hover:bg-white/15 rounded-full w-12 h-12 sm:w-14 sm:h-14 backdrop-blur-xl border border-white/20 transition-all duration-300 hover:shadow-xl hover:shadow-white/30 group hover:border-white/40"
                 >
                   <X className="h-5 w-5 sm:h-6 sm:w-6 group-hover:rotate-90 transition-transform duration-300" />
                 </Button>

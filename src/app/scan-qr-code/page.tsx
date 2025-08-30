@@ -63,99 +63,108 @@ export default function ScanQRCodePage() {
 
   return (
     <FeaturePageLayout title="QR Code Scanner">
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-purple-50/30 relative overflow-hidden">
-        {/* Animated background elements */}
-        <div className="absolute top-0 right-0 w-96 h-96 bg-gradient-to-br from-blue-200/20 to-purple-200/20 rounded-full blur-3xl animate-float"></div>
-        <div className="absolute bottom-0 left-0 w-80 h-80 bg-gradient-to-tr from-cyan-200/20 to-emerald-200/20 rounded-full blur-3xl animate-float animation-delay-2000"></div>
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-gray-900 to-indigo-900 relative overflow-hidden">
+        {/* Enhanced animated background elements with better gradients */}
+        <div className="absolute -top-24 -right-24 w-96 h-96 bg-gradient-to-br from-blue-500/30 via-cyan-500/20 to-purple-500/30 rounded-full blur-3xl animate-pulse opacity-70"></div>
+        <div className="absolute -bottom-24 -left-24 w-80 h-80 bg-gradient-to-tr from-emerald-500/30 via-teal-500/20 to-cyan-500/30 rounded-full blur-3xl animate-pulse opacity-70" style={{animationDelay: '2s'}}></div>
+        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-gradient-to-r from-violet-500/20 to-purple-500/20 rounded-full blur-2xl animate-pulse opacity-50" style={{animationDelay: '4s'}}></div>
+        
+        {/* Scanning grid overlay */}
+        <div className="absolute inset-0 opacity-5">
+          <div className="w-full h-full" style={{
+            backgroundImage: `radial-gradient(circle at 1px 1px, rgba(59, 130, 246, 0.5) 1px, transparent 0)`,
+            backgroundSize: '60px 60px',
+            animation: 'float 20s ease-in-out infinite'
+          }}></div>
+        </div>
         
         <div className="container mx-auto px-4 py-8 max-w-6xl relative z-10">
-          
-          {/* Enhanced Header with Modern Glassmorphism */}
-          <div className="text-center mb-12">
-            <div className="inline-flex items-center gap-4 glass-card-enhanced rounded-3xl px-8 py-6 shadow-2xl border border-white/30 mb-8 animate-in fade-in-scale duration-700">
-              <div className="w-16 h-16 bg-gradient-to-br from-blue-500 via-purple-600 to-cyan-500 rounded-2xl flex items-center justify-center shadow-lg shadow-blue-500/30 animate-glow">
-                <QrCode className="h-8 w-8 text-white animate-pulse" />
-              </div>
-              <div>
-                <h1 className="text-3xl sm:text-4xl font-black text-gradient-animated mb-2">
-                  QR Code Scanner
-                </h1>
-                <p className="text-base text-gray-700 font-medium leading-relaxed">
-                  ✨ Scan, parse, and manage QR codes with AI-powered recognition
-                </p>
+          {/* Hero Section with stats */}
+          {stats && (
+            <div className="text-center mb-8 animate-in fade-in duration-1000">
+              <div className="inline-flex items-center gap-6 bg-white/10 backdrop-blur-xl rounded-2xl px-6 py-4 border border-white/20 shadow-2xl">
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-cyan-400">{stats.totalScans}</div>
+                  <div className="text-xs text-gray-300">Total Scans</div>
+                </div>
+                <div className="w-px h-8 bg-white/20"></div>
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-green-400">{stats.uniqueScans}</div>
+                  <div className="text-xs text-gray-300">Unique</div>
+                </div>
+                <div className="w-px h-8 bg-white/20"></div>
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-yellow-400">{stats.favoriteScans}</div>
+                  <div className="text-xs text-gray-300">Favorites</div>
+                </div>
               </div>
             </div>
+          )}
 
-            {/* Enhanced Quick Stats */}
-            {stats && stats.totalScans > 0 && (
-              <div className="flex justify-center mb-10 animate-in slide-in-from-bottom duration-700 delay-200">
-                <div className="grid grid-cols-3 gap-6 glass-card-enhanced rounded-3xl p-6 border border-white/30 shadow-xl">
-                  <div className="text-center group">
-                    <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center mx-auto mb-2 group-hover:scale-110 transition-transform duration-300 shadow-lg">
-                      <span className="text-white font-bold text-lg">{stats.totalScans}</span>
-                    </div>
-                    <div className="text-sm font-semibold text-gray-700">📊 Total Scans</div>
-                  </div>
-                  <div className="text-center group">
-                    <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl flex items-center justify-center mx-auto mb-2 group-hover:scale-110 transition-transform duration-300 shadow-lg">
-                      <span className="text-white font-bold text-lg">{stats.uniqueScans}</span>
-                    </div>
-                    <div className="text-sm font-semibold text-gray-700">🎯 Unique Codes</div>
-                  </div>
-                  <div className="text-center group">
-                    <div className="w-12 h-12 bg-gradient-to-br from-pink-500 to-pink-600 rounded-xl flex items-center justify-center mx-auto mb-2 group-hover:scale-110 transition-transform duration-300 shadow-lg">
-                      <span className="text-white font-bold text-lg">{stats.favoriteScans}</span>
-                    </div>
-                    <div className="text-sm font-semibold text-gray-700">⭐ Favorites</div>
-                  </div>
-                </div>
-              </div>
-            )}
-          </div>
-
-          {/* Enhanced Main Action Buttons */}
-          <div className="flex flex-col sm:flex-row justify-center gap-6 mb-14 animate-in slide-in-from-bottom duration-700 delay-300">
+          {/* Enhanced Main Action Buttons with modern design */}
+          <div className="flex flex-col lg:flex-row justify-center gap-8 mb-16 animate-in slide-in-from-bottom duration-700 delay-300">
             <Button 
-              className="w-full sm:w-auto bg-gradient-to-r from-blue-600 via-purple-600 to-cyan-600 hover:from-blue-700 hover:via-purple-700 hover:to-cyan-700 text-white px-10 py-8 rounded-3xl shadow-2xl hover:shadow-3xl transition-all duration-300 transform hover:scale-105 active:scale-95 font-black text-xl sm:text-2xl mobile-touch-target btn-ripple group"
+              className="group relative w-full lg:w-auto bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 hover:from-blue-500 hover:via-indigo-500 hover:to-purple-500 text-white px-12 py-10 rounded-3xl shadow-2xl hover:shadow-purple-500/25 transition-all duration-500 transform hover:scale-[1.02] active:scale-[0.98] font-black text-xl sm:text-2xl overflow-hidden border border-white/10"
               onClick={openModal}
             >
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 bg-white/20 rounded-2xl flex items-center justify-center group-hover:animate-bounce shadow-lg backdrop-blur-sm border border-white/10">
-                  <ScanLine className="h-6 w-6 animate-pulse" />
+              {/* Shimmer effect */}
+              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000 ease-in-out"></div>
+              
+              <div className="relative flex items-center gap-5">
+                <div className="w-14 h-14 bg-white/15 rounded-2xl flex items-center justify-center group-hover:animate-pulse shadow-lg backdrop-blur-sm border border-white/20 group-hover:bg-white/25 transition-all duration-300">
+                  <ScanLine className="h-7 w-7 animate-pulse group-hover:animate-bounce" />
                 </div>
-                <div>
-                  <div className="tracking-wide">📸 Scan QR Code</div>
-                  <div className="text-sm text-white/90 font-semibold mt-1">Camera • Upload • AI-Powered</div>
+                <div className="text-left">
+                  <div className="tracking-wide flex items-center gap-2">
+                    <span>Scan QR Code</span>
+                  </div>
+                  <div className="text-sm text-white/90 font-semibold mt-1 opacity-90">
+                    <span className="inline-flex items-center gap-1">
+                      Camera <span className="text-cyan-300">•</span> Upload <span className="text-cyan-300">•</span> AI-Powered
+                    </span>
+                  </div>
                 </div>
               </div>
             </Button>
 
             <Button 
               variant="outline"
-              className="w-full sm:w-auto glass-card-enhanced border-2 border-purple-400/40 text-purple-700 hover:bg-purple-50/50 hover:border-purple-400/60 px-10 py-8 rounded-3xl shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:scale-105 active:scale-95 font-black text-xl sm:text-2xl mobile-touch-target btn-ripple group"
+              className="group relative w-full lg:w-auto bg-white/5 backdrop-blur-xl border-2 border-emerald-400/40 text-emerald-300 hover:bg-emerald-500/10 hover:border-emerald-400/60 hover:text-emerald-200 px-12 py-10 rounded-3xl shadow-xl hover:shadow-emerald-500/25 transition-all duration-500 transform hover:scale-[1.02] active:scale-[0.98] font-black text-xl sm:text-2xl overflow-hidden"
               onClick={openHistory}
             >
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 bg-purple-100/70 rounded-2xl flex items-center justify-center group-hover:animate-bounce shadow-lg backdrop-blur-sm border border-purple-200/50">
-                  <History className="h-6 w-6 text-purple-700 animate-pulse" />
+              {/* Shimmer effect */}
+              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-emerald-400/10 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000 ease-in-out"></div>
+              
+              <div className="relative flex items-center gap-5">
+                <div className="w-14 h-14 bg-emerald-500/15 rounded-2xl flex items-center justify-center group-hover:animate-pulse shadow-lg backdrop-blur-sm border border-emerald-400/30 group-hover:bg-emerald-500/25 transition-all duration-300">
+                  <History className="h-7 w-7 text-emerald-400 animate-pulse group-hover:animate-bounce" />
                 </div>
-                <div>
-                  <div className="tracking-wide">📁 View History</div>
-                  <div className="text-sm text-purple-600 font-semibold mt-1">Browse • Search • Organize</div>
+                <div className="text-left">
+                  <div className="tracking-wide flex items-center gap-2">
+                    <span>View History</span>
+                  </div>
+                  <div className="text-sm text-emerald-300/90 font-semibold mt-1 opacity-90">
+                    <span className="inline-flex items-center gap-1">
+                      Browse <span className="text-emerald-400">•</span> Search <span className="text-emerald-400">•</span> Organize
+                    </span>
+                  </div>
                 </div>
               </div>
             </Button>
           </div>
 
-          {/* Secondary Actions */}
-          <div className="flex flex-wrap justify-center gap-3 mb-12">
+          {/* Enhanced Secondary Actions with better spacing */}
+          <div className="flex flex-wrap justify-center gap-4 mb-12 animate-in slide-in-from-bottom duration-700 delay-500">
             <Link href="/generate-qr-code">
               <Button 
                 variant="outline"
-                className="border-2 border-gray-300 text-gray-700 hover:bg-gray-50 px-6 py-3 rounded-xl shadow-sm hover:shadow-md transition-all duration-200 font-semibold group"
+                className="group bg-white/5 backdrop-blur-xl border-2 border-gray-500/30 text-gray-300 hover:bg-gray-500/10 hover:border-gray-400/50 hover:text-white px-8 py-4 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 active:scale-95 font-semibold text-lg overflow-hidden"
               >
-                <QrCode className="h-4 w-4 mr-2 group-hover:animate-bounce" />
-                Create QR Code
+                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700"></div>
+                <div className="relative flex items-center gap-3">
+                  <QrCode className="h-5 w-5 group-hover:animate-bounce transition-all duration-300 group-hover:text-cyan-400" />
+                  <span>Create QR Code</span>
+                </div>
               </Button>
             </Link>
           </div>

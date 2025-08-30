@@ -1,5 +1,3 @@
 {
-  "/scan-qr-code/page": "app/scan-qr-code/page-src_c.js",
-  "/generate-qr-code/page": "app/generate-qr-code/page.js",
-  "/home/page": "app/home/page.js"
+  "/scan-qr-code/page": "app/scan-qr-code/page-src_utils_qr-d.js"
 }

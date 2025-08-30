@@ -481,50 +481,66 @@ export function MobileEnhancedQRScanner({
   return (
     <div 
       ref={containerRef}
-      className={`fixed inset-0 flex flex-col z-50 bg-black transition-all duration-300 ${
-        isFullscreen ? 'bg-black' : 'bg-gradient-to-br from-gray-900 via-black to-gray-800'
+      className={`fixed inset-0 flex flex-col z-50 transition-all duration-500 ${
+        isFullscreen ? 'bg-black' : 'bg-gradient-to-br from-slate-900 via-gray-900 to-indigo-900'
       }`}
       onTouchStart={handleTouchStart}
       onTouchEnd={handleTouchEnd}
     >
-      {/* Enhanced Header */}
-      <div className={`flex items-center justify-between p-4 border-b border-white/10 backdrop-blur-sm ${
-        isFullscreen ? 'bg-black/80' : 'bg-black/30'
+      {/* Enhanced Header with advanced glassmorphism */}
+      <div className={`flex items-center justify-between p-4 sm:p-6 border-b border-white/20 backdrop-blur-2xl transition-all duration-300 ${
+        isFullscreen ? 'bg-black/80' : 'bg-black/40'
       }`}>
-        <div className="flex items-center gap-3">
-          <div className="p-2 bg-gradient-to-r from-blue-600 to-cyan-600 rounded-xl">
-            <Camera className="h-6 w-6 text-white" />
+        <div className="flex items-center gap-4">
+          <div className="relative">
+            <div className="p-3 bg-gradient-to-br from-blue-600 via-cyan-600 to-purple-600 rounded-2xl shadow-2xl shadow-blue-500/40 border border-white/20">
+              <Camera className="h-7 w-7 text-white animate-pulse" />
+            </div>
+            {/* Enhanced glow effect */}
+            <div className="absolute inset-0 bg-gradient-to-br from-blue-600 to-cyan-600 rounded-2xl blur-lg opacity-40 animate-pulse"></div>
           </div>
           <div>
-            <h2 className="text-white text-xl font-bold">Smart QR Scanner</h2>
+            <h2 className="text-white text-xl sm:text-2xl font-bold bg-gradient-to-r from-cyan-400 via-blue-400 to-purple-400 bg-clip-text text-transparent">
+              Smart QR Scanner
+            </h2>
             {scanningStats.attempts > 0 && (
-              <p className="text-xs text-cyan-300">
+              <p className="text-xs sm:text-sm text-cyan-300/90 font-medium tracking-wide">
                 {scanningStats.successes}/{scanningStats.attempts} success • {scanningStats.averageTime.toFixed(0)}ms avg
               </p>
             )}
           </div>
         </div>
         
-        <div className="flex items-center gap-2">
-          {/* Settings toggles */}
+        <div className="flex items-center gap-2 sm:gap-3">
+          {/* Enhanced Settings toggles */}
           <Button
             variant="ghost"
             size="icon"
             onClick={() => setSoundEnabled(!soundEnabled)}
-            className={`text-white hover:bg-white/10 ${soundEnabled ? 'bg-green-500/20' : 'bg-gray-500/20'}`}
+            className={`text-white hover:bg-white/15 transition-all duration-300 rounded-xl w-10 h-10 sm:w-12 sm:h-12 backdrop-blur-sm border border-white/10 group ${
+              soundEnabled ? 'bg-green-500/25 border-green-400/40 shadow-green-500/20' : 'bg-gray-500/20 border-gray-400/30'
+            }`}
             title="Toggle sound feedback"
           >
-            {soundEnabled ? <Volume2 className="h-5 w-5" /> : <VolumeX className="h-5 w-5" />}
+            {soundEnabled ? (
+              <Volume2 className="h-4 w-4 sm:h-5 sm:w-5 group-hover:animate-pulse text-green-300" />
+            ) : (
+              <VolumeX className="h-4 w-4 sm:h-5 sm:w-5 group-hover:animate-pulse text-gray-400" />
+            )}
           </Button>
           
           <Button
             variant="ghost"
             size="icon"
             onClick={() => setHapticsEnabled(!hapticsEnabled)}
-            className={`text-white hover:bg-white/10 ${hapticsEnabled ? 'bg-purple-500/20' : 'bg-gray-500/20'}`}
+            className={`text-white hover:bg-white/15 transition-all duration-300 rounded-xl w-10 h-10 sm:w-12 sm:h-12 backdrop-blur-sm border border-white/10 group ${
+              hapticsEnabled ? 'bg-purple-500/25 border-purple-400/40 shadow-purple-500/20' : 'bg-gray-500/20 border-gray-400/30'
+            }`}
             title="Toggle haptic feedback"
           >
-            <Vibrate className="h-5 w-5" />
+            <Vibrate className={`h-4 w-4 sm:h-5 sm:w-5 group-hover:animate-pulse ${
+              hapticsEnabled ? 'text-purple-300' : 'text-gray-400'
+            }`} />
           </Button>
           
           {document.fullscreenEnabled && (
@@ -532,10 +548,14 @@ export function MobileEnhancedQRScanner({
               variant="ghost"
               size="icon"
               onClick={isFullscreen ? exitFullscreen : enterFullscreen}
-              className="text-white hover:bg-white/10"
+              className="text-white hover:bg-white/15 transition-all duration-300 rounded-xl w-10 h-10 sm:w-12 sm:h-12 backdrop-blur-sm border border-white/10 hover:border-white/30 group"
               title={isFullscreen ? 'Exit Fullscreen' : 'Enter Fullscreen'}
             >
-              {isFullscreen ? <Minimize className="h-5 w-5" /> : <Maximize className="h-5 w-5" />}
+              {isFullscreen ? (
+                <Minimize className="h-4 w-4 sm:h-5 sm:w-5 group-hover:scale-110 transition-transform duration-200" />
+              ) : (
+                <Maximize className="h-4 w-4 sm:h-5 sm:w-5 group-hover:scale-110 transition-transform duration-200" />
+              )}
             </Button>
           )}
           
@@ -543,9 +563,9 @@ export function MobileEnhancedQRScanner({
             variant="ghost"
             size="icon"
             onClick={onClose}
-            className="text-white hover:bg-white/10"
+            className="text-white hover:bg-red-500/20 transition-all duration-300 rounded-xl w-10 h-10 sm:w-12 sm:h-12 backdrop-blur-sm border border-white/10 hover:border-red-400/50 group"
           >
-            <X className="h-6 w-6" />
+            <X className="h-5 w-5 sm:h-6 sm:w-6 group-hover:rotate-90 transition-transform duration-300" />
           </Button>
         </div>
       </div>
