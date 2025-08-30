@@ -1,7 +1,8 @@
 'use client';
 
-import React, { useState, useContext, Suspense, lazy } from 'react';
+import React, { useState, useContext, Suspense } from 'react';
 import Link from 'next/link';
+import dynamic from 'next/dynamic';
 import { QrCode, ScanLine, Camera, History } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { LanguageContext } from '@/contexts/language-context';
@@ -9,11 +10,25 @@ import { FeaturePageLayout } from '@/layouts/feature-page-layout';
 import { QRHistoryViewer } from '@/components/qr-history-viewer';
 import { getQRStats } from '@/utils/qr-scan-history';
 
-// Lazy load the QR scanner modal for better performance
-const QRScannerModal = lazy(() => 
-  import('@/components/qr-scanner-modal').then(module => ({ 
+// Use Next.js dynamic import with proper SSR handling
+const QRScannerModal = dynamic(
+  () => import('@/components/qr-scanner-modal').then(module => ({ 
     default: module.QRScannerModal 
-  }))
+  })),
+  { 
+    ssr: false,
+    loading: () => (
+      <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+        <div className="bg-white rounded-2xl p-8 text-center max-w-sm mx-4">
+          <div className="w-16 h-16 bg-blue-600 rounded-full flex items-center justify-center mx-auto mb-4 animate-pulse">
+            <Camera className="h-8 w-8 text-white animate-bounce" />
+          </div>
+          <h3 className="text-xl font-bold mb-2">Loading Scanner...</h3>
+          <p className="text-gray-600">Preparing QR code scanner</p>
+        </div>
+      </div>
+    )
+  }
 );
 
 export default function ScanQRCodePage() {

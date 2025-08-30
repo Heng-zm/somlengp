@@ -153,14 +153,21 @@ export function QRScannerModal({ isOpen, onClose, onScanResult }: QRScannerModal
     }
   }, [isScanning, onScanResult, stopCamera, toast]);
 
-  // Load jsQR library only when modal is opened for better performance
+// Load jsQR library only when modal is opened for better performance
   useEffect(() => {
     if (typeof window !== 'undefined' && !window.jsQR && isOpen) {
       const endLibraryTracking = trackLibraryLoad();
       
+      // Check if script is already loading to prevent duplicate loads
+      const existingScript = document.querySelector('script[src*="jsqr"]');
+      if (existingScript) {
+        return;
+      }
+      
       const script = document.createElement('script');
       script.src = 'https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js';
       script.async = true;
+      script.crossOrigin = 'anonymous';
       
       // Add loading state for jsQR
       script.onload = () => {
@@ -171,18 +178,25 @@ export function QRScannerModal({ isOpen, onClose, onScanResult }: QRScannerModal
       script.onerror = () => {
         console.error('Failed to load jsQR library');
         endLibraryTracking();
-        toast({
-          title: "Scanner Error",
-          description: "Failed to load QR scanning library",
-          variant: "destructive",
-        });
+        if (mountedRef.current) {
+          toast({
+            title: "Scanner Error",
+            description: "Failed to load QR scanning library",
+            variant: "destructive",
+          });
+        }
       };
       
       document.head.appendChild(script);
       
       return () => {
-        if (document.head.contains(script)) {
-          document.head.removeChild(script);
+        // Only remove if it's the same script and component is unmounting
+        try {
+          if (document.head.contains(script)) {
+            document.head.removeChild(script);
+          }
+        } catch (error) {
+          console.warn('Script cleanup error:', error);
         }
       };
     }
