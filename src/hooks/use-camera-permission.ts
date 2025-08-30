@@ -92,7 +92,13 @@ export function useCameraPermission(options: UseCameraPermissionOptions = {}): U
   const [frontCameras, setFrontCameras] = useState<CameraDeviceInfo[]>([]);
   const [currentFacingMode, setCurrentFacingMode] = useState<'user' | 'environment' | null>(null);
   const [error, setError] = useState<CameraPermissionResult['error'] | null>(null);
-  const [isSupported] = useState(() => isCameraSupported());
+  const [isSupported] = useState(() => {
+    // Only check camera support on client-side
+    if (typeof window === 'undefined' || typeof navigator === 'undefined') {
+      return false;
+    }
+    return isCameraSupported();
+  });
 
   // Refs to track current stream for cleanup
   const currentStreamRef = useRef<MediaStream | null>(null);
@@ -297,7 +303,8 @@ export function useCameraPermission(options: UseCameraPermissionOptions = {}): U
 
   // Listen for permission changes
   useEffect(() => {
-    if (!navigator.permissions) return;
+    // Only run on client-side
+    if (typeof window === 'undefined' || typeof navigator === 'undefined' || !navigator.permissions) return;
 
     let permissionStatus: PermissionStatus;
 

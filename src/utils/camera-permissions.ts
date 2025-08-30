@@ -32,6 +32,11 @@ export interface CameraDeviceInfo {
  * Check if the browser supports camera access
  */
 export function isCameraSupported(): boolean {
+  // Return false during SSR
+  if (typeof window === 'undefined' || typeof navigator === 'undefined') {
+    return false;
+  }
+  
   return !!(
     navigator.mediaDevices &&
     typeof navigator.mediaDevices.getUserMedia === 'function' &&
@@ -44,7 +49,8 @@ export function isCameraSupported(): boolean {
  */
 export async function getCameraPermissionStatus(): Promise<PermissionState | null> {
   try {
-    if (!('permissions' in navigator)) {
+    // Return null during SSR
+    if (typeof window === 'undefined' || typeof navigator === 'undefined' || !('permissions' in navigator)) {
       return null;
     }
     
@@ -61,8 +67,9 @@ export async function getCameraPermissionStatus(): Promise<PermissionState | nul
  */
 export async function getCameraDevices(): Promise<CameraDeviceInfo[]> {
   try {
-    if (!navigator.mediaDevices?.enumerateDevices) {
-      throw new Error('Device enumeration not supported');
+    // Return empty array during SSR
+    if (typeof window === 'undefined' || typeof navigator === 'undefined' || !navigator.mediaDevices?.enumerateDevices) {
+      return [];
     }
 
     const devices = await navigator.mediaDevices.enumerateDevices();
@@ -223,6 +230,11 @@ export function stopCameraStream(stream: MediaStream | null): void {
  */
 export async function getCameraCapabilities(deviceId: string): Promise<MediaTrackCapabilities | null> {
   try {
+    // Return null during SSR
+    if (typeof window === 'undefined' || typeof navigator === 'undefined' || !navigator.mediaDevices?.getUserMedia) {
+      return null;
+    }
+    
     const stream = await navigator.mediaDevices.getUserMedia({
       video: { deviceId: { exact: deviceId } }
     });
@@ -254,13 +266,13 @@ export async function isCameraPermissionDenied(): Promise<boolean> {
 export async function checkCameraPermissionDetails() {
   const result = {
     supported: isCameraSupported(),
-    secureContext: window.isSecureContext,
-    mediaDevicesSupported: !!navigator.mediaDevices,
-    getUserMediaSupported: !!navigator.mediaDevices?.getUserMedia,
+    secureContext: typeof window !== 'undefined' ? window.isSecureContext : false,
+    mediaDevicesSupported: typeof navigator !== 'undefined' ? !!navigator.mediaDevices : false,
+    getUserMediaSupported: typeof navigator !== 'undefined' ? !!navigator.mediaDevices?.getUserMedia : false,
     permissionStatus: await getCameraPermissionStatus(),
     devices: [] as CameraDeviceInfo[],
-    userAgent: navigator.userAgent,
-    location: window.location.href
+    userAgent: typeof navigator !== 'undefined' ? navigator.userAgent : 'SSR',
+    location: typeof window !== 'undefined' ? window.location.href : 'SSR'
   };
 
   if (result.supported) {
