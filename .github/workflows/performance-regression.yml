@@ -32,7 +32,7 @@ jobs:
           cache: 'npm'
 
       - name: Cache dependencies
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: ~/.npm
           key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
@@ -53,34 +53,14 @@ jobs:
       - name: Install Lighthouse CI
         run: npm install -g @lhci/cli
 
-      - name: Create Lighthouse configuration
+      # Use the lighthouserc.js file from the repository
+      - name: Verify Lighthouse configuration
         run: |
-          cat > lighthouserc.js << 'EOF'
-          module.exports = {
-            ci: {
-              collect: {
-                url: ['http://localhost:3000'],
-                startServerCommand: 'npm start',
-                numberOfRuns: 3,
-                settings: {
-                  chromeFlags: '--no-sandbox --headless --disable-gpu'
-                }
-              },
-              assert: {
-                preset: 'lighthouse:no-pwa',
-                assertions: {
-                  'largest-contentful-paint': ['error', { maxNumericValue: 4000 }],
-                  'first-input-delay': ['error', { maxNumericValue: 300 }],
-                  'cumulative-layout-shift': ['error', { maxNumericValue: 0.25 }],
-                  'speed-index': ['warn', { maxNumericValue: 4000 }]
-                }
-              },
-              upload: {
-                target: 'temporary-public-storage'
-              }
-            }
-          };
-          EOF
+          if [ ! -f lighthouserc.js ]; then
+            echo "❌ lighthouserc.js not found in repository"
+            exit 1
+          fi
+          echo "✅ Found lighthouserc.js configuration file"
 
       - name: Run Lighthouse CI
         id: lighthouse
@@ -347,7 +327,7 @@ jobs:
 
       - name: Upload Performance Results
         if: always()
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: performance-results
           path: |
