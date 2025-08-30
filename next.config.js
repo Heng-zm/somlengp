@@ -27,15 +27,8 @@ const nextConfig = {
     serverActions: {
       bodySizeLimit: '50mb', // Increase to 50mb for large image files
     },
-    // Enable turbo mode for faster builds
-    turbo: {
-      rules: {
-        '*.svg': {
-          loaders: ['@svgr/webpack'],
-          as: '*.js',
-        },
-      },
-    },
+    // Enable turbopack for faster builds (replaces deprecated turbo)
+    // Moved to config.turbopack as per Next.js warning
   },
   // Optimize images
   images: {

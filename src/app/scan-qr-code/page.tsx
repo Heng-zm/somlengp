@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useContext, Suspense } from 'react';
+
 import Link from 'next/link';
 import dynamic from 'next/dynamic';
 import { QrCode, ScanLine, Camera, History } from 'lucide-react';
