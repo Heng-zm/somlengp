@@ -74,7 +74,10 @@ module.exports = {
     },
     upload: {
       // Store results temporarily for CI analysis
-      target: 'temporary-public-storage'
+      target: 'temporary-public-storage',
+      // Ensure reports are generated
+      outputDir: '.lighthouseci',
+      reportFilenamePattern: 'lighthouse-%%PATHNAME%%-%%DATETIME%%.report.%%EXTENSION%%'
     },
     // Server configuration for CI environment
     server: {

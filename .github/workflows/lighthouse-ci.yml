@@ -33,23 +33,37 @@ jobs:
         run: npm run build
 
       - name: Run Lighthouse CI
+        id: lighthouse-ci
         uses: treosh/lighthouse-ci-action@v10
         with:
           configPath: ./lighthouserc.js
-          uploadArtifacts: true
+          uploadArtifacts: true  # Let Lighthouse CI handle uploads internally
+          temporaryPublicStorage: true  # Enable temporary public storage
           runs: 3
-          artifactName: lighthouse-results
         env:
           NODE_VERSION: 18
           PERFORMANCE_BASELINE_BRANCH: main
           LHCI_GITHUB_APP_TOKEN: ${{ secrets.LHCI_GITHUB_APP_TOKEN }}
 
-      - name: Upload Lighthouse Results
+      - name: Debug - List generated files
+        if: always()
+        run: |
+          echo "=== Contents of current directory ==="
+          ls -la
+          echo "=== Contents of .lighthouseci (if exists) ==="
+          ls -la .lighthouseci/ || echo "No .lighthouseci directory found"
+          echo "=== Looking for lighthouse files ==="
+          find . -name "*lighthouse*" -type f || echo "No lighthouse files found"
+
+      - name: Upload Lighthouse Results as Backup
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: lighthouse-results-${{ github.run_id }}
+          name: lighthouse-backup-${{ github.run_number }}-${{ github.run_attempt }}
           path: |
             .lighthouseci/
-            lighthouse-results.json
+            lhci_reports/
+            *.lighthouse.report.html
+            *.lighthouse.report.json
           retention-days: 30
+          if-no-files-found: ignore
