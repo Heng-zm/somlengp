@@ -170,15 +170,14 @@ export default function GenerateQRCodePage() {
               CREATE QR
             </Button>
             
-            <Link href="/scan-qr-code">
-              <Button 
-                variant="outline"
-                className="border-2 border-blue-500 text-blue-600 hover:bg-blue-50 px-8 py-3 rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105 font-semibold text-lg"
-              >
-                <ScanLine className="h-5 w-5 mr-2" />
-                SCAN QR
-              </Button>
-            </Link>
+            <Button 
+              variant="outline"
+              className="border-2 border-gray-300 text-gray-500 px-8 py-3 rounded-xl shadow-lg cursor-not-allowed font-semibold text-lg"
+              disabled
+            >
+              <ScanLine className="h-5 w-5 mr-2" />
+              SCAN QR (Coming Soon)
+            </Button>
           </div>
 
         <div className="grid gap-8 lg:grid-cols-2">
