@@ -1,0 +1,90 @@
+[build]
+  publish = ".next"
+  command = "npm run build"
+
+[build.environment]
+  NODE_VERSION = "18"
+  NPM_FLAGS = "--prefer-offline --no-audit"
+
+# Alternative build configurations for testing
+[context.production]
+  command = "npm run build"
+  environment = { NODE_ENV = "production" }
+
+[context.deploy-preview]
+  command = "npm run build"
+  environment = { NODE_ENV = "production" }
+
+[context.branch-deploy]
+  command = "npm run build"
+
+# Function configuration for API routes
+[functions]
+  node_bundler = "esbuild"
+  directory = ".netlify/functions"
+
+# Headers for security and performance
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Frame-Options = "DENY"
+    X-XSS-Protection = "1; mode=block"
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+    Permissions-Policy = "camera=(), microphone=(), geolocation=()"
+
+[[headers]]
+  for = "/*.js"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+[[headers]]
+  for = "/*.css"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+[[headers]]
+  for = "/_next/static/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+# Redirects and rewrites
+[[redirects]]
+  from = "/api/*"
+  to = "/.netlify/functions/:splat"
+  status = 200
+
+# Edge functions for enhanced performance
+[[edge_functions]]
+  function = "geolocation"
+  path = "/api/location/*"
+
+# Performance optimizations
+[dev]
+  command = "npm run dev"
+  port = 3000
+  publish = ".next"
+  autoLaunch = false
+
+# Plugin configuration
+[[plugins]]
+  package = "@netlify/plugin-nextjs"
+
+[[plugins]]
+  package = "netlify-plugin-lighthouse"
+  [plugins.inputs]
+    audits = ["performance", "accessibility", "best-practices", "seo"]
+
+# Environment-specific configurations
+[context.staging]
+  command = "npm run build"
+  environment = { NODE_ENV = "staging" }
+
+# Alternative deployment test configurations
+[context.performance-test]
+  command = "npm run build && npm run lighthouse"
+  environment = { NODE_ENV = "production", LIGHTHOUSE_DISABLED = "false" }
+
+[context.bundle-analysis]
+  command = "npm run analyze"
+  environment = { ANALYZE = "true" }

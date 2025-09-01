@@ -11,11 +11,9 @@ import { FeaturePageLayout } from '@/layouts/feature-page-layout';
 import { QRHistoryViewer } from '@/components/qr-history-viewer';
 import { getQRStats } from '@/utils/qr-scan-history';
 
-// Use Next.js dynamic import with proper SSR handling
+// Use Next.js dynamic import with simpler syntax for better serverless compatibility
 const QRScannerModal = dynamic(
-  () => import('@/components/qr-scanner-modal').then(module => ({ 
-    default: module.QRScannerModal 
-  })),
+  () => import('@/components/qr-scanner-modal'),
   { 
     ssr: false,
     loading: () => (

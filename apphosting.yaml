@@ -1,7 +1,51 @@
 # Settings to manage and configure a Firebase App Hosting backend.
 # https://firebase.google.com/docs/app-hosting/configure
 
+# Production configuration
 runConfig:
   # Increase this value if you'd like to automatically spin up
   # more instances in response to increased traffic.
-  maxInstances: 1
+  maxInstances: 5
+  minInstances: 1
+  concurrency: 100
+  cpu: 1
+  memoryMiB: 512
+  
+  # Environment variables
+  env:
+    NODE_ENV: "production"
+    NEXT_TELEMETRY_DISABLED: "1"
+    
+# Alternative configurations for testing
+# You can switch between these by copying the desired config to the main runConfig section
+
+# Development/Testing configuration
+# runConfig:
+#   maxInstances: 1
+#   minInstances: 0
+#   concurrency: 80
+#   cpu: 0.5
+#   memoryMiB: 256
+#   env:
+#     NODE_ENV: "development"
+
+# High-traffic configuration
+# runConfig:
+#   maxInstances: 20
+#   minInstances: 2
+#   concurrency: 1000
+#   cpu: 2
+#   memoryMiB: 1024
+#   env:
+#     NODE_ENV: "production"
+#     ENABLE_CACHE: "true"
+
+# Cost-optimized configuration
+# runConfig:
+#   maxInstances: 3
+#   minInstances: 0
+#   concurrency: 100
+#   cpu: 0.5
+#   memoryMiB: 256
+#   env:
+#     NODE_ENV: "production"

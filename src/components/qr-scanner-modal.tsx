@@ -23,7 +23,7 @@ interface QRScannerModalProps {
   onScanResult?: (data: string) => void;
 }
 
-export function QRScannerModal({ isOpen, onClose, onScanResult }: QRScannerModalProps) {
+export default function QRScannerModal({ isOpen, onClose, onScanResult }: QRScannerModalProps) {
   const [isScanning, setIsScanning] = useState(false);
   const [flashlightOn, setFlashlightOn] = useState(false);
   const [showDebug, setShowDebug] = useState(false);
