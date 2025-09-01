@@ -15,6 +15,15 @@ runConfig:
   env:
     NODE_ENV: "production"
     NEXT_TELEMETRY_DISABLED: "1"
+    # Force Next.js to use standalone mode
+    STANDALONE: "true"
+    # Ensure proper routing
+    HOSTNAME: "0.0.0.0"
+    PORT: "8080"
+    # Ensure all Next.js routes are handled properly
+    NEXT_RUNTIME: "nodejs"
+    # Disable ISR for better Firebase App Hosting compatibility
+    NEXT_CACHE: "force-dynamic"
     
 # Alternative configurations for testing
 # You can switch between these by copying the desired config to the main runConfig section

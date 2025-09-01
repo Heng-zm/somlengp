@@ -1,7 +1,7 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   /* config options here */
-  // Enable standalone output for Docker deployment
+  // Enable standalone output for Firebase App Hosting
   output: 'standalone',
   typescript: {
     ignoreBuildErrors: false,
@@ -16,6 +16,10 @@ const nextConfig = {
   // Enable experimental features for better performance
   experimental: {
     optimizeCss: true,
+    // Ensure all routes work with Firebase App Hosting
+    serverActions: {
+      bodySizeLimit: '50mb', // Increase to 50mb for large image files
+    },
     optimizePackageImports: [
       'lucide-react', 
       '@radix-ui/react-icons',
@@ -26,9 +30,6 @@ const nextConfig = {
       'framer-motion',
       'recharts'
     ],
-    serverActions: {
-      bodySizeLimit: '50mb', // Increase to 50mb for large image files
-    },
     // Enable turbopack for faster builds (replaces deprecated turbo)
     // Moved to config.turbopack as per Next.js warning
   },
