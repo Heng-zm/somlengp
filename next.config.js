@@ -1,8 +1,8 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   /* config options here */
-  // Enable standalone output for Firebase App Hosting
-  output: 'standalone',
+  // Remove standalone output for Vercel deployment
+  // output: 'standalone', // Only needed for self-hosted deployments
   typescript: {
     ignoreBuildErrors: false,
   },

@@ -1,8 +1,17 @@
 {
   "framework": "nextjs",
   "functions": {
-    "src/app/**/page.tsx": {
+    "src/app/api/**/route.ts": {
+      "maxDuration": 10
+    },
+    "src/app/api/**/route.js": {
       "maxDuration": 10
     }
-  }
+  },
+  "routes": [
+    {
+      "src": "/api/(.*)",
+      "dest": "/api/$1"
+    }
+  ]
 }
