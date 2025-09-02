@@ -24,7 +24,14 @@ import {
   Upload,
   Clock,
   Users,
-  Settings
+  Settings,
+  Volume2,
+  VolumeX,
+  Play,
+  Pause,
+  TestTube,
+  Sparkles,
+  Loader
 } from 'lucide-react';
 
 // Predefined alert examples
@@ -35,27 +42,44 @@ const alertExamples = [
     title: 'Success!',
     description: 'Your profile has been updated successfully.',
     dismissible: true,
+    autoClose: true,
+    playSound: true,
+    soundType: 'success' as const,
   },
   {
     variant: 'destructive' as const,
     icon: X,
-    title: 'Error',
+    title: 'Critical Error',
     description: 'Something went wrong. Please try again later.',
     dismissible: true,
+    priority: 'critical' as const,
+    persistent: true,
+    playSound: true,
+    soundType: 'error' as const,
   },
   {
     variant: 'warning' as const,
     icon: AlertTriangle,
-    title: 'Warning',
+    title: 'Session Expiring',
     description: 'Your session will expire in 5 minutes. Please save your work.',
     dismissible: false,
+    priority: 'high' as const,
+    autoClose: true,
+    autoCloseDelay: 10000,
+    playSound: true,
+    soundType: 'warning' as const,
   },
   {
     variant: 'info' as const,
     icon: Info,
-    title: 'Information',
-    description: 'New features are now available. Check them out!',
+    title: 'New Features Available',
+    description: 'Check out the latest updates and improvements!',
     dismissible: true,
+    autoClose: true,
+    actions: [
+      { label: 'Learn More', onClick: () => console.log('Learn more clicked'), variant: 'outline' as const },
+      { label: 'Got it', onClick: () => console.log('Got it clicked'), variant: 'default' as const }
+    ]
   },
   {
     variant: 'outline' as const,
@@ -63,6 +87,7 @@ const alertExamples = [
     title: 'Notification',
     description: 'You have 3 unread messages.',
     dismissible: true,
+    autoClose: true,
   },
   {
     variant: 'glass' as const,
@@ -70,6 +95,34 @@ const alertExamples = [
     title: 'Premium Feature',
     description: 'This feature is available for premium users only.',
     dismissible: false,
+    actions: [
+      { label: 'Upgrade', onClick: () => console.log('Upgrade clicked'), variant: 'default' as const }
+    ]
+  },
+  {
+    variant: 'neon' as const,
+    icon: Star,
+    title: 'Special Event',
+    description: 'Limited time offer - 50% off premium features!',
+    dismissible: true,
+    priority: 'high' as const,
+    autoClose: false,
+  },
+  {
+    variant: 'minimal' as const,
+    icon: Info,
+    title: 'System Update',
+    description: 'A system update is available for download.',
+    dismissible: true,
+  },
+  {
+    variant: 'elevated' as const,
+    icon: CheckCircle2,
+    title: 'Backup Complete',
+    description: 'Your data has been backed up successfully.',
+    dismissible: true,
+    showProgress: true,
+    progress: 100,
   },
 ];
 
@@ -109,6 +162,8 @@ const advancedAlerts = [
 
 export function AlertShowcase() {
   const [dismissedAlerts, setDismissedAlerts] = useState<Set<number>>(new Set());
+  const [soundEnabled, setSoundEnabled] = useState(true);
+  const [progressDemo, setProgressDemo] = useState(0);
 
   const handleDismiss = (index: number) => {
     setDismissedAlerts(prev => new Set([...prev, index]));
@@ -117,6 +172,18 @@ export function AlertShowcase() {
   const resetAlerts = () => {
     setDismissedAlerts(new Set());
   };
+
+  const toggleSound = () => {
+    setSoundEnabled(!soundEnabled);
+  };
+
+  // Progress demo effect
+  React.useEffect(() => {
+    const interval = setInterval(() => {
+      setProgressDemo(prev => (prev >= 100 ? 0 : prev + 10));
+    }, 1000);
+    return () => clearInterval(interval);
+  }, []);
 
   return (
     <div className="space-y-8 max-w-4xl mx-auto p-6">
@@ -127,9 +194,15 @@ export function AlertShowcase() {
         <p className="text-gray-600 dark:text-gray-400">
           Enhanced alert messages with modern Tailwind CSS styling
         </p>
-        <Button onClick={resetAlerts} variant="outline" size="sm">
-          Reset Dismissed Alerts
-        </Button>
+        <div className="flex gap-2">
+          <Button onClick={resetAlerts} variant="outline" size="sm">
+            Reset Dismissed Alerts
+          </Button>
+          <Button onClick={toggleSound} variant="outline" size="sm" className="flex items-center gap-2">
+            {soundEnabled ? <Volume2 className="h-4 w-4" /> : <VolumeX className="h-4 w-4" />}
+            {soundEnabled ? 'Sounds On' : 'Sounds Off'}
+          </Button>
+        </div>
       </div>
 
       {/* Basic Alert Variants */}
@@ -308,6 +381,177 @@ export function AlertShowcase() {
                 ))}
               </div>
             </div>
+          </Alert>
+        </CardContent>
+      </Card>
+
+      {/* Advanced Features Demo */}
+      <Card className="border-0 shadow-xl bg-gradient-to-br from-white to-gray-50 dark:from-gray-900 dark:to-gray-800">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <div className="p-2 rounded-lg bg-gradient-to-r from-orange-500 to-red-600 shadow-sm">
+              <Sparkles className="h-4 w-4 text-white" />
+            </div>
+            Advanced Features
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {/* Priority Alert */}
+          <Alert variant="destructive" priority="critical" className="animate-pulse">
+            <X className="h-4 w-4" />
+            <AlertTitle>Critical System Error</AlertTitle>
+            <AlertDescription>
+              Database connection lost. Immediate attention required!
+            </AlertDescription>
+          </Alert>
+
+          {/* Progress Alert */}
+          <Alert 
+            variant="info" 
+            showProgress 
+            progress={progressDemo}
+            dismissible={false}
+          >
+            <Loader className="h-4 w-4 animate-spin" />
+            <AlertTitle>Processing Data</AlertTitle>
+            <AlertDescription>
+              {progressDemo < 100 ? `Processing your request... ${progressDemo}%` : 'Processing complete!'}
+            </AlertDescription>
+          </Alert>
+
+          {/* Action Alert */}
+          <Alert 
+            variant="warning" 
+            actions={[
+              { label: 'Backup Now', onClick: () => alert('Backup started'), variant: 'default' as const },
+              { label: 'Remind Later', onClick: () => alert('Reminder set'), variant: 'outline' as const }
+            ]}
+          >
+            <AlertTriangle className="h-4 w-4" />
+            <AlertTitle>Storage Almost Full</AlertTitle>
+            <AlertDescription>
+              You have used 95% of your storage space. Consider backing up your data.
+            </AlertDescription>
+          </Alert>
+
+          {/* Auto-Close Demo */}
+          <Alert 
+            variant="success" 
+            autoClose 
+            autoCloseDelay={8000}
+            playSound={soundEnabled}
+            soundType="success"
+          >
+            <CheckCircle2 className="h-4 w-4" />
+            <AlertTitle>Auto-Close Demo</AlertTitle>
+            <AlertDescription>
+              This alert will automatically close in 8 seconds with a progress indicator.
+            </AlertDescription>
+          </Alert>
+
+          {/* Sound Alert */}
+          <Alert 
+            variant="info" 
+            playSound={soundEnabled}
+            soundType="notification"
+            actions={[
+              { label: 'Play Sound', onClick: () => console.log('Sound played'), variant: 'default' as const }
+            ]}
+          >
+            <Volume2 className="h-4 w-4" />
+            <AlertTitle>Sound Notification</AlertTitle>
+            <AlertDescription>
+              This alert {soundEnabled ? 'will play' : 'would play'} a sound when shown.
+            </AlertDescription>
+          </Alert>
+        </CardContent>
+      </Card>
+
+      {/* New Alert Variants */}
+      <Card className="border-0 shadow-xl bg-gradient-to-br from-white to-gray-50 dark:from-gray-900 dark:to-gray-800">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <div className="p-2 rounded-lg bg-gradient-to-r from-cyan-500 to-blue-600 shadow-sm">
+              <TestTube className="h-4 w-4 text-white" />
+            </div>
+            New Alert Variants
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {/* Neon Alert */}
+          <Alert variant="neon" size="lg">
+            <Star className="h-5 w-5" />
+            <AlertTitle>Neon Style Alert</AlertTitle>
+            <AlertDescription>
+              A futuristic neon-themed alert with glowing effects and vibrant colors.
+            </AlertDescription>
+          </Alert>
+
+          {/* Minimal Alert */}
+          <Alert variant="minimal">
+            <Info className="h-4 w-4" />
+            <AlertTitle>Minimal Design</AlertTitle>
+            <AlertDescription>
+              Clean, minimal alert with subtle left border styling.
+            </AlertDescription>
+          </Alert>
+
+          {/* Elevated Alert */}
+          <Alert variant="elevated" className="transform hover:scale-[1.02] transition-transform">
+            <CheckCircle2 className="h-4 w-4" />
+            <AlertTitle>Elevated Alert</AlertTitle>
+            <AlertDescription>
+              Features elevated shadow and subtle hover effects for modern UI.
+            </AlertDescription>
+          </Alert>
+
+          {/* Glass Morphism */}
+          <div className="relative">
+            <div className="absolute inset-0 bg-gradient-to-r from-purple-400 to-pink-400 rounded-xl opacity-20"></div>
+            <Alert variant="glass" className="relative">
+              <Star className="h-4 w-4" />
+              <AlertTitle>Glass Morphism</AlertTitle>
+              <AlertDescription>
+                Beautiful glass morphism effect with backdrop blur and transparency.
+              </AlertDescription>
+            </Alert>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Animation Examples */}
+      <Card className="border-0 shadow-xl bg-gradient-to-br from-white to-gray-50 dark:from-gray-900 dark:to-gray-800">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <div className="p-2 rounded-lg bg-gradient-to-r from-green-500 to-teal-600 shadow-sm">
+              <Play className="h-4 w-4 text-white" />
+            </div>
+            Animation Examples
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <Alert variant="success" animation="fadeIn">
+            <CheckCircle2 className="h-4 w-4" />
+            <AlertTitle>Fade In Animation</AlertTitle>
+            <AlertDescription>This alert fades in smoothly when displayed.</AlertDescription>
+          </Alert>
+
+          <Alert variant="info" animation="slideIn">
+            <Info className="h-4 w-4" />
+            <AlertTitle>Slide In Animation</AlertTitle>
+            <AlertDescription>This alert slides in from the left side.</AlertDescription>
+          </Alert>
+
+          <Alert variant="warning" animation="bounceIn">
+            <AlertTriangle className="h-4 w-4" />
+            <AlertTitle>Bounce In Animation</AlertTitle>
+            <AlertDescription>This alert bounces in with a playful effect.</AlertDescription>
+          </Alert>
+
+          <Alert variant="destructive" animation="scaleIn">
+            <X className="h-4 w-4" />
+            <AlertTitle>Scale In Animation</AlertTitle>
+            <AlertDescription>This alert scales up from the center.</AlertDescription>
           </Alert>
         </CardContent>
       </Card>

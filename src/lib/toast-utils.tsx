@@ -198,15 +198,399 @@ export const showFileProcessingStartToast = (action: string, fileCount?: number)
         throw new ValidationError('fileCount must be a positive integer', { fileCount });
       }
       
-      const title = fileCount && fileCount > 1 
-        ? `⏳ Processing ${fileCount} Files...` 
-        : "⏳ Processing File...";
-      const description = `Your ${action} operation is in progress. This may take a moment.`;
+      let title: string;
+      let description: string;
       
-      return safeToast('default', title, description, { type: 'file-processing-start', action, fileCount });
+      if (fileCount && fileCount > 1) {
+        title = "🔄 Processing Files...";
+        description = `Starting to ${action} ${fileCount} files. Please wait...`;
+      } else {
+        title = "🔄 Processing File...";
+        description = `Starting to ${action} your file. This may take a moment...`;
+      }
+      
+      return safeToast('info', title, description, { type: 'file-processing-start', action, fileCount });
     },
     null,
     { operation: 'showFileProcessingStartToast', action, fileCount }
+  ).data;
+};
+
+// Progress notification functions
+export const showProgressToast = (title: string, progress: number, description?: string) => {
+  return safeSync(
+    () => {
+      if (!title || typeof title !== 'string') {
+        throw new ValidationError('Title must be a non-empty string', { title });
+      }
+      
+      if (typeof progress !== 'number' || progress < 0 || progress > 100) {
+        throw new ValidationError('Progress must be a number between 0 and 100', { progress });
+      }
+      
+      const progressBar = '█'.repeat(Math.floor(progress / 10)) + '░'.repeat(10 - Math.floor(progress / 10));
+      const progressDesc = description ? `${description} [${progressBar}] ${Math.round(progress)}%` : `${progressBar} ${Math.round(progress)}%`;
+      
+      return safeToast('info', `🔄 ${title}`, progressDesc, { type: 'progress', progress });
+    },
+    null,
+    { operation: 'showProgressToast', title, progress }
+  ).data;
+};
+
+export const showConfirmationToast = (
+  title: string, 
+  description: string,
+  onConfirm: () => void,
+  onCancel?: () => void,
+  confirmText = 'Confirm',
+  cancelText = 'Cancel'
+) => {
+  return safeSync(
+    () => {
+      if (!title || typeof title !== 'string') {
+        throw new ValidationError('Title must be a non-empty string', { title });
+      }
+      
+      if (!description || typeof description !== 'string') {
+        throw new ValidationError('Description must be a non-empty string', { description });
+      }
+      
+      if (typeof onConfirm !== 'function') {
+        throw new ValidationError('onConfirm must be a function', { onConfirm });
+      }
+      
+      return toast({
+        variant: 'warning' as any,
+        title: `⚠️ ${title}`,
+        description,
+        action: (
+          <div className="flex gap-2">
+            <button
+              onClick={() => {
+                onConfirm();
+                // The toast will auto-dismiss
+              }}
+              className="px-3 py-1 bg-red-500 text-white rounded text-sm hover:bg-red-600 transition-colors"
+            >
+              {confirmText}
+            </button>
+            <button
+              onClick={() => {
+                onCancel?.();
+                // The toast will auto-dismiss
+              }}
+              className="px-3 py-1 bg-gray-500 text-white rounded text-sm hover:bg-gray-600 transition-colors"
+            >
+              {cancelText}
+            </button>
+          </div>
+        ) as any,
+      });
+    },
+    null,
+    { operation: 'showConfirmationToast', title }
+  ).data;
+};
+
+export const showBatchOperationToast = (
+  operation: string,
+  total: number,
+  completed: number,
+  failed: number = 0
+) => {
+  return safeSync(
+    () => {
+      if (!operation || typeof operation !== 'string') {
+        throw new ValidationError('Operation must be a non-empty string', { operation });
+      }
+      
+      if (!Number.isInteger(total) || total <= 0) {
+        throw new ValidationError('Total must be a positive integer', { total });
+      }
+      
+      if (!Number.isInteger(completed) || completed < 0) {
+        throw new ValidationError('Completed must be a non-negative integer', { completed });
+      }
+      
+      if (!Number.isInteger(failed) || failed < 0) {
+        throw new ValidationError('Failed must be a non-negative integer', { failed });
+      }
+      
+      const progress = Math.round((completed / total) * 100);
+      const remaining = total - completed - failed;
+      
+      let variant: string;
+      let emoji: string;
+      let title: string;
+      
+      if (completed === total && failed === 0) {
+        variant = 'success';
+        emoji = '✅';
+        title = `${operation} Complete!`;
+      } else if (failed > 0 && completed + failed === total) {
+        variant = 'warning';
+        emoji = '⚠️';
+        title = `${operation} Complete with Errors`;
+      } else {
+        variant = 'info';
+        emoji = '🔄';
+        title = `${operation} in Progress`;
+      }
+      
+      const description = `${completed}/${total} completed${failed > 0 ? `, ${failed} failed` : ''}${remaining > 0 ? `, ${remaining} remaining` : ''}`;
+      
+      return safeToast(variant, `${emoji} ${title}`, description, { 
+        type: 'batch-operation', 
+        operation, 
+        total, 
+        completed, 
+        failed 
+      });
+    },
+    null,
+    { operation: 'showBatchOperationToast', operationType: operation, total, completed, failed }
+  ).data;
+};
+
+export const showNetworkStatusToast = (isOnline: boolean, wasOffline: boolean = false) => {
+  return safeSync(
+    () => {
+      if (typeof isOnline !== 'boolean') {
+        throw new ValidationError('isOnline must be a boolean', { isOnline });
+      }
+      
+      if (isOnline) {
+        if (wasOffline) {
+          return showSuccessToast(
+            '🌐 Connection Restored',
+            'You are back online! All features are now available.'
+          );
+        }
+      } else {
+        return showErrorToast(
+          '📴 Connection Lost',
+          'You are currently offline. Some features may not be available.'
+        );
+      }
+      
+      return null;
+    },
+    null,
+    { operation: 'showNetworkStatusToast', isOnline, wasOffline }
+  ).data;
+};
+
+export const showUpdateAvailableToast = (version: string, onUpdate?: () => void) => {
+  return safeSync(
+    () => {
+      if (!version || typeof version !== 'string') {
+        throw new ValidationError('Version must be a non-empty string', { version });
+      }
+      
+      return toast({
+        variant: 'info' as any,
+        title: '🆕 Update Available',
+        description: `Version ${version} is now available with new features and improvements.`,
+        action: onUpdate ? (
+          <button
+            onClick={onUpdate}
+            className="px-3 py-1 bg-blue-500 text-white rounded text-sm hover:bg-blue-600 transition-colors"
+          >
+            Update Now
+          </button>
+        ) as any : undefined,
+      });
+    },
+    null,
+    { operation: 'showUpdateAvailableToast', version }
+  ).data;
+};
+
+export const showMaintenanceToast = (message: string, scheduledTime?: Date) => {
+  return safeSync(
+    () => {
+      if (!message || typeof message !== 'string') {
+        throw new ValidationError('Message must be a non-empty string', { message });
+      }
+      
+      let description = message;
+      if (scheduledTime) {
+        const timeStr = scheduledTime.toLocaleString();
+        description += ` Scheduled for ${timeStr}.`;
+      }
+      
+      return showWarningToast(
+        '🔧 Maintenance Notice',
+        description
+      );
+    },
+    null,
+    { operation: 'showMaintenanceToast', message, scheduledTime }
+  ).data;
+};
+
+export const showPermissionToast = (permission: string, granted: boolean, required: boolean = true) => {
+  return safeSync(
+    () => {
+      if (!permission || typeof permission !== 'string') {
+        throw new ValidationError('Permission must be a non-empty string', { permission });
+      }
+      
+      if (typeof granted !== 'boolean') {
+        throw new ValidationError('Granted must be a boolean', { granted });
+      }
+      
+      if (granted) {
+        return showSuccessToast(
+          `🔑 ${permission} Permission Granted`,
+          'You can now use all features that require this permission.'
+        );
+      } else {
+        const variant = required ? 'error' : 'warning';
+        const description = required 
+          ? `This permission is required for the feature to work properly. Please grant access in your browser settings.`
+          : `Some features may be limited without this permission.`;
+        
+        return safeToast(variant, `🚫 ${permission} Permission Denied`, description, { 
+          type: 'permission', 
+          permission, 
+          granted, 
+          required 
+        });
+      }
+    },
+    null,
+    { operation: 'showPermissionToast', permission, granted, required }
+  ).data;
+};
+
+// Custom toast with action buttons
+export const showActionToast = (
+  title: string,
+  description: string,
+  actions: Array<{
+    label: string;
+    onClick: () => void;
+    variant?: 'primary' | 'secondary' | 'danger';
+  }>
+) => {
+  return safeSync(
+    () => {
+      if (!title || typeof title !== 'string') {
+        throw new ValidationError('Title must be a non-empty string', { title });
+      }
+      
+      if (!Array.isArray(actions) || actions.length === 0) {
+        throw new ValidationError('Actions must be a non-empty array', { actions });
+      }
+      
+      actions.forEach((action, index) => {
+        if (!action.label || typeof action.label !== 'string') {
+          throw new ValidationError(`Action ${index} must have a label`, { action, index });
+        }
+        if (typeof action.onClick !== 'function') {
+          throw new ValidationError(`Action ${index} onClick must be a function`, { action, index });
+        }
+      });
+      
+      return toast({
+        variant: 'default' as any,
+        title,
+        description,
+        action: (
+          <div className="flex gap-2">
+            {actions.map((action, index) => {
+              const baseClass = "px-3 py-1 rounded text-sm transition-colors";
+              let variantClass = "";
+              
+              switch (action.variant) {
+                case 'primary':
+                  variantClass = "bg-blue-500 text-white hover:bg-blue-600";
+                  break;
+                case 'danger':
+                  variantClass = "bg-red-500 text-white hover:bg-red-600";
+                  break;
+                default:
+                  variantClass = "bg-gray-500 text-white hover:bg-gray-600";
+              }
+              
+              return (
+                <button
+                  key={index}
+                  onClick={action.onClick}
+                  className={`${baseClass} ${variantClass}`}
+                >
+                  {action.label}
+                </button>
+              );
+            })}
+          </div>
+        ) as any,
+      });
+    },
+    null,
+    { operation: 'showActionToast', title, actionsCount: actions.length }
+  ).data;
+};
+
+// Typing indicator toast
+export const showTypingIndicatorToast = (user: string) => {
+  return safeSync(
+    () => {
+      if (!user || typeof user !== 'string') {
+        throw new ValidationError('User must be a non-empty string', { user });
+      }
+      
+      return safeToast('info', '💬 Typing...', `${user} is typing a message...`, { type: 'typing-indicator', user });
+    },
+    null,
+    { operation: 'showTypingIndicatorToast', user }
+  ).data;
+};
+
+// Achievement toast
+export const showAchievementToast = (achievement: string, description?: string) => {
+  return safeSync(
+    () => {
+      if (!achievement || typeof achievement !== 'string') {
+        throw new ValidationError('Achievement must be a non-empty string', { achievement });
+      }
+      
+      return safeToast('success', `🏆 ${achievement}`, description || 'Congratulations on your achievement!', {
+        type: 'achievement',
+        achievement
+      });
+    },
+    null,
+    { operation: 'showAchievementToast', achievement }
+  ).data;
+};
+
+// System notification toast
+export const showSystemToast = (title: string, description?: string, priority: 'low' | 'medium' | 'high' | 'critical' = 'medium') => {
+  return safeSync(
+    () => {
+      if (!title || typeof title !== 'string') {
+        throw new ValidationError('Title must be a non-empty string', { title });
+      }
+      
+      const priorityEmojis = {
+        low: 'ℹ️',
+        medium: '📢',
+        high: '⚠️',
+        critical: '🚨'
+      };
+      
+      const variant = priority === 'critical' ? 'destructive' : priority === 'high' ? 'warning' : 'info';
+      
+      return safeToast(variant, `${priorityEmojis[priority]} ${title}`, description, {
+        type: 'system',
+        priority
+      });
+    },
+    null,
+    { operation: 'showSystemToast', title, priority }
   ).data;
 };
 
@@ -428,53 +812,5 @@ export const showNotificationToast = (title: string, message: string, isImportan
   );
 };
 
-export const showConfirmationToast = (action: string, details?: string) => {
-  return safeSync(
-    () => {
-      if (!action || typeof action !== 'string') {
-        throw new ValidationError('Action must be a non-empty string', { action });
-      }
-      
-      return showSuccessToast(
-        "Action Confirmed", 
-        `${action}${details ? ` - ${details}` : ''}`
-      );
-    },
-    null,
-    { operation: 'showConfirmationToast', action, details }
-  ).data;
-};
 
-export const showProgressToast = (title: string, progress: number, total?: number) => {
-  return safeSync(
-    () => {
-      if (!title || typeof title !== 'string') {
-        throw new ValidationError('Title must be a non-empty string', { title });
-      }
-      
-      if (typeof progress !== 'number' || progress < 0) {
-        throw new ValidationError('Progress must be a non-negative number', { progress });
-      }
-      
-      if (total && (typeof total !== 'number' || total <= 0)) {
-        throw new ValidationError('Total must be a positive number', { total });
-      }
-      
-      const progressText = total 
-        ? `${Math.min(progress, total)}/${total}` 
-        : `${Math.min(Math.round(progress), 100)}%`;
-      
-      return safeToast('default', `⏳ ${title} (${progressText})`, undefined, 
-        { type: 'progress', progress, total });
-    },
-    null,
-    { operation: 'showProgressToast', title, progress, total }
-  ).data;
-};
 
-export const showUpdateAvailableToast = (version: string) => {
-  return showInfoToast(
-    "📥 Update Available", 
-    `Version ${version} is now available. Click to update your application.`
-  );
-};

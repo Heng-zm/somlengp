@@ -12,6 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { LanguageContext } from '@/contexts/language-context';
 import { useToast } from '@/hooks/use-toast';
+import { showSuccessToast, showErrorToast, showWarningToast } from '@/lib/toast-utils';
 import { FeaturePageLayout } from '@/layouts/feature-page-layout';
 import QRCodeLib from 'qrcode';
 
@@ -35,11 +36,7 @@ export default function GenerateQRCodePage() {
 
   const generateQRCode = useCallback(async () => {
     if (!inputText.trim()) {
-      toast({
-        title: "Error",
-        description: "Please enter text or URL to generate QR code",
-        variant: "destructive",
-      });
+      showWarningToast("Text Required");
       return;
     }
 
@@ -69,17 +66,10 @@ export default function GenerateQRCodePage() {
       // Open the sheet modal to show the QR code
       setIsSheetOpen(true);
       
-      toast({
-        title: "Success",
-        description: "QR code generated successfully!",
-      });
+      showSuccessToast("QR Code Generated!");
     } catch (error) {
       console.error('Error generating QR code:', error);
-      toast({
-        title: "Error",
-        description: "Failed to generate QR code. Please try again.",
-        variant: "destructive",
-      });
+      showErrorToast("Generation Failed");
     } finally {
       setIsGenerating(false);
     }
@@ -95,10 +85,7 @@ export default function GenerateQRCodePage() {
     link.click();
     document.body.removeChild(link);
     
-    toast({
-      title: "Downloaded",
-      description: "QR code saved as qr-code.png",
-    });
+    showSuccessToast("Download Complete!");
   };
 
   const copyToClipboard = async () => {
@@ -111,27 +98,16 @@ export default function GenerateQRCodePage() {
         new ClipboardItem({ [blob.type]: blob })
       ]);
       
-      toast({
-        title: "Copied",
-        description: "QR code copied to clipboard",
-      });
+      showSuccessToast("Copied Successfully!");
     } catch (error) {
       console.error('Failed to copy QR code:', error);
-      toast({
-        title: "Error", 
-        description: "Failed to copy QR code to clipboard",
-        variant: "destructive",
-      });
+      showErrorToast("Copy Failed");
     }
   };
 
   const shareQRCode = async () => {
     if (!qrCodeUrl || !navigator.share) {
-      toast({
-        title: "Error",
-        description: "Sharing not supported on this device",
-        variant: "destructive",
-      });
+      showWarningToast("Share Unavailable");
       return;
     }
 
@@ -147,11 +123,7 @@ export default function GenerateQRCodePage() {
       });
     } catch (error) {
       console.error('Error sharing QR code:', error);
-      toast({
-        title: "Error",
-        description: "Failed to share QR code",
-        variant: "destructive",
-      });
+      showErrorToast("Share Failed");
     }
   };
 
