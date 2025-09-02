@@ -58,12 +58,12 @@ service cloud.firestore {
              && data.upvotes >= 0
              && data.downvotes >= 0
              // Optional fields validation
-             && (!data.keys().hasAny(['parentId']) || data.parentId is string)
-             && (!data.keys().hasAny(['authorAvatar']) || data.authorAvatar is string)
-             && (!data.keys().hasAny(['authorIsVerified']) || data.authorIsVerified is bool)
-             && (!data.keys().hasAny(['authorIsAnonymous']) || data.authorIsAnonymous is bool)
-             && (!data.keys().hasAny(['authorIsGuest']) || data.authorIsGuest is bool)
-             && (!data.keys().hasAny(['isEdited']) || data.isEdited is bool);
+             && (!('parentId' in data) || data.parentId is string)
+             && (!('authorAvatar' in data) || data.authorAvatar is string)
+             && (!('authorIsVerified' in data) || data.authorIsVerified is bool)
+             && (!('authorIsAnonymous' in data) || data.authorIsAnonymous is bool)
+             && (!('authorIsGuest' in data) || data.authorIsGuest is bool)
+             && (!('isEdited' in data) || data.isEdited is bool);
     }
     
     function isValidCommentUpdate(newData, oldData) {
@@ -98,4 +98,3 @@ service cloud.firestore {
       return auth.token.admin == true;
     }
   }
-}

@@ -179,8 +179,9 @@ export async function getComments(
     // Build query based on sort type
     let q = query(
       commentsRef,
-      where('pageId', '==', pageId),
-      where('parentId', '==', null) // Only get top-level comments
+      where('pageId', '==', pageId)
+      // Note: Firestore doesn't support querying for null/undefined fields directly
+      // We'll filter out replies in the client-side processing instead
     );
 
     // Add ordering
@@ -209,11 +210,12 @@ export async function getComments(
     const hasMore = docs.length > limitCount;
     const commentsToReturn = hasMore ? docs.slice(0, limitCount) : docs;
     
-    // Convert documents to comments
+    // Convert documents to comments and filter for top-level comments only
     const comments: Comment[] = [];
     for (const doc of commentsToReturn) {
       const comment = convertToComment(doc);
-      if (comment) {
+      if (comment && !comment.parentId) {
+        // Only include top-level comments (no parentId)
         // Get replies for this comment
         comment.replies = await getRepliesRecursive(comment.id, sortBy);
         comments.push(comment);
