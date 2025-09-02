@@ -24,17 +24,20 @@
 
 ## 🛠️ Tech Stack
 
-- **Frontend**: Next.js 15, React 18, TypeScript
-- **Styling**: Tailwind CSS, Radix UI components
-- **Authentication**: NextAuth.js with Google OAuth
-- **Backend**: Firebase, Google AI (Gemini)
-- **AI Integration**: Genkit AI framework
+- **Frontend**: Next.js 15.4, React 18, TypeScript 5
+- **Styling**: Tailwind CSS, Radix UI components, Framer Motion
+- **Authentication**: NextAuth.js with Google OAuth, Firebase Auth
+- **Backend**: Firebase, Google AI (Gemini 1.5), Node.js 20+
+- **AI Integration**: Genkit AI framework, Google Generative AI
 - **Form Management**: React Hook Form with Zod validation
 - **Charts & Analytics**: Recharts, Vercel Analytics
+- **Testing**: Jest, React Testing Library
+- **Performance**: Lighthouse CI, Bundle Analyzer
+- **Document Processing**: PDF-lib, DOCX, JSZip
 
 ## 📋 Prerequisites
 
-- Node.js 18+ and npm
+- Node.js 20+ and npm
 - Google Cloud Platform account (for AI features)
 - Firebase project (for authentication and database)
 
@@ -105,15 +108,22 @@ npm run build            # Create production build
 npm run start            # Start production server
 npm run analyze          # Analyze bundle size
 
+# Testing
+npm run test             # Run tests
+npm run test:watch       # Run tests in watch mode
+npm run test:coverage    # Run tests with coverage
+npm run test:ci          # Run tests for CI
+
 # Code Quality
 npm run lint             # Run ESLint
 npm run lint:fix         # Fix ESLint issues
 npm run typecheck        # Run TypeScript type checking
-npm run check-all        # Run both typecheck and lint
+npm run check-all        # Run typecheck, lint, and tests
 
-# Performance
+# Performance & Monitoring
 npm run perf:check       # Run performance checks
 npm run perf:build       # Build and check performance
+npm run lighthouse       # Run Lighthouse CI
 npm run optimize         # Run performance check and fix linting
 ```
 
@@ -179,11 +189,17 @@ The AI Assistant uses configurable settings in `src/lib/ai-types.ts`:
 
 ## 📚 Documentation
 
-Detailed documentation is available in the `/docs` folder:
-- `blueprint.md` - Project design and architecture
+Comprehensive documentation is available in the project root:
 - `AI_ASSISTANT_README.md` - AI Assistant setup and usage
 - `AUTH_FIXES_README.md` - Authentication troubleshooting
+- `GOOGLE_AUTH_README.md` - Google Authentication setup
+- `FIREBASE_DEPLOYMENT_FIX.md` - Firebase deployment guide
 - `PERFORMANCE_OPTIMIZATIONS.md` - Performance guidelines
+- `USER_PROFILE_FEATURES.md` - User profile functionality
+- `OTP_SETUP_README.md` - OTP authentication setup
+- `CAMERA_PERMISSIONS_README.md` - Camera access setup
+- `STATUS_NOTIFICATIONS_README.md` - Notification system guide
+- `PRODUCTION_AUTH_SETUP.md` - Production authentication setup
 
 ## 🚀 Deployment
 
@@ -245,5 +261,5 @@ For support and questions:
 ---
 
 **Version**: 1.1.0  
-**Last Updated**: August 2025  
-**Node.js**: 18+ Required
+**Last Updated**: September 2025  
+**Node.js**: 20+ Required
