@@ -8,5 +8,94 @@ service cloud.firestore {
       allow read: if true;
       allow write: if false;
     }
+    
+    // Comments collection rules
+    match /comments/{commentId} {
+      // Allow anyone to read comments for public access
+      allow read: if true;
+      
+      // Allow creation of new comments with proper validation
+      allow create: if isValidComment(resource.data)
+                   && (
+                     // Authenticated users
+                     (request.auth != null && request.auth.uid == resource.data.authorId)
+                     // Or anonymous/guest users (check if anonymous IDs follow pattern)
+                     || (isAnonymousOrGuest(resource.data.authorId))
+                   );
+      
+      // Allow updates only by the comment author (for editing content)
+      allow update: if request.auth != null 
+                   && request.auth.uid == resource.data.authorId
+                   && isValidCommentUpdate(request.resource.data, resource.data);
+      
+      // Allow deletion by the author or admin
+      allow delete: if request.auth != null && 
+                       (request.auth.uid == resource.data.authorId || 
+                        hasAdminRole(request.auth));
+      
+      // Comment votes subcollection
+      match /votes/{userId} {
+        // Users can only read/write their own votes
+        allow read, write: if request.auth != null && request.auth.uid == userId;
+        
+        // Allow reading votes for vote counting (system access)
+        allow read: if request.auth != null;
+      }
+    }
+    
+    // Helper functions
+    function isValidComment(data) {
+      return data.keys().hasAll(['content', 'authorId', 'authorName', 'pageId', 'createdAt', 'upvotes', 'downvotes'])
+             && data.content is string
+             && data.content.size() > 0
+             && data.content.size() <= 2000  // Max 2000 characters
+             && data.authorId is string
+             && data.authorName is string
+             && data.pageId is string
+             && data.createdAt is timestamp
+             && data.upvotes is number
+             && data.downvotes is number
+             && data.upvotes >= 0
+             && data.downvotes >= 0
+             // Optional fields validation
+             && (!data.keys().hasAny(['parentId']) || data.parentId is string)
+             && (!data.keys().hasAny(['authorAvatar']) || data.authorAvatar is string)
+             && (!data.keys().hasAny(['authorIsVerified']) || data.authorIsVerified is bool)
+             && (!data.keys().hasAny(['authorIsAnonymous']) || data.authorIsAnonymous is bool)
+             && (!data.keys().hasAny(['authorIsGuest']) || data.authorIsGuest is bool)
+             && (!data.keys().hasAny(['isEdited']) || data.isEdited is bool);
+    }
+    
+    function isValidCommentUpdate(newData, oldData) {
+      // Only allow updating content, updatedAt, and isEdited fields
+      return newData.keys().hasAll(['content', 'updatedAt', 'isEdited'])
+             && newData.content is string
+             && newData.content.size() > 0
+             && newData.content.size() <= 2000
+             && newData.isEdited == true
+             && newData.updatedAt is timestamp
+             // Ensure critical fields haven't changed
+             && newData.authorId == oldData.authorId
+             && newData.authorName == oldData.authorName
+             && newData.pageId == oldData.pageId
+             && newData.createdAt == oldData.createdAt;
+    }
+    
+    function isAnonymousOrGuest(authorId) {
+      // Check if the authorId follows the pattern for anonymous or guest users
+      return authorId.matches('anon_[0-9]+_[a-zA-Z0-9]+') 
+             || authorId.matches('guest_[0-9]+_[a-zA-Z0-9]+');
+    }
+    
+    function isValidVote(data) {
+      return data.keys().hasAll(['userId', 'type', 'createdAt'])
+             && data.userId is string
+             && data.type in ['upvote', 'downvote']
+             && data.createdAt is timestamp;
+    }
+    
+    function hasAdminRole(auth) {
+      return auth.token.admin == true;
+    }
   }
 }

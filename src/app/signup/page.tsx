@@ -37,6 +37,7 @@ import {
   CheckCircle2,
   User
 } from "lucide-react";
+import { BackToSignInIconButton } from "@/components/ui/back-to-signin-button";
 
 // Google Icon Component
 const GoogleIcon = () => (
@@ -142,6 +143,11 @@ export default function SignupPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-blue-50 to-purple-100 dark:from-gray-900 dark:via-blue-900/20 dark:to-purple-900/20 flex items-center justify-center p-4 animate-gradient-x">
+      {/* Back to Sign In Button */}
+      <BackToSignInIconButton 
+        className="fixed top-6 left-6 z-50"
+      />
+
       {/* Background decorative elements */}
       <div className="absolute inset-0 overflow-hidden">
         <div className="absolute -top-40 -right-32 w-80 h-80 bg-gradient-to-br from-emerald-400/20 to-blue-400/20 rounded-full blur-3xl animate-float" />

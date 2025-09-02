@@ -9,6 +9,7 @@ import { allTranslations } from '@/lib/translations';
 import { getPerformanceTracker, DEFAULT_BUDGETS } from '@/lib/performance-tracker';
 import { OptimizedHomeHeader } from '@/components/home/optimized-home-header';
 import { OptimizedFeatureGrid } from '@/components/home/optimized-feature-grid';
+import { HomeCommentsSection } from '@/components/home/home-comments-section';
 import { Footer } from '@/components/shared/footer';
 
 const VISITOR_SESSION_KEY = 'ozo-designer-session-visited';
@@ -181,6 +182,11 @@ const { language, toggleLanguage, theme, toggleTheme } = langContext;
               otherFeatures={otherFeatures}
               startNowText={t.startNow}
               otherToolsText={t.otherTools}
+            />
+            
+            {/* Comments section below tool cards */}
+            <HomeCommentsSection 
+              className="mt-8"
             />
           </main>
           <Footer />

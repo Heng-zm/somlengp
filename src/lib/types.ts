@@ -66,3 +66,45 @@ export const UserCounterSchema = z.object({
   lastUserId: z.number(),
   updatedAt: z.date(),
 });
+
+// Comment Types
+export interface Comment {
+  id: string;
+  content: string;
+  authorId: string;
+  authorName: string;
+  authorEmail: string | null;
+  authorPhotoURL: string | null;
+  createdAt: Date;
+  updatedAt: Date;
+  isEdited?: boolean;
+}
+
+export interface CommentCreateData {
+  content: string;
+}
+
+export interface CommentUpdateData {
+  content: string;
+}
+
+// Comment Schema for validation
+export const CommentSchema = z.object({
+  id: z.string(),
+  content: z.string().min(1, "Comment cannot be empty").max(1000, "Comment too long"),
+  authorId: z.string(),
+  authorName: z.string(),
+  authorEmail: z.string().email().nullable(),
+  authorPhotoURL: z.string().url().nullable(),
+  createdAt: z.date(),
+  updatedAt: z.date(),
+  isEdited: z.boolean().optional(),
+});
+
+export const CommentCreateSchema = z.object({
+  content: z.string().min(1, "Comment cannot be empty").max(1000, "Comment too long"),
+});
+
+export const CommentUpdateSchema = z.object({
+  content: z.string().min(1, "Comment cannot be empty").max(1000, "Comment too long"),
+});

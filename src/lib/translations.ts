@@ -96,6 +96,32 @@ interface BaseTranslations {
     otherTools: string;
     generateQrCode: string;
     generateQrCodeDescription: string;
+    commentLoginRequired: string;
+    // Comment system translations
+    comments: string;
+    addComment: string;
+    addCommentPlaceholder: string;
+    reply: string;
+    replyPlaceholder: string;
+    submit: string;
+    edit: string;
+    delete: string;
+    report: string;
+    showMore: string;
+    showReplies: string;
+    hideReplies: string;
+    sortMostRecent: string;
+    sortOldest: string;
+    sortPopular: string;
+    noComments: string;
+    commentSubmitted: string;
+    commentDeleted: string;
+    commentError: string;
+    voteError: string;
+    editComment: string;
+    deleteComment: string;
+    confirmDelete: string;
+    edited: string;
     fileTooLargeDescription: (size: number) => string; // Only function-based translation
 }
 
@@ -230,6 +256,32 @@ const enTranslations: Translations = {
     otherTools: "Other Tools",
     generateQrCode: "Generate QR Code",
     generateQrCodeDescription: "Create QR codes from text, URLs, or data for easy sharing.",
+    commentLoginRequired: "Please login to leave comments and share your experience with our tools.",
+    // Comment system translations
+    comments: "Comments",
+    addComment: "Add Comment",
+    addCommentPlaceholder: "Add comment...",
+    reply: "Reply",
+    replyPlaceholder: "Write a reply...",
+    submit: "Submit",
+    edit: "Edit",
+    delete: "Delete",
+    report: "Report",
+    showMore: "Show more",
+    showReplies: "Show replies",
+    hideReplies: "Hide replies",
+    sortMostRecent: "Most recent",
+    sortOldest: "Oldest first",
+    sortPopular: "Most popular",
+    noComments: "No comments yet. Be the first to share your thoughts!",
+    commentSubmitted: "Comment submitted successfully!",
+    commentDeleted: "Comment deleted successfully!",
+    commentError: "Failed to submit comment. Please try again.",
+    voteError: "Failed to vote. Please try again.",
+    editComment: "Edit Comment",
+    deleteComment: "Delete Comment",
+    confirmDelete: "Are you sure you want to delete this comment?",
+    edited: "edited",
 };
 
 const kmTranslations: Translations = {
@@ -325,6 +377,32 @@ const kmTranslations: Translations = {
     otherTools: "ឧបករណ៍ផ្សេងទៀត",
     generateQrCode: "បង្កើត QR កូដ",
     generateQrCodeDescription: "បង្កើត QR កូដពីអត្ថបទ URL ឬទិន្នន័យសម្រាប់ការចែករំលែកយ៉ាងងាយស្រួល។",
+    commentLoginRequired: "សូមចូលគណនីដើម្បីបន្សល់មតិយោបល់ និងចែករំលែកបទពិសោធន៍របស់អ្នកជាមួយឧបករណ៍របស់យើង។",
+    // Comment system translations
+    comments: "មតិយោបល់",
+    addComment: "បន្ថែមមតិយោបល់",
+    addCommentPlaceholder: "បន្ថែមមតិយោបល់...",
+    reply: "ឆ្លើយតប",
+    replyPlaceholder: "សរសេរការឆ្លើយតប...",
+    submit: "បញ្ជូន",
+    edit: "កែសម្រួល",
+    delete: "លុប",
+    report: "រាយការណ៍",
+    showMore: "បង្ហាញបន្ថែម",
+    showReplies: "បង្ហាញការឆ្លើយតប",
+    hideReplies: "លាក់ការឆ្លើយតប",
+    sortMostRecent: "ថ្មីបំផុត",
+    sortOldest: "ចាស់បំផុត",
+    sortPopular: "ពេញនិយមបំផុត",
+    noComments: "មិនទាន់មានមតិយោបល់ទេ។ ចូលរួមចែករំលែកគំនិតរបស់អ្នកដំបូងគេ!",
+    commentSubmitted: "បានបញ្ជូនមតិយោបល់ដោយជោគជ័យ!",
+    commentDeleted: "បានលុបមតិយោបល់ដោយជោគជ័យ!",
+    commentError: "បរាជ័យក្នុងការបញ្ជូនមតិយោបល់។ សូមព្យាយាមម្តងទៀត។",
+    voteError: "បរាជ័យក្នុងការបោះឆ្នោត។ សូមព្យាយាមម្តងទៀត។",
+    editComment: "កែសម្រួលមតិយោបល់",
+    deleteComment: "លុបមតិយោបល់",
+    confirmDelete: "តើអ្នកប្រាកដថាចង់លុបមតិយោបល់នេះមែនទេ?",
+    edited: "បានកែសម្រួល",
 };
 
 export const allTranslations = {

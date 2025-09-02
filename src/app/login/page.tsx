@@ -31,6 +31,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { cn } from "@/lib/utils";
 import { Mail, Lock, Eye, EyeOff, LogIn, Loader2 } from "lucide-react";
+import { BackIconButton } from "@/components/ui/back-button";
 
 // Google Icon Component
 const GoogleIcon = () => (
@@ -142,6 +143,13 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-blue-50 dark:from-gray-900 dark:via-gray-800 dark:to-blue-900 animate-gradient-x">
+      {/* Back button */}
+      <div className="absolute top-4 left-4 z-10">
+        <BackIconButton 
+          className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border border-white/20 dark:border-gray-700/20 shadow-lg" 
+        />
+      </div>
+
       {/* Background decorative elements */}
       <div className="absolute inset-0 overflow-hidden">
         <div className="absolute -top-40 -right-32 w-80 h-80 bg-gradient-to-br from-blue-400/20 to-purple-400/20 rounded-full blur-3xl animate-float" />

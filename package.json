@@ -23,7 +23,12 @@
     "lighthouse:collect": "lhci collect",
     "lighthouse:assert": "lhci assert",
     "lighthouse:upload": "lhci upload",
-    "optimize": "npm run perf:check && npm run lint:fix"
+    "optimize": "npm run perf:check && npm run lint:fix",
+    "firebase:validate": "node validate-firebase.js",
+    "firestore:rules:deploy": "firebase deploy --only firestore:rules",
+    "firestore:rules:validate": "firebase firestore:rules:validate",
+    "firestore:emulator": "firebase emulators:start --only firestore",
+    "comments:test": "node -e \"console.log('Testing Firestore comments integration...')\" && npm run firebase:validate"
   },
   "dependencies": {
     "@genkit-ai/firebase": "^1.15.5",
