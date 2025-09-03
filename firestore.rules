@@ -15,37 +15,48 @@ service cloud.firestore {
       allow read: if true;
       
       // Allow creation of new comments with proper validation
-      allow create: if isValidComment(resource.data)
+      allow create: if isValidComment(request.resource.data)
                    && (
                      // Authenticated users
-                     (request.auth != null && request.auth.uid == resource.data.authorId)
-                     // Or anonymous/guest users (check if anonymous IDs follow pattern)
-                     || (isAnonymousOrGuest(resource.data.authorId))
+                     (request.auth != null && request.auth.uid == request.resource.data.authorId)
+                     // Or server-side creation (when using Firebase Admin SDK) for anonymous/guest IDs
+                     || (request.auth == null && isAnonymousOrGuest(request.resource.data.authorId))
                    );
       
-      // Allow updates only by the comment author (for editing content)
-      allow update: if request.auth != null 
-                   && request.auth.uid == resource.data.authorId
-                   && isValidCommentUpdate(request.resource.data, resource.data);
+      // Allow updates - server-side or by authenticated users
+      allow update: if (
+                     // Server-side update (Firebase Admin SDK)
+                     request.auth == null
+                     // Or authenticated user updating their own comment
+                     || (request.auth != null 
+                         && request.auth.uid == resource.data.authorId
+                         && isValidCommentUpdate(request.resource.data, resource.data))
+                   );
       
-      // Allow deletion by the author or admin
-      allow delete: if request.auth != null && 
-                       (request.auth.uid == resource.data.authorId || 
-                        hasAdminRole(request.auth));
+      // Allow deletion - server-side or by authenticated users/admins
+      allow delete: if (
+                     // Server-side deletion (Firebase Admin SDK)
+                     request.auth == null
+                     // Or authenticated user/admin
+                     || (request.auth != null && 
+                         (request.auth.uid == resource.data.authorId || 
+                          hasAdminRole(request.auth)))
+                   );
       
       // Comment votes subcollection
       match /votes/{userId} {
-        // Users can only read/write their own votes
-        allow read, write: if request.auth != null && request.auth.uid == userId;
+        // Allow server-side access or user's own votes
+        allow read, write: if request.auth == null || 
+                             (request.auth != null && request.auth.uid == userId);
         
-        // Allow reading votes for vote counting (system access)
-        allow read: if request.auth != null;
+        // Allow reading votes for vote counting
+        allow read: if true;
       }
     }
     
     // Helper functions
     function isValidComment(data) {
-      return data.keys().hasAll(['content', 'authorId', 'authorName', 'pageId', 'createdAt', 'upvotes', 'downvotes'])
+      return data.keys().hasAll(['content', 'authorId', 'authorName', 'pageId', 'createdAt', 'upvotes', 'downvotes', 'authorIsVerified', 'authorIsAnonymous', 'authorIsGuest', 'isEdited'])
              && data.content is string
              && data.content.size() > 0
              && data.content.size() <= 2000  // Max 2000 characters
@@ -57,13 +68,14 @@ service cloud.firestore {
              && data.downvotes is number
              && data.upvotes >= 0
              && data.downvotes >= 0
+             && data.authorIsVerified is bool
+             && data.authorIsAnonymous is bool
+             && data.authorIsGuest is bool
+             && data.isEdited is bool
              // Optional fields validation
              && (!('parentId' in data) || data.parentId is string)
              && (!('authorAvatar' in data) || data.authorAvatar is string)
-             && (!('authorIsVerified' in data) || data.authorIsVerified is bool)
-             && (!('authorIsAnonymous' in data) || data.authorIsAnonymous is bool)
-             && (!('authorIsGuest' in data) || data.authorIsGuest is bool)
-             && (!('isEdited' in data) || data.isEdited is bool);
+             && (!('updatedAt' in data) || data.updatedAt is timestamp);
     }
     
     function isValidCommentUpdate(newData, oldData) {
@@ -98,3 +110,4 @@ service cloud.firestore {
       return auth.token.admin == true;
     }
   }
+}

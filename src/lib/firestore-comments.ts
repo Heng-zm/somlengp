@@ -245,21 +245,30 @@ export async function createComment(
   try {
     const commentsRef = collection(db, COMMENTS_COLLECTION);
     
-    const commentData: Omit<FirestoreComment, 'id'> = {
+    // Build comment data, omitting undefined fields
+    const commentData: any = {
       content: content.trim(),
       authorId: author.id,
       authorName: author.name,
-      authorAvatar: author.avatar,
       authorIsVerified: author.isVerified || false,
       authorIsAnonymous: author.isAnonymous || false,
       authorIsGuest: author.isGuest || false,
       pageId,
-      parentId: parentId || undefined,
       createdAt: serverTimestamp() as Timestamp,
       upvotes: 0,
       downvotes: 0,
       isEdited: false
     };
+    
+    // Only add authorAvatar if it exists
+    if (author.avatar) {
+      commentData.authorAvatar = author.avatar;
+    }
+    
+    // Only add parentId if it exists
+    if (parentId) {
+      commentData.parentId = parentId;
+    }
 
     const docRef = await addDoc(commentsRef, commentData);
     
