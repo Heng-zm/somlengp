@@ -17,6 +17,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 import { detectQRCodeAdvanced, QRDetectionResult } from '@/utils/advanced-qr-detection';
+import { debugQRDetection, generateQRDetectionReport } from '@/utils/qr-debug';
 import { parseQRData, ParsedQRData, getQRTypeColor } from '@/utils/qr-data-parser';
 import { useBackCamera } from '@/hooks/use-camera-permission';
 import {
@@ -57,6 +58,7 @@ export function QRScanner({
   const [showResult, setShowResult] = useState(false);
   const [lastScan, setLastScan] = useState<string>('');
   const [scanAttempts, setScanAttempts] = useState(0);
+  const [isMounted, setIsMounted] = useState(false);
   
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -80,6 +82,7 @@ export function QRScanner({
   // Component mount/unmount tracking
   useEffect(() => {
     mountedRef.current = true;
+    setIsMounted(true);
     return () => {
       mountedRef.current = false;
       if (scanningRef.current) {
@@ -328,13 +331,24 @@ export function QRScanner({
           img.src = imageData;
         });
         
-        const result = await detectQRCodeAdvanced(img, {
-          enablePreprocessing: true,
-          enableRotationCorrection: true,
-          enableContrastEnhancement: true,
-          enableBlurReduction: true,
-          minQuality: 0.3
+        console.log('Processing image for QR detection...', {
+          imageWidth: img.width,
+          imageHeight: img.height,
+          fileSize: file.size,
+          fileType: file.type
         });
+        
+        // Use debug utility for comprehensive detection attempt
+        const debugResult = await debugQRDetection(file);
+        
+        console.log('QR detection debug result:', debugResult);
+        
+        if (process.env.NODE_ENV === 'development') {
+          const report = generateQRDetectionReport(debugResult);
+          console.log('QR Detection Report:\n' + report);
+        }
+        
+        const result = debugResult.success ? debugResult.result : null;
         
         if (result) {
           const parsedData = parseQRData(result.data);
@@ -358,12 +372,18 @@ export function QRScanner({
           });
           
         } else {
+          console.warn('No QR code found in uploaded image:', debugResult);
+          
+          // Get specific suggestions from debug result
+          const suggestions = debugResult.debug?.suggestions || [];
+          const primarySuggestion = suggestions[0] || 'Please ensure the image contains a clear, well-lit QR code.';
+          
           toast({
             title: "No QR Code Found",
-            description: "Could not detect a QR code in this image",
+            description: primarySuggestion,
             variant: "destructive",
           });
-          onScanError?.('No QR code found in image');
+          onScanError?.(`No QR code found in image: ${primarySuggestion}`);
         }
         
       } catch (error) {
@@ -508,7 +528,7 @@ export function QRScanner({
           </div>
         ) : (
           <div className="space-y-4">
-            {isSupported && (
+            {isMounted && isSupported && (
               <Button
                 onClick={startScanning}
                 disabled={isLoading}

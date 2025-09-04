@@ -1,12 +1,17 @@
 'use client';
 
-import React, { useState, useCallback } from 'react';
-import { ArrowLeft, QrCode, ScanLine, Shield, Target, Zap, Brain } from 'lucide-react';
+import React, { useState, useCallback, useMemo } from 'react';
+import { ArrowLeft, QrCode, ScanLine, Shield, Target, Zap, Brain, Filter, Info, AlertTriangle } from 'lucide-react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Progress } from '@/components/ui/progress';
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { QRScanner, ScanResult } from '@/components/qr-scanner';
 import { QRDetectionResult } from '@/utils/advanced-qr-detection';
 import { ParsedQRData } from '@/utils/qr-data-parser';
@@ -22,6 +27,8 @@ export default function ScanQRCodePage() {
     analysis?: QRAnalysisOutput;
   }>>([]);
   const [showAnalysis, setShowAnalysis] = useState(false);
+  const [historyFilter, setHistoryFilter] = useState<string>('all');
+  const [activeTab, setActiveTab] = useState('security');
 
   const { toast } = useToast();
 
@@ -115,33 +122,57 @@ export default function ScanQRCodePage() {
     }
   };
 
+  // Filter scan history based on selected filter
+  const filteredScanHistory = useMemo(() => {
+    if (historyFilter === 'all') return scanHistory;
+    return scanHistory.filter(item => {
+      if (!item.analysis) return historyFilter === 'unknown';
+      return item.analysis.security.riskLevel === historyFilter;
+    });
+  }, [scanHistory, historyFilter]);
+
   return (
-    <FeaturePageLayout 
-      title="QR Code Scanner"
-    >
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-purple-50/30">
-        <div className="container mx-auto px-4 py-8 max-w-6xl">
-          
-          {/* Navigation Buttons */}
-          <div className="flex justify-center gap-4 mb-8">
-            <Link href="/generate-qr-code">
-              <Button 
-                variant="outline"
-                className="border-2 border-gray-300 text-gray-700 hover:text-gray-900 hover:border-gray-400 px-8 py-3 rounded-xl shadow-lg font-semibold text-lg"
-              >
-                <QrCode className="h-5 w-5 mr-2" />
-                CREATE QR
-              </Button>
-            </Link>
+    <TooltipProvider>
+      <FeaturePageLayout 
+        title="QR Code Scanner"
+      >
+        <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-purple-50/30">
+          <div className="container mx-auto px-4 py-8 max-w-6xl">
             
-            <Button 
-              className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white px-8 py-3 rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105 font-semibold text-lg"
-              disabled
-            >
-              <ScanLine className="h-5 w-5 mr-2" />
-              SCAN QR
-            </Button>
-          </div>
+            {/* Navigation Buttons */}
+            <div className="flex justify-center gap-4 mb-8">
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Link href="/generate-qr-code">
+                    <Button 
+                      variant="outline"
+                      className="border-2 border-gray-300 text-gray-700 hover:text-gray-900 hover:border-gray-400 px-8 py-3 rounded-xl shadow-lg font-semibold text-lg"
+                    >
+                      <QrCode className="h-5 w-5 mr-2" />
+                      CREATE QR
+                    </Button>
+                  </Link>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Generate custom QR codes</p>
+                </TooltipContent>
+              </Tooltip>
+              
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button 
+                    className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white px-8 py-3 rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105 font-semibold text-lg"
+                    disabled
+                  >
+                    <ScanLine className="h-5 w-5 mr-2" />
+                    SCAN QR
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>AI-powered QR code scanner with security analysis</p>
+                </TooltipContent>
+              </Tooltip>
+            </div>
 
           <div className="grid gap-8 lg:grid-cols-2">
             {/* Scanner Section */}
@@ -160,9 +191,19 @@ export default function ScanQRCodePage() {
             <div className="bg-white/70 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/50 p-8">
               <div className="space-y-6">
                 <div className="text-center">
-                  <h2 className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent mb-2">
-                    🧠 Smart Analysis
-                  </h2>
+                  <div className="flex items-center justify-center gap-2 mb-2">
+                    <h2 className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
+                      🧠 Smart Analysis
+                    </h2>
+                    <Tooltip>
+                      <TooltipTrigger>
+                        <Info className="h-4 w-4 text-gray-400" />
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>Advanced AI analysis provides security assessment and content insights</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </div>
                   <p className="text-gray-600">
                     {analysisResult ? 'AI-powered security and content analysis' : 'Scan a QR code to see intelligent insights'}
                   </p>
@@ -191,80 +232,120 @@ export default function ScanQRCodePage() {
                     </div>
                   </div>
                 ) : analysisResult ? (
-                  <div className="space-y-6">
-                    {/* Security Assessment */}
-                    <Card className="border-l-4 border-l-purple-500">
-                      <CardHeader>
-                        <CardTitle className="flex items-center gap-2 text-lg">
-                          <Shield className={`h-5 w-5 text-${getRiskColor(analysisResult.security.riskLevel)}-500`} />
-                          Security Assessment
-                        </CardTitle>
-                        <CardDescription>AI-powered risk analysis</CardDescription>
-                      </CardHeader>
-                      <CardContent>
-                        <div className="space-y-4">
-                          <div className="flex items-center justify-between">
-                            <span className="font-medium">Risk Level:</span>
-                            <Badge 
-                              variant="secondary" 
-                              className={`bg-${getRiskColor(analysisResult.security.riskLevel)}-100 text-${getRiskColor(analysisResult.security.riskLevel)}-800 border-${getRiskColor(analysisResult.security.riskLevel)}-200`}
-                            >
-                              {getRiskIcon(analysisResult.security.riskLevel)} {analysisResult.security.riskLevel.toUpperCase()}
-                            </Badge>
-                          </div>
-                          
-                          <div className="flex items-center justify-between">
-                            <span className="font-medium">Risk Score:</span>
-                            <div className="flex items-center gap-2">
-                              <div className="w-24 bg-gray-200 rounded-full h-2">
-                                <div 
-                                  className={`h-2 rounded-full bg-${getRiskColor(analysisResult.security.riskLevel)}-500`}
-                                  style={{ width: `${analysisResult.security.riskScore}%` }}
+                  <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+                    <TabsList className="grid w-full grid-cols-3">
+                      <TabsTrigger value="security" className="flex items-center gap-2">
+                        <Shield className="h-4 w-4" />
+                        Security
+                      </TabsTrigger>
+                      <TabsTrigger value="insights" className="flex items-center gap-2">
+                        <Target className="h-4 w-4" />
+                        Insights
+                      </TabsTrigger>
+                      <TabsTrigger value="actions" className="flex items-center gap-2">
+                        <Zap className="h-4 w-4" />
+                        Actions
+                      </TabsTrigger>
+                    </TabsList>
+
+                    <TabsContent value="security">
+                      <Card className="border-l-4 border-l-purple-500">
+                        <CardHeader>
+                          <CardTitle className="flex items-center gap-2 text-lg">
+                            <Shield className={`h-5 w-5 text-${getRiskColor(analysisResult.security.riskLevel)}-500`} />
+                            Security Assessment
+                            <Tooltip>
+                              <TooltipTrigger>
+                                <Info className="h-4 w-4 text-gray-400" />
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p>AI analyzes the QR code content for potential security risks</p>
+                              </TooltipContent>
+                            </Tooltip>
+                          </CardTitle>
+                          <CardDescription>AI-powered risk analysis</CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                          <div className="space-y-4">
+                            <div className="flex items-center justify-between">
+                              <span className="font-medium">Risk Level:</span>
+                              <Badge 
+                                variant="secondary" 
+                                className={`bg-${getRiskColor(analysisResult.security.riskLevel)}-100 text-${getRiskColor(analysisResult.security.riskLevel)}-800 border-${getRiskColor(analysisResult.security.riskLevel)}-200`}
+                              >
+                                {getRiskIcon(analysisResult.security.riskLevel)} {analysisResult.security.riskLevel.toUpperCase()}
+                              </Badge>
+                            </div>
+                            
+                            <div className="flex items-center justify-between">
+                              <span className="font-medium">Risk Score:</span>
+                              <div className="flex items-center gap-2">
+                                <Progress 
+                                  value={analysisResult.security.riskScore} 
+                                  className={`w-24 h-2 ${getRiskColor(analysisResult.security.riskLevel) === 'red' ? '[&>[data-state=complete]]:bg-red-500' : getRiskColor(analysisResult.security.riskLevel) === 'orange' ? '[&>[data-state=complete]]:bg-orange-500' : getRiskColor(analysisResult.security.riskLevel) === 'yellow' ? '[&>[data-state=complete]]:bg-yellow-500' : '[&>[data-state=complete]]:bg-green-500'}`}
                                 />
+                                <span className="text-sm font-mono">{analysisResult.security.riskScore}/100</span>
                               </div>
-                              <span className="text-sm font-mono">{analysisResult.security.riskScore}/100</span>
                             </div>
-                          </div>
 
-                          {analysisResult.security.threats.length > 0 && (
-                            <div className="space-y-2">
-                              <span className="font-medium text-sm">Identified Threats:</span>
-                              {analysisResult.security.threats.map((threat, index) => (
-                                <Alert key={index} variant="destructive">
-                                  <AlertDescription>
-                                    <strong>{threat.type}:</strong> {threat.description}
-                                  </AlertDescription>
-                                </Alert>
-                              ))}
-                            </div>
-                          )}
-
-                          {analysisResult.security.recommendations.length > 0 && (
-                            <div className="space-y-2">
-                              <span className="font-medium text-sm">Recommendations:</span>
-                              <ul className="space-y-1">
-                                {analysisResult.security.recommendations.map((rec, index) => (
-                                  <li key={index} className="text-sm text-gray-600 flex items-start gap-2">
-                                    <span className="text-blue-500 mt-1">•</span>
-                                    {rec}
-                                  </li>
+                            {analysisResult.security.threats.length > 0 && (
+                              <div className="space-y-2">
+                                <div className="flex items-center gap-2">
+                                  <span className="font-medium text-sm">Identified Threats:</span>
+                                  <Tooltip>
+                                    <TooltipTrigger>
+                                      <AlertTriangle className="h-4 w-4 text-orange-500" />
+                                    </TooltipTrigger>
+                                    <TooltipContent>
+                                      <p>AI-detected security threats in the QR code content</p>
+                                    </TooltipContent>
+                                  </Tooltip>
+                                </div>
+                                {analysisResult.security.threats.map((threat, index) => (
+                                  <Alert key={index} variant="destructive">
+                                    <AlertDescription>
+                                      <strong>{threat.type}:</strong> {threat.description}
+                                    </AlertDescription>
+                                  </Alert>
                                 ))}
-                              </ul>
-                            </div>
-                          )}
-                        </div>
-                      </CardContent>
-                    </Card>
+                              </div>
+                            )}
 
-                    {/* Content Insights */}
-                    <Card className="border-l-4 border-l-blue-500">
-                      <CardHeader>
-                        <CardTitle className="flex items-center gap-2 text-lg">
-                          <Target className="h-5 w-5 text-blue-500" />
-                          Content Insights
-                        </CardTitle>
-                        <CardDescription>Smart categorization and analysis</CardDescription>
-                      </CardHeader>
+                            {analysisResult.security.recommendations.length > 0 && (
+                              <div className="space-y-2">
+                                <span className="font-medium text-sm">Recommendations:</span>
+                                <ul className="space-y-1">
+                                  {analysisResult.security.recommendations.map((rec, index) => (
+                                    <li key={index} className="text-sm text-gray-600 flex items-start gap-2">
+                                      <span className="text-blue-500 mt-1">•</span>
+                                      {rec}
+                                    </li>
+                                  ))}
+                                </ul>
+                              </div>
+                            )}
+                          </div>
+                        </CardContent>
+                      </Card>
+                    </TabsContent>
+
+                    <TabsContent value="insights">
+                      <Card className="border-l-4 border-l-blue-500">
+                        <CardHeader>
+                          <CardTitle className="flex items-center gap-2 text-lg">
+                            <Target className="h-5 w-5 text-blue-500" />
+                            Content Insights
+                            <Tooltip>
+                              <TooltipTrigger>
+                                <Info className="h-4 w-4 text-gray-400" />
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p>AI categorization and content analysis of the QR code</p>
+                              </TooltipContent>
+                            </Tooltip>
+                          </CardTitle>
+                          <CardDescription>Smart categorization and analysis</CardDescription>
+                        </CardHeader>
                       <CardContent>
                         <div className="space-y-4">
                           <div className="flex items-center justify-between">
@@ -313,21 +394,30 @@ export default function ScanQRCodePage() {
                                 ))}
                               </div>
                             </div>
-                          )}
-                        </div>
-                      </CardContent>
-                    </Card>
+                            )}
+                          </div>
+                        </CardContent>
+                      </Card>
+                    </TabsContent>
 
-                    {/* Suggested Actions */}
-                    {analysisResult.insights.relatedActions.length > 0 && (
-                      <Card className="border-l-4 border-l-green-500">
-                        <CardHeader>
-                          <CardTitle className="flex items-center gap-2 text-lg">
-                            <Zap className="h-5 w-5 text-green-500" />
-                            Suggested Actions
-                          </CardTitle>
-                          <CardDescription>Intelligent recommendations</CardDescription>
-                        </CardHeader>
+                    <TabsContent value="actions">
+                      {analysisResult.insights.relatedActions.length > 0 ? (
+                        <Card className="border-l-4 border-l-green-500">
+                          <CardHeader>
+                            <CardTitle className="flex items-center gap-2 text-lg">
+                              <Zap className="h-5 w-5 text-green-500" />
+                              Suggested Actions
+                              <Tooltip>
+                                <TooltipTrigger>
+                                  <Info className="h-4 w-4 text-gray-400" />
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                  <p>AI-generated action recommendations based on QR content</p>
+                                </TooltipContent>
+                              </Tooltip>
+                            </CardTitle>
+                            <CardDescription>Intelligent recommendations</CardDescription>
+                          </CardHeader>
                         <CardContent>
                           <div className="space-y-3">
                             {analysisResult.insights.relatedActions.map((action, index) => (
@@ -351,10 +441,18 @@ export default function ScanQRCodePage() {
                               </div>
                             ))}
                           </div>
-                        </CardContent>
-                      </Card>
-                    )}
-                  </div>
+                          </CardContent>
+                        </Card>
+                      ) : (
+                        <Card>
+                          <CardContent className="flex flex-col items-center justify-center h-32 text-gray-500">
+                            <Zap className="h-8 w-8 mb-2" />
+                            <p>No suggested actions for this QR code</p>
+                          </CardContent>
+                        </Card>
+                      )}
+                    </TabsContent>
+                  </Tabs>
                 ) : (
                   <div className="flex flex-col items-center justify-center h-96 text-gray-500">
                     <div className="relative mb-6">
@@ -380,48 +478,117 @@ export default function ScanQRCodePage() {
             </div>
           </div>
 
-          {/* Scan History */}
-          {scanHistory.length > 0 && (
-            <div className="mt-12">
-              <h3 className="text-2xl font-bold text-gray-800 mb-6 text-center">Recent Scans</h3>
-              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                {scanHistory.map((item, index) => (
-                  <Card key={item.scanResult.id} className="bg-white/80 backdrop-blur-sm">
-                    <CardHeader className="pb-3">
-                      <CardTitle className="text-lg flex items-center justify-between">
-                        <span className="flex items-center gap-2">
-                          {item.scanResult.parsedData.icon} {item.scanResult.parsedData.type}
-                        </span>
-                        {item.analysis && (
-                          <Badge 
-                            variant="secondary" 
-                            className={`bg-${getRiskColor(item.analysis.security.riskLevel)}-100 text-${getRiskColor(item.analysis.security.riskLevel)}-800`}
-                          >
-                            {getRiskIcon(item.analysis.security.riskLevel)}
-                          </Badge>
-                        )}
-                      </CardTitle>
-                      <CardDescription>
-                        {item.scanResult.timestamp.toLocaleTimeString()}
-                      </CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                      <p className="text-sm text-gray-600 truncate mb-2">
-                        {item.scanResult.detectionResult.data}
-                      </p>
-                      {item.analysis && (
-                        <p className="text-xs text-gray-500">
-                          {item.analysis.insights.summary.substring(0, 100)}...
-                        </p>
-                      )}
+            {/* Scan History */}
+            {scanHistory.length > 0 && (
+              <div className="mt-12">
+                <div className="flex items-center justify-between mb-6">
+                  <h3 className="text-2xl font-bold text-gray-800">Recent Scans</h3>
+                  <div className="flex items-center gap-2">
+                    <Filter className="h-4 w-4 text-gray-500" />
+                    <Select value={historyFilter} onValueChange={setHistoryFilter}>
+                      <SelectTrigger className="w-40">
+                        <SelectValue placeholder="Filter by risk" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All Scans</SelectItem>
+                        <SelectItem value="low">Low Risk</SelectItem>
+                        <SelectItem value="medium">Medium Risk</SelectItem>
+                        <SelectItem value="high">High Risk</SelectItem>
+                        <SelectItem value="critical">Critical Risk</SelectItem>
+                        <SelectItem value="unknown">No Analysis</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+                
+                <Accordion type="single" collapsible className="bg-white/80 backdrop-blur-sm rounded-xl">
+                  {filteredScanHistory.map((item, index) => (
+                    <AccordionItem key={item.scanResult.id} value={item.scanResult.id}>
+                      <AccordionTrigger className="px-6 hover:no-underline">
+                        <div className="flex items-center justify-between w-full mr-4">
+                          <div className="flex items-center gap-3">
+                            <span className="text-lg">{item.scanResult.parsedData.icon}</span>
+                            <div className="text-left">
+                              <div className="font-medium">{item.scanResult.parsedData.type}</div>
+                              <div className="text-sm text-gray-500">
+                                {item.scanResult.timestamp.toLocaleString()}
+                              </div>
+                            </div>
+                          </div>
+                          {item.analysis && (
+                            <Tooltip>
+                              <TooltipTrigger>
+                                <Badge 
+                                  variant="secondary" 
+                                  className={`bg-${getRiskColor(item.analysis.security.riskLevel)}-100 text-${getRiskColor(item.analysis.security.riskLevel)}-800`}
+                                >
+                                  {getRiskIcon(item.analysis.security.riskLevel)} {item.analysis.security.riskLevel.toUpperCase()}
+                                </Badge>
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p>Risk Score: {item.analysis.security.riskScore}/100</p>
+                              </TooltipContent>
+                            </Tooltip>
+                          )}
+                        </div>
+                      </AccordionTrigger>
+                      <AccordionContent className="px-6 pb-6">
+                        <div className="space-y-4">
+                          <div className="p-3 bg-gray-50 rounded-lg">
+                            <p className="text-sm font-medium text-gray-700 mb-1">Content:</p>
+                            <p className="text-sm text-gray-600 break-all">
+                              {item.scanResult.detectionResult.data}
+                            </p>
+                          </div>
+                          {item.analysis && (
+                            <>
+                              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div className="p-3 bg-blue-50 rounded-lg">
+                                  <p className="text-sm font-medium text-blue-800 mb-1">Category:</p>
+                                  <p className="text-sm text-blue-600">
+                                    {item.analysis.categorization.primaryCategory}
+                                  </p>
+                                </div>
+                                <div className="p-3 bg-purple-50 rounded-lg">
+                                  <p className="text-sm font-medium text-purple-800 mb-1">Risk Score:</p>
+                                  <div className="flex items-center gap-2">
+                                    <Progress 
+                                      value={item.analysis.security.riskScore} 
+                                      className="w-20 h-2"
+                                    />
+                                    <span className="text-sm text-purple-600">
+                                      {item.analysis.security.riskScore}/100
+                                    </span>
+                                  </div>
+                                </div>
+                              </div>
+                              <div className="p-3 bg-gray-50 rounded-lg">
+                                <p className="text-sm font-medium text-gray-700 mb-1">Summary:</p>
+                                <p className="text-sm text-gray-600">
+                                  {item.analysis.insights.summary}
+                                </p>
+                              </div>
+                            </>
+                          )}
+                        </div>
+                      </AccordionContent>
+                    </AccordionItem>
+                  ))}
+                </Accordion>
+                
+                {filteredScanHistory.length === 0 && (
+                  <Card className="bg-white/80 backdrop-blur-sm">
+                    <CardContent className="flex flex-col items-center justify-center h-32 text-gray-500">
+                      <Filter className="h-8 w-8 mb-2" />
+                      <p>No scans match the selected filter</p>
                     </CardContent>
                   </Card>
-                ))}
+                )}
               </div>
-            </div>
-          )}
+            )}
+          </div>
         </div>
-      </div>
-    </FeaturePageLayout>
+      </FeaturePageLayout>
+    </TooltipProvider>
   );
 }

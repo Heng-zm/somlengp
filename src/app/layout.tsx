@@ -8,6 +8,7 @@ import { AppLayout } from '@/layouts/app-layout';
 import { AuthProvider } from '@/contexts/auth-context';
 import { PerformanceOverlay } from '@/components/shared/performance-dashboard';
 import { Kantumruy_Pro } from 'next/font/google';
+import Script from 'next/script';
 
 // Import Firebase status check for debugging in development
 if (process.env.NODE_ENV === 'development') {
@@ -83,6 +84,12 @@ export default function RootLayout({
           gtag('config', 'G-GQPSM8WTZY');
         </script> */}
 
+        {/* Load jsQR library */}
+        <Script 
+          src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"
+          strategy="beforeInteractive"
+        />
+        
         <AuthProvider>
           <AppLayout>
             {children}

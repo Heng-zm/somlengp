@@ -91,9 +91,11 @@ class AdvancedQRDetector {
     } = options;
 
     try {
-      // Ensure jsQR is available
+      // Wait for jsQR to be available with retry mechanism
+      await this.ensureJsQRAvailable();
+      
       if (!window.jsQR) {
-        throw new Error('jsQR library not loaded');
+        throw new Error('jsQR library not loaded after multiple attempts');
       }
 
       const strategies = [
@@ -159,7 +161,9 @@ class AdvancedQRDetector {
   ): Promise<Omit<QRDetectionResult, 'processingTime' | 'strategy'> | null> {
     try {
       const imageData = this.getImageData(imageSource);
-      const result = window.jsQR(imageData.data, imageData.width, imageData.height) as any;
+      const result = window.jsQR(imageData.data, imageData.width, imageData.height, {
+        inversionAttempts: "attemptBoth"
+      }) as any;
       
       if (result) {
         return {
@@ -203,7 +207,9 @@ class AdvancedQRDetector {
       // Apply adaptive thresholding
       imageData = this.adaptiveThreshold(imageData);
       
-      const result = window.jsQR(imageData.data, imageData.width, imageData.height) as any;
+      const result = window.jsQR(imageData.data, imageData.width, imageData.height, {
+        inversionAttempts: "attemptBoth"
+      }) as any;
       
       if (result) {
         return {
@@ -241,7 +247,9 @@ class AdvancedQRDetector {
           imageData = this.adaptiveThreshold(imageData);
         }
         
-        const result = window.jsQR(imageData.data, imageData.width, imageData.height) as any;
+        const result = window.jsQR(imageData.data, imageData.width, imageData.height, {
+          inversionAttempts: "attemptBoth"
+        }) as any;
         
         if (result) {
           return {
@@ -281,7 +289,9 @@ class AdvancedQRDetector {
         imageData = this.enhanceContrast(imageData);
         imageData = this.toGrayscale(imageData);
         
-        const result = window.jsQR(imageData.data, imageData.width, imageData.height) as any;
+        const result = window.jsQR(imageData.data, imageData.width, imageData.height, {
+          inversionAttempts: "attemptBoth"
+        }) as any;
         
         if (result) {
           return {
@@ -330,7 +340,9 @@ class AdvancedQRDetector {
           const regionImageData = this.extractRegion(fullImageData, region);
           const processedImageData = this.toGrayscale(this.enhanceContrast(regionImageData));
           
-          const result = window.jsQR(processedImageData.data, processedImageData.width, processedImageData.height) as any;
+          const result = window.jsQR(processedImageData.data, processedImageData.width, processedImageData.height, {
+            inversionAttempts: "attemptBoth"
+          }) as any;
           
           if (result) {
             return {
@@ -614,15 +626,93 @@ class AdvancedQRDetector {
     return true;
   }
 
+  private async ensureJsQRAvailable(maxRetries: number = 10, delayMs: number = 100): Promise<void> {
+    for (let i = 0; i < maxRetries; i++) {
+      if (typeof window !== 'undefined' && window.jsQR) {
+        return;
+      }
+      
+      await new Promise(resolve => setTimeout(resolve, delayMs));
+    }
+    
+    // Fallback: Try to load jsQR dynamically
+    if (typeof window !== 'undefined' && !window.jsQR) {
+      try {
+        const jsQR = await import('jsqr');
+        window.jsQR = jsQR.default;
+      } catch (error) {
+        console.warn('Failed to load jsQR dynamically:', error);
+      }
+    }
+  }
+
   private getStrategyName(index: number): string {
     const strategies = [
       'direct',
-      'preprocessed',
+      'preprocessed', 
       'rotation-corrected',
       'multi-scale',
       'region-based'
     ];
     return strategies[Math.min(index, strategies.length - 1)] || 'unknown';
+  }
+
+  // Enhanced image preprocessing methods
+  private morphologyOpen(imageData: ImageData): ImageData {
+    const data = new Uint8ClampedArray(imageData.data);
+    const { width, height } = imageData;
+    
+    // Apply erosion followed by dilation (opening)
+    let temp = this.erode(new ImageData(data, width, height));
+    return this.dilate(temp);
+  }
+
+  private erode(imageData: ImageData): ImageData {
+    const data = new Uint8ClampedArray(imageData.data);
+    const { width, height } = imageData;
+    
+    for (let y = 1; y < height - 1; y++) {
+      for (let x = 1; x < width - 1; x++) {
+        let minVal = 255;
+        
+        // Check 3x3 neighborhood
+        for (let dy = -1; dy <= 1; dy++) {
+          for (let dx = -1; dx <= 1; dx++) {
+            const idx = ((y + dy) * width + (x + dx)) * 4;
+            minVal = Math.min(minVal, imageData.data[idx]);
+          }
+        }
+        
+        const idx = (y * width + x) * 4;
+        data[idx] = data[idx + 1] = data[idx + 2] = minVal;
+      }
+    }
+    
+    return new ImageData(data, width, height);
+  }
+
+  private dilate(imageData: ImageData): ImageData {
+    const data = new Uint8ClampedArray(imageData.data);
+    const { width, height } = imageData;
+    
+    for (let y = 1; y < height - 1; y++) {
+      for (let x = 1; x < width - 1; x++) {
+        let maxVal = 0;
+        
+        // Check 3x3 neighborhood
+        for (let dy = -1; dy <= 1; dy++) {
+          for (let dx = -1; dx <= 1; dx++) {
+            const idx = ((y + dy) * width + (x + dx)) * 4;
+            maxVal = Math.max(maxVal, imageData.data[idx]);
+          }
+        }
+        
+        const idx = (y * width + x) * 4;
+        data[idx] = data[idx + 1] = data[idx + 2] = maxVal;
+      }
+    }
+    
+    return new ImageData(data, width, height);
   }
 }
 
