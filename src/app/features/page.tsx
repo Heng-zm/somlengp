@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { useState } from 'react'
-import { ArrowRight, Check, Mic, FileText, Image as ImageIcon, Wand2, AudioLines, Sparkles, Play, Zap, Shield, Users, BarChart3 } from 'lucide-react'
+import { ArrowRight, Check, Mic, FileText, Image as ImageIcon, Wand2, AudioLines, Sparkles, Play, Zap, Shield, Users, BarChart3, QrCode } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -86,6 +86,21 @@ export default function FeaturesPage() {
       ],
       color: "text-pink-600 bg-pink-100",
       stats: { formats: "15+", compression: "90%", speed: "Instant" }
+    },
+    {
+      icon: QrCode,
+      title: "QR Code Tools",
+      description: "Advanced QR code generation and scanning with AI analysis",
+      details: [
+        "Generate custom QR codes with styling options",
+        "Smart QR code scanning with camera or upload",
+        "AI-powered security analysis and risk assessment",
+        "Content categorization and insights",
+        "Batch processing capabilities",
+        "Export and sharing options"
+      ],
+      color: "text-cyan-600 bg-cyan-100",
+      stats: { detection: "99%+", analysis: "AI-powered", formats: "All types" }
     },
     {
       icon: Wand2,

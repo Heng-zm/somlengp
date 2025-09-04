@@ -31,16 +31,34 @@ export interface QRDetectionOptions {
 }
 
 class AdvancedQRDetector {
-  private canvas: HTMLCanvasElement;
-  private ctx: CanvasRenderingContext2D;
-  private preprocessingCanvas: HTMLCanvasElement;
-  private preprocessingCtx: CanvasRenderingContext2D;
+  private canvas: HTMLCanvasElement | null = null;
+  private ctx: CanvasRenderingContext2D | null = null;
+  private preprocessingCanvas: HTMLCanvasElement | null = null;
+  private preprocessingCtx: CanvasRenderingContext2D | null = null;
 
   constructor() {
-    this.canvas = document.createElement('canvas');
-    this.ctx = this.canvas.getContext('2d')!;
-    this.preprocessingCanvas = document.createElement('canvas');
-    this.preprocessingCtx = this.preprocessingCanvas.getContext('2d')!;
+    // Initialize only on client-side
+    if (typeof window !== 'undefined' && typeof document !== 'undefined') {
+      this.canvas = document.createElement('canvas');
+      this.ctx = this.canvas.getContext('2d');
+      this.preprocessingCanvas = document.createElement('canvas');
+      this.preprocessingCtx = this.preprocessingCanvas.getContext('2d');
+    }
+  }
+
+  private ensureCanvasElements(): boolean {
+    if (typeof window === 'undefined' || typeof document === 'undefined') {
+      return false;
+    }
+
+    if (!this.canvas || !this.ctx || !this.preprocessingCanvas || !this.preprocessingCtx) {
+      this.canvas = document.createElement('canvas');
+      this.ctx = this.canvas.getContext('2d');
+      this.preprocessingCanvas = document.createElement('canvas');
+      this.preprocessingCtx = this.preprocessingCanvas.getContext('2d');
+    }
+
+    return !!(this.canvas && this.ctx && this.preprocessingCanvas && this.preprocessingCtx);
   }
 
   /**
@@ -50,6 +68,16 @@ class AdvancedQRDetector {
     imageSource: HTMLVideoElement | HTMLImageElement | HTMLCanvasElement | ImageData,
     options: QRDetectionOptions = {}
   ): Promise<QRDetectionResult | null> {
+    // Early return for SSR
+    if (typeof window === 'undefined') {
+      return null;
+    }
+
+    // Ensure canvas elements are available
+    if (!this.ensureCanvasElements()) {
+      return null;
+    }
+
     const startTime = performance.now();
     
     const {
@@ -351,6 +379,11 @@ class AdvancedQRDetector {
       return source.getContext('2d')!.getImageData(0, 0, source.width, source.height);
     }
     
+    // Ensure canvas is available
+    if (!this.canvas || !this.ctx) {
+      throw new Error('Canvas not available');
+    }
+    
     // For video and image elements
     this.canvas.width = source instanceof HTMLVideoElement ? source.videoWidth : source.naturalWidth || source.width;
     this.canvas.height = source instanceof HTMLVideoElement ? source.videoHeight : source.naturalHeight || source.height;
@@ -457,6 +490,10 @@ class AdvancedQRDetector {
   }
 
   private rotateImageData(imageData: ImageData, angle: number): ImageData {
+    if (!this.preprocessingCanvas || !this.preprocessingCtx) {
+      throw new Error('Preprocessing canvas not available');
+    }
+    
     const radians = (angle * Math.PI) / 180;
     const cos = Math.cos(radians);
     const sin = Math.sin(radians);
@@ -489,6 +526,10 @@ class AdvancedQRDetector {
   }
 
   private scaleImageData(imageData: ImageData, scale: number): ImageData {
+    if (!this.preprocessingCanvas || !this.preprocessingCtx) {
+      throw new Error('Preprocessing canvas not available');
+    }
+    
     const { width, height } = imageData;
     const newWidth = Math.round(width * scale);
     const newHeight = Math.round(height * scale);
