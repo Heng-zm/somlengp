@@ -698,7 +698,7 @@ export function NotificationSettingsPage() {
           <AlertTriangle className="h-4 w-4" />
           <AlertTitle>Notifications Disabled</AlertTitle>
           <AlertDescription>
-            You won't receive any notifications while they are disabled. 
+            You won&apos;t receive any notifications while they are disabled.
             Enable notifications above to stay informed about important events.
           </AlertDescription>
         </Alert>

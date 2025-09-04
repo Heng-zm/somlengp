@@ -24,8 +24,19 @@ import {
 
 export interface CameraControlsProps {
   stream: MediaStream | null;
-  onFocusRequest?: () => void;
   className?: string;
+}
+
+// Extended interface to handle camera-specific properties
+interface ExtendedMediaTrackConstraints {
+  zoom?: number;
+  focusMode?: string;
+  focusDistance?: number;
+  exposureMode?: string;
+  exposureCompensation?: number;
+  whiteBalanceMode?: string;
+  colorTemperature?: number;
+  torch?: boolean;
 }
 
 interface CameraCapabilities {
@@ -59,7 +70,7 @@ interface CameraCapabilities {
   };
 }
 
-export function AdvancedCameraControls({ stream, onFocusRequest, className = '' }: CameraControlsProps) {
+export function AdvancedCameraControls({ stream, className = '' }: CameraControlsProps) {
   const [capabilities, setCapabilities] = useState<CameraCapabilities>({});
   const [isLoading, setIsLoading] = useState(false);
   const [torchEnabled, setTorchEnabled] = useState(false);
@@ -67,16 +78,6 @@ export function AdvancedCameraControls({ stream, onFocusRequest, className = '' 
   const [showAdvanced, setShowAdvanced] = useState(false);
   
   const { toast } = useToast();
-
-  // Initialize camera capabilities
-  useEffect(() => {
-    if (stream) {
-      initializeCameraCapabilities();
-    } else {
-      setCapabilities({});
-      setTorchEnabled(false);
-    }
-  }, [stream]);
 
   const initializeCameraCapabilities = useCallback(async () => {
     if (!stream) return;
@@ -90,8 +91,27 @@ export function AdvancedCameraControls({ stream, onFocusRequest, className = '' 
         return;
       }
 
-      const trackCapabilities = videoTrack.getCapabilities() as any;
-      const trackSettings = videoTrack.getSettings() as any;
+      interface MediaTrackCapabilities {
+        zoom?: { min: number; max: number; step: number };
+        focusDistance?: { min: number; max: number; step: number };
+        exposureCompensation?: { min: number; max: number; step: number };
+        colorTemperature?: { min: number; max: number; step: number };
+        torch?: boolean;
+      }
+      
+      interface MediaTrackSettings {
+        zoom?: number;
+        focusDistance?: number;
+        focusMode?: string;
+        exposureCompensation?: number;
+        exposureMode?: string;
+        torch?: boolean;
+        colorTemperature?: number;
+        whiteBalanceMode?: string;
+      }
+      
+      const trackCapabilities = videoTrack.getCapabilities() as MediaTrackCapabilities;
+      const trackSettings = videoTrack.getSettings() as MediaTrackSettings;
       
       console.log('Camera capabilities:', trackCapabilities);
       console.log('Current settings:', trackSettings);
@@ -115,7 +135,7 @@ export function AdvancedCameraControls({ stream, onFocusRequest, className = '' 
           max: trackCapabilities.focusDistance.max || 1,
           step: trackCapabilities.focusDistance.step || 0.01,
           current: trackSettings.focusDistance || 0.5,
-          mode: trackSettings.focusMode || 'continuous'
+          mode: (trackSettings.focusMode as 'manual' | 'continuous' | 'single-shot') || 'continuous'
         };
       }
 
@@ -126,7 +146,7 @@ export function AdvancedCameraControls({ stream, onFocusRequest, className = '' 
           max: trackCapabilities.exposureCompensation.max || 3,
           step: trackCapabilities.exposureCompensation.step || 0.33,
           current: trackSettings.exposureCompensation || 0,
-          mode: trackSettings.exposureMode || 'continuous'
+          mode: (trackSettings.exposureMode as 'manual' | 'continuous') || 'continuous'
         };
       }
 
@@ -143,7 +163,7 @@ export function AdvancedCameraControls({ stream, onFocusRequest, className = '' 
           max: trackCapabilities.colorTemperature.max || 7500,
           step: trackCapabilities.colorTemperature.step || 50,
           current: trackSettings.colorTemperature || 5000,
-          mode: trackSettings.whiteBalanceMode || 'continuous'
+          mode: (trackSettings.whiteBalanceMode as 'manual' | 'continuous') || 'continuous'
         };
       }
 
@@ -166,15 +186,30 @@ export function AdvancedCameraControls({ stream, onFocusRequest, className = '' 
     }
   }, [stream, toast]);
 
+  // Initialize camera capabilities
+  useEffect(() => {
+    if (stream) {
+      initializeCameraCapabilities();
+    } else {
+      setCapabilities({});
+      setTorchEnabled(false);
+    }
+  }, [stream, initializeCameraCapabilities]);
+
   // Apply camera constraints
-  const applyConstraints = useCallback(async (constraints: MediaTrackConstraints) => {
+  const applyConstraints = useCallback(async (constraints: ExtendedMediaTrackConstraints) => {
     if (!stream) return false;
 
     try {
       const videoTrack = stream.getVideoTracks()[0];
       if (!videoTrack) return false;
 
-      await videoTrack.applyConstraints(constraints);
+      // Convert our extended constraints to the proper MediaTrackConstraints format
+      const mediaConstraints: MediaTrackConstraints = {
+        advanced: [constraints as any] // Cast to any since we know these are valid constraint properties
+      };
+      
+      await videoTrack.applyConstraints(mediaConstraints);
       return true;
     } catch (error) {
       console.error('Failed to apply camera constraints:', error);
@@ -191,7 +226,7 @@ export function AdvancedCameraControls({ stream, onFocusRequest, className = '' 
   const handleZoomChange = useCallback(async (value: number[]) => {
     const zoomValue = value[0];
     const success = await applyConstraints({
-      advanced: [{ zoom: zoomValue } as any]
+      zoom: zoomValue
     });
     
     if (success && capabilities.zoom) {
@@ -220,10 +255,8 @@ export function AdvancedCameraControls({ stream, onFocusRequest, className = '' 
   const handleFocusChange = useCallback(async (value: number[]) => {
     const focusValue = value[0];
     const success = await applyConstraints({
-      advanced: [{ 
-        focusMode: 'manual' as any,
-        focusDistance: focusValue 
-      } as any]
+      focusMode: 'manual',
+      focusDistance: focusValue 
     });
     
     if (success && capabilities.focus) {
@@ -238,7 +271,7 @@ export function AdvancedCameraControls({ stream, onFocusRequest, className = '' 
   const toggleAutoFocus = useCallback(async () => {
     const newMode = autoFocusEnabled ? 'manual' : 'continuous';
     const success = await applyConstraints({
-      advanced: [{ focusMode: newMode as any } as any]
+      focusMode: newMode
     });
     
     if (success) {
@@ -246,7 +279,7 @@ export function AdvancedCameraControls({ stream, onFocusRequest, className = '' 
       if (capabilities.focus) {
         setCapabilities(prev => ({
           ...prev,
-          focus: prev.focus ? { ...prev.focus, mode: newMode as any } : undefined
+          focus: prev.focus ? { ...prev.focus, mode: newMode as 'manual' | 'continuous' } : undefined
         }));
       }
       
@@ -261,10 +294,8 @@ export function AdvancedCameraControls({ stream, onFocusRequest, className = '' 
   const handleExposureChange = useCallback(async (value: number[]) => {
     const exposureValue = value[0];
     const success = await applyConstraints({
-      advanced: [{ 
-        exposureMode: 'manual' as any,
-        exposureCompensation: exposureValue 
-      } as any]
+      exposureMode: 'manual',
+      exposureCompensation: exposureValue 
     });
     
     if (success && capabilities.exposure) {
@@ -280,7 +311,7 @@ export function AdvancedCameraControls({ stream, onFocusRequest, className = '' 
     if (!capabilities.torch) return;
 
     const success = await applyConstraints({
-      advanced: [{ torch: !torchEnabled } as any]
+      torch: !torchEnabled
     });
     
     if (success) {
@@ -296,10 +327,8 @@ export function AdvancedCameraControls({ stream, onFocusRequest, className = '' 
   const handleWhiteBalanceChange = useCallback(async (value: number[]) => {
     const wbValue = value[0];
     const success = await applyConstraints({
-      advanced: [{ 
-        whiteBalanceMode: 'manual' as any,
-        colorTemperature: wbValue 
-      } as any]
+      whiteBalanceMode: 'manual',
+      colorTemperature: wbValue 
     });
     
     if (success && capabilities.whiteBalance) {
@@ -314,13 +343,11 @@ export function AdvancedCameraControls({ stream, onFocusRequest, className = '' 
   const resetControls = useCallback(async () => {
     try {
       await applyConstraints({
-        advanced: [{
-          zoom: 1,
-          focusMode: 'continuous',
-          exposureMode: 'continuous',
-          whiteBalanceMode: 'continuous',
-          torch: false
-        } as any]
+        zoom: 1,
+        focusMode: 'continuous',
+        exposureMode: 'continuous',
+        whiteBalanceMode: 'continuous',
+        torch: false
       });
       
       // Reset state

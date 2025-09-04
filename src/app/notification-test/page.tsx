@@ -7,7 +7,7 @@ import { useStatusNotifications } from '@/hooks/use-status-notifications'
 import { NotificationProvider } from '@/components/ui/notification-manager'
 
 function NotificationTestContent() {
-  const { success, warning, info, error, showStatus } = useStatusNotifications()
+  const { success, warning, info, error } = useStatusNotifications()
 
   const handleTestSuccess = () => {
     success('Success Notification', 'This is a test success message')

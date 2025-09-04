@@ -153,7 +153,11 @@ class QRScanHistoryManager {
       validateInput(data, [
         commonValidations.required('Scan data is required'),
         commonValidations.string('Scan data must be a string'),
-        commonValidations.maxLength(10000, 'Scan data is too long')
+        {
+          condition: (val: unknown) => typeof val === 'string' && val.length <= 10000,
+          message: 'Scan data is too long',
+          userMessage: 'Scan data is too long'
+        }
       ], { method: 'addScan' });
       
       if (!this.initialized) {

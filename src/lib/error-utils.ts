@@ -26,7 +26,7 @@ export enum ErrorSeverity {
 export class AppError extends Error {
   public readonly type: ErrorType;
   public readonly severity: ErrorSeverity;
-  public readonly context: Record<string, any>;
+  public readonly context: Record<string, unknown>;
   public readonly timestamp: number;
   public readonly userMessage: string;
   public readonly recoverable: boolean;
@@ -35,7 +35,7 @@ export class AppError extends Error {
     message: string,
     type: ErrorType = ErrorType.UNKNOWN,
     severity: ErrorSeverity = ErrorSeverity.MEDIUM,
-    context: Record<string, any> = {},
+    context: Record<string, unknown> = {},
     userMessage?: string,
     recoverable: boolean = true
   ) {
@@ -87,49 +87,49 @@ export class AppError extends Error {
 
 // Specific error classes
 export class NetworkError extends AppError {
-  constructor(message: string, context: Record<string, any> = {}, userMessage?: string) {
+  constructor(message: string, context: Record<string, unknown> = {}, userMessage?: string) {
     super(message, ErrorType.NETWORK, ErrorSeverity.HIGH, context, userMessage);
     this.name = 'NetworkError';
   }
 }
 
 export class ValidationError extends AppError {
-  constructor(message: string, context: Record<string, any> = {}, userMessage?: string) {
+  constructor(message: string, context: Record<string, unknown> = {}, userMessage?: string) {
     super(message, ErrorType.VALIDATION, ErrorSeverity.MEDIUM, context, userMessage);
     this.name = 'ValidationError';
   }
 }
 
 export class AuthError extends AppError {
-  constructor(message: string, context: Record<string, any> = {}, userMessage?: string) {
+  constructor(message: string, context: Record<string, unknown> = {}, userMessage?: string) {
     super(message, ErrorType.AUTH, ErrorSeverity.HIGH, context, userMessage);
     this.name = 'AuthError';
   }
 }
 
 export class StorageError extends AppError {
-  constructor(message: string, context: Record<string, any> = {}, userMessage?: string) {
+  constructor(message: string, context: Record<string, unknown> = {}, userMessage?: string) {
     super(message, ErrorType.STORAGE, ErrorSeverity.MEDIUM, context, userMessage);
     this.name = 'StorageError';
   }
 }
 
 export class ClipboardError extends AppError {
-  constructor(message: string, context: Record<string, any> = {}, userMessage?: string) {
+  constructor(message: string, context: Record<string, unknown> = {}, userMessage?: string) {
     super(message, ErrorType.CLIPBOARD, ErrorSeverity.LOW, context, userMessage);
     this.name = 'ClipboardError';
   }
 }
 
 export class MediaError extends AppError {
-  constructor(message: string, context: Record<string, any> = {}, userMessage?: string) {
+  constructor(message: string, context: Record<string, unknown> = {}, userMessage?: string) {
     super(message, ErrorType.MEDIA, ErrorSeverity.HIGH, context, userMessage);
     this.name = 'MediaError';
   }
 }
 
 export class ParserError extends AppError {
-  constructor(message: string, context: Record<string, any> = {}, userMessage?: string) {
+  constructor(message: string, context: Record<string, unknown> = {}, userMessage?: string) {
     super(message, ErrorType.PARSER, ErrorSeverity.MEDIUM, context, userMessage);
     this.name = 'ParserError';
   }
@@ -153,7 +153,7 @@ export class ErrorHandler {
   /**
    * Handles an error with logging and optional recovery
    */
-  handle(error: unknown, context: Record<string, any> = {}): AppError {
+  handle(error: unknown, context: Record<string, unknown> = {}): AppError {
     const appError = this.normalizeError(error, context);
     this.logError(appError);
     
@@ -168,7 +168,7 @@ export class ErrorHandler {
   /**
    * Converts any error to AppError
    */
-  private normalizeError(error: unknown, context: Record<string, any> = {}): AppError {
+  private normalizeError(error: unknown, context: Record<string, unknown> = {}): AppError {
     if (error instanceof AppError) {
       return error;
     }
@@ -258,7 +258,7 @@ export class ErrorHandler {
 export async function safeAsync<T>(
   fn: () => Promise<T>,
   fallback?: T,
-  context: Record<string, any> = {}
+  context: Record<string, unknown> = {}
 ): Promise<{ data: T | null; error: AppError | null }> {
   try {
     const data = await fn();
@@ -278,7 +278,7 @@ export async function safeAsync<T>(
 export function safeSync<T>(
   fn: () => T,
   fallback?: T,
-  context: Record<string, any> = {}
+  context: Record<string, unknown> = {}
 ): { data: T | null; error: AppError | null } {
   try {
     const data = fn();
@@ -293,32 +293,80 @@ export function safeSync<T>(
 }
 
 /**
- * Creates a retry function with exponential backoff
+ * Creates a retry function with exponential backoff and user feedback
  */
 export function createRetryFunction<T>(
   fn: () => Promise<T>,
-  maxAttempts: number = 3,
-  baseDelay: number = 1000
+  options: {
+    maxAttempts?: number;
+    baseDelay?: number;
+    maxDelay?: number;
+    backoffFactor?: number;
+    jitter?: boolean;
+    onRetry?: (attempt: number, error: AppError) => void;
+    shouldRetry?: (error: AppError) => boolean;
+    abortSignal?: AbortSignal;
+  } = {}
 ) {
+  const {
+    maxAttempts = 3,
+    baseDelay = 1000,
+    maxDelay = 30000,
+    backoffFactor = 2,
+    jitter = true,
+    onRetry,
+    shouldRetry,
+    abortSignal
+  } = options;
+
   return async (): Promise<T> => {
     let lastError: AppError;
     
     for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+      // Check if operation was aborted
+      if (abortSignal?.aborted) {
+        throw new AppError(
+          'Operation was aborted',
+          ErrorType.UNKNOWN,
+          ErrorSeverity.LOW,
+          { aborted: true },
+          'Operation was cancelled'
+        );
+      }
+
       try {
         return await fn();
       } catch (error) {
         lastError = ErrorHandler.getInstance().handle(error, {
           attempt,
           maxAttempts,
-          function: fn.name || 'anonymous'
+          function: fn.name || 'anonymous',
+          retryable: true
         });
+
+        // Check if we should retry this specific error
+        if (shouldRetry && !shouldRetry(lastError)) {
+          throw lastError;
+        }
+
+        // Don't retry certain error types
+        if ([ErrorType.AUTH, ErrorType.VALIDATION].includes(lastError.type)) {
+          throw lastError;
+        }
 
         if (attempt === maxAttempts) {
           throw lastError;
         }
 
-        // Exponential backoff with jitter
-        const delay = baseDelay * Math.pow(2, attempt - 1) + Math.random() * 1000;
+        // Call retry callback for user feedback
+        onRetry?.(attempt, lastError);
+
+        // Calculate delay with exponential backoff and optional jitter
+        let delay = Math.min(baseDelay * Math.pow(backoffFactor, attempt - 1), maxDelay);
+        if (jitter) {
+          delay += Math.random() * Math.min(1000, delay * 0.1);
+        }
+
         await new Promise(resolve => setTimeout(resolve, delay));
       }
     }
@@ -331,13 +379,13 @@ export function createRetryFunction<T>(
  * Validates input and throws ValidationError if invalid
  */
 export function validateInput(
-  value: any,
+  value: unknown,
   validations: Array<{
-    condition: (val: any) => boolean;
+    condition: (val: unknown) => boolean;
     message: string;
     userMessage?: string;
   }>,
-  context: Record<string, any> = {}
+  context: Record<string, unknown> = {}
 ): void {
   for (const validation of validations) {
     if (!validation.condition(value)) {
@@ -351,12 +399,17 @@ export function validateInput(
  */
 export async function handleNetworkRequest<T>(
   request: () => Promise<T>,
-  context: Record<string, any> = {}
+  context: Record<string, unknown> = {}
 ): Promise<T> {
   try {
     return await request();
   } catch (error) {
-    const errorObj = error as any;
+    interface NetworkErrorObj {
+      code?: string;
+      message?: string;
+      status?: number;
+    }
+    const errorObj = error as NetworkErrorObj;
     
     // Network-specific error handling
     if (!navigator.onLine) {
@@ -374,14 +427,14 @@ export async function handleNetworkRequest<T>(
       );
     }
 
-    if (errorObj.status >= 400 && errorObj.status < 500) {
+    if (errorObj.status != null && errorObj.status >= 400 && errorObj.status < 500) {
       throw new ValidationError(
         'Client error',
         { ...context, status: errorObj.status }
       );
     }
 
-    if (errorObj.status >= 500) {
+    if (errorObj.status != null && errorObj.status >= 500) {
       throw new NetworkError(
         'Server error',
         { ...context, status: errorObj.status },
@@ -504,13 +557,13 @@ export const errorHandler = ErrorHandler.getInstance();
 // Export common validations
 export const commonValidations = {
   required: (message: string = 'This field is required') => ({
-    condition: (value: any) => value != null && value !== '',
+    condition: (value: unknown) => value != null && value !== '',
     message,
     userMessage: message
   }),
   
   string: (message: string = 'Must be a string') => ({
-    condition: (value: any) => typeof value === 'string',
+    condition: (value: unknown) => typeof value === 'string',
     message,
     userMessage: message
   }),
@@ -549,3 +602,424 @@ export const commonValidations = {
     userMessage: message
   })
 };
+
+// Advanced async error handling utilities
+
+/**
+ * Circuit breaker pattern implementation for preventing cascading failures
+ */
+export class CircuitBreaker {
+  private failureCount = 0;
+  private successCount = 0;
+  private nextAttempt = Date.now();
+  private state: 'CLOSED' | 'OPEN' | 'HALF_OPEN' = 'CLOSED';
+
+  constructor(
+    private threshold: number = 5,
+    private resetTimeout: number = 60000,
+    private monitoringPeriod: number = 60000
+  ) {}
+
+  async execute<T>(operation: () => Promise<T>): Promise<T> {
+    if (this.state === 'OPEN') {
+      if (Date.now() < this.nextAttempt) {
+        throw new AppError(
+          'Circuit breaker is OPEN',
+          ErrorType.NETWORK,
+          ErrorSeverity.HIGH,
+          { 
+            failureCount: this.failureCount,
+            nextAttempt: this.nextAttempt
+          },
+          'Service is temporarily unavailable. Please try again later.'
+        );
+      }
+      this.state = 'HALF_OPEN';
+    }
+
+    try {
+      const result = await operation();
+      this.onSuccess();
+      return result;
+    } catch (error) {
+      this.onFailure();
+      throw error;
+    }
+  }
+
+  private onSuccess() {
+    this.successCount++;
+    if (this.state === 'HALF_OPEN') {
+      this.failureCount = 0;
+      this.state = 'CLOSED';
+    }
+  }
+
+  private onFailure() {
+    this.failureCount++;
+    if (this.failureCount >= this.threshold) {
+      this.state = 'OPEN';
+      this.nextAttempt = Date.now() + this.resetTimeout;
+    }
+  }
+
+  getStats() {
+    return {
+      state: this.state,
+      failureCount: this.failureCount,
+      successCount: this.successCount,
+      nextAttempt: this.nextAttempt
+    };
+  }
+
+  reset() {
+    this.failureCount = 0;
+    this.successCount = 0;
+    this.state = 'CLOSED';
+    this.nextAttempt = Date.now();
+  }
+}
+
+/**
+ * Advanced async operation with timeout, cancellation, and progress tracking
+ */
+export async function executeWithOptions<T>({
+  operation,
+  timeout = 30000,
+  signal,
+  onProgress,
+  retries = 0,
+  context = {}
+}: {
+  operation: (signal?: AbortSignal) => Promise<T>;
+  timeout?: number;
+  signal?: AbortSignal;
+  onProgress?: (progress: number) => void;
+  retries?: number;
+  context?: Record<string, unknown>;
+}): Promise<T> {
+  // Create combined abort controller
+  const combinedController = new AbortController();
+  const timeoutId = setTimeout(() => combinedController.abort(), timeout);
+
+  // Listen for external cancellation
+  signal?.addEventListener('abort', () => combinedController.abort());
+
+  try {
+    // Progress tracking
+    let progressValue = 0;
+    const progressInterval = setInterval(() => {
+      if (progressValue < 90) {
+        progressValue += Math.random() * 10;
+        onProgress?.(Math.min(progressValue, 90));
+      }
+    }, 500);
+
+    const result = await operation(combinedController.signal);
+    
+    clearInterval(progressInterval);
+    onProgress?.(100);
+    
+    return result;
+  } catch (error) {
+    if (combinedController.signal.aborted) {
+      if (signal?.aborted) {
+        throw new AppError(
+          'Operation cancelled by user',
+          ErrorType.UNKNOWN,
+          ErrorSeverity.LOW,
+          context,
+          'Operation was cancelled'
+        );
+      } else {
+        throw new AppError(
+          'Operation timed out',
+          ErrorType.NETWORK,
+          ErrorSeverity.HIGH,
+          { ...context, timeout },
+          `Operation timed out after ${timeout / 1000} seconds`
+        );
+      }
+    }
+
+    // Retry logic if specified
+    if (retries > 0) {
+      return executeWithOptions({
+        operation,
+        timeout,
+        signal,
+        onProgress,
+        retries: retries - 1,
+        context: { ...context, attempt: ((context.attempt as number) || 0) + 1 }
+      });
+    }
+
+    throw error;
+  } finally {
+    clearTimeout(timeoutId);
+  }
+}
+
+/**
+ * Batch operation handler with error recovery
+ */
+export async function executeBatch<T, R>({
+  items,
+  operation,
+  batchSize = 5,
+  onProgress,
+  onError,
+  continueOnError = true,
+  context = {}
+}: {
+  items: T[];
+  operation: (item: T, index: number) => Promise<R>;
+  batchSize?: number;
+  onProgress?: (completed: number, total: number, errors: number) => void;
+  onError?: (error: AppError, item: T, index: number) => void;
+  continueOnError?: boolean;
+  context?: Record<string, any>;
+}): Promise<{
+  results: (R | null)[];
+  errors: Array<{ index: number; item: T; error: AppError }>;
+  completed: number;
+}> {
+  const results: (R | null)[] = new Array(items.length).fill(null);
+  const errors: Array<{ index: number; item: T; error: AppError }> = [];
+  let completed = 0;
+
+  // Process items in batches
+  for (let i = 0; i < items.length; i += batchSize) {
+    const batch = items.slice(i, i + batchSize);
+    const batchPromises = batch.map(async (item, batchIndex) => {
+      const globalIndex = i + batchIndex;
+      
+      try {
+        const result = await operation(item, globalIndex);
+        results[globalIndex] = result;
+        completed++;
+        onProgress?.(completed, items.length, errors.length);
+        return result;
+      } catch (error) {
+        const appError = ErrorHandler.getInstance().handle(error, {
+          ...context,
+          batchIndex: globalIndex,
+          item
+        });
+        
+        errors.push({ index: globalIndex, item, error: appError });
+        onError?.(appError, item, globalIndex);
+        
+        if (!continueOnError) {
+          throw appError;
+        }
+        
+        completed++;
+        onProgress?.(completed, items.length, errors.length);
+        return null;
+      }
+    });
+
+    // Wait for batch to complete
+    await Promise.all(batchPromises);
+  }
+
+  return { results, errors, completed };
+}
+
+/**
+ * Queue-based operation processor with concurrency control
+ */
+export class OperationQueue {
+  private queue: Array<{
+    id: string;
+    operation: () => Promise<any>;
+    resolve: (value: any) => void;
+    reject: (error: any) => void;
+    priority: number;
+    context: Record<string, any>;
+  }> = [];
+  private running = 0;
+  private stats = {
+    processed: 0,
+    failed: 0,
+    pending: 0
+  };
+
+  constructor(
+    private maxConcurrency: number = 3,
+    private onProgress?: (stats: typeof this.stats) => void
+  ) {}
+
+  async add<T>({
+    operation,
+    priority = 0,
+    context = {}
+  }: {
+    operation: () => Promise<T>;
+    priority?: number;
+    context?: Record<string, any>;
+  }): Promise<T> {
+    return new Promise((resolve, reject) => {
+      const id = `op_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+      
+      this.queue.push({
+        id,
+        operation,
+        resolve,
+        reject,
+        priority,
+        context
+      });
+
+      // Sort by priority (higher first)
+      this.queue.sort((a, b) => b.priority - a.priority);
+      
+      this.stats.pending = this.queue.length;
+      this.onProgress?.(this.stats);
+      
+      this.processNext();
+    });
+  }
+
+  private async processNext() {
+    if (this.running >= this.maxConcurrency || this.queue.length === 0) {
+      return;
+    }
+
+    const item = this.queue.shift();
+    if (!item) return;
+
+    this.running++;
+    this.stats.pending = this.queue.length;
+    
+    try {
+      const result = await item.operation();
+      item.resolve(result);
+      this.stats.processed++;
+    } catch (error) {
+      const appError = ErrorHandler.getInstance().handle(error, {
+        ...item.context,
+        operationId: item.id
+      });
+      item.reject(appError);
+      this.stats.failed++;
+    } finally {
+      this.running--;
+      this.onProgress?.(this.stats);
+      
+      // Process next item
+      setImmediate(() => this.processNext());
+    }
+  }
+
+  getStats() {
+    return {
+      ...this.stats,
+      running: this.running,
+      pending: this.queue.length
+    };
+  }
+
+  clear() {
+    this.queue.forEach(item => {
+      item.reject(new AppError(
+        'Queue cleared',
+        ErrorType.UNKNOWN,
+        ErrorSeverity.LOW,
+        {},
+        'Operation was cancelled due to queue clearing'
+      ));
+    });
+    this.queue = [];
+    this.stats = { processed: 0, failed: 0, pending: 0 };
+  }
+}
+
+/**
+ * Rate-limited operation executor
+ */
+export class RateLimiter {
+  private tokens: number;
+  private lastRefill: number;
+  private waitingQueue: Array<{
+    resolve: () => void;
+    reject: (error: AppError) => void;
+  }> = [];
+
+  constructor(
+    private maxTokens: number = 10,
+    private refillRate: number = 1, // tokens per second
+    private burstAllowance: number = maxTokens
+  ) {
+    this.tokens = maxTokens;
+    this.lastRefill = Date.now();
+  }
+
+  async execute<T>(operation: () => Promise<T>): Promise<T> {
+    await this.acquire();
+    return operation();
+  }
+
+  private async acquire(): Promise<void> {
+    return new Promise((resolve, reject) => {
+      this.refillTokens();
+      
+      if (this.tokens > 0) {
+        this.tokens--;
+        resolve();
+      } else {
+        this.waitingQueue.push({ resolve, reject });
+        
+        // Set timeout for queued requests
+        setTimeout(() => {
+          const index = this.waitingQueue.findIndex(item => item.resolve === resolve);
+          if (index !== -1) {
+            this.waitingQueue.splice(index, 1);
+            reject(new AppError(
+              'Rate limit timeout',
+              ErrorType.NETWORK,
+              ErrorSeverity.HIGH,
+              { queueLength: this.waitingQueue.length },
+              'Request was rate limited. Please try again later.'
+            ));
+          }
+        }, 30000); // 30 second timeout
+      }
+    });
+  }
+
+  private refillTokens() {
+    const now = Date.now();
+    const timeSinceRefill = now - this.lastRefill;
+    const tokensToAdd = Math.floor((timeSinceRefill / 1000) * this.refillRate);
+    
+    if (tokensToAdd > 0) {
+      this.tokens = Math.min(this.maxTokens, this.tokens + tokensToAdd);
+      this.lastRefill = now;
+      
+      // Process waiting queue
+      while (this.tokens > 0 && this.waitingQueue.length > 0) {
+        const item = this.waitingQueue.shift();
+        if (item) {
+          this.tokens--;
+          item.resolve();
+        }
+      }
+    }
+  }
+
+  getStats() {
+    return {
+      tokens: this.tokens,
+      maxTokens: this.maxTokens,
+      queueLength: this.waitingQueue.length,
+      refillRate: this.refillRate
+    };
+  }
+}
+
+// Export instances for common use cases
+export const defaultCircuitBreaker = new CircuitBreaker();
+export const defaultOperationQueue = new OperationQueue();
+export const defaultRateLimiter = new RateLimiter();

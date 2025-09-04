@@ -260,35 +260,26 @@ export function useHistory(): {
         throw new Error('Invalid item ID');
       }
       
-      let deleted = false;
+      // Check if item exists first
+      const itemExists = history.some(item => item.id === id);
+      if (!itemExists) {
+        return false;
+      }
       
       setHistory(prevHistory => {
-        const newHistory = prevHistory.filter(item => {
-          if (item.id === id) {
-            deleted = true;
-            return false;
-          }
-          return true;
-        });
-        
-        if (deleted) {
-          debouncedSave(newHistory);
-        }
-        
+        const newHistory = prevHistory.filter(item => item.id !== id);
+        debouncedSave(newHistory);
         return newHistory;
       });
       
-      if (deleted) {
-        setError(null);
-      }
-      
-      return deleted;
+      setError(null);
+      return true;
     } catch (error) {
       console.error('Failed to delete history item:', error);
       setError('Failed to delete history item');
       return false;
     }
-  }, [debouncedSave]);
+  }, [history, debouncedSave]);
 
   // Update history item
   const updateHistoryItem = useCallback((id: string, updates: Partial<HistoryItem>): boolean => {
@@ -297,35 +288,32 @@ export function useHistory(): {
         throw new Error('Invalid item ID');
       }
       
-      let updated = false;
+      // Check if item exists first
+      const itemExists = history.some(item => item.id === id);
+      if (!itemExists) {
+        return false;
+      }
       
       setHistory(prevHistory => {
         const newHistory = prevHistory.map(item => {
           if (item.id === id) {
-            updated = true;
             return { ...item, ...updates, id: item.id }; // Preserve original ID
           }
           return item;
         });
         
-        if (updated) {
-          debouncedSave(newHistory);
-        }
-        
+        debouncedSave(newHistory);
         return newHistory;
       });
       
-      if (updated) {
-        setError(null);
-      }
-      
-      return updated;
+      setError(null);
+      return true;
     } catch (error) {
       console.error('Failed to update history item:', error);
       setError('Failed to update history item');
       return false;
     }
-  }, [debouncedSave]);
+  }, [history, debouncedSave]);
 
   // Clear all history
   const clearHistory = useCallback(() => {
@@ -349,15 +337,27 @@ export function useHistory(): {
       }
       
       const newFavoriteState = !item.favorite;
-      const success = updateHistoryItem(id, { favorite: newFavoriteState });
       
-      return success ? newFavoriteState : false;
+      setHistory(prevHistory => {
+        const newHistory = prevHistory.map(historyItem => {
+          if (historyItem.id === id) {
+            return { ...historyItem, favorite: newFavoriteState };
+          }
+          return historyItem;
+        });
+        
+        debouncedSave(newHistory);
+        return newHistory;
+      });
+      
+      setError(null);
+      return newFavoriteState;
     } catch (error) {
       console.error('Failed to toggle favorite:', error);
       setError('Failed to toggle favorite');
       return false;
     }
-  }, [history, updateHistoryItem]);
+  }, [history, debouncedSave]);
 
   // Search history
   const searchHistory = useCallback((query: string): HistoryItem[] => {

@@ -1,4 +1,4 @@
-'use server';
+'use client';
 
 import { 
   collection, 
@@ -56,6 +56,15 @@ function convertToComment(doc: QueryDocumentSnapshot | DocumentSnapshot): Commen
   if (!doc.exists()) return null;
   
   const data = doc.data() as FirestoreComment;
+  
+  // Handle timestamp conversion safely
+  const convertTimestamp = (timestamp: any): Date => {
+    if (!timestamp) return new Date();
+    if (timestamp.toDate) return timestamp.toDate();
+    if (timestamp.seconds) return new Date(timestamp.seconds * 1000);
+    return new Date(timestamp);
+  };
+  
   const comment: Comment = {
     id: doc.id,
     content: data.content,
@@ -67,8 +76,8 @@ function convertToComment(doc: QueryDocumentSnapshot | DocumentSnapshot): Commen
       isAnonymous: data.authorIsAnonymous || false,
       isGuest: data.authorIsGuest || false
     },
-    createdAt: data.createdAt.toDate(),
-    updatedAt: data.updatedAt?.toDate(),
+    createdAt: convertTimestamp(data.createdAt),
+    updatedAt: data.updatedAt ? convertTimestamp(data.updatedAt) : undefined,
     upvotes: data.upvotes || 0,
     downvotes: data.downvotes || 0,
     replies: [],
@@ -311,13 +320,29 @@ export async function voteComment(
   userId: string,
   voteType: 'upvote' | 'downvote'
 ): Promise<void> {
-  if (!db) throw new Error('Firestore not initialized');
+  if (!db) {
+    console.error('Firestore not initialized - db is:', db);
+    throw new Error('Firestore not initialized');
+  }
+
+  // Validate inputs
+  if (!commentId || !userId || !voteType) {
+    throw new Error('Invalid parameters for voting');
+  }
+
+  if (!['upvote', 'downvote'].includes(voteType)) {
+    throw new Error('Invalid vote type');
+  }
+
+  console.log('Starting vote transaction:', { commentId, userId, voteType });
 
   try {
     await runTransaction(db, async (transaction) => {
       const commentRef = doc(db!, COMMENTS_COLLECTION, commentId);
       const votesRef = collection(commentRef, 'votes');
       const userVoteRef = doc(votesRef, userId);
+      
+      console.log('Getting comment and user vote data...');
       
       // Get current comment and user's existing vote
       const [commentDoc, userVoteDoc] = await Promise.all([
@@ -326,11 +351,19 @@ export async function voteComment(
       ]);
 
       if (!commentDoc.exists()) {
+        console.error('Comment not found:', commentId);
         throw new Error('Comment not found');
       }
 
       const commentData = commentDoc.data() as FirestoreComment;
       const existingVote = userVoteDoc.exists() ? userVoteDoc.data() as FirestoreVote : null;
+
+      console.log('Current comment data:', {
+        id: commentId,
+        upvotes: commentData.upvotes,
+        downvotes: commentData.downvotes,
+        existingVote: existingVote?.type
+      });
 
       let upvoteDelta = 0;
       let downvoteDelta = 0;
@@ -339,6 +372,7 @@ export async function voteComment(
       if (existingVote) {
         if (existingVote.type === 'upvote') upvoteDelta -= 1;
         if (existingVote.type === 'downvote') downvoteDelta -= 1;
+        console.log('Removing existing vote:', existingVote.type);
       }
 
       // Add new vote (unless it's the same as existing vote - toggle off)
@@ -346,6 +380,8 @@ export async function voteComment(
         if (voteType === 'upvote') upvoteDelta += 1;
         if (voteType === 'downvote') downvoteDelta += 1;
 
+        console.log('Adding new vote:', voteType);
+        
         // Set new vote
         transaction.set(userVoteRef, {
           userId,
@@ -354,17 +390,49 @@ export async function voteComment(
         });
       } else {
         // Toggle off - delete the vote
+        console.log('Toggling off vote:', voteType);
         transaction.delete(userVoteRef);
       }
 
+      const newUpvotes = (commentData.upvotes || 0) + upvoteDelta;
+      const newDownvotes = (commentData.downvotes || 0) + downvoteDelta;
+      
+      console.log('Vote deltas:', {
+        upvoteDelta,
+        downvoteDelta,
+        newUpvotes,
+        newDownvotes
+      });
+
       // Update comment vote counts
       transaction.update(commentRef, {
-        upvotes: (commentData.upvotes || 0) + upvoteDelta,
-        downvotes: (commentData.downvotes || 0) + downvoteDelta
+        upvotes: newUpvotes,
+        downvotes: newDownvotes
       });
     });
-  } catch (error) {
-    console.error('Error voting on comment:', error);
+    
+    console.log('Vote transaction completed successfully');
+  } catch (error: any) {
+    console.error('Error in vote transaction:', {
+      error,
+      message: error?.message,
+      code: error?.code,
+      commentId,
+      userId,
+      voteType
+    });
+    
+    // Add more specific error handling
+    if (error?.code === 'permission-denied') {
+      throw new Error('Permission denied - you may not have access to vote on this comment');
+    } else if (error?.code === 'not-found') {
+      throw new Error('Comment not found - it may have been deleted');
+    } else if (error?.code === 'unavailable') {
+      throw new Error('Service temporarily unavailable - please try again later');
+    } else if (error?.code === 'unauthenticated') {
+      throw new Error('Authentication required - please sign in again');
+    }
+    
     throw error;
   }
 }

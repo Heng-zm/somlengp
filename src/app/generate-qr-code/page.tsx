@@ -2,7 +2,6 @@
 
 import React, { useState, useRef, useContext, useCallback } from 'react';
 import Image from 'next/image';
-import Link from 'next/link';
 import { Download, Copy, QrCode, Share2, ScanLine } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
@@ -11,7 +10,6 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { LanguageContext } from '@/contexts/language-context';
-import { useToast } from '@/hooks/use-toast';
 import { showSuccessToast, showErrorToast, showWarningToast } from '@/lib/toast-utils';
 import { FeaturePageLayout } from '@/layouts/feature-page-layout';
 import QRCodeLib from 'qrcode';
@@ -26,7 +24,7 @@ export default function GenerateQRCodePage() {
   const [backgroundColor, setBackgroundColor] = useState('#ffffff');
   const [isSheetOpen, setIsSheetOpen] = useState(false);
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const { toast } = useToast();
+  // const { toast } = useToast(); // Not used directly, using toast utils instead
   
   const langContext = useContext(LanguageContext);
   if (!langContext) {
@@ -73,7 +71,7 @@ export default function GenerateQRCodePage() {
     } finally {
       setIsGenerating(false);
     }
-  }, [inputText, errorCorrectionLevel, size, foregroundColor, backgroundColor, toast]);
+  }, [inputText, errorCorrectionLevel, size, foregroundColor, backgroundColor]);
 
   const downloadQRCode = () => {
     if (!qrCodeUrl) return;

@@ -12,15 +12,12 @@ import {
     Wand2, 
     AudioLines, 
     Search,
-    Filter,
     Heart,
     Trash2,
     Download,
     Upload,
     BarChart3,
     Clock,
-    Star,
-    X,
     Loader2
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -187,7 +184,7 @@ export default function HistoryPage() {
                 title: "History Exported",
                 description: "Your history has been downloaded"
             });
-        } catch (error) {
+        } catch {
             toast({
                 title: "Export Failed",
                 description: "Failed to export history",

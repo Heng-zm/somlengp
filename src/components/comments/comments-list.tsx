@@ -96,10 +96,21 @@ export const CommentsList = memo(function CommentsList({
   if (error) {
     return (
       <Card className={cn("w-full", className)}>
-        <CardContent className="p-6 text-center">
-          <p className="text-red-600 dark:text-red-400">
-            Failed to load comments. Please try again later.
-          </p>
+        <CardContent className="p-6 text-center space-y-4">
+          <div className="text-red-600 dark:text-red-400">
+            <p className="font-medium">Error loading comments</p>
+            <p className="text-sm mt-1 text-red-500 dark:text-red-300">
+              {error}
+            </p>
+          </div>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => window.location.reload()}
+            className="mt-2"
+          >
+            Refresh Page
+          </Button>
         </CardContent>
       </Card>
     );

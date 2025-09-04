@@ -1,0 +1,1245 @@
+/*
+ * Progressive Enhancement CSS Fallbacks
+ * Provides comprehensive accessibility support when JavaScript is disabled or fails to load
+ */
+
+/* ==========================================================================
+   Base Accessibility Styles
+   ========================================================================== */
+
+/* Ensure HTML5 elements are block-level for older browsers */
+article, aside, details, figcaption, figure, footer, header, 
+hgroup, main, nav, section, summary {
+  display: block;
+}
+
+/* Base focus styles for all interactive elements */
+button:focus,
+a:focus,
+input:focus,
+select:focus,
+textarea:focus,
+[tabindex]:focus,
+[contenteditable]:focus {
+  outline: 2px solid #0066cc;
+  outline-offset: 2px;
+}
+
+/* Ensure sufficient touch target sizes */
+button,
+a,
+input,
+select,
+textarea,
+[role="button"],
+[tabindex="0"] {
+  min-height: 44px;
+  min-width: 44px;
+}
+
+/* ==========================================================================
+   Skip Navigation (CSS-only)
+   ========================================================================== */
+
+.skip-navigation {
+  position: absolute;
+  top: -1000px;
+  left: -1000px;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  z-index: 10000;
+}
+
+.skip-navigation:focus-within {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  width: auto;
+  height: auto;
+  padding: 8px;
+  background: #000;
+  color: #fff;
+  border-bottom: 2px solid #fff;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.8);
+}
+
+.skip-links {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.skip-link {
+  display: block;
+  padding: 8px 12px;
+  color: #fff;
+  text-decoration: none;
+  border-radius: 4px;
+  background: rgba(255,255,255,0.1);
+  border: 1px solid rgba(255,255,255,0.3);
+  transition: background-color 0.2s ease;
+}
+
+.skip-link:focus {
+  outline: 2px solid #fff;
+  outline-offset: 2px;
+  background: rgba(255,255,255,0.2);
+}
+
+.skip-link:hover {
+  background: rgba(255,255,255,0.15);
+}
+
+/* ==========================================================================
+   No-Script Specific Styles
+   ========================================================================== */
+
+/* Default: Hide JavaScript-only content */
+.js-only {
+  display: none !important;
+}
+
+/* Show no-script content */
+.no-js-only {
+  display: block !important;
+}
+
+/* No-script visible skip navigation */
+.no-js .skip-navigation {
+  position: static;
+  width: auto;
+  height: auto;
+  background: #f0f0f0;
+  border: 1px solid #ccc;
+  padding: 8px;
+  margin-bottom: 1rem;
+}
+
+.no-js .skip-link {
+  color: #0066cc;
+  background: transparent;
+  border-color: #0066cc;
+}
+
+.no-js .skip-link:focus {
+  outline-color: #0066cc;
+  background: rgba(0, 102, 204, 0.1);
+}
+
+/* ==========================================================================
+   CSS-Only Interactive Components
+   ========================================================================== */
+
+/* Accordion/Collapsible without JavaScript */
+.css-accordion {
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  margin-bottom: 1rem;
+}
+
+.css-accordion-item {
+  border-bottom: 1px solid #eee;
+}
+
+.css-accordion-item:last-child {
+  border-bottom: none;
+}
+
+.css-accordion-input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.css-accordion-header {
+  display: block;
+  width: 100%;
+  padding: 1rem;
+  text-align: left;
+  background: #f8f9fa;
+  border: none;
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  border-radius: 0;
+  position: relative;
+}
+
+.css-accordion-header::after {
+  content: '+';
+  position: absolute;
+  right: 1rem;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 1.5rem;
+  line-height: 1;
+}
+
+.css-accordion-input:checked + .css-accordion-header::after {
+  content: '−';
+}
+
+.css-accordion-header:hover {
+  background: #e9ecef;
+}
+
+.css-accordion-header:focus {
+  outline: 2px solid #0066cc;
+  outline-offset: -2px;
+  background: #e9ecef;
+}
+
+.css-accordion-content {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.3s ease;
+}
+
+.css-accordion-input:checked + .css-accordion-header + .css-accordion-content {
+  max-height: 1000px;
+  padding: 1rem;
+}
+
+/* No-script fallback for accordion - show all content */
+.no-js .css-accordion-content {
+  max-height: none !important;
+  overflow: visible !important;
+  display: block !important;
+  padding: 1rem !important;
+}
+
+.no-js .css-accordion-header::after {
+  display: none;
+}
+
+/* CSS-only Dropdown Menu */
+.css-dropdown {
+  position: relative;
+  display: inline-block;
+}
+
+.css-dropdown-trigger {
+  background: #f8f9fa;
+  border: 1px solid #ccc;
+  padding: 8px 12px;
+  cursor: pointer;
+  border-radius: 4px;
+  text-decoration: none;
+  color: inherit;
+}
+
+.css-dropdown-trigger:focus {
+  outline: 2px solid #0066cc;
+  outline-offset: 2px;
+}
+
+.css-dropdown-content {
+  display: none;
+  position: absolute;
+  background: #fff;
+  min-width: 200px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+  z-index: 1000;
+  top: 100%;
+  left: 0;
+}
+
+.css-dropdown:hover .css-dropdown-content,
+.css-dropdown:focus-within .css-dropdown-content {
+  display: block;
+}
+
+.css-dropdown-link {
+  display: block;
+  padding: 8px 16px;
+  text-decoration: none;
+  color: #333;
+  border-bottom: 1px solid #eee;
+}
+
+.css-dropdown-link:last-child {
+  border-bottom: none;
+}
+
+.css-dropdown-link:hover,
+.css-dropdown-link:focus {
+  background: #f8f9fa;
+  outline: 1px solid #0066cc;
+  outline-offset: -1px;
+}
+
+/* No-script fallback for dropdown */
+.no-js .css-dropdown-content {
+  display: block !important;
+  position: static !important;
+  box-shadow: none !important;
+  border: 1px solid #ccc !important;
+  margin-top: 8px;
+}
+
+/* CSS-only Tabs */
+.css-tabs {
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  margin-bottom: 1rem;
+}
+
+.css-tab-headers {
+  display: flex;
+  background: #f8f9fa;
+  border-bottom: 1px solid #ccc;
+}
+
+.css-tab-input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.css-tab-label {
+  display: block;
+  padding: 12px 16px;
+  background: #f8f9fa;
+  border-right: 1px solid #ccc;
+  cursor: pointer;
+  font-weight: 500;
+  text-decoration: none;
+  color: inherit;
+  border-bottom: 2px solid transparent;
+}
+
+.css-tab-label:last-child {
+  border-right: none;
+}
+
+.css-tab-label:hover {
+  background: #e9ecef;
+}
+
+.css-tab-label:focus {
+  outline: 2px solid #0066cc;
+  outline-offset: -2px;
+}
+
+.css-tab-input:checked + .css-tab-label {
+  background: #fff;
+  border-bottom-color: #0066cc;
+  font-weight: 600;
+}
+
+.css-tab-panels {
+  position: relative;
+}
+
+.css-tab-panel {
+  display: none;
+  padding: 1rem;
+}
+
+.css-tab-input:checked + .css-tab-label + .css-tab-panel,
+.css-tab-input:checked ~ .css-tab-panels .css-tab-panel:nth-of-type(1) {
+  display: block;
+}
+
+/* Multiple tabs support */
+.css-tab-input:nth-child(1):checked ~ .css-tab-panels .css-tab-panel:nth-child(1),
+.css-tab-input:nth-child(3):checked ~ .css-tab-panels .css-tab-panel:nth-child(2),
+.css-tab-input:nth-child(5):checked ~ .css-tab-panels .css-tab-panel:nth-child(3) {
+  display: block;
+}
+
+/* No-script fallback for tabs - show all content */
+.no-js .css-tab-panel {
+  display: block !important;
+  border-top: 1px solid #ccc;
+}
+
+.no-js .css-tab-panel:first-child {
+  border-top: none;
+}
+
+.no-js .css-tab-label {
+  background: transparent !important;
+  border: none !important;
+  padding-bottom: 8px !important;
+  font-weight: bold;
+  display: block;
+  cursor: default;
+}
+
+.no-js .css-tab-headers {
+  flex-direction: column;
+  background: transparent;
+  border: none;
+}
+
+/* ==========================================================================
+   Form Accessibility Enhancements
+   ========================================================================== */
+
+/* Improve form structure and accessibility */
+form {
+  max-width: 600px;
+}
+
+fieldset {
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  padding: 1rem;
+  margin-bottom: 1rem;
+}
+
+legend {
+  font-weight: bold;
+  padding: 0 0.5rem;
+  color: #374151;
+}
+
+.form-field {
+  margin-bottom: 1rem;
+}
+
+.form-label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: 500;
+  color: #374151;
+}
+
+.form-input,
+.form-select,
+.form-textarea {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 1rem;
+  line-height: 1.5;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.form-input:focus,
+.form-select:focus,
+.form-textarea:focus {
+  outline: none;
+  border-color: #0066cc;
+  box-shadow: 0 0 0 3px rgba(0, 102, 204, 0.1);
+}
+
+.form-input:invalid,
+.form-select:invalid,
+.form-textarea:invalid {
+  border-color: #dc2626;
+}
+
+.form-input[aria-invalid="true"],
+.form-select[aria-invalid="true"],
+.form-textarea[aria-invalid="true"] {
+  border-color: #dc2626;
+  box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.1);
+}
+
+/* Required field indicators */
+.form-label .required::after,
+.form-label[required]::after,
+.required .form-label::after {
+  content: ' *';
+  color: #dc2626;
+}
+
+/* Form validation messages */
+.form-error {
+  color: #dc2626;
+  font-size: 0.875rem;
+  margin-top: 0.25rem;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.form-success {
+  color: #16a34a;
+  font-size: 0.875rem;
+  margin-top: 0.25rem;
+}
+
+.form-hint {
+  color: #6b7280;
+  font-size: 0.875rem;
+  margin-top: 0.25rem;
+}
+
+/* ==========================================================================
+   CSS-Only Modal/Dialog Alternative
+   ========================================================================== */
+
+.css-modal-trigger {
+  text-decoration: none;
+  color: #0066cc;
+  border-bottom: 1px dashed #0066cc;
+}
+
+.css-modal-trigger:target + .css-modal-content,
+.css-modal-target:target {
+  display: block;
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: #fff;
+  border: 2px solid #000;
+  border-radius: 8px;
+  padding: 2rem;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+  z-index: 10000;
+  max-width: 90vw;
+  max-height: 90vh;
+  overflow: auto;
+}
+
+.css-modal-content {
+  display: none;
+}
+
+.css-modal-close {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: transparent;
+  border: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+  padding: 0.5rem;
+}
+
+/* Backdrop for modal */
+.css-modal-trigger:target::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0,0,0,0.5);
+  z-index: 9999;
+}
+
+/* ==========================================================================
+   CSS-Only Form Validation
+   ========================================================================== */
+
+/* Input validation styling */
+input:required:invalid {
+  border-color: #dc2626;
+  box-shadow: 0 0 0 1px #dc2626;
+}
+
+input:required:valid {
+  border-color: #16a34a;
+}
+
+input:required:invalid + .validation-message::before {
+  content: 'This field is required';
+  color: #dc2626;
+  font-size: 0.875rem;
+  display: block;
+}
+
+input[type="email"]:invalid + .validation-message::before {
+  content: 'Please enter a valid email address';
+}
+
+/* Custom validation messages */
+.validation-message {
+  font-size: 0.875rem;
+  margin-top: 0.25rem;
+  min-height: 1.25rem;
+}
+
+/* ==========================================================================
+   CSS-Only Tooltips
+   ========================================================================== */
+
+.css-tooltip {
+  position: relative;
+  display: inline-block;
+  border-bottom: 1px dotted #999;
+  cursor: help;
+}
+
+.css-tooltip-content {
+  visibility: hidden;
+  opacity: 0;
+  position: absolute;
+  bottom: 125%;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #333;
+  color: #fff;
+  text-align: center;
+  padding: 8px 12px;
+  border-radius: 4px;
+  font-size: 0.875rem;
+  white-space: nowrap;
+  z-index: 1000;
+  transition: opacity 0.2s ease, visibility 0.2s ease;
+}
+
+.css-tooltip-content::after {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 5px solid transparent;
+  border-top-color: #333;
+}
+
+.css-tooltip:hover .css-tooltip-content,
+.css-tooltip:focus .css-tooltip-content {
+  visibility: visible;
+  opacity: 1;
+}
+
+/* No-script tooltip fallback */
+.no-js .css-tooltip-content {
+  position: static;
+  visibility: visible;
+  opacity: 1;
+  display: inline-block;
+  background: #f0f0f0;
+  color: #333;
+  border: 1px solid #ccc;
+  margin-left: 0.5rem;
+  white-space: normal;
+  transform: none;
+}
+
+.no-js .css-tooltip-content::after {
+  display: none;
+}
+
+/* ==========================================================================
+   CSS-Only Progress Indicator
+   ========================================================================== */
+
+.css-progress {
+  width: 100%;
+  height: 20px;
+  background: #e5e7eb;
+  border-radius: 10px;
+  overflow: hidden;
+  border: 1px solid #d1d5db;
+}
+
+.css-progress-bar {
+  height: 100%;
+  background: #0066cc;
+  transition: width 0.3s ease;
+  border-radius: 9px;
+}
+
+/* Indeterminate progress animation */
+.css-progress-indeterminate .css-progress-bar {
+  width: 30%;
+  animation: progress-indeterminate 2s infinite linear;
+}
+
+@keyframes progress-indeterminate {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(400%); }
+}
+
+/* No animation for reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .css-progress-indeterminate .css-progress-bar {
+    animation: none;
+    width: 100%;
+  }
+}
+
+/* ==========================================================================
+   CSS-Only Toggle Switch
+   ========================================================================== */
+
+.css-toggle {
+  position: relative;
+  display: inline-block;
+  width: 50px;
+  height: 24px;
+}
+
+.css-toggle-input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.css-toggle-slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: #ccc;
+  transition: background-color 0.2s ease;
+  border-radius: 24px;
+}
+
+.css-toggle-slider:before {
+  position: absolute;
+  content: "";
+  height: 18px;
+  width: 18px;
+  left: 3px;
+  top: 3px;
+  background: white;
+  transition: transform 0.2s ease;
+  border-radius: 50%;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+
+.css-toggle-input:checked + .css-toggle-slider {
+  background: #0066cc;
+}
+
+.css-toggle-input:focus + .css-toggle-slider {
+  outline: 2px solid #0066cc;
+  outline-offset: 2px;
+}
+
+.css-toggle-input:checked + .css-toggle-slider:before {
+  transform: translateX(26px);
+}
+
+/* No-script fallback for toggle */
+.no-js .css-toggle {
+  display: none;
+}
+
+.no-js .css-toggle + .toggle-fallback {
+  display: block;
+}
+
+.toggle-fallback {
+  display: none;
+}
+
+/* ==========================================================================
+   User Preference Support
+   ========================================================================== */
+
+/* High contrast mode support */
+@media (prefers-contrast: high), 
+       (-ms-high-contrast: active) {
+  * {
+    border-color: ButtonText !important;
+  }
+  
+  button, input, select, textarea {
+    border: 2px solid ButtonText !important;
+    background: ButtonFace !important;
+    color: ButtonText !important;
+  }
+  
+  a {
+    color: LinkText !important;
+    text-decoration: underline !important;
+  }
+  
+  a:visited {
+    color: VisitedText !important;
+  }
+  
+  :focus {
+    outline-color: Highlight !important;
+    outline-width: 3px !important;
+  }
+  
+  .skip-navigation:focus-within {
+    background: ButtonFace !important;
+    color: ButtonText !important;
+    border-color: ButtonText !important;
+  }
+  
+  .skip-link {
+    background: ButtonFace !important;
+    color: ButtonText !important;
+    border-color: ButtonText !important;
+  }
+  
+  .skip-link:focus {
+    outline-color: Highlight !important;
+    background: Highlight !important;
+    color: HighlightText !important;
+  }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+  
+  /* Disable all animations */
+  .css-accordion-content,
+  .css-progress-bar {
+    transition: none !important;
+    animation: none !important;
+  }
+}
+
+/* Large text mode support */
+@media (min-resolution: 192dpi), 
+       (-webkit-min-device-pixel-ratio: 2) {
+  html {
+    font-size: 18px;
+  }
+  
+  button, input, select, textarea {
+    min-height: 48px;
+    padding: 12px;
+  }
+  
+  .skip-link,
+  .css-dropdown-link,
+  .css-tab-label {
+    padding: 12px 16px;
+  }
+}
+
+/* ==========================================================================
+   Print Accessibility
+   ========================================================================== */
+
+@media print {
+  /* Show all hidden content for print */
+  .sr-only {
+    position: static !important;
+    width: auto !important;
+    height: auto !important;
+    padding: 0 !important;
+    margin: 0 0 0.5rem 0 !important;
+    overflow: visible !important;
+    clip: auto !important;
+    white-space: normal !important;
+    border: 0 !important;
+    font-size: 0.9rem !important;
+    color: #666 !important;
+  }
+  
+  /* Expand all collapsed content */
+  .css-accordion-content,
+  .css-tab-panel,
+  [aria-expanded="false"] + * {
+    display: block !important;
+    height: auto !important;
+    max-height: none !important;
+    overflow: visible !important;
+    padding: 1rem !important;
+  }
+  
+  /* Hide interactive elements that don't work in print */
+  .no-print,
+  .skip-navigation,
+  button,
+  input[type="button"],
+  input[type="submit"],
+  input[type="reset"],
+  .css-dropdown,
+  .css-modal-content {
+    display: none !important;
+  }
+  
+  /* Show URLs for links */
+  a[href]:after {
+    content: " (" attr(href) ")";
+    font-size: 0.8rem;
+    color: #666;
+  }
+  
+  a[href^="mailto:"]:after {
+    content: " (Email: " attr(href) ")";
+  }
+  
+  a[href^="tel:"]:after {
+    content: " (Phone: " attr(href) ")";
+  }
+  
+  a[href^="#"]:after {
+    content: "";
+  }
+  
+  /* Form field improvements for print */
+  input, select, textarea {
+    border: 1px solid #000 !important;
+    background: transparent !important;
+    -webkit-appearance: none;
+  }
+  
+  input[type="checkbox"]:after,
+  input[type="radio"]:after {
+    content: attr(checked) ? "✓" : "☐";
+    font-size: 1rem;
+  }
+  
+  /* Table improvements */
+  table {
+    border-collapse: collapse;
+    width: 100%;
+    margin-bottom: 1rem;
+  }
+  
+  th, td {
+    border: 1px solid #000;
+    padding: 0.5rem;
+    text-align: left;
+  }
+  
+  thead {
+    background: #f0f0f0;
+  }
+  
+  /* Page break controls */
+  .page-break-before {
+    page-break-before: always;
+  }
+  
+  .page-break-after {
+    page-break-after: always;
+  }
+  
+  .no-page-break,
+  .css-accordion-item,
+  .form-field {
+    page-break-inside: avoid;
+  }
+  
+  h1, h2, h3, h4, h5, h6 {
+    page-break-after: avoid;
+  }
+  
+  /* Show important hidden content */
+  .print-show {
+    display: block !important;
+  }
+}
+
+/* ==========================================================================
+   Error Recovery and Fallbacks
+   ========================================================================== */
+
+/* When JavaScript fails to load */
+.js-failed .js-only {
+  display: none !important;
+}
+
+.js-failed .js-fallback {
+  display: block !important;
+}
+
+/* Graceful degradation classes */
+.enhanced-hidden {
+  display: none;
+}
+
+.no-js .enhanced-hidden,
+.js-failed .enhanced-hidden {
+  display: block;
+}
+
+.basic-hidden {
+  display: block;
+}
+
+.no-js .basic-hidden,
+.js-failed .basic-hidden {
+  display: none;
+}
+
+/* ==========================================================================
+   Screen Reader Optimizations
+   ========================================================================== */
+
+/* Screen reader only content */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* Make screen reader content visible on focus */
+.sr-only:focus {
+  position: static;
+  width: auto;
+  height: auto;
+  padding: 0.25rem 0.5rem;
+  margin: 0;
+  overflow: visible;
+  clip: auto;
+  white-space: normal;
+  background: #000;
+  color: #fff;
+  border: 1px solid #fff;
+}
+
+/* Hide decorative content from screen readers */
+.aria-hidden,
+[aria-hidden="true"] {
+  /* Content is hidden from screen readers via attribute */
+}
+
+/* ==========================================================================
+   Touch Device Optimizations
+   ========================================================================== */
+
+/* Larger touch targets for touch devices */
+@media (pointer: coarse) {
+  button,
+  a,
+  input,
+  select,
+  textarea,
+  [role="button"],
+  [tabindex="0"],
+  .css-tab-label,
+  .css-accordion-header,
+  .skip-link {
+    min-height: 48px !important;
+    min-width: 48px !important;
+    padding: 12px !important;
+  }
+  
+  /* Remove hover effects on touch devices */
+  .css-dropdown:hover .css-dropdown-content {
+    display: none;
+  }
+  
+  .css-dropdown:focus-within .css-dropdown-content {
+    display: block;
+  }
+}
+
+/* ==========================================================================
+   Responsive Typography
+   ========================================================================== */
+
+/* Ensure readable text sizes */
+html {
+  font-size: 16px;
+  line-height: 1.5;
+}
+
+@media (max-width: 640px) {
+  html {
+    font-size: 18px;
+  }
+}
+
+/* Improve heading hierarchy */
+h1 { font-size: 2rem; font-weight: 700; margin-bottom: 1rem; }
+h2 { font-size: 1.5rem; font-weight: 600; margin-bottom: 0.75rem; }
+h3 { font-size: 1.25rem; font-weight: 600; margin-bottom: 0.75rem; }
+h4 { font-size: 1.125rem; font-weight: 500; margin-bottom: 0.5rem; }
+h5 { font-size: 1rem; font-weight: 500; margin-bottom: 0.5rem; }
+h6 { font-size: 0.875rem; font-weight: 500; margin-bottom: 0.5rem; }
+
+/* ==========================================================================
+   Error States and Fallbacks
+   ========================================================================== */
+
+/* Generic error message styling */
+.error-message,
+.accessibility-error {
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  color: #991b1b;
+  padding: 1rem;
+  border-radius: 4px;
+  margin: 1rem 0;
+}
+
+/* Warning messages */
+.warning-message {
+  background: #fffbeb;
+  border: 1px solid #fed7aa;
+  color: #92400e;
+  padding: 1rem;
+  border-radius: 4px;
+  margin: 1rem 0;
+}
+
+/* Success messages */
+.success-message {
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  color: #166534;
+  padding: 1rem;
+  border-radius: 4px;
+  margin: 1rem 0;
+}
+
+/* Loading states without JavaScript */
+.loading-fallback {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  padding: 2rem;
+  text-align: center;
+  color: #6b7280;
+}
+
+.loading-fallback::before {
+  content: "⏳ ";
+  font-size: 1.2rem;
+}
+
+/* ==========================================================================
+   Utility Classes
+   ========================================================================== */
+
+/* Accessibility utility classes */
+.visually-hidden {
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+  height: 1px;
+  overflow: hidden;
+  position: absolute;
+  white-space: nowrap;
+  width: 1px;
+}
+
+.focus-visible {
+  outline: 2px solid #0066cc;
+  outline-offset: 2px;
+}
+
+.focus-visible-alt {
+  box-shadow: 0 0 0 3px rgba(0, 102, 204, 0.5);
+}
+
+/* Text sizing utilities */
+.text-larger {
+  font-size: 1.125rem;
+}
+
+.text-largest {
+  font-size: 1.25rem;
+}
+
+/* Color contrast helpers */
+.high-contrast {
+  color: #000 !important;
+  background: #fff !important;
+  border: 1px solid #000 !important;
+}
+
+.high-contrast a {
+  color: #00f !important;
+  text-decoration: underline !important;
+}
+
+/* ==========================================================================
+   Responsive and Mobile Accessibility
+   ========================================================================== */
+
+/* Ensure content is readable on small screens */
+@media (max-width: 640px) {
+  .css-tabs {
+    flex-direction: column;
+  }
+  
+  .css-tab-label {
+    width: 100%;
+    text-align: left;
+    border-right: none;
+    border-bottom: 1px solid #ccc;
+  }
+  
+  .css-dropdown-content {
+    position: static;
+    display: block;
+    box-shadow: none;
+    border: 1px solid #ccc;
+    margin-top: 8px;
+  }
+  
+  /* Stack form elements on mobile */
+  .form-field {
+    width: 100%;
+  }
+  
+  .form-actions {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  
+  .form-actions button {
+    width: 100%;
+  }
+}
+
+/* ==========================================================================
+   CSS-Only Dark Mode Support
+   ========================================================================== */
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg-color: #1f2937;
+    --text-color: #f9fafb;
+    --border-color: #4b5563;
+    --accent-color: #60a5fa;
+  }
+  
+  body {
+    background: var(--bg-color);
+    color: var(--text-color);
+  }
+  
+  .css-accordion,
+  .css-tabs,
+  .css-dropdown-content,
+  .css-modal-content {
+    background: var(--bg-color);
+    border-color: var(--border-color);
+    color: var(--text-color);
+  }
+  
+  .css-accordion-header,
+  .css-tab-label {
+    background: #374151;
+    color: var(--text-color);
+  }
+  
+  .css-accordion-header:hover,
+  .css-tab-label:hover,
+  .css-dropdown-link:hover {
+    background: #4b5563;
+  }
+  
+  input, select, textarea {
+    background: var(--bg-color);
+    color: var(--text-color);
+    border-color: var(--border-color);
+  }
+  
+  a {
+    color: var(--accent-color);
+  }
+}

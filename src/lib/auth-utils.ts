@@ -86,7 +86,9 @@ export async function reauthenticateWithPassword(user: User, password: string): 
     // Validate inputs
     validateInput(user, [
       {
-        condition: (u) => u && typeof u === 'object' && typeof u.uid === 'string',
+        condition: (u: unknown): u is object => {
+          return u != null && typeof u === 'object' && 'uid' in u && typeof (u as any).uid === 'string';
+        },
         message: 'Invalid user object',
         userMessage: 'Authentication failed due to invalid user data'
       }
@@ -95,7 +97,11 @@ export async function reauthenticateWithPassword(user: User, password: string): 
     validateInput(password, [
       commonValidations.required('Password is required for reauthentication'),
       commonValidations.string('Password must be a string'),
-      commonValidations.minLength(6, 'Password must be at least 6 characters')
+      {
+        condition: (val: unknown) => typeof val === 'string' && val.length >= 6,
+        message: 'Password must be at least 6 characters',
+        userMessage: 'Password must be at least 6 characters'
+      }
     ], { function: 'reauthenticateWithPassword' });
     
     if (!user.email || typeof user.email !== 'string') {
@@ -119,8 +125,10 @@ export async function reauthenticateWithPassword(user: User, password: string): 
         
         return Promise.race([authPromise, timeoutPromise]);
       },
-      3, // max attempts
-      1000 // base delay
+      {
+        maxAttempts: 3,
+        baseDelay: 1000
+      }
     );
     
     await handleNetworkRequest(reauthenticateWithRetry, { 
@@ -150,7 +158,9 @@ export async function reauthenticateWithGoogle(user: User): Promise<void> {
     // Validate user input
     validateInput(user, [
       {
-        condition: (u) => u && typeof u === 'object' && typeof u.uid === 'string',
+        condition: (u: unknown): u is object => {
+          return u != null && typeof u === 'object' && 'uid' in u && typeof (u as any).uid === 'string';
+        },
         message: 'Invalid user object',
         userMessage: 'Authentication failed due to invalid user data'
       }
@@ -185,8 +195,10 @@ export async function reauthenticateWithGoogle(user: User): Promise<void> {
         
         return Promise.race([authPromise, timeoutPromise]);
       },
-      2, // max attempts (fewer for popups)
-      2000 // base delay
+      {
+        maxAttempts: 2, // max attempts (fewer for popups)
+        baseDelay: 2000
+      }
     );
     
     await handleNetworkRequest(reauthenticateWithRetry, { 
@@ -242,7 +254,9 @@ export async function reauthenticateUser(user: User, password?: string): Promise
     // Validate user input
     validateInput(user, [
       {
-        condition: (u) => u && typeof u === 'object' && typeof u.uid === 'string',
+        condition: (u: unknown): u is object => {
+          return u != null && typeof u === 'object' && 'uid' in u && typeof (u as any).uid === 'string';
+        },
         message: 'Invalid user object',
         userMessage: 'Authentication failed due to invalid user data'
       }

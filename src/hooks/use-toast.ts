@@ -237,7 +237,7 @@ export const reducer = (state: State, action: Action): State => {
         }
         
         default:
-          console.warn(`Unknown toast action type: ${(action as any).type}`)
+          console.warn(`Unknown toast action type: ${(action as { type?: string }).type}`)
           return state
       }
     },

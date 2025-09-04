@@ -6,7 +6,7 @@
 'use client';
 
 import React, { useRef, useEffect, useState } from 'react';
-import { useBackCamera, useCameraPermission } from '@/hooks/use-camera-permission';
+import { useBackCamera } from '@/hooks/use-camera-permission';
 
 export function BackCameraExample() {
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -25,12 +25,11 @@ export function BackCameraExample() {
     currentFacingMode,
     error,
     requestBackCamera,
-    requestFrontCamera,
     requestBackCameraWithFallback,
     switchFacingMode,
     stopCamera,
     refreshDevices
-  } = useBackCamera(false, 'high'); // Don't auto-start, use high quality
+  } = useBackCamera(false, 'high');
 
   // Set up video element when stream is available
   useEffect(() => {
@@ -81,7 +80,7 @@ export function BackCameraExample() {
     return (
       <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
         <strong>Camera not supported!</strong>
-        <p>Your browser or device doesn't support camera access.</p>
+        <p>Your browser or device doesn&apos;t support camera access.</p>
       </div>
     );
   }
@@ -280,12 +279,12 @@ export function BackCameraExample() {
       <div className="bg-blue-50 rounded-lg p-4">
         <h3 className="text-lg font-semibold text-blue-900 mb-3">📋 How to Use</h3>
         <ol className="list-decimal list-inside space-y-2 text-blue-800 text-sm">
-          <li>Click "Start Back Camera" to request access to the rear-facing camera</li>
-          <li>Use "Back Camera (with fallback)" for better compatibility across devices</li>
-          <li>Click "Switch Camera" to toggle between front and back cameras</li>
-          <li>Use "Capture Photo" to take a picture from the current camera feed</li>
+          <li>Click &quot;Start Back Camera&quot; to request access to the rear-facing camera</li>
+          <li>Use &quot;Back Camera (with fallback)&quot; for better compatibility across devices</li>
+          <li>Click &quot;Switch Camera&quot; to toggle between front and back cameras</li>
+          <li>Use &quot;Capture Photo&quot; to take a picture from the current camera feed</li>
           <li>Download captured photos using the download button</li>
-          <li>Click "Stop Camera" when you're done to release the camera</li>
+          <li>Click &quot;Stop Camera&quot; when you&apos;re done to release the camera</li>
         </ol>
       </div>
 
@@ -348,7 +347,7 @@ export function SimpleBackCameraExample() {
           />
         ) : (
           <div className="w-full h-64 bg-gray-800 rounded-lg flex items-center justify-center">
-            <p className="text-gray-400">Click "Start Back Camera" to begin</p>
+            <p className="text-gray-400">Click &quot;Start Back Camera&quot; to begin</p>
           </div>
         )}
       </div>

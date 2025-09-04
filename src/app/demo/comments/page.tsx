@@ -9,15 +9,17 @@ import { MessageCircle, Code2, Eye } from 'lucide-react';
 import { CommentsList } from '@/components/comments/comments-list';
 import { LimitedCommentsList } from '@/components/comments/limited-comments-list';
 import { useComments } from '@/hooks/use-comments';
+import { useAuth } from '@/contexts/auth-context';
 
 export default function CommentsDemo() {
   const [useStandalone, setUseStandalone] = useState(false);
   const [enableLimit, setEnableLimit] = useState(true);
   const [initialLimit, setInitialLimit] = useState(3);
+  const { user } = useAuth();
   
   const { state, stats, actions } = useComments({
     pageId: 'demo-page',
-    userId: 'demo-user'
+    userId: user?.uid
   });
 
   return (
@@ -34,7 +36,7 @@ export default function CommentsDemo() {
             </h1>
           </div>
           <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-            Interactive demonstration of comment list with "Show 3 comments and See more" functionality
+            Interactive demonstration of comment list with &quot;Show 3 comments and See more&quot; functionality
           </p>
         </div>
 
@@ -229,7 +231,7 @@ export default function CommentsDemo() {
               <h4 className="font-semibold text-blue-800 mb-2">Key Features:</h4>
               <ul className="text-sm text-blue-700 space-y-1">
                 <li>• Shows 3 comments initially (configurable)</li>
-                <li>• "See more" button shows remaining comments count</li>
+                <li>• &quot;See more&quot; button shows remaining comments count</li>
                 <li>• Smooth animations when expanding/collapsing</li>
                 <li>• Responsive design with hover effects</li>
                 <li>• Works with existing comment functionality</li>

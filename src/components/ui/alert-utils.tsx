@@ -66,15 +66,27 @@ const validateAlertProps = (props: SafeAlertProps, context: Record<string, any> 
   validateInput(description, [
     commonValidations.required('Description is required'),
     commonValidations.string('Description must be a string'),
-    commonValidations.minLength(MIN_TITLE_LENGTH, 'Description cannot be empty'),
-    commonValidations.maxLength(MAX_DESCRIPTION_LENGTH, `Description cannot exceed ${MAX_DESCRIPTION_LENGTH} characters`)
+    {
+      condition: (val: unknown) => typeof val === 'string' && val.length >= MIN_TITLE_LENGTH,
+      message: 'Description cannot be empty',
+      userMessage: 'Description cannot be empty'
+    },
+    {
+      condition: (val: unknown) => typeof val === 'string' && val.length <= MAX_DESCRIPTION_LENGTH,
+      message: `Description cannot exceed ${MAX_DESCRIPTION_LENGTH} characters`,
+      userMessage: `Description cannot exceed ${MAX_DESCRIPTION_LENGTH} characters`
+    }
   ], { ...context, field: 'description' });
   
   // Validate title if provided
   if (title !== undefined) {
     validateInput(title, [
       commonValidations.string('Title must be a string'),
-      commonValidations.maxLength(MAX_TITLE_LENGTH, `Title cannot exceed ${MAX_TITLE_LENGTH} characters`)
+      {
+        condition: (val: unknown) => typeof val === 'string' && val.length <= MAX_TITLE_LENGTH,
+        message: `Title cannot exceed ${MAX_TITLE_LENGTH} characters`,
+        userMessage: `Title cannot exceed ${MAX_TITLE_LENGTH} characters`
+      }
     ], { ...context, field: 'title' });
     
     if (title.trim().length === 0) {
@@ -91,7 +103,7 @@ const validateAlertProps = (props: SafeAlertProps, context: Record<string, any> 
         userMessage: 'Invalid timeout value'
       },
       {
-        condition: (val: number) => val > 0 && val <= MAX_TIMEOUT,
+        condition: (val: unknown) => typeof val === 'number' && val > 0 && val <= MAX_TIMEOUT,
         message: `Timeout must be between 1 and ${MAX_TIMEOUT}ms`,
         userMessage: `Timeout must be between 1 and ${MAX_TIMEOUT}ms`
       }
@@ -397,6 +409,16 @@ export function AlertContainer({
     { operation: 'validateAlerts', alertCount: alerts.length }
   );
   
+  // Sort alerts by priority if specified - moved before conditional returns
+  const sortedAlerts = React.useMemo(() => {
+    return validatedAlerts?.sort((a, b) => {
+      const priorityOrder = { critical: 4, high: 3, medium: 2, low: 1 };
+      const aPriority = priorityOrder[a.priority || 'medium'];
+      const bPriority = priorityOrder[b.priority || 'medium'];
+      return bPriority - aPriority;
+    }) || [];
+  }, [validatedAlerts]);
+  
   if (validationError) {
     console.error('AlertContainer validation error:', validationError);
     onError?.(validationError);
@@ -466,15 +488,6 @@ export function AlertContainer({
     return renderedAlert;
   };
   
-  // Sort alerts by priority if specified
-  const sortedAlerts = React.useMemo(() => {
-    return validatedAlerts?.sort((a, b) => {
-      const priorityOrder = { critical: 4, high: 3, medium: 2, low: 1 };
-      const aPriority = priorityOrder[a.priority || 'medium'];
-      const bPriority = priorityOrder[b.priority || 'medium'];
-      return bPriority - aPriority;
-    }) || [];
-  }, [validatedAlerts]);
 
   return (
     <div 

@@ -9,12 +9,13 @@ service cloud.firestore {
       allow write: if false;
     }
     
-    // Comments collection rules
+    // Comments collection rules with enhanced functionality
     match /comments/{commentId} {
       // Allow anyone to read comments for public access
+      // Note: parentId field handling - undefined vs null requires special handling
       allow read: if true;
       
-      // Allow creation of new comments with proper validation
+      // Allow creation of new comments and replies with proper validation
       allow create: if isValidComment(request.resource.data)
                    && (
                      // Authenticated users
@@ -23,35 +24,130 @@ service cloud.firestore {
                      || (request.auth == null && isAnonymousOrGuest(request.resource.data.authorId))
                    );
       
-      // Allow updates - server-side or by authenticated users
+      // Enhanced update rules for editing, liking, and system updates
       allow update: if (
-                     // Server-side update (Firebase Admin SDK)
+                     // Server-side update (Firebase Admin SDK) - no auth required
                      request.auth == null
-                     // Or authenticated user updating their own comment
+                     // User editing their own comment content
                      || (request.auth != null 
                          && request.auth.uid == resource.data.authorId
-                         && isValidCommentUpdate(request.resource.data, resource.data))
+                         && isValidCommentEdit(request.resource.data, resource.data))
+                     // User updating vote counts (like/unlike functionality)
+                     || (request.auth != null && isVoteCountUpdate(request.resource.data, resource.data))
+                     // Moderator/admin updates (e.g., marking as reported)
+                     || (request.auth != null && hasModeratorRole(request.auth) 
+                         && isValidModerationUpdate(request.resource.data, resource.data))
                    );
       
-      // Allow deletion - server-side or by authenticated users/admins
+      // Enhanced deletion rules - users can delete their own content, moderators can delete any
       allow delete: if (
                      // Server-side deletion (Firebase Admin SDK)
                      request.auth == null
-                     // Or authenticated user/admin
-                     || (request.auth != null && 
-                         (request.auth.uid == resource.data.authorId || 
-                          hasAdminRole(request.auth)))
+                     // User deleting their own comment
+                     || (request.auth != null && request.auth.uid == resource.data.authorId)
+                     // Admin/moderator deletion
+                     || (request.auth != null && hasModeratorRole(request.auth))
                    );
       
-      // Comment votes subcollection
+      // Enhanced votes subcollection for like/unlike functionality
       match /votes/{userId} {
-        // Allow server-side access or user's own votes
-        allow read, write: if request.auth == null || 
-                             (request.auth != null && request.auth.uid == userId);
+        // Allow authenticated users to manage their own votes (like/unlike)
+        allow create, update, delete: if request.auth != null 
+                                      && request.auth.uid == userId 
+                                      && isValidVote(request.resource.data);
         
-        // Allow reading votes for vote counting
+        // Allow reading all votes for vote counting and display
         allow read: if true;
+        
+        // Allow server-side access (Firebase Admin SDK)
+        allow read, write: if request.auth == null;
       }
+      
+      // Replies subcollection for nested comments
+      match /replies/{replyId} {
+        // Allow reading all replies
+        allow read: if true;
+        
+        // Allow creating replies with proper validation
+        allow create: if isValidReply(request.resource.data)
+                     && (
+                       // Authenticated users
+                       (request.auth != null && request.auth.uid == request.resource.data.authorId)
+                       // Or server-side creation for anonymous/guest users
+                       || (request.auth == null && isAnonymousOrGuest(request.resource.data.authorId))
+                     );
+        
+        // Allow updating replies (editing)
+        allow update: if (
+                       // Server-side update
+                       request.auth == null
+                       // User editing their own reply
+                       || (request.auth != null 
+                           && request.auth.uid == resource.data.authorId
+                           && isValidReplyEdit(request.resource.data, resource.data))
+                       // Vote count updates for replies
+                       || (request.auth != null && isVoteCountUpdate(request.resource.data, resource.data))
+                       // Moderator updates
+                       || (request.auth != null && hasModeratorRole(request.auth))
+                     );
+        
+        // Allow deleting replies
+        allow delete: if (
+                       // Server-side deletion
+                       request.auth == null
+                       // User deleting their own reply
+                       || (request.auth != null && request.auth.uid == resource.data.authorId)
+                       // Admin/moderator deletion
+                       || (request.auth != null && hasModeratorRole(request.auth))
+                     );
+        
+        // Reply votes subcollection
+        match /votes/{userId} {
+          allow create, update, delete: if request.auth != null 
+                                        && request.auth.uid == userId 
+                                        && isValidVote(request.resource.data);
+          allow read: if true;
+          allow read, write: if request.auth == null;
+        }
+      }
+    }
+    
+    // Reports collection for content reporting
+    match /reports/{reportId} {
+      // Only moderators and admins can read reports
+      allow read: if request.auth != null && hasModeratorRole(request.auth);
+      
+      // Allow authenticated users to create reports
+      allow create: if request.auth != null 
+                   && isValidReport(request.resource.data)
+                   && request.auth.uid == request.resource.data.reporterId;
+      
+      // Only moderators can update reports (e.g., mark as resolved)
+      allow update: if request.auth != null && hasModeratorRole(request.auth);
+      
+      // Only admins can delete reports
+      allow delete: if request.auth != null && hasAdminRole(request.auth);
+      
+      // Server-side access
+      allow read, write: if request.auth == null;
+    }
+    
+    // User reactions/likes collection (alternative approach)
+    match /reactions/{reactionId} {
+      // Allow reading reactions for displaying like counts
+      allow read: if true;
+      
+      // Allow users to create their own reactions
+      allow create: if request.auth != null 
+                   && isValidReaction(request.resource.data)
+                   && request.auth.uid == request.resource.data.userId;
+      
+      // Allow users to update/delete their own reactions
+      allow update, delete: if request.auth != null 
+                           && request.auth.uid == resource.data.userId;
+      
+      // Server-side access
+      allow read, write: if request.auth == null;
     }
     
     // Helper functions
@@ -78,21 +174,6 @@ service cloud.firestore {
              && (!('updatedAt' in data) || data.updatedAt is timestamp);
     }
     
-    function isValidCommentUpdate(newData, oldData) {
-      // Only allow updating content, updatedAt, and isEdited fields
-      return newData.keys().hasAll(['content', 'updatedAt', 'isEdited'])
-             && newData.content is string
-             && newData.content.size() > 0
-             && newData.content.size() <= 2000
-             && newData.isEdited == true
-             && newData.updatedAt is timestamp
-             // Ensure critical fields haven't changed
-             && newData.authorId == oldData.authorId
-             && newData.authorName == oldData.authorName
-             && newData.pageId == oldData.pageId
-             && newData.createdAt == oldData.createdAt;
-    }
-    
     function isAnonymousOrGuest(authorId) {
       // Check if the authorId follows the pattern for anonymous or guest users
       return authorId.matches('anon_[0-9]+_[a-zA-Z0-9]+') 
@@ -106,8 +187,137 @@ service cloud.firestore {
              && data.createdAt is timestamp;
     }
     
+    function isVoteCountUpdate(newData, oldData) {
+      // Allow updates that only change upvotes and downvotes (for voting functionality)
+      return (
+        // All required fields must be present and unchanged except vote counts
+        newData.content == oldData.content
+        && newData.authorId == oldData.authorId
+        && newData.authorName == oldData.authorName
+        && newData.pageId == oldData.pageId
+        && newData.createdAt == oldData.createdAt
+        && newData.authorIsVerified == oldData.authorIsVerified
+        && newData.authorIsAnonymous == oldData.authorIsAnonymous
+        && newData.authorIsGuest == oldData.authorIsGuest
+        && newData.isEdited == oldData.isEdited
+        // Vote counts can change (this is what we're updating)
+        && newData.upvotes is number
+        && newData.downvotes is number
+        && newData.upvotes >= 0
+        && newData.downvotes >= 0
+        // Optional fields should remain the same if they exist
+        && (!('parentId' in oldData) || newData.parentId == oldData.parentId)
+        && (!('authorAvatar' in oldData) || newData.authorAvatar == oldData.authorAvatar)
+        && (!('updatedAt' in oldData) || newData.updatedAt == oldData.updatedAt)
+      );
+    }
+    
     function hasAdminRole(auth) {
       return auth.token.admin == true;
+    }
+    
+    function hasModeratorRole(auth) {
+      return auth.token.admin == true || auth.token.moderator == true;
+    }
+    
+    function isValidCommentEdit(newData, oldData) {
+      // Allow editing content, updatedAt, and isEdited fields
+      return newData.content is string
+             && newData.content.size() > 0
+             && newData.content.size() <= 2000
+             && newData.isEdited == true
+             && newData.updatedAt is timestamp
+             // Ensure critical fields haven't changed
+             && newData.authorId == oldData.authorId
+             && newData.authorName == oldData.authorName
+             && newData.pageId == oldData.pageId
+             && newData.createdAt == oldData.createdAt
+             && newData.upvotes == oldData.upvotes
+             && newData.downvotes == oldData.downvotes;
+    }
+    
+    function isValidModerationUpdate(newData, oldData) {
+      // Allow moderators to update moderation fields
+      return (
+        // Core content should remain unchanged
+        newData.content == oldData.content
+        && newData.authorId == oldData.authorId
+        && newData.authorName == oldData.authorName
+        && newData.pageId == oldData.pageId
+        && newData.createdAt == oldData.createdAt
+        // Allow moderation fields to be updated
+        && (!('isReported' in newData) || newData.isReported is bool)
+        && (!('isFlagged' in newData) || newData.isFlagged is bool)
+        && (!('isHidden' in newData) || newData.isHidden is bool)
+        && (!('moderationReason' in newData) || newData.moderationReason is string)
+      );
+    }
+    
+    function isValidReply(data) {
+      return data.keys().hasAll(['content', 'authorId', 'authorName', 'parentId', 'createdAt', 'upvotes', 'downvotes', 'authorIsVerified', 'authorIsAnonymous', 'authorIsGuest', 'isEdited'])
+             && data.content is string
+             && data.content.size() > 0
+             && data.content.size() <= 2000  // Max 2000 characters
+             && data.authorId is string
+             && data.authorName is string
+             && data.parentId is string  // Required for replies
+             && data.createdAt is timestamp
+             && data.upvotes is number
+             && data.downvotes is number
+             && data.upvotes >= 0
+             && data.downvotes >= 0
+             && data.authorIsVerified is bool
+             && data.authorIsAnonymous is bool
+             && data.authorIsGuest is bool
+             && data.isEdited is bool
+             // Optional fields validation
+             && (!('authorAvatar' in data) || data.authorAvatar is string)
+             && (!('updatedAt' in data) || data.updatedAt is timestamp);
+    }
+    
+    function isValidReplyEdit(newData, oldData) {
+      // Allow editing reply content, updatedAt, and isEdited fields
+      return newData.content is string
+             && newData.content.size() > 0
+             && newData.content.size() <= 2000
+             && newData.isEdited == true
+             && newData.updatedAt is timestamp
+             // Ensure critical fields haven't changed
+             && newData.authorId == oldData.authorId
+             && newData.authorName == oldData.authorName
+             && newData.parentId == oldData.parentId
+             && newData.createdAt == oldData.createdAt
+             && newData.upvotes == oldData.upvotes
+             && newData.downvotes == oldData.downvotes;
+    }
+    
+    function isValidReport(data) {
+      return data.keys().hasAll(['reporterId', 'reporterName', 'contentId', 'contentType', 'reason', 'description', 'createdAt', 'status'])
+             && data.reporterId is string
+             && data.reporterName is string
+             && data.contentId is string  // ID of the reported comment/reply
+             && data.contentType in ['comment', 'reply']  // Type of content being reported
+             && data.reason in ['spam', 'harassment', 'inappropriate', 'hate_speech', 'misinformation', 'other']
+             && data.description is string
+             && data.description.size() <= 1000  // Max 1000 characters for description
+             && data.createdAt is timestamp
+             && data.status in ['pending', 'reviewed', 'resolved', 'dismissed']
+             // Optional fields
+             && (!('contentAuthorId' in data) || data.contentAuthorId is string)
+             && (!('resolvedAt' in data) || data.resolvedAt is timestamp)
+             && (!('resolvedBy' in data) || data.resolvedBy is string);
+    }
+    
+    function isValidReaction(data) {
+      return data.keys().hasAll(['userId', 'userName', 'contentId', 'contentType', 'reactionType', 'createdAt'])
+             && data.userId is string
+             && data.userName is string
+             && data.contentId is string  // ID of the liked comment/reply
+             && data.contentType in ['comment', 'reply']  // Type of content being liked
+             && data.reactionType in ['like', 'love', 'laugh', 'angry', 'sad']  // Different reaction types
+             && data.createdAt is timestamp
+             // Optional fields
+             && (!('updatedAt' in data) || data.updatedAt is timestamp);
     }
   }
 }

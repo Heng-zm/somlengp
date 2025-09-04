@@ -34,15 +34,25 @@ const mockFetch = jest.fn();
 global.fetch = mockFetch;
 
 // Setup window and navigator mocks
-Object.defineProperty(global, 'window', {
-  value: mockWindow,
-  writable: true,
-});
+if (!global.window) {
+  Object.defineProperty(global, 'window', {
+    configurable: true,
+    value: mockWindow,
+    writable: true,
+  });
+} else {
+  Object.assign(global.window, mockWindow);
+}
 
-Object.defineProperty(global, 'navigator', {
-  value: mockNavigator,
-  writable: true,
-});
+if (!global.navigator) {
+  Object.defineProperty(global, 'navigator', {
+    configurable: true,
+    value: mockNavigator,
+    writable: true,
+  });
+} else {
+  Object.assign(global.navigator, mockNavigator);
+}
 
 // Mock console methods to reduce noise
 const consoleSpy = {

@@ -46,7 +46,7 @@ export default function BackCameraDemoPage() {
                   <p>
                     This demo showcases the enhanced camera utilities with dedicated back camera support.
                     The implementation provides easy access to the rear-facing camera using the WebRTC 
-                    <code>facingMode: 'environment'</code> constraint.
+                    <code>facingMode: &apos;environment&apos;</code> constraint.
                   </p>
                   <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>

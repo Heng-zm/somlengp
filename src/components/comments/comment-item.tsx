@@ -154,12 +154,18 @@ export const CommentItem = memo(function CommentItem({
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-32">
                 {onEdit && (
-                  <DropdownMenuItem className="text-xs">
+                  <DropdownMenuItem 
+                    className="text-xs"
+                    onClick={() => onEdit(comment.id, comment.content)}
+                  >
                     Edit
                   </DropdownMenuItem>
                 )}
                 {onDelete && (
-                  <DropdownMenuItem className="text-xs text-red-600">
+                  <DropdownMenuItem 
+                    className="text-xs text-red-600"
+                    onClick={() => onDelete(comment.id)}
+                  >
                     Delete
                   </DropdownMenuItem>
                 )}

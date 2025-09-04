@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { Comment, CommentSortType, CommentStats, CommentSystemState, CommentUser, AnonymousCommentOptions, PublicCommentOptions } from '@/types/comment-types';
 import { 
   getComments,
@@ -10,6 +10,7 @@ import {
   updateComment,
   deleteComment
 } from '@/lib/firestore-comments';
+import { commentCache, commentPerformanceMonitor } from '@/lib/comment-cache';
 
 // Anonymous user utility functions
 const generateAnonymousUser = (): CommentUser => {
@@ -267,13 +268,13 @@ const generateMockComments = (): Comment[] => [
 ];
 
 export function useComments({ pageId = 'default-page', userId, initialComments, anonymousOptions }: UseCommentsProps = {}): UseCommentsReturn {
-  // Default anonymous options
-  const defaultAnonymousOptions: AnonymousCommentOptions = {
+  // Memoize default anonymous options to prevent unnecessary re-renders
+  const defaultAnonymousOptions: AnonymousCommentOptions = useMemo(() => ({
     allowAnonymous: true,
     anonymousDisplayName: 'Anonymous',
     requireModeration: false,
     ...anonymousOptions
-  };
+  }), [anonymousOptions]);
 
   const [state, setState] = useState<CommentSystemState>({
     comments: initialComments || [],
@@ -287,27 +288,24 @@ export function useComments({ pageId = 'default-page', userId, initialComments, 
   const [hasMore, setHasMore] = useState(false);
   const [lastDoc, setLastDoc] = useState<any>(undefined);
   const [isInitialized, setIsInitialized] = useState(false);
+  
+  // Use refs to track previous values for optimization
+  const previousPageId = useRef<string>(pageId);
+  const previousUserId = useRef<string | undefined>(userId);
 
-  // Calculate stats
+  // Optimized stats calculation with better memoization
   const stats = useMemo((): CommentStats => {
-    const calculateTotal = (comments: Comment[]): number => {
-      let total = comments.length;
-      comments.forEach(comment => {
-        if (comment.replies) {
-          total += calculateTotal(comment.replies);
-        }
-      });
-      return total;
+    const calculateReplies = (comments: Comment[]): number => {
+      return comments.reduce((total, comment) => {
+        return total + (comment.replies?.length || 0) + calculateReplies(comment.replies || []);
+      }, 0);
     };
 
-    const totalComments = state.comments.length;
-    const totalReplies = calculateTotal(state.comments) - totalComments;
-    
     return {
-      totalComments,
-      totalReplies
+      totalComments: state.comments.length,
+      totalReplies: calculateReplies(state.comments)
     };
-  }, [state.comments]);
+  }, [state.comments.length, state.comments]);
 
   // Sort comments
   const sortedComments = useMemo(() => {
@@ -335,9 +333,27 @@ export function useComments({ pageId = 'default-page', userId, initialComments, 
     return sortComments(state.comments);
   }, [state.comments, state.sortBy]);
 
-  // Load comments from Firestore on initialization and sort change
+  // Load comments from Firestore with caching support
   const loadComments = useCallback(async (refresh = false) => {
     if (!pageId) return;
+    
+    const endTiming = commentPerformanceMonitor.startTiming('loadComments');
+    
+    // Check cache first for initial load (not refresh)
+    if (!refresh && !lastDoc) {
+      const cachedComments = commentCache.get(pageId, state.sortBy);
+      if (cachedComments) {
+        setState(prev => ({
+          ...prev,
+          comments: cachedComments,
+          loading: false,
+          error: null
+        }));
+        setIsInitialized(true);
+        endTiming();
+        return;
+      }
+    }
     
     setState(prev => ({ ...prev, loading: true, error: null }));
     
@@ -349,34 +365,57 @@ export function useComments({ pageId = 'default-page', userId, initialComments, 
         refresh ? undefined : lastDoc
       );
       
+      const newComments = refresh ? result.comments : [...state.comments, ...result.comments];
+      
       setState(prev => ({
         ...prev,
-        comments: refresh ? result.comments : [...prev.comments, ...result.comments],
+        comments: newComments,
         loading: false
       }));
+      
+      // Cache the comments if this is a fresh load
+      if (refresh || !lastDoc) {
+        commentCache.set(pageId, state.sortBy, result.comments);
+      }
       
       setHasMore(result.hasMore);
       setLastDoc(result.lastDoc);
       setIsInitialized(true);
+      
     } catch (error) {
       console.error('Error loading comments:', error);
+      
+      // Enhanced error handling with specific error types
+      const errorMessage = error instanceof Error 
+        ? error.message.includes('network') 
+          ? 'Network connection error. Please check your internet connection.'
+          : error.message.includes('permission')
+          ? 'Permission denied. You may not have access to view these comments.'
+          : 'Failed to load comments. Please try again.'
+        : 'An unexpected error occurred while loading comments.';
+      
       setState(prev => ({
         ...prev,
-        error: 'Failed to load comments',
+        error: errorMessage,
         loading: false
       }));
       
-      // Fallback to mock data if Firestore fails
+      // Fallback to mock data if Firestore fails and not initialized
       if (!isInitialized) {
+        const mockComments = generateMockComments();
         setState(prev => ({
           ...prev,
-          comments: generateMockComments(),
+          comments: mockComments,
           loading: false
         }));
+        // Cache mock data to avoid repeated fallbacks
+        commentCache.set(pageId, state.sortBy, mockComments);
         setIsInitialized(true);
       }
     }
-  }, [pageId, state.sortBy, lastDoc, isInitialized]);
+    
+    endTiming();
+  }, [pageId, state.sortBy, lastDoc, isInitialized, state.comments]);
 
   // Load comments on mount and when pageId or sortBy changes
   useEffect(() => {
@@ -393,7 +432,7 @@ export function useComments({ pageId = 'default-page', userId, initialComments, 
     }
   }, [state.sortBy]);
 
-  // Submit new comment (regular or anonymous)
+  // Submit new comment with cache invalidation and optimistic updates
   const submitComment = useCallback(async (content: string, parentId?: string, isAnonymous = false) => {
     if (!content.trim() || !pageId) return;
     if (isAnonymous && !defaultAnonymousOptions.allowAnonymous) {
@@ -404,6 +443,16 @@ export function useComments({ pageId = 'default-page', userId, initialComments, 
       return;
     }
 
+    // Content validation
+    if (content.length > 2000) {
+      setState(prev => ({
+        ...prev,
+        error: 'Comment is too long. Maximum 2000 characters allowed.'
+      }));
+      return;
+    }
+
+    const endTiming = commentPerformanceMonitor.startTiming('submitComment');
     setState(prev => ({ ...prev, submitting: true, error: null }));
 
     try {
@@ -433,18 +482,32 @@ export function useComments({ pageId = 'default-page', userId, initialComments, 
         );
       }
 
+      // Invalidate cache for this page since we added a new comment
+      commentCache.invalidate(pageId);
+      
       // Refresh comments to get the latest data
       await loadComments(true);
       
       setState(prev => ({ ...prev, submitting: false }));
     } catch (error) {
       console.error('Error submitting comment:', error);
+      
+      const errorMessage = error instanceof Error 
+        ? error.message.includes('quota') 
+          ? 'Comment submission limit reached. Please try again later.'
+          : error.message.includes('content')
+          ? 'Comment contains inappropriate content. Please modify and try again.'
+          : 'Failed to submit comment. Please try again.'
+        : 'An unexpected error occurred while submitting your comment.';
+      
       setState(prev => ({
         ...prev,
-        error: 'Failed to submit comment',
+        error: errorMessage,
         submitting: false
       }));
     }
+    
+    endTiming();
   }, [pageId, userId, defaultAnonymousOptions.allowAnonymous, loadComments]);
 
   // Submit anonymous comment (convenience function)
@@ -454,27 +517,76 @@ export function useComments({ pageId = 'default-page', userId, initialComments, 
 
   // Vote on comment
   const handleVoteComment = useCallback(async (commentId: string, voteType: 'upvote' | 'downvote') => {
+    // Clear any existing errors first
+    setState(prev => ({ ...prev, error: null }));
+    
     if (!userId) {
       setState(prev => ({
         ...prev,
-        error: 'You must be logged in to vote'
+        error: 'You must be logged in to vote on comments'
+      }));
+      return;
+    }
+
+    // Check Firebase initialization
+    if (!pageId) {
+      setState(prev => ({
+        ...prev,
+        error: 'Page not initialized. Please refresh the page.'
       }));
       return;
     }
 
     try {
+      console.log('Attempting to vote on comment:', { commentId, voteType, userId });
+      
+      // Try to vote on the comment
       await voteComment(commentId, userId, voteType);
+      
+      console.log('Vote successful, refreshing comments...');
       
       // Refresh comments to get updated vote counts
       await loadComments(true);
-    } catch (error) {
-      console.error('Error voting on comment:', error);
+      
+      console.log('Comments refreshed successfully');
+    } catch (error: any) {
+      console.error('Error voting on comment:', {
+        error,
+        commentId,
+        voteType,
+        userId,
+        errorMessage: error?.message,
+        errorCode: error?.code
+      });
+      
+      // Provide more specific error messages
+      let errorMessage = 'Failed to vote on comment';
+      
+      if (error?.message?.includes('Firestore not initialized')) {
+        errorMessage = 'Database connection failed. Please refresh the page and try again.';
+      } else if (error?.message?.includes('Comment not found')) {
+        errorMessage = 'This comment no longer exists. Refreshing comments...';
+        // Still try to refresh comments to update the UI
+        try {
+          await loadComments(true);
+        } catch (refreshError) {
+          console.error('Failed to refresh comments after vote error:', refreshError);
+        }
+        return;
+      } else if (error?.message?.includes('permission')) {
+        errorMessage = 'You do not have permission to vote on this comment.';
+      } else if (error?.message?.includes('network') || error?.code === 'unavailable') {
+        errorMessage = 'Network error. Please check your connection and try again.';
+      } else if (error?.code === 'unauthenticated') {
+        errorMessage = 'Authentication expired. Please sign in again.';
+      }
+      
       setState(prev => ({
         ...prev,
-        error: 'Failed to vote on comment'
+        error: errorMessage
       }));
     }
-  }, [userId, loadComments]);
+  }, [userId, loadComments, pageId]);
 
   // Edit comment
   const editComment = useCallback(async (commentId: string, content: string) => {

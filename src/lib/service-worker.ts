@@ -37,7 +37,7 @@ class ServiceWorkerManager {
   private registration: ServiceWorkerRegistration | null = null;
   private updateCheckInterval: NodeJS.Timeout | null = null;
   private isSupported = false;
-  private callbacks: Map<string, Function[]> = new Map();
+  private callbacks: Map<string, ((data?: any) => void)[]> = new Map();
 
   constructor(config: Partial<ServiceWorkerConfig> = {}) {
     this.config = { ...DEFAULT_CONFIG, ...config };
@@ -248,7 +248,7 @@ class ServiceWorkerManager {
   }
 
   // Public methods
-  public on(eventName: string, callback: Function): () => void {
+  public on(eventName: string, callback: (data?: any) => void): () => void {
     if (!this.callbacks.has(eventName)) {
       this.callbacks.set(eventName, []);
     }
@@ -425,7 +425,7 @@ export function useServiceWorker() {
     clearCache: () => manager?.clearCache(),
     cleanupCaches: () => manager?.cleanupCaches(),
     requestPushPermission: () => manager?.requestPushPermission(),
-    on: (eventName: string, callback: Function) => manager?.on(eventName, callback),
+    on: (eventName: string, callback: (data?: any) => void) => manager?.on(eventName, callback),
     sendMessage: (message: SwMessage) => manager?.sendMessage(message),
     updateConfig: (config: Partial<ServiceWorkerConfig>) => manager?.updateConfig(config),
   };

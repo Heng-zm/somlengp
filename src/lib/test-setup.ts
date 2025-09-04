@@ -53,14 +53,23 @@ global.IntersectionObserver = jest.fn().mockImplementation(() => ({
   disconnect: jest.fn(),
 }));
 
-// Mock clipboard API
-Object.defineProperty(navigator, 'clipboard', {
-  value: {
+// Mock clipboard API - check if already exists to avoid redefinition errors
+if (!navigator.clipboard) {
+  Object.defineProperty(navigator, 'clipboard', {
+    value: {
+      writeText: jest.fn().mockResolvedValue(undefined),
+      readText: jest.fn().mockResolvedValue(''),
+    },
+    configurable: true,
+    writable: true,
+  });
+} else {
+  // If clipboard already exists, just add the mocked methods
+  Object.assign(navigator.clipboard, {
     writeText: jest.fn().mockResolvedValue(undefined),
     readText: jest.fn().mockResolvedValue(''),
-  },
-  writable: true,
-});
+  });
+}
 
 // Mock console methods for cleaner test output
 const originalError = console.error;

@@ -9,6 +9,11 @@ import { AuthProvider } from '@/contexts/auth-context';
 import { PerformanceOverlay } from '@/components/shared/performance-dashboard';
 import { Kantumruy_Pro } from 'next/font/google';
 
+// Import Firebase status check for debugging in development
+if (process.env.NODE_ENV === 'development') {
+  import('@/lib/firebase-check');
+}
+
 const kantumruy = Kantumruy_Pro({
   subsets: ['khmer', 'latin'],
   variable: '--font-sans',

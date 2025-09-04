@@ -1,7 +1,7 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 
 // Health check endpoint for deployment testing
-export async function GET(request: NextRequest) {
+export async function GET() {
   const healthInfo = {
     status: 'healthy',
     timestamp: new Date().toISOString(),
