@@ -628,7 +628,7 @@ class AdvancedQRDetector {
 
   private async ensureJsQRAvailable(maxRetries: number = 10, delayMs: number = 100): Promise<void> {
     for (let i = 0; i < maxRetries; i++) {
-      if (typeof window !== 'undefined' && window.jsQR) {
+      if (typeof window !== 'undefined' && typeof window.jsQR === 'function') {
         return;
       }
       
@@ -663,7 +663,7 @@ class AdvancedQRDetector {
     const { width, height } = imageData;
     
     // Apply erosion followed by dilation (opening)
-    let temp = this.erode(new ImageData(data, width, height));
+    const temp = this.erode(new ImageData(data, width, height));
     return this.dilate(temp);
   }
 

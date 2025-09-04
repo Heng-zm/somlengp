@@ -7,11 +7,7 @@ import { useCameraPermission } from '@/hooks/use-camera-permission';
 import { useToast } from '@/hooks/use-toast';
 
 // QR code scanning library
-declare global {
-  interface Window {
-    jsQR: (data: Uint8ClampedArray, width: number, height: number) => { data: string } | null;
-  }
-}
+// Type definition is in src/types/global.d.ts
 
 interface SimpleQRScannerProps {
   onScanResult: (data: string) => void;

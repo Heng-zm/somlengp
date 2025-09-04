@@ -34,6 +34,11 @@ export async function debugQRDetection(imageFile: File): Promise<{
       size: imageFile.size,
       type: imageFile.type
     },
+    imageInfo: undefined as {
+      width: number;
+      height: number;
+      aspectRatio: number;
+    } | undefined,
     attempts: [] as any[],
     suggestions: [] as string[]
   };

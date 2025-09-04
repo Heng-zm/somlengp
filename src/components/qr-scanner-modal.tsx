@@ -10,12 +10,7 @@ import { qrPerformanceMonitor, trackCameraInit, trackLibraryLoad } from '@/utils
 import { useBackCamera } from '@/hooks/use-camera-permission';
 
 // QR code scanning library - we'll use jsqr for client-side scanning
-declare global {
-  interface Window {
-    jsQR: (data: Uint8ClampedArray, width: number, height: number) => { data: string } | null;
-  }
-}
-
+// Type definition is in src/types/global.d.ts
 
 interface QRScannerModalProps {
   isOpen: boolean;
