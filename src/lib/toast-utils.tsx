@@ -812,5 +812,286 @@ export const showNotificationToast = (title: string, message: string, isImportan
   );
 };
 
+// Advanced toast functions for modern UI
+export const showAdvancedToast = (options: {
+  variant?: 'modern' | 'cyberpunk' | 'organic' | 'sunset' | 'aurora' | 'cosmic' | 'ethereal' | 'holographic' | 'retro' | 'midnight';
+  title: string;
+  description?: string;
+  icon?: string;
+  progress?: number;
+  priority?: 'whisper' | 'normal' | 'attention' | 'urgent' | 'critical';
+  animation?: 'slide' | 'fade' | 'scale' | 'bounce' | 'flip' | 'elastic' | 'spring';
+  autoHide?: boolean;
+  hideDelay?: number;
+  showTimestamp?: boolean;
+  onAction?: () => void;
+  actionLabel?: string;
+}) => {
+  return safeSync(
+    () => {
+      if (!options.title || typeof options.title !== 'string') {
+        throw new ValidationError('Title must be a non-empty string', { title: options.title });
+      }
+      
+      return toast({
+        variant: 'default' as any,
+        title: options.title,
+        description: options.description,
+        // Additional properties would be handled by the advanced toast component
+      });
+    },
+    null,
+    { operation: 'showAdvancedToast', variant: options.variant }
+  ).data;
+};
+
+export const showCelebrationToast = (title: string, description?: string) => {
+  return showAdvancedToast({
+    variant: 'holographic',
+    title: `🎉 ${title}`,
+    description,
+    icon: 'celebration',
+    priority: 'attention',
+    animation: 'bounce',
+    showTimestamp: true,
+    hideDelay: 8000
+  });
+};
+
+export const showCyberpunkToast = (title: string, description?: string) => {
+  return showAdvancedToast({
+    variant: 'cyberpunk',
+    title: `⚡ ${title}`,
+    description,
+    icon: 'default',
+    priority: 'attention',
+    animation: 'elastic',
+    showTimestamp: true,
+    hideDelay: 6000
+  });
+};
+
+export const showProgressToastAdvanced = (title: string, progress: number, options?: {
+  variant?: 'modern' | 'organic' | 'cyberpunk';
+  description?: string;
+  onComplete?: () => void;
+}) => {
+  return safeSync(
+    () => {
+      if (!title || typeof title !== 'string') {
+        throw new ValidationError('Title must be a non-empty string', { title });
+      }
+      
+      if (typeof progress !== 'number' || progress < 0 || progress > 100) {
+        throw new ValidationError('Progress must be a number between 0 and 100', { progress });
+      }
+      
+      return showAdvancedToast({
+        variant: options?.variant || 'modern',
+        title,
+        description: options?.description,
+        progress,
+        icon: progress === 100 ? 'success' : 'loading',
+        priority: progress === 100 ? 'attention' : 'normal',
+        animation: progress === 100 ? 'bounce' : 'fade',
+        autoHide: progress === 100,
+        onAction: progress === 100 ? options?.onComplete : undefined,
+        actionLabel: progress === 100 ? 'View Results' : undefined,
+        showTimestamp: progress === 100
+      });
+    },
+    null,
+    { operation: 'showProgressToastAdvanced', progress }
+  ).data;
+};
+
+export const showUrgentToast = (title: string, description: string, options?: {
+  onAction?: () => void;
+  actionLabel?: string;
+  criticalLevel?: boolean;
+}) => {
+  return safeSync(
+    () => {
+      if (!title || typeof title !== 'string') {
+        throw new ValidationError('Title must be a non-empty string', { title });
+      }
+      
+      return showAdvancedToast({
+        variant: 'midnight',
+        title: `🚨 ${title}`,
+        description,
+        icon: 'warning',
+        priority: options?.criticalLevel ? 'critical' : 'urgent',
+        animation: 'bounce',
+        autoHide: false,
+        onAction: options?.onAction,
+        actionLabel: options?.actionLabel || 'Take Action',
+        showTimestamp: true
+      });
+    },
+    null,
+    { operation: 'showUrgentToast' }
+  ).data;
+};
+
+export const showMinimalToast = (message: string, type: 'info' | 'success' | 'warning' | 'error' = 'info') => {
+  const icons = {
+    info: 'ℹ️',
+    success: '✅',
+    warning: '⚠️',
+    error: '❌'
+  };
+  
+  return showAdvancedToast({
+    variant: 'ethereal',
+    title: `${icons[type]} ${message}`,
+    priority: 'whisper',
+    animation: 'fade',
+    hideDelay: 3000
+  });
+};
+
+export const showInteractiveToast = (title: string, description: string, actions: Array<{
+  label: string;
+  onClick: () => void;
+  variant?: 'primary' | 'secondary' | 'danger';
+}>) => {
+  return safeSync(
+    () => {
+      if (!title || typeof title !== 'string') {
+        throw new ValidationError('Title must be a non-empty string', { title });
+      }
+      
+      if (!Array.isArray(actions) || actions.length === 0) {
+        throw new ValidationError('Actions must be a non-empty array', { actions });
+      }
+      
+      // For now, we'll use the first action as the primary action
+      const primaryAction = actions[0];
+      
+      return showAdvancedToast({
+        variant: 'modern',
+        title,
+        description,
+        icon: 'info',
+        priority: 'attention',
+        animation: 'spring',
+        autoHide: false,
+        onAction: primaryAction.onClick,
+        actionLabel: primaryAction.label,
+        showTimestamp: true
+      });
+    },
+    null,
+    { operation: 'showInteractiveToast', actionsCount: actions.length }
+  ).data;
+};
+
+export const showThemeToast = (theme: 'aurora' | 'sunset' | 'cosmic' | 'organic', title: string, description?: string) => {
+  const themeConfig = {
+    aurora: { icon: '🌌', animation: 'elastic' as const },
+    sunset: { icon: '🌅', animation: 'fade' as const },
+    cosmic: { icon: '✨', animation: 'spring' as const },
+    organic: { icon: '🌱', animation: 'bounce' as const }
+  };
+  
+  const config = themeConfig[theme];
+  
+  return showAdvancedToast({
+    variant: theme,
+    title: `${config.icon} ${title}`,
+    description,
+    priority: 'attention',
+    animation: config.animation,
+    showTimestamp: true,
+    hideDelay: 7000
+  });
+};
+
+// Utility for creating toast sequences/chains
+export const showToastSequence = async (toasts: Array<{
+  title: string;
+  description?: string;
+  variant?: string;
+  delay?: number;
+}>) => {
+  return safeSync(
+    async () => {
+      for (let i = 0; i < toasts.length; i++) {
+        const toastConfig = toasts[i];
+        
+        showAdvancedToast({
+          variant: (toastConfig.variant as any) || 'modern',
+          title: toastConfig.title,
+          description: toastConfig.description,
+          icon: i === 0 ? 'info' : 'default',
+          priority: i === toasts.length - 1 ? 'attention' : 'normal',
+          animation: 'slide',
+          hideDelay: 4000 + (i * 1000)
+        });
+        
+        if (i < toasts.length - 1 && toastConfig.delay) {
+          await new Promise(resolve => setTimeout(resolve, toastConfig.delay));
+        }
+      }
+    },
+    null,
+    { operation: 'showToastSequence', count: toasts.length }
+  );
+};
+
+// Smart toast that adapts based on user preferences
+export const showSmartToast = (title: string, description?: string, options?: {
+  urgency?: 'low' | 'medium' | 'high';
+  category?: 'system' | 'user' | 'error' | 'success';
+  adaptToTheme?: boolean;
+}) => {
+  return safeSync(
+    () => {
+      const urgency = options?.urgency || 'medium';
+      const category = options?.category || 'system';
+      
+      let variant: any = 'modern';
+      let priority: any = 'normal';
+      let animation: any = 'slide';
+      let hideDelay = 5000;
+      
+      // Adapt based on urgency
+      if (urgency === 'high') {
+        variant = 'midnight';
+        priority = 'urgent';
+        animation = 'bounce';
+        hideDelay = 8000;
+      } else if (urgency === 'low') {
+        variant = 'ethereal';
+        priority = 'whisper';
+        animation = 'fade';
+        hideDelay = 3000;
+      }
+      
+      // Adapt based on category
+      if (category === 'error') {
+        variant = 'sunset';
+        priority = 'urgent';
+      } else if (category === 'success') {
+        variant = 'organic';
+        priority = 'attention';
+      }
+      
+      return showAdvancedToast({
+        variant,
+        title,
+        description,
+        priority,
+        animation,
+        hideDelay,
+        showTimestamp: urgency !== 'low'
+      });
+    },
+    null,
+    { operation: 'showSmartToast', urgency: options?.urgency, category: options?.category }
+  ).data;
+};
+
 
 

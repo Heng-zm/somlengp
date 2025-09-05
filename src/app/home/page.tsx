@@ -2,7 +2,7 @@
 'use client';
 
 import { useContext, useMemo, useState, useEffect, useCallback } from 'react';
-import { Mic, FileText, Combine, Image as ImageIcon, Wand2, AudioLines, Sparkles, QrCode } from 'lucide-react';
+import { Mic, FileText, Combine, Image as ImageIcon, Wand2, AudioLines, Sparkles, QrCode, Link, Shield, Scissors, Calculator } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { LanguageContext } from '@/contexts/language-context';
 import { allTranslations } from '@/lib/translations';
@@ -142,14 +142,23 @@ const { language, toggleLanguage, theme, toggleTheme } = langContext;
   
 
   const featureCards = useMemo(() => [
-    { href: '/voice-transcript', title: t.voiceScribe, description: t.voiceTranscriptDescription, icon: Mic },
-    { href: '/ai-assistant', title: 'AI Assistant', description: 'Chat with an intelligent AI assistant powered by Gemini 1.5 Flash for help with any questions or tasks.', icon: Sparkles },
-    { href: '/pdf-transcript', title: t.pdfTranscript, description: t.pdfTranscriptDescription, icon: FileText },
-    { href: '/text-to-speech', title: 'Text to Speech', description: 'Convert text into natural-sounding speech.', icon: AudioLines },
-    { href: '/generate-qr-code', title: t.generateQrCode, description: t.generateQrCodeDescription, icon: QrCode },
-    { href: '/combine-pdf', title: t.combinePdf, description: t.combinePdfDescription, icon: Combine },
-    { href: '/image-to-pdf', title: t.imageToPdf, description: t.imageToPdfDescription, icon: ImageIcon },
-    { href: '/convert-image-format', title: t.convertImageFormat, description: t.convertImageFormatDescription, icon: Wand2 },
+    // Most popular tools first for better mobile UX
+    { href: '/ai-assistant', title: 'Smart AI Chat', description: 'Get instant help from an AI assistant powered by Gemini 1.5 Flash. Perfect for quick questions and tasks.', icon: Sparkles },
+    { href: '/generate-qr-code', title: 'QR Generator', description: 'Create QR codes instantly for links, text, or contact info. Share easily across devices.', icon: QrCode },
+    { href: '/voice-transcript', title: 'Voice to Text', description: 'Convert speech to text quickly and accurately. Perfect for notes and transcription.', icon: Mic },
+    { href: '/text-to-speech', title: 'Text Reader', description: 'Turn any text into natural speech. Great for accessibility and multitasking.', icon: AudioLines },
+    
+    // Document tools
+    { href: '/pdf-transcript', title: 'PDF Reader', description: 'Extract and read text from PDF documents easily on your mobile device.', icon: FileText },
+    { href: '/combine-pdf', title: 'PDF Merger', description: 'Combine multiple PDF files into one document. Simple and fast processing.', icon: Combine },
+    { href: '/image-to-pdf', title: 'Image to PDF', description: 'Convert photos and images to PDF format with high quality output.', icon: ImageIcon },
+    { href: '/convert-image-format', title: 'Image Converter', description: 'Change image formats (JPG, PNG, WebP) with optimized compression.', icon: Wand2 },
+    
+    // New useful tools
+    { href: '/url-shortener', title: 'Link Shortener', description: 'Create short, shareable links from long URLs. Track clicks and analytics.', icon: Link },
+    { href: '/password-generator', title: 'Password Gen', description: 'Generate secure, random passwords with customizable length and complexity.', icon: Shield },
+    { href: '/text-tools', title: 'Text Utils', description: 'Count words, remove duplicates, format text, and more text manipulation tools.', icon: Scissors },
+    { href: '/calculator', title: 'Smart Calc', description: 'Advanced calculator with scientific functions, unit conversion, and history.', icon: Calculator },
   ], [t]);
   
   const primaryFeature = featureCards[0];

@@ -94,8 +94,6 @@ interface BaseTranslations {
     noHistory: string;
     popularTools: string;
     otherTools: string;
-    generateQrCode: string;
-    generateQrCodeDescription: string;
     commentLoginRequired: string;
     // Comment system translations
     comments: string;
@@ -254,8 +252,6 @@ const enTranslations: Translations = {
     noHistory: "No history yet. Start using features to see them here.",
     popularTools: "Popular Tools",
     otherTools: "Other Tools",
-    generateQrCode: "Generate QR Code",
-    generateQrCodeDescription: "Create QR codes from text, URLs, or data for easy sharing.",
     commentLoginRequired: "Please login to leave comments and share your experience with our tools.",
     // Comment system translations
     comments: "Comments",
@@ -375,8 +371,6 @@ const kmTranslations: Translations = {
     noHistory: "មិនទាន់មានប្រវត្តិទេ។ ចាប់ផ្តើមប្រើលក្ខណៈពិសេសដើម្បីមើលពួកវានៅទីនេះ។",
     popularTools: "ឧបករណ៍ពេញនិយម",
     otherTools: "ឧបករណ៍ផ្សេងទៀត",
-    generateQrCode: "បង្កើត QR កូដ",
-    generateQrCodeDescription: "បង្កើត QR កូដពីអត្ថបទ URL ឬទិន្នន័យសម្រាប់ការចែករំលែកយ៉ាងងាយស្រួល។",
     commentLoginRequired: "សូមចូលគណនីដើម្បីបន្សល់មតិយោបល់ និងចែករំលែកបទពិសោធន៍របស់អ្នកជាមួយឧបករណ៍របស់យើង។",
     // Comment system translations
     comments: "មតិយោបល់",

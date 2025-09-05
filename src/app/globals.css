@@ -571,64 +571,6 @@ body {
       }
     }
     
-    /* QR Scanner Enhanced Animations */
-    .qr-scanner-enter {
-      animation: qr-scanner-slide-up 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-    }
-    
-    @keyframes qr-scanner-slide-up {
-      from {
-        transform: translateY(100%);
-        opacity: 0;
-      }
-      to {
-        transform: translateY(0);
-        opacity: 1;
-      }
-    }
-    
-    .qr-result-drawer-enter {
-      animation: qr-drawer-slide-up 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-    }
-    
-    @keyframes qr-drawer-slide-up {
-      from {
-        transform: translateY(100%) scale(0.95);
-        opacity: 0;
-      }
-      to {
-        transform: translateY(0) scale(1);
-        opacity: 1;
-      }
-    }
-    
-    /* Enhanced QR Scanning Frame Animations */
-    .scanning-frame-enhanced {
-      position: relative;
-      overflow: hidden;
-    }
-    
-    .scanning-frame-enhanced::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: -100%;
-      width: 100%;
-      height: 100%;
-      background: linear-gradient(
-        90deg,
-        transparent,
-        rgba(6, 182, 212, 0.4),
-        transparent
-      );
-      animation: scanner-sweep 3s infinite ease-in-out;
-    }
-    
-    @keyframes scanner-sweep {
-      0% { left: -100%; }
-      50% { left: 100%; }
-      100% { left: 100%; }
-    }
     
     /* Modern Card Hover Effects */
     .card-hover-lift {

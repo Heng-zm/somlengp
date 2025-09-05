@@ -3,7 +3,7 @@
 import React, { useState, useRef, useContext, useCallback } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { Download, Copy, QrCode, Share2, ScanLine } from 'lucide-react';
+import { Download, Copy, QrCode, Share2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
@@ -140,16 +140,6 @@ export default function GenerateQRCodePage() {
               <QrCode className="h-5 w-5 mr-2" />
               CREATE QR
             </Button>
-            
-            <Link href="/scan-qr-code">
-              <Button 
-                variant="outline"
-                className="border-2 border-gray-300 text-gray-700 hover:text-gray-900 hover:border-gray-400 px-8 py-3 rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105 font-semibold text-lg"
-              >
-                <ScanLine className="h-5 w-5 mr-2" />
-                SCAN QR
-              </Button>
-            </Link>
           </div>
 
         <div className="grid gap-8 lg:grid-cols-2">

@@ -84,11 +84,6 @@ export default function RootLayout({
           gtag('config', 'G-GQPSM8WTZY');
         </script> */}
 
-        {/* Load jsQR library */}
-        <Script 
-          src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"
-          strategy="beforeInteractive"
-        />
         
         <AuthProvider>
           <AppLayout>
