@@ -242,6 +242,73 @@ body {
         }
     }
 
+    /* Comprehensive anti-zoom utilities for all input elements */
+    input[type="text"],
+    input[type="email"],
+    input[type="password"],
+    input[type="search"],
+    input[type="tel"],
+    input[type="url"],
+    input[type="number"],
+    textarea,
+    select {
+        font-size: max(16px, 1rem) !important; /* Prevent zoom on iOS Safari */
+        transform: scale(1); /* Prevent zoom on Android */
+        -webkit-text-size-adjust: 100%;
+        -moz-text-size-adjust: 100%;
+        -ms-text-size-adjust: 100%;
+        text-size-adjust: 100%;
+    }
+    
+    /* Additional mobile input optimizations */
+    @media screen and (max-width: 768px) {
+        input,
+        textarea,
+        select {
+            font-size: 16px !important; /* Force 16px to prevent zoom */
+            line-height: 1.5;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            appearance: none;
+            border-radius: 0; /* Prevent rounded corners on iOS */
+            background-clip: padding-box;
+        }
+        
+        /* Prevent zoom on focus for all form controls */
+        input:focus,
+        textarea:focus,
+        select:focus {
+            font-size: 16px !important;
+            transform: scale(1);
+            zoom: 1;
+        }
+    }
+    
+    /* Anti-zoom utility classes */
+    .no-zoom {
+        font-size: max(16px, 1rem) !important;
+        transform: scale(1);
+        -webkit-text-size-adjust: 100%;
+        zoom: 1;
+    }
+    
+    .no-zoom-input {
+        font-size: 16px !important;
+        -webkit-text-size-adjust: none;
+        -webkit-appearance: none;
+        transform: scale(1);
+        zoom: 1;
+    }
+    
+    .no-zoom-textarea {
+        font-size: 16px !important;
+        line-height: 1.5;
+        resize: vertical;
+        -webkit-text-size-adjust: none;
+        transform: scale(1);
+        zoom: 1;
+    }
+
     /* Enhanced Accessibility Utilities */
     .login-focus {
         @apply focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:ring-offset-2;

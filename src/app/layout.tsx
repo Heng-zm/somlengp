@@ -25,8 +25,8 @@ const kantumruy = Kantumruy_Pro({
 export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 1,
-  maximumScale: 5,
-  userScalable: true,
+  maximumScale: 1, // Prevent zoom to avoid input focus zoom
+  userScalable: false, // Disable user zoom to prevent input focus zoom
   themeColor: [
     { media: '(prefers-color-scheme: light)', color: 'hsl(240 10% 99%)' },
     { media: '(prefers-color-scheme: dark)', color: 'hsl(224 71% 4%)' },
