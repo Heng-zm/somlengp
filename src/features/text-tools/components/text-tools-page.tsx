@@ -1,14 +1,12 @@
 "use client";
 
-import { useState, useMemo, useEffect, useCallback, memo, lazy, Suspense } from 'react';
+import { useState, useMemo, useEffect, useCallback } from 'react';
 import { 
-  Calculator, 
   Type, 
   Hash, 
   Code2, 
   FileText, 
   Search, 
-  Shuffle, 
   ArrowUpDown,
   GitCompare,
   Lock,
@@ -22,7 +20,6 @@ import {
   RotateCcw,
   Copy,
   Layers,
-  Eye,
   Tag,
   Sparkles,
   ChevronDown,

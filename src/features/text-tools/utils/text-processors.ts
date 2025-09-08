@@ -247,32 +247,52 @@ export function addLineNumbers(text: string): string {
   return lines.map((line, index) => `${index + 1}. ${line}`).join('\n');
 }
 
-// Text encoding/decoding
+// Text encoding/decoding with improved error handling and performance
 export function encodeBase64(text: string): string {
   try {
-    return btoa(unescape(encodeURIComponent(text)));
-  } catch (error) {
-    throw new Error('Failed to encode text to Base64');
+    // More robust Base64 encoding for Unicode text
+    if (typeof btoa === 'undefined') {
+      throw new Error('Base64 encoding not supported in this environment');
+    }
+    return btoa(new TextEncoder().encode(text).reduce((data, byte) => data + String.fromCharCode(byte), ''));
+  } catch {
+    throw new Error('Failed to encode text to Base64. Please check if the text contains valid characters.');
   }
 }
 
 export function decodeBase64(text: string): string {
   try {
-    return decodeURIComponent(escape(atob(text)));
-  } catch (error) {
-    throw new Error('Failed to decode Base64 text');
+    if (typeof atob === 'undefined') {
+      throw new Error('Base64 decoding not supported in this environment');
+    }
+    // Validate Base64 format first
+    if (!/^[A-Za-z0-9+/]*={0,2}$/.test(text)) {
+      throw new Error('Invalid Base64 format');
+    }
+    const binary = atob(text);
+    const bytes = new Uint8Array(binary.length);
+    for (let i = 0; i < binary.length; i++) {
+      bytes[i] = binary.charCodeAt(i);
+    }
+    return new TextDecoder().decode(bytes);
+  } catch {
+    throw new Error('Failed to decode Base64 text. Please ensure the input is valid Base64 encoded.');
   }
 }
 
 export function encodeURL(text: string): string {
-  return encodeURIComponent(text);
+  try {
+    return encodeURIComponent(text);
+  } catch {
+    throw new Error('Failed to URL encode text');
+  }
 }
 
 export function decodeURL(text: string): string {
   try {
     return decodeURIComponent(text);
-  } catch (error) {
-    throw new Error('Failed to decode URL-encoded text');
+  } catch {
+    throw new Error('Failed to decode URL-encoded text. Please ensure the input is valid URL encoding.');
   }
 }
 

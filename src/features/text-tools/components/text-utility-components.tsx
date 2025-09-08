@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef } from 'react';
-import { Copy, Check, Upload, Download, Trash2, Eye, EyeOff, Star, Heart, Zap, BarChart3, TrendingUp, FileText, AlertCircle, Loader2 } from 'lucide-react';
+import { Copy, Check, Upload, Download, Trash2, BarChart3, TrendingUp, FileText, AlertCircle, Loader2, Star, Zap, Eye, EyeOff } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
