@@ -3,7 +3,7 @@
 import React, { useState, useRef, useContext, useCallback } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { Download, Copy, QrCode, Share2 } from 'lucide-react';
+import { Download, Copy, QrCode, Share2, Camera } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
@@ -13,6 +13,8 @@ import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from '
 import { LanguageContext } from '@/contexts/language-context';
 import { showSuccessToast, showErrorToast, showWarningToast } from '@/lib/toast-utils';
 import { FeaturePageLayout } from '@/layouts/feature-page-layout';
+import { QRScannerFAB } from '@/components/floating-action-button';
+import { QRScannerSheet } from '@/components/qr-scanner-sheet';
 import QRCodeLib from 'qrcode';
 
 export default function GenerateQRCodePage() {
@@ -24,6 +26,7 @@ export default function GenerateQRCodePage() {
   const [foregroundColor, setForegroundColor] = useState('#000000');
   const [backgroundColor, setBackgroundColor] = useState('#ffffff');
   const [isSheetOpen, setIsSheetOpen] = useState(false);
+  const [isScannerOpen, setIsScannerOpen] = useState(false);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   // const { toast } = useToast(); // Not used directly, using toast utils instead
   
@@ -124,6 +127,14 @@ export default function GenerateQRCodePage() {
       console.error('Error sharing QR code:', error);
       showErrorToast("Share Failed");
     }
+  };
+
+  const handleScanSuccess = (data: string) => {
+    setInputText(data);
+    setIsScannerOpen(false);
+    setTimeout(() => {
+      generateQRCode();
+    }, 500);
   };
 
   return (
@@ -478,8 +489,18 @@ export default function GenerateQRCodePage() {
           </div>
         </div>
         
-        {/* Hidden canvas for download */}
+      {/* Hidden canvas for download */}
         <canvas ref={canvasRef} className="hidden" />
+        
+        {/* QR Scanner Floating Button */}
+        <QRScannerFAB onClick={() => setIsScannerOpen(true)} />
+        
+        {/* QR Scanner Sheet */}
+        <QRScannerSheet 
+          open={isScannerOpen} 
+          onOpenChange={setIsScannerOpen} 
+          onScanSuccess={handleScanSuccess} 
+        />
       </div>
 
       {/* QR Code Bottom Sheet Modal */}

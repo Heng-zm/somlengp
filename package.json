@@ -76,6 +76,7 @@
     "framer-motion": "^11.5.7",
     "genkit": "^1.15.5",
     "googleapis": "^155.0.1",
+    "jsqr": "^1.4.0",
     "jszip": "^3.10.1",
     "lodash.isequal": "^4.5.0",
     "lucide-react": "^0.460.0",
