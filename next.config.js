@@ -74,18 +74,18 @@ const nextConfig = {
       /require\.extensions is not supported by webpack/,
     ];
     
-    // Enhanced bundle splitting for better performance
+    // Enhanced bundle splitting for better performance - simplified to fix text-tools lambda issue
     config.optimization = {
       ...config.optimization,
       splitChunks: {
         chunks: 'all',
-        minSize: 20000,
-        maxSize: 250000,
+        minSize: 30000,
+        maxSize: 400000,
         minRemainingSize: 0,
         minChunks: 1,
-        maxAsyncRequests: 30,
-        maxInitialRequests: 30,
-        enforceSizeThreshold: 50000,
+        maxAsyncRequests: 15, // Reduced from 30
+        maxInitialRequests: 15, // Reduced from 30
+        enforceSizeThreshold: 100000,
         cacheGroups: {
           default: {
             minChunks: 2,
@@ -97,7 +97,8 @@ const nextConfig = {
             name: 'vendors',
             priority: -10,
             chunks: 'all',
-            maxSize: 500000,
+            maxSize: 400000, // Reduced from 500000
+            enforce: true, // Force creation even if minSize is not met
           },
           // Separate React and React-DOM
           react: {
@@ -105,6 +106,7 @@ const nextConfig = {
             name: 'react',
             priority: 20,
             chunks: 'all',
+            enforce: true,
           },
           // Separate UI libraries
           ui: {
@@ -112,6 +114,7 @@ const nextConfig = {
             name: 'ui',
             priority: 15,
             chunks: 'all',
+            enforce: true,
           },
           // Charts library
           charts: {
@@ -119,6 +122,7 @@ const nextConfig = {
             name: 'charts',
             priority: 10,
             chunks: 'all',
+            enforce: true,
           },
           // AI and Firebase libraries
           ai: {
@@ -126,6 +130,7 @@ const nextConfig = {
             name: 'ai',
             priority: 5,
             chunks: 'all',
+            enforce: true,
           },
         },
       },
