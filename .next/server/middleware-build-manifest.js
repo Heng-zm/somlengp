@@ -1,1 +1,48 @@
-globalThis.__BUILD_MANIFEST={polyfillFiles:["static/chunks/polyfills-42372ed130431b0a.js"],devFiles:[],ampDevFiles:[],lowPriorityFiles:[],rootMainFiles:["static/chunks/webpack-945691fb495b7d72.js","static/chunks/vendors-c0d76f48-9409ace48d637715.js","static/chunks/vendors-ccabc144-3bf97a96ae825345.js","static/chunks/vendors-f79b60b5-aa77e50f9cb3cfd5.js","static/chunks/vendors-bd354329-a1ad15a04e1b35e4.js","static/chunks/vendors-6bc75065-bb04d1cfa9a1cd8d.js","static/chunks/vendors-d1b5c841-bd176d2e75b53869.js","static/chunks/vendors-fbd0cf1f-ea8b322a3721968a.js","static/chunks/vendors-b85e1843-09dcb6346631d33c.js","static/chunks/vendors-b8b38805-19b5be3a079d9c7a.js","static/chunks/vendors-dfc0d3ba-5c6b89e7524c180c.js","static/chunks/vendors-6ed9541f-f6fffffaa3a74e57.js","static/chunks/vendors-6185be05-9b86bef3f31f77ac.js","static/chunks/vendors-839c41ae-5cfbf7acbd3bd3df.js","static/chunks/vendors-6b0b46e7-1ef16fe71c25b2db.js","static/chunks/vendors-83fd0ece-0c36f2024346c526.js","static/chunks/vendors-5af7cef6-7e6ffa5843c5ecfa.js","static/chunks/vendors-f33ddaf2-633335ff9aaa96f6.js","static/chunks/vendors-15f16aba-01c91ea2554749ca.js","static/chunks/vendors-74690118-9d1d261c4e0717f8.js","static/chunks/vendors-ed685695-95f6ac21f095e550.js","static/chunks/vendors-ce70e96a-5781d87dcb92b4f5.js","static/chunks/vendors-4a7382ad-b47210599c1e3aef.js","static/chunks/vendors-9c587c8a-bb3582f4634e3f48.js","static/chunks/vendors-861a245a-80112420b8c183f2.js","static/chunks/vendors-6808aa01-1ccc4e118f69d24b.js","static/chunks/vendors-27161c75-52646be228d50e3c.js","static/chunks/vendors-ff30e0d3-b59f4c05c2bfeb6f.js","static/css/f6ef2913f30220c4.css","static/chunks/vendors-2898f16f-def9d971b6acae0e.js","static/chunks/vendors-fa70753b-9a73ed97e00d2d20.js","static/chunks/vendors-26c0a0b0-ef0fba49c469283b.js","static/chunks/main-app-77ab176a3a4f8551.js"],rootMainFilesTree:{},pages:{"/_app":["static/chunks/webpack-945691fb495b7d72.js","static/chunks/react-ae41ddff4cedef46.js","static/chunks/vendors-c0d76f48-9409ace48d637715.js","static/chunks/vendors-ccabc144-3bf97a96ae825345.js","static/chunks/vendors-f79b60b5-aa77e50f9cb3cfd5.js","static/chunks/vendors-bd354329-a1ad15a04e1b35e4.js","static/chunks/vendors-6bc75065-bb04d1cfa9a1cd8d.js","static/chunks/vendors-d1b5c841-bd176d2e75b53869.js","static/chunks/vendors-fbd0cf1f-ea8b322a3721968a.js","static/chunks/vendors-b85e1843-09dcb6346631d33c.js","static/chunks/vendors-b8b38805-19b5be3a079d9c7a.js","static/chunks/vendors-dfc0d3ba-5c6b89e7524c180c.js","static/chunks/vendors-6ed9541f-f6fffffaa3a74e57.js","static/chunks/vendors-6185be05-9b86bef3f31f77ac.js","static/chunks/vendors-839c41ae-5cfbf7acbd3bd3df.js","static/chunks/vendors-6b0b46e7-1ef16fe71c25b2db.js","static/chunks/vendors-83fd0ece-0c36f2024346c526.js","static/chunks/vendors-5af7cef6-7e6ffa5843c5ecfa.js","static/chunks/vendors-f33ddaf2-633335ff9aaa96f6.js","static/chunks/vendors-15f16aba-01c91ea2554749ca.js","static/chunks/vendors-74690118-9d1d261c4e0717f8.js","static/chunks/vendors-ed685695-95f6ac21f095e550.js","static/chunks/vendors-ce70e96a-5781d87dcb92b4f5.js","static/chunks/vendors-4a7382ad-b47210599c1e3aef.js","static/chunks/vendors-9c587c8a-bb3582f4634e3f48.js","static/chunks/vendors-861a245a-80112420b8c183f2.js","static/chunks/vendors-6808aa01-1ccc4e118f69d24b.js","static/chunks/vendors-27161c75-52646be228d50e3c.js","static/chunks/vendors-ff30e0d3-b59f4c05c2bfeb6f.js","static/css/f6ef2913f30220c4.css","static/chunks/vendors-2898f16f-def9d971b6acae0e.js","static/chunks/vendors-fa70753b-9a73ed97e00d2d20.js","static/chunks/vendors-26c0a0b0-ef0fba49c469283b.js","static/chunks/main-023525866eb6974f.js","static/chunks/pages/_app-c308b4cc18e9fa0b.js"],"/_error":["static/chunks/webpack-945691fb495b7d72.js","static/chunks/react-ae41ddff4cedef46.js","static/chunks/vendors-c0d76f48-9409ace48d637715.js","static/chunks/vendors-ccabc144-3bf97a96ae825345.js","static/chunks/vendors-f79b60b5-aa77e50f9cb3cfd5.js","static/chunks/vendors-bd354329-a1ad15a04e1b35e4.js","static/chunks/vendors-6bc75065-bb04d1cfa9a1cd8d.js","static/chunks/vendors-d1b5c841-bd176d2e75b53869.js","static/chunks/vendors-fbd0cf1f-ea8b322a3721968a.js","static/chunks/vendors-b85e1843-09dcb6346631d33c.js","static/chunks/vendors-b8b38805-19b5be3a079d9c7a.js","static/chunks/vendors-dfc0d3ba-5c6b89e7524c180c.js","static/chunks/vendors-6ed9541f-f6fffffaa3a74e57.js","static/chunks/vendors-6185be05-9b86bef3f31f77ac.js","static/chunks/vendors-839c41ae-5cfbf7acbd3bd3df.js","static/chunks/vendors-6b0b46e7-1ef16fe71c25b2db.js","static/chunks/vendors-83fd0ece-0c36f2024346c526.js","static/chunks/vendors-5af7cef6-7e6ffa5843c5ecfa.js","static/chunks/vendors-f33ddaf2-633335ff9aaa96f6.js","static/chunks/vendors-15f16aba-01c91ea2554749ca.js","static/chunks/vendors-74690118-9d1d261c4e0717f8.js","static/chunks/vendors-ed685695-95f6ac21f095e550.js","static/chunks/vendors-ce70e96a-5781d87dcb92b4f5.js","static/chunks/vendors-4a7382ad-b47210599c1e3aef.js","static/chunks/vendors-9c587c8a-bb3582f4634e3f48.js","static/chunks/vendors-861a245a-80112420b8c183f2.js","static/chunks/vendors-6808aa01-1ccc4e118f69d24b.js","static/chunks/vendors-27161c75-52646be228d50e3c.js","static/chunks/vendors-ff30e0d3-b59f4c05c2bfeb6f.js","static/css/f6ef2913f30220c4.css","static/chunks/vendors-2898f16f-def9d971b6acae0e.js","static/chunks/vendors-fa70753b-9a73ed97e00d2d20.js","static/chunks/vendors-26c0a0b0-ef0fba49c469283b.js","static/chunks/main-023525866eb6974f.js","static/chunks/pages/_error-ee159321ee4d2025.js"]},ampFirstPages:[]},globalThis.__BUILD_MANIFEST.lowPriorityFiles=["/static/"+process.env.__NEXT_BUILD_ID+"/_buildManifest.js",,"/static/"+process.env.__NEXT_BUILD_ID+"/_ssgManifest.js"];
+globalThis.__BUILD_MANIFEST = {
+  "polyfillFiles": [
+    "static/chunks/polyfills.js"
+  ],
+  "devFiles": [],
+  "ampDevFiles": [],
+  "lowPriorityFiles": [],
+  "rootMainFiles": [
+    "static/chunks/webpack.js",
+    "static/chunks/vendors-node_modules_a.js",
+    "static/chunks/vendors-node_modules_firebase_firestore_dist_index_esm2017_js-d2c50270.js",
+    "static/chunks/vendors-node_modules_jsqr_dist_jsQR_js-ca2ef96f.js",
+    "static/chunks/vendors-node_modules_next_dist_api_i.js",
+    "static/chunks/vendors-node_modules_next_dist_build_d.js",
+    "static/chunks/vendors-node_modules_next_dist_client_ad.js",
+    "static/chunks/vendors-node_modules_next_dist_client_assign-location_js-968e657b.js",
+    "static/chunks/vendors-node_modules_next_dist_client_components_a.js",
+    "static/chunks/vendors-node_modules_next_dist_client_components_m.js",
+    "static/chunks/vendors-node_modules_next_dist_client_components_r.js",
+    "static/chunks/vendors-node_modules_next_dist_client_dev_hot-reloader_a.js",
+    "static/chunks/vendors-node_modules_next_dist_client_dev_n.js",
+    "static/chunks/vendors-node_modules_next_dist_client_flight-data-helpers_js-c55dea2c.js",
+    "static/chunks/vendors-node_modules_next_dist_client_has-base-path_js-217ddea2.js",
+    "static/chunks/vendors-node_modules_next_dist_client_i.js",
+    "static/chunks/vendors-node_modules_next_dist_client_n.js",
+    "static/chunks/vendors-node_modules_next_dist_client_s.js",
+    "static/chunks/vendors-node_modules_next_dist_c.js",
+    "static/chunks/vendors-node_modules_next_dist_compiled_next-devtools_index_js-96f98a2f.js",
+    "static/chunks/vendors-node_modules_next_dist_compiled_react-dom_cjs_react-dom-client_development_js-3139057c.js",
+    "static/chunks/vendors-node_modules_next_dist_lib_is-error_js-09930d48.js",
+    "static/chunks/vendors-node_modules_next_dist_l.js",
+    "static/css/vendors-node_modules_next_font_google_target_css-2.css",
+    "static/chunks/vendors-node_modules_next_font_google_target_css-2.js",
+    "static/chunks/vendors-node_modules_next_third-parties_dist_T.js",
+    "static/chunks/vendors-node_modules_p.js",
+    "static/chunks/main-app.js"
+  ],
+  "rootMainFilesTree": {},
+  "pages": {
+    "/_app": []
+  },
+  "ampFirstPages": []
+};
+globalThis.__BUILD_MANIFEST.lowPriorityFiles = [
+"/static/" + process.env.__NEXT_BUILD_ID + "/_buildManifest.js",
+,"/static/" + process.env.__NEXT_BUILD_ID + "/_ssgManifest.js",
+
+];

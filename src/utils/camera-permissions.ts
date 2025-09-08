@@ -437,3 +437,66 @@ export async function switchCameraFacing(
   // Request camera with new facing mode
   return requestCameraWithQuality(quality, {}, newFacingMode);
 }
+
+/**
+ * Request camera optimized for QR code scanning
+ * Uses high resolution, back camera, and optimized constraints
+ */
+export async function requestOptimizedCameraForQR(): Promise<CameraPermissionResult> {
+  // QR code optimal camera settings
+  const qrOptimizedConstraints = [
+    // High resolution back camera for best QR detection
+    {
+      video: {
+        facingMode: 'environment',
+        width: { ideal: 1920, min: 640 },
+        height: { ideal: 1080, min: 480 },
+        frameRate: { ideal: 30, min: 15 },
+        focusMode: 'continuous',
+        exposureMode: 'continuous',
+        whiteBalanceMode: 'continuous'
+      }
+    },
+    // Medium quality fallback
+    {
+      video: {
+        facingMode: 'environment',
+        width: { ideal: 1280, min: 640 },
+        height: { ideal: 720, min: 480 },
+        frameRate: { ideal: 24, min: 15 }
+      }
+    },
+    // Basic back camera
+    {
+      video: {
+        facingMode: 'environment',
+        width: { min: 640 },
+        height: { min: 480 }
+      }
+    },
+    // Any back camera
+    {
+      video: {
+        facingMode: 'environment'
+      }
+    }
+  ];
+
+  // Try QR-optimized constraints in order of preference
+  for (const constraints of qrOptimizedConstraints) {
+    try {
+      const result = await requestCameraPermission(constraints);
+      if (result.success) {
+        console.log('🎯 QR-optimized camera activated with constraints:', constraints.video);
+        return result;
+      }
+    } catch (error) {
+      // Continue to next fallback
+      continue;
+    }
+  }
+
+  // Final fallback - any available camera
+  console.warn('⚠️ QR-optimized camera failed, falling back to standard back camera');
+  return requestBackCameraWithFallback('high');
+}

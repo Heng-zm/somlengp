@@ -23,7 +23,8 @@ import {
   checkCameraPermissionDetails,
   stopCameraStream,
   isCameraSupported,
-  isCameraPermissionDenied
+  isCameraPermissionDenied,
+  requestOptimizedCameraForQR
 } from '@/utils/camera-permissions';
 
 export interface UseCameraPermissionOptions {
@@ -62,6 +63,7 @@ export interface UseCameraPermissionReturn {
   requestBackCamera: (quality?: 'low' | 'medium' | 'high' | 'ultra') => Promise<CameraPermissionResult>;
   requestFrontCamera: (quality?: 'low' | 'medium' | 'high' | 'ultra') => Promise<CameraPermissionResult>;
   requestBackCameraWithFallback: (quality?: 'low' | 'medium' | 'high' | 'ultra') => Promise<CameraPermissionResult>;
+  requestOptimizedForQR: () => Promise<CameraPermissionResult>;
   switchFacingMode: (quality?: 'low' | 'medium' | 'high' | 'ultra') => Promise<CameraPermissionResult>;
   stopCamera: () => void;
   refreshDevices: () => Promise<void>;
@@ -240,6 +242,14 @@ export function useCameraPermission(options: UseCameraPermissionOptions = {}): U
     });
   }, [handleRequest]);
 
+  // Request camera optimized for QR scanning
+  const requestOptimizedForQRFn = useCallback(() => {
+    return handleRequest(() => {
+      setCurrentFacingMode('environment');
+      return requestOptimizedCameraForQR();
+    });
+  }, [handleRequest]);
+
   // Switch facing mode
   const switchFacingModeFn = useCallback((quality: 'low' | 'medium' | 'high' | 'ultra' = 'medium') => {
     return handleRequest(() => {
@@ -361,6 +371,7 @@ export function useCameraPermission(options: UseCameraPermissionOptions = {}): U
     requestBackCamera: requestBackCameraFn,
     requestFrontCamera: requestFrontCameraFn,
     requestBackCameraWithFallback: requestBackCameraWithFallbackFn,
+    requestOptimizedForQR: requestOptimizedForQRFn,
     switchFacingMode: switchFacingModeFn,
     stopCamera,
     refreshDevices,
@@ -390,6 +401,34 @@ export function useBackCamera(autoStart = false, quality: 'low' | 'medium' | 'hi
     useFallback: true,
     autoStop: true
   });
+}
+
+// Convenience hook for QR scanner optimized camera
+export function useQRCamera(autoStart = false) {
+  const hook = useCameraPermission({
+    autoRequest: false, // Manual request for better performance
+    facingMode: 'environment',
+    quality: 'high', // Higher quality for better QR detection
+    useFallback: true,
+    autoStop: true
+  });
+
+  // Override with QR-optimized request
+  const requestOptimized = useCallback(async () => {
+    return hook.requestOptimizedForQR();
+  }, [hook]);
+
+  // Auto-start if requested
+  useEffect(() => {
+    if (autoStart && hook.isSupported) {
+      requestOptimized();
+    }
+  }, [autoStart, hook.isSupported, requestOptimized]);
+
+  return {
+    ...hook,
+    requestCamera: requestOptimized
+  };
 }
 
 // Convenience hook for front camera access

@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
-import { QRScanner } from './qr-scanner';
+import { OptimizedQRScanner } from './optimized-qr-scanner';
 import { showSuccessToast, showErrorToast } from '@/lib/toast-utils';
 
 interface QRScannerSheetProps {
@@ -16,9 +16,10 @@ interface QRScannerSheetProps {
 export function QRScannerSheet({ open, onOpenChange, onScanSuccess, onScanError }: QRScannerSheetProps) {
   const [scannedData, setScannedData] = useState<string>('');
 
-  const handleScanSuccess = (data: string) => {
+  const handleScanSuccess = (data: string, location?: any, confidence?: number) => {
     setScannedData(data);
-    showSuccessToast('QR Code Scanned!');
+    const message = confidence ? `QR Code Scanned! (${confidence}% confidence)` : 'QR Code Scanned!';
+    showSuccessToast(message);
     onScanSuccess?.(data);
   };
 
@@ -91,11 +92,15 @@ export function QRScannerSheet({ open, onOpenChange, onScanSuccess, onScanError 
           {!scannedData ? (
             /* Scanner View */
             <div className="space-y-4 pb-6">
-              <QRScanner
+              <OptimizedQRScanner
                 onScanSuccess={handleScanSuccess}
                 onScanError={handleScanError}
                 onClose={handleClose}
                 className="w-full max-w-lg mx-auto"
+                enableVibration={true}
+                enableSound={false}
+                scanRegion="auto"
+                scanQuality="balanced"
               />
             </div>
           ) : (

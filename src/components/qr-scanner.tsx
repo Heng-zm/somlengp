@@ -15,8 +15,10 @@ interface QRScannerProps {
 export function QRScanner({ onScanSuccess, onScanError, onClose, className = '' }: QRScannerProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [isScanning, setIsScanning] = useState(false);
   const [lastScannedData, setLastScannedData] = useState<string>('');
+  const [isProcessingUpload, setIsProcessingUpload] = useState(false);
   const scanIntervalRef = useRef<NodeJS.Timeout>();
 
   const {
@@ -108,16 +110,138 @@ export function QRScanner({ onScanSuccess, onScanError, onClose, className = '' 
     onClose?.();
   };
 
+  const handleUploadClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleFileUpload = useCallback(async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      onScanError?.('Please select a valid image file');
+      return;
+    }
+
+    setIsProcessingUpload(true);
+
+    try {
+      // Create an image element to load the uploaded file
+      const img = new Image();
+      
+      img.onload = () => {
+        try {
+          const canvas = canvasRef.current;
+          if (!canvas) {
+            onScanError?.('Canvas not available for image processing');
+            return;
+          }
+
+          const context = canvas.getContext('2d');
+          if (!context) {
+            onScanError?.('Unable to get canvas context');
+            return;
+          }
+
+          // Set canvas size to match image
+          canvas.width = img.width;
+          canvas.height = img.height;
+
+          // Draw image to canvas
+          context.drawImage(img, 0, 0);
+
+          // Get image data
+          const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
+
+          // Scan for QR codes
+          const code = jsQR(imageData.data, imageData.width, imageData.height, {
+            inversionAttempts: 'dontInvert',
+          });
+
+          if (code && code.data) {
+            setLastScannedData(code.data);
+            onScanSuccess?.(code.data);
+          } else {
+            onScanError?.('No QR code found in the uploaded image');
+          }
+        } catch (error) {
+          console.error('QR code processing error:', error);
+          onScanError?.('Failed to process the uploaded image');
+        } finally {
+          setIsProcessingUpload(false);
+        }
+      };
+
+      img.onerror = () => {
+        onScanError?.('Failed to load the uploaded image');
+        setIsProcessingUpload(false);
+      };
+
+      // Load the image
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        if (e.target?.result) {
+          img.src = e.target.result as string;
+        }
+      };
+      reader.readAsDataURL(file);
+    } catch (error) {
+      console.error('File upload error:', error);
+      onScanError?.('Failed to process the uploaded file');
+      setIsProcessingUpload(false);
+    }
+
+    // Clear the input value to allow re-uploading the same file
+    if (event.target) {
+      event.target.value = '';
+    }
+  }, [onScanSuccess, onScanError]);
+
   if (!isSupported) {
     return (
       <div className={`flex flex-col items-center justify-center p-8 bg-red-50 rounded-lg border border-red-200 ${className}`}>
         <h3 className="text-red-800 font-semibold text-lg mb-2">Camera Not Supported</h3>
         <p className="text-red-700 text-center text-sm mb-4">
-          Camera access is not supported in this browser or requires HTTPS.
+          Camera access is not supported in this browser or requires HTTPS. You can still upload an image to scan for QR codes.
         </p>
-        <Button onClick={onClose} variant="outline">
-          Close
-        </Button>
+        <div className="flex gap-3">
+          <Button
+            onClick={handleUploadClick}
+            disabled={isProcessingUpload}
+            className="bg-blue-600 hover:bg-blue-700 text-white"
+          >
+            {isProcessingUpload ? (
+              <div className="flex items-center gap-2">
+                <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></div>
+                <span>Processing...</span>
+              </div>
+            ) : (
+              <>
+                <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                </svg>
+                Upload Image
+              </>
+            )}
+          </Button>
+          <Button onClick={onClose} variant="outline">
+            Close
+          </Button>
+        </div>
+        
+        {/* Hidden canvas for image processing */}
+        <canvas ref={canvasRef} className="hidden" />
+        
+        {/* Hidden file input for upload */}
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="image/*"
+          onChange={handleFileUpload}
+          className="hidden"
+          aria-label="Upload QR code image"
+        />
       </div>
     );
   }
@@ -179,6 +303,26 @@ export function QRScanner({ onScanSuccess, onScanError, onClose, className = '' 
               </Button>
               
               <Button
+                onClick={handleUploadClick}
+                disabled={isProcessingUpload}
+                className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-xl shadow-lg"
+              >
+                {isProcessingUpload ? (
+                  <div className="flex items-center gap-2">
+                    <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></div>
+                    <span>Processing...</span>
+                  </div>
+                ) : (
+                  <>
+                    <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                    </svg>
+                    Upload
+                  </>
+                )}
+              </Button>
+              
+              <Button
                 onClick={handleStopScanning}
                 variant="destructive"
                 className="px-6 py-2 rounded-xl shadow-lg"
@@ -199,17 +343,29 @@ export function QRScanner({ onScanSuccess, onScanError, onClose, className = '' 
       )}
 
       {/* Loading State */}
-      {isLoading && (
+      {(isLoading || isProcessingUpload) && (
         <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
           <div className="bg-white/20 backdrop-blur-md rounded-xl p-6 text-center">
             <div className="animate-spin rounded-full h-8 w-8 border-2 border-white border-t-transparent mx-auto mb-3"></div>
-            <p className="text-white text-sm">Requesting camera access...</p>
+            <p className="text-white text-sm">
+              {isProcessingUpload ? 'Processing uploaded image...' : 'Requesting camera access...'}
+            </p>
           </div>
         </div>
       )}
 
       {/* Hidden canvas for image processing */}
       <canvas ref={canvasRef} className="hidden" />
+      
+      {/* Hidden file input for upload */}
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="image/*"
+        onChange={handleFileUpload}
+        className="hidden"
+        aria-label="Upload QR code image"
+      />
     </div>
   );
 }
