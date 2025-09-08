@@ -19,9 +19,10 @@ interface FeaturePageLayoutProps {
     children: React.ReactNode;
     title: string;
     showModelSelector?: boolean;
+    rightElement?: React.ReactNode;
 }
 
-export const FeaturePageLayout = React.memo<FeaturePageLayoutProps>(function FeaturePageLayout({ children, title, showModelSelector = false }) {
+export const FeaturePageLayout = React.memo<FeaturePageLayoutProps>(function FeaturePageLayout({ children, title, showModelSelector = false, rightElement }) {
     const langContext = useContext(LanguageContext);
     const pathname = usePathname();
     const { addHistoryItem } = useHistory();
@@ -47,7 +48,9 @@ export const FeaturePageLayout = React.memo<FeaturePageLayoutProps>(function Fea
               </Link>
             </Button>
             <h1 className="text-lg sm:text-xl font-bold">{title}</h1>
-            {showModelSelector ? (
+            {rightElement ? (
+                rightElement
+            ) : showModelSelector ? (
                 <ModelSelector
                     selectedModel={selectedModel}
                     onModelChange={setSelectedModel}
@@ -57,7 +60,7 @@ export const FeaturePageLayout = React.memo<FeaturePageLayoutProps>(function Fea
                 <div className="w-10"></div>
             )}
         </header>
-    ), [title, showModelSelector, selectedModel]);
+    ), [title, showModelSelector, selectedModel, rightElement]);
 
     const mainContent = React.useMemo(() => (
         <div className="flex-grow overflow-y-auto pt-16">

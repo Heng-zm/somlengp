@@ -2,7 +2,7 @@
 'use client';
 
 import { useContext, useMemo, useState, useEffect, useCallback } from 'react';
-import { Mic, FileText, Combine, Image as ImageIcon, Wand2, AudioLines, Sparkles, QrCode, Link, Shield, Scissors, Calculator } from 'lucide-react';
+import { Mic, FileText, Combine, Image as ImageIcon, Wand2, AudioLines, Sparkles, QrCode, Shield, Scissors } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { LanguageContext } from '@/contexts/language-context';
 import { allTranslations } from '@/lib/translations';
@@ -155,10 +155,8 @@ const { language, toggleLanguage, theme, toggleTheme } = langContext;
     { href: '/convert-image-format', title: 'Image Converter', description: 'Change image formats (JPG, PNG, WebP) with optimized compression.', icon: Wand2 },
     
     // New useful tools
-    { href: '/url-shortener', title: 'Link Shortener', description: 'Create short, shareable links from long URLs. Track clicks and analytics.', icon: Link },
     { href: '/password-generator', title: 'Password Gen', description: 'Generate secure, random passwords with customizable length and complexity.', icon: Shield },
     { href: '/text-tools', title: 'Text Utils', description: 'Count words, remove duplicates, format text, and more text manipulation tools.', icon: Scissors },
-    { href: '/calculator', title: 'Smart Calc', description: 'Advanced calculator with scientific functions, unit conversion, and history.', icon: Calculator },
   ], [t]);
   
   const primaryFeature = featureCards[0];
