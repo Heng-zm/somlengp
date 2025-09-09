@@ -90,10 +90,9 @@ class MobileQROptimizer {
         // iOS prefers these specific resolutions
         width: { ideal: 1280, max: 1920 },
         height: { ideal: 720, max: 1080 },
-        frameRate: { ideal: 30, max: 30 },
-        focusMode: 'continuous',
-        exposureMode: 'continuous',
-        whiteBalanceMode: 'continuous'
+        frameRate: { ideal: 30, max: 30 }
+        // Note: focusMode, exposureMode, whiteBalanceMode are not standard MediaTrackConstraints
+        // They might work on some browsers but should be handled via MediaStreamTrack.applyConstraints()
       };
     }
 
@@ -228,8 +227,9 @@ class MobileQROptimizer {
 
       const capabilities = videoTrack.getCapabilities();
       
-      // Check if focus is supported
-      if (!capabilities.focusMode || !capabilities.focusMode.includes('manual')) {
+      // Check if focus is supported (with type assertion for non-standard properties)
+      const extendedCapabilities = capabilities as any;
+      if (!extendedCapabilities.focusMode || !extendedCapabilities.focusMode.includes('manual')) {
         console.log('📱 Manual focus not supported on this device');
         return false;
       }
@@ -253,12 +253,12 @@ class MobileQROptimizer {
       // Keep only recent focus points
       this.focusPoints = this.focusPoints.filter(p => now - p.timestamp < 5000);
 
-      // Apply focus constraints
+      // Apply focus constraints (using type assertion for non-standard properties)
       await videoTrack.applyConstraints({
         advanced: [{
           focusMode: 'manual',
           pointsOfInterest: [{ x: clampedX, y: clampedY }]
-        }]
+        } as any]
       });
 
       console.log(`📱 Touch focus applied at (${clampedX.toFixed(2)}, ${clampedY.toFixed(2)})`);
@@ -375,7 +375,9 @@ class MobileQROptimizer {
       const acceleration = event.accelerationIncludingGravity;
       if (!acceleration) return;
 
-      const { x = 0, y = 0, z = 0 } = acceleration;
+      const x = acceleration.x ?? 0;
+      const y = acceleration.y ?? 0;
+      const z = acceleration.z ?? 0;
 
       if (lastAcceleration) {
         const deltaX = Math.abs(x - lastAcceleration.x);

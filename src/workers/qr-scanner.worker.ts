@@ -7,19 +7,21 @@
 // For production, you might need to use importScripts or a different import method
 import jsQR from 'jsqr';
 
+interface QRScanOptions {
+  inversionAttempts?: 'dontInvert' | 'onlyInvert' | 'attemptBoth' | 'invertFirst';
+  locateOptions?: {
+    skipUntilFound?: boolean;
+    assumeSquare?: boolean;
+    centerROI?: boolean;
+    maxFinderPatternStdDev?: number;
+  };
+}
+
 interface QRWorkerMessage {
   type: 'scan' | 'init' | 'destroy';
   data?: {
     imageData?: ImageData;
-    options?: {
-      inversionAttempts?: 'dontInvert' | 'onlyInvert' | 'attemptBoth' | 'invertFirst';
-      locateOptions?: {
-        skipUntilFound?: boolean;
-        assumeSquare?: boolean;
-        centerROI?: boolean;
-        maxFinderPatternStdDev?: number;
-      };
-    };
+    options?: QRScanOptions;
   };
   id?: string;
 }
@@ -30,10 +32,14 @@ interface QRWorkerResponse {
     qrCode?: {
       data: string;
       location: {
-        topLeft: { x: number; y: number };
-        topRight: { x: number; y: number };
-        bottomLeft: { x: number; y: number };
-        bottomRight: { x: number; y: number };
+        topLeftCorner: { x: number; y: number };
+        topRightCorner: { x: number; y: number };
+        bottomLeftCorner: { x: number; y: number };
+        bottomRightCorner: { x: number; y: number };
+        topLeftFinderPattern: { x: number; y: number };
+        topRightFinderPattern: { x: number; y: number };
+        bottomLeftFinderPattern: { x: number; y: number };
+        bottomRightAlignmentPattern?: { x: number; y: number };
       };
       binaryData: number[];
     } | null;
@@ -154,7 +160,7 @@ function extractROI(imageData: ImageData, roi: { x: number; y: number; width: nu
 }
 
 // Enhanced QR scanning with multiple techniques
-function scanQRCodeEnhanced(imageData: ImageData, options: QRWorkerMessage['data']['options'] = {}): QRWorkerResponse['data'] {
+function scanQRCodeEnhanced(imageData: ImageData, options: QRScanOptions = {}): QRWorkerResponse['data'] {
   const startTime = performance.now();
   
   try {
@@ -192,22 +198,40 @@ function scanQRCodeEnhanced(imageData: ImageData, options: QRWorkerMessage['data
         result = {
           ...roiResult,
           location: {
-            topLeft: {
-              x: roiResult.location.topLeft.x + roi.x,
-              y: roiResult.location.topLeft.y + roi.y
+            topLeftCorner: {
+              x: roiResult.location.topLeftCorner.x + roi.x,
+              y: roiResult.location.topLeftCorner.y + roi.y
             },
-            topRight: {
-              x: roiResult.location.topRight.x + roi.x,
-              y: roiResult.location.topRight.y + roi.y
+            topRightCorner: {
+              x: roiResult.location.topRightCorner.x + roi.x,
+              y: roiResult.location.topRightCorner.y + roi.y
             },
-            bottomLeft: {
-              x: roiResult.location.bottomLeft.x + roi.x,
-              y: roiResult.location.bottomLeft.y + roi.y
+            bottomLeftCorner: {
+              x: roiResult.location.bottomLeftCorner.x + roi.x,
+              y: roiResult.location.bottomLeftCorner.y + roi.y
             },
-            bottomRight: {
-              x: roiResult.location.bottomRight.x + roi.x,
-              y: roiResult.location.bottomRight.y + roi.y
-            }
+            bottomRightCorner: {
+              x: roiResult.location.bottomRightCorner.x + roi.x,
+              y: roiResult.location.bottomRightCorner.y + roi.y
+            },
+            topLeftFinderPattern: {
+              x: roiResult.location.topLeftFinderPattern.x + roi.x,
+              y: roiResult.location.topLeftFinderPattern.y + roi.y
+            },
+            topRightFinderPattern: {
+              x: roiResult.location.topRightFinderPattern.x + roi.x,
+              y: roiResult.location.topRightFinderPattern.y + roi.y
+            },
+            bottomLeftFinderPattern: {
+              x: roiResult.location.bottomLeftFinderPattern.x + roi.x,
+              y: roiResult.location.bottomLeftFinderPattern.y + roi.y
+            },
+            ...(roiResult.location.bottomRightAlignmentPattern && {
+              bottomRightAlignmentPattern: {
+                x: roiResult.location.bottomRightAlignmentPattern.x + roi.x,
+                y: roiResult.location.bottomRightAlignmentPattern.y + roi.y
+              }
+            })
           }
         };
       }
@@ -308,8 +332,9 @@ self.onmessage = function(event: MessageEvent<QRWorkerMessage>) {
 // Handle worker errors
 self.onerror = function(error) {
   console.error('QR Worker error:', error);
+  const errorMessage = error instanceof ErrorEvent ? error.message : String(error);
   self.postMessage({
     type: 'error',
-    data: { error: error.message }
+    data: { error: errorMessage }
   } as QRWorkerResponse);
 };

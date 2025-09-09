@@ -5,19 +5,36 @@
 
 import { useEffect, useRef, useCallback, useState } from 'react';
 
+interface QRScanOptions {
+  inversionAttempts?: 'dontInvert' | 'onlyInvert' | 'attemptBoth' | 'invertFirst';
+  locateOptions?: {
+    skipUntilFound?: boolean;
+    assumeSquare?: boolean;
+    centerROI?: boolean;
+    maxFinderPatternStdDev?: number;
+  };
+}
+
+interface QRCodeResult {
+  data: string;
+  location: {
+    topLeftCorner: { x: number; y: number };
+    topRightCorner: { x: number; y: number };
+    bottomLeftCorner: { x: number; y: number };
+    bottomRightCorner: { x: number; y: number };
+    topLeftFinderPattern: { x: number; y: number };
+    topRightFinderPattern: { x: number; y: number };
+    bottomLeftFinderPattern: { x: number; y: number };
+    bottomRightAlignmentPattern?: { x: number; y: number };
+  };
+  binaryData: number[];
+}
+
 interface QRWorkerMessage {
   type: 'scan' | 'init' | 'destroy';
   data?: {
     imageData?: ImageData;
-    options?: {
-      inversionAttempts?: 'dontInvert' | 'onlyInvert' | 'attemptBoth' | 'invertFirst';
-      locateOptions?: {
-        skipUntilFound?: boolean;
-        assumeSquare?: boolean;
-        centerROI?: boolean;
-        maxFinderPatternStdDev?: number;
-      };
-    };
+    options?: QRScanOptions;
   };
   id?: string;
 }
@@ -28,10 +45,14 @@ interface QRWorkerResponse {
     qrCode?: {
       data: string;
       location: {
-        topLeft: { x: number; y: number };
-        topRight: { x: number; y: number };
-        bottomLeft: { x: number; y: number };
-        bottomRight: { x: number; y: number };
+        topLeftCorner: { x: number; y: number };
+        topRightCorner: { x: number; y: number };
+        bottomLeftCorner: { x: number; y: number };
+        bottomRightCorner: { x: number; y: number };
+        topLeftFinderPattern: { x: number; y: number };
+        topRightFinderPattern: { x: number; y: number };
+        bottomLeftFinderPattern: { x: number; y: number };
+        bottomRightAlignmentPattern?: { x: number; y: number };
       };
       binaryData: number[];
     } | null;
@@ -58,8 +79,8 @@ interface UseQRWorkerReturn {
   /** Worker initialization error */
   error: string | null;
   /** Scan QR code from image data */
-  scanQR: (imageData: ImageData, options?: QRWorkerMessage['data']['options']) => Promise<{
-    qrCode: QRWorkerResponse['data']['qrCode'];
+  scanQR: (imageData: ImageData, options?: QRScanOptions) => Promise<{
+    qrCode: QRCodeResult | null;
     processingTime: number;
   }>;
   /** Initialize the worker */
@@ -259,8 +280,8 @@ export function useQRWorker(options: UseQRWorkerOptions = {}): UseQRWorkerReturn
   // Scan QR code
   const scanQR = useCallback(async (
     imageData: ImageData, 
-    scanOptions: QRWorkerMessage['data']['options'] = {}
-  ): Promise<{ qrCode: QRWorkerResponse['data']['qrCode']; processingTime: number }> => {
+    scanOptions: QRScanOptions = {}
+  ): Promise<{ qrCode: QRCodeResult | null; processingTime: number }> => {
     if (!workerRef.current || !isReady) {
       throw new Error('Worker not ready. Call initWorker() first.');
     }
