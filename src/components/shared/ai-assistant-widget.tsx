@@ -189,7 +189,7 @@ export const AIAssistantWidget = memo(function AIAssistantWidget({ className, va
         <Button
           size="lg"
           onClick={() => setIsOpen(true)}
-          className="h-12 w-12 sm:h-14 sm:w-14 rounded-full bg-gradient-to-r from-violet-500 via-purple-500 to-indigo-500 hover:from-violet-600 hover:via-purple-600 hover:to-indigo-600 active:from-violet-700 active:via-purple-700 active:to-indigo-700 shadow-lg shadow-violet-500/30 hover:shadow-xl hover:shadow-violet-500/40 transition-all duration-300 min-h-[48px] min-w-[48px] transform hover:scale-110 active:scale-95 backdrop-blur-sm border border-violet-400/20 hover:border-violet-300/30"
+          className="h-12 w-12 sm:h-14 sm:w-14 rounded-full bg-gradient-to-r from-gray-700 via-gray-800 to-black hover:from-gray-600 hover:via-gray-700 hover:to-gray-900 active:from-gray-800 active:via-gray-900 active:to-black shadow-lg shadow-gray-500/30 hover:shadow-xl hover:shadow-gray-500/40 transition-all duration-300 min-h-[48px] min-w-[48px] transform hover:scale-110 active:scale-95 backdrop-blur-sm border border-gray-400/20 hover:border-gray-300/30"
           title="Open AI Assistant"
           aria-label="Open AI Assistant chat"
         >
@@ -218,13 +218,13 @@ export const AIAssistantWidget = memo(function AIAssistantWidget({ className, va
         <CardHeader className="p-4 pb-2">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-2">
-              <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
+              <div className="w-8 h-8 bg-gradient-to-br from-gray-600 to-black rounded-full flex items-center justify-center">
                 <Sparkles className="w-4 h-4 text-white" />
               </div>
               <div>
                 <CardTitle className="text-sm font-semibold">AI Assistant</CardTitle>
                 <div className="flex items-center space-x-1">
-                  <Badge variant="outline" className="text-xs px-2 py-0 h-5 bg-green-50 text-green-700 border-green-200 dark:bg-green-950/20 dark:text-green-400 dark:border-green-800">
+                  <Badge variant="outline" className="text-xs px-2 py-0 h-5 bg-gray-50 text-gray-700 border-gray-200 dark:bg-gray-800/50 dark:text-gray-300 dark:border-gray-700">
                     Online
                   </Badge>
                 </div>
@@ -235,7 +235,7 @@ export const AIAssistantWidget = memo(function AIAssistantWidget({ className, va
                 variant="ghost"
                 size="sm"
                 onClick={() => setIsExpanded(!isExpanded)}
-                className="h-8 w-8 p-0 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-600 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200 transition-all duration-200 hover:scale-105 active:scale-95"
+                className="h-8 w-8 p-0 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-600 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200 transition-all duration-200 hover:scale-105 active:scale-95"
                 title={isExpanded ? "Minimize window" : "Maximize window"}
                 aria-label={isExpanded ? "Minimize window" : "Maximize window"}
               >
@@ -249,7 +249,7 @@ export const AIAssistantWidget = memo(function AIAssistantWidget({ className, va
                 variant="ghost"
                 size="sm"
                 onClick={openFullAssistant}
-                className="h-8 w-8 p-0 rounded-lg hover:bg-violet-100 dark:hover:bg-violet-900/20 text-slate-600 hover:text-violet-700 dark:text-slate-400 dark:hover:text-violet-400 transition-all duration-200 hover:scale-105 active:scale-95"
+                className="h-8 w-8 p-0 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700/50 text-gray-600 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200 transition-all duration-200 hover:scale-105 active:scale-95"
                 title="Open full AI Assistant page"
                 aria-label="Open full AI Assistant page"
               >
@@ -259,7 +259,7 @@ export const AIAssistantWidget = memo(function AIAssistantWidget({ className, va
                 variant="ghost"
                 size="sm"
                 onClick={() => setIsOpen(false)}
-                className="h-8 w-8 p-0 rounded-lg hover:bg-red-100 dark:hover:bg-red-900/20 text-slate-600 hover:text-red-700 dark:text-slate-400 dark:hover:text-red-400 transition-all duration-200 hover:scale-105 active:scale-95"
+                className="h-8 w-8 p-0 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700/50 text-gray-600 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200 transition-all duration-200 hover:scale-105 active:scale-95"
                 title="Close AI Assistant"
                 aria-label="Close AI Assistant"
               >
@@ -293,11 +293,11 @@ export const AIAssistantWidget = memo(function AIAssistantWidget({ className, va
                   >
                     <Avatar className="w-6 h-6 flex-shrink-0 ring-1 ring-white/20">
                       {message.role === 'user' ? (
-                        <AvatarFallback className="bg-blue-500 text-white text-xs">
+                        <AvatarFallback className="bg-gray-600 text-white text-xs">
                           <User className="w-3 h-3" />
                         </AvatarFallback>
                       ) : (
-                        <AvatarFallback className="bg-gradient-to-br from-purple-500 to-blue-600 text-white text-xs">
+                        <AvatarFallback className="bg-gradient-to-br from-gray-700 to-black text-white text-xs">
                           <Bot className="w-3 h-3" />
                         </AvatarFallback>
                       )}
@@ -311,7 +311,7 @@ export const AIAssistantWidget = memo(function AIAssistantWidget({ className, va
                         <div className={cn(
                           "rounded-lg p-2 text-xs relative",
                           message.role === 'user'
-                            ? "bg-blue-500 text-white"
+                            ? "bg-gray-700 text-white"
                             : "bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-100"
                         )}>
                           <div className="whitespace-pre-wrap break-words">
@@ -328,8 +328,8 @@ export const AIAssistantWidget = memo(function AIAssistantWidget({ className, va
                               "opacity-100 sm:opacity-0 sm:group-hover:opacity-100",
                               // Styling based on message role
                               message.role === 'user'
-                                ? "bg-blue-600/90 hover:bg-blue-500/95 text-white shadow-sm shadow-blue-500/30 border border-blue-400/30"
-                                : "bg-white/95 dark:bg-slate-700/90 hover:bg-slate-50 dark:hover:bg-slate-600/90 text-slate-600 dark:text-slate-300 shadow-sm shadow-slate-500/15 border border-slate-200/70 dark:border-slate-600/70"
+                                ? "bg-gray-700/90 hover:bg-gray-600/95 text-white shadow-sm shadow-gray-500/30 border border-gray-400/30"
+                                : "bg-white/95 dark:bg-gray-700/90 hover:bg-gray-50 dark:hover:bg-gray-600/90 text-gray-600 dark:text-gray-300 shadow-sm shadow-gray-500/15 border border-gray-200/70 dark:border-gray-600/70"
                             )}
                             onClick={() => copyMessage(message.content)}
                             title="Copy message"
@@ -362,7 +362,7 @@ export const AIAssistantWidget = memo(function AIAssistantWidget({ className, va
                   className="flex items-start space-x-2"
                 >
                   <Avatar className="w-6 h-6">
-                    <AvatarFallback className="bg-gradient-to-br from-purple-500 to-blue-600 text-white text-xs">
+                    <AvatarFallback className="bg-gradient-to-br from-gray-700 to-black text-white text-xs">
                       <Bot className="w-3 h-3" />
                     </AvatarFallback>
                   </Avatar>
@@ -396,7 +396,7 @@ export const AIAssistantWidget = memo(function AIAssistantWidget({ className, va
                 size="sm"
                 onClick={sendMessage}
                 disabled={!input.trim() || isLoading}
-                className="min-h-[44px] min-w-[44px] sm:h-8 sm:w-8 p-0 rounded-lg bg-gradient-to-r from-violet-500 to-purple-500 hover:from-violet-600 hover:to-purple-600 active:from-violet-700 active:to-purple-700 shadow-sm shadow-violet-500/25 hover:shadow-md hover:shadow-violet-500/30 transition-all duration-200 disabled:opacity-50 disabled:shadow-none disabled:cursor-not-allowed transform hover:scale-105 active:scale-95 backdrop-blur-sm border border-violet-400/20 hover:border-violet-300/30"
+                className="min-h-[44px] min-w-[44px] sm:h-8 sm:w-8 p-0 rounded-lg bg-gradient-to-r from-gray-700 to-black hover:from-gray-600 hover:to-gray-900 active:from-gray-800 active:to-black shadow-sm shadow-gray-500/25 hover:shadow-md hover:shadow-gray-500/30 transition-all duration-200 disabled:opacity-50 disabled:shadow-none disabled:cursor-not-allowed transform hover:scale-105 active:scale-95 backdrop-blur-sm border border-gray-400/20 hover:border-gray-300/30"
                 title={isLoading ? "Sending message..." : "Send message"}
                 aria-label={isLoading ? "Sending message..." : "Send message"}
               >
