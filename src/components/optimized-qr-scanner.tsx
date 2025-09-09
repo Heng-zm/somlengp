@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { useQRCamera } from '@/hooks/use-camera-permission';
 import { useQRScannerWorker } from '@/hooks/use-qr-worker';
 import { qrPerformanceMonitor } from '@/utils/qr-performance';
+import { Upload } from 'lucide-react';
 
 interface OptimizedQRScannerProps {
   onScanSuccess?: (data: string, location?: any, confidence?: number) => void;
@@ -424,15 +425,13 @@ export function OptimizedQRScanner({
           <Button
             onClick={() => fileInputRef.current?.click()}
             disabled={isProcessingUpload || !workerReady}
-            className="bg-blue-600 hover:bg-blue-700 text-white"
+            className="bg-transparent hover:bg-white/20 text-white p-3 rounded-xl shadow-lg border border-white/30 backdrop-blur-sm"
+            size="icon"
           >
             {isProcessingUpload ? (
-              <div className="flex items-center gap-2">
-                <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></div>
-                <span>Processing...</span>
-              </div>
+              <div className="animate-spin rounded-full h-5 w-5 border-2 border-white border-t-transparent"></div>
             ) : (
-              <>📤 Upload Image</>
+              <Upload className="h-5 w-5" />
             )}
           </Button>
           <Button onClick={onClose} variant="outline">Close</Button>
@@ -527,33 +526,18 @@ export function OptimizedQRScanner({
 
         {/* Control buttons overlay - Only show when camera stream is available */}
         {stream && (
-          <div className="absolute bottom-4 left-0 right-0 flex justify-center gap-3 px-4">
-            <Button
-              onClick={isScanning ? stopScanning : startScanning}
-              disabled={!workerReady}
-              className={`px-6 py-2 rounded-xl shadow-lg ${
-                isScanning 
-                  ? 'bg-orange-600 hover:bg-orange-700' 
-                  : 'bg-green-600 hover:bg-green-700'
-              } text-white`}
-            >
-              {isScanning ? '⏸️ Pause' : '▶️ Scan'}
-            </Button>
-            
+          <div className="absolute bottom-4 right-4">
             <Button
               onClick={() => fileInputRef.current?.click()}
               disabled={isProcessingUpload || !workerReady}
-              className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-xl shadow-lg"
+              className="bg-transparent hover:bg-white/20 text-white p-3 rounded-xl shadow-lg border border-white/30 backdrop-blur-sm"
+              size="icon"
             >
-              {isProcessingUpload ? '⏳ Processing...' : '📤 Upload'}
-            </Button>
-            
-            <Button
-              onClick={handleStopScanning}
-              variant="destructive"
-              className="px-6 py-2 rounded-xl shadow-lg"
-            >
-              ❌ Stop
+              {isProcessingUpload ? (
+                <div className="animate-spin rounded-full h-5 w-5 border-2 border-white border-t-transparent"></div>
+              ) : (
+                <Upload className="h-5 w-5" />
+              )}
             </Button>
           </div>
         )}
