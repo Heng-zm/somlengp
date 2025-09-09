@@ -142,19 +142,19 @@ export default function LoginPage() {
   }, [form]);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-blue-50 dark:from-gray-900 dark:via-gray-800 dark:to-blue-900 animate-gradient-x">
+    <div className="min-h-screen bg-gradient-to-br from-gray-100 via-white to-gray-50 dark:from-black dark:via-gray-900 dark:to-gray-800">
       {/* Back button */}
       <div className="absolute top-4 left-4 z-10">
         <BackIconButton 
-          className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border border-white/20 dark:border-gray-700/20 shadow-lg" 
+          className="bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm border border-gray-200 dark:border-gray-700 shadow-lg" 
         />
       </div>
 
       {/* Background decorative elements */}
       <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute -top-40 -right-32 w-80 h-80 bg-gradient-to-br from-blue-400/20 to-purple-400/20 rounded-full blur-3xl animate-float" />
-        <div className="absolute -bottom-32 -left-40 w-96 h-96 bg-gradient-to-br from-purple-400/20 to-pink-400/20 rounded-full blur-3xl animate-float" style={{animationDelay: '1s'}} />
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full bg-grid-gray-100 dark:bg-grid-gray-800 opacity-50" />
+        <div className="absolute -top-40 -right-32 w-80 h-80 bg-gradient-to-br from-gray-300/10 to-gray-400/10 dark:from-gray-600/10 dark:to-gray-700/10 rounded-full blur-3xl animate-float" />
+        <div className="absolute -bottom-32 -left-40 w-96 h-96 bg-gradient-to-br from-gray-400/10 to-gray-500/10 dark:from-gray-700/10 dark:to-gray-800/10 rounded-full blur-3xl animate-float" style={{animationDelay: '1s'}} />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full bg-grid-gray-100 dark:bg-grid-gray-800 opacity-30" />
       </div>
 
       {/* Main container */}
@@ -162,11 +162,11 @@ export default function LoginPage() {
         <div className="w-full max-w-md">
 
           {/* Login card */}
-          <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl rounded-2xl shadow-2xl border border-white/20 dark:border-gray-700/20 p-8 will-change-transform">
+          <div className="bg-white/95 dark:bg-gray-800/95 backdrop-blur-xl rounded-2xl shadow-2xl border border-gray-200 dark:border-gray-700 p-8 will-change-transform">
             {/* Header */}
             <div className="text-center mb-8 login-field-group animate-fade-in-up" style={{animationDelay: '0.1s'}}>
-              <div className="mx-auto w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl flex items-center justify-center mb-6 shadow-lg animate-glow hover-scale">
-                <LogIn className="h-8 w-8 text-white icon-spin-on-hover" />
+              <div className="mx-auto w-16 h-16 bg-gradient-to-br from-gray-800 to-black dark:from-gray-200 dark:to-white rounded-2xl flex items-center justify-center mb-6 shadow-lg hover-scale">
+                <LogIn className="h-8 w-8 text-white dark:text-gray-800 icon-spin-on-hover" />
               </div>
               
               <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
@@ -182,7 +182,7 @@ export default function LoginPage() {
               onClick={handleGoogleSignIn}
               disabled={isLoading}
               variant="outline"
-              className="w-full h-12 mb-6 bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700 transition-all duration-200 login-field-group animate-slide-in-right hover-lift btn-press-feedback"
+              className="w-full h-12 mb-6 bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700 transition-all duration-200 login-field-group animate-slide-in-right hover-lift btn-press-feedback"
               style={{animationDelay: '0.2s'}}
             >
               <GoogleIcon />
@@ -224,12 +224,12 @@ export default function LoginPage() {
                               type="email"
                               autoComplete="email"
                               placeholder="Enter your email"
-                              className={cn(
-                                "pl-10 h-11 bg-gray-50 dark:bg-gray-700/50 border-gray-200 dark:border-gray-600 rounded-lg",
-                                "focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all focus-ring-animated hover-lift",
-                                "text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500",
-                                fieldState.error && "border-red-400 focus:border-red-400 focus:ring-red-400/20 error-shake"
-                              )}
+                className={cn(
+                  "pl-10 h-11 bg-gray-50 dark:bg-gray-700 border-gray-300 dark:border-gray-600 rounded-lg",
+                  "focus:border-gray-600 dark:focus:border-gray-400 focus:ring-2 focus:ring-gray-500/20 transition-all focus-ring-animated hover-lift",
+                  "text-gray-900 dark:text-white placeholder:text-gray-500 dark:placeholder:text-gray-400",
+                  fieldState.error && "border-red-400 focus:border-red-400 focus:ring-red-400/20 error-shake"
+                )}
                             />
                           </div>
                         </FormControl>
@@ -257,12 +257,12 @@ export default function LoginPage() {
                               type={showPassword ? "text" : "password"}
                               autoComplete="current-password"
                               placeholder="Enter your password"
-                              className={cn(
-                                "pl-10 pr-10 h-11 bg-gray-50 dark:bg-gray-700/50 border-gray-200 dark:border-gray-600 rounded-lg",
-                                "focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all focus-ring-animated hover-lift",
-                                "text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500",
-                                fieldState.error && "border-red-400 focus:border-red-400 focus:ring-red-400/20 error-shake"
-                              )}
+                className={cn(
+                  "pl-10 pr-10 h-11 bg-gray-50 dark:bg-gray-700 border-gray-300 dark:border-gray-600 rounded-lg",
+                  "focus:border-gray-600 dark:focus:border-gray-400 focus:ring-2 focus:ring-gray-500/20 transition-all focus-ring-animated hover-lift",
+                  "text-gray-900 dark:text-white placeholder:text-gray-500 dark:placeholder:text-gray-400",
+                  fieldState.error && "border-red-400 focus:border-red-400 focus:ring-red-400/20 error-shake"
+                )}
                             />
                             <button
                               type="button"
@@ -299,7 +299,7 @@ export default function LoginPage() {
 
                   <AlertDialog open={showResetDialog} onOpenChange={setShowResetDialog}>
                     <AlertDialogTrigger asChild>
-                      <Button variant="link" className="px-0 text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 text-sm font-medium hover-lift transition-all">
+                      <Button variant="link" className="px-0 text-gray-700 hover:text-black dark:text-gray-300 dark:hover:text-white text-sm font-medium hover-lift transition-all">
                         Forgot password?
                       </Button>
                     </AlertDialogTrigger>
@@ -323,7 +323,7 @@ export default function LoginPage() {
                         <AlertDialogCancel className="hover-lift btn-press-feedback transition-all">Cancel</AlertDialogCancel>
                         <AlertDialogAction 
                           onClick={handlePasswordReset}
-                          className="bg-blue-600 hover:bg-blue-700 text-white hover-lift btn-press-feedback transition-all"
+                          className="bg-gray-800 hover:bg-black dark:bg-gray-200 dark:hover:bg-white text-white dark:text-gray-800 hover-lift btn-press-feedback transition-all"
                         >
                           Send Reset Link
                         </AlertDialogAction>
@@ -337,7 +337,7 @@ export default function LoginPage() {
                   <Button
                     type="submit"
                     disabled={isLoading}
-                    className="w-full h-12 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold rounded-lg shadow-lg hover:shadow-xl transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed hover-lift btn-press-feedback will-change-transform"
+                    className="w-full h-12 bg-gradient-to-r from-gray-800 to-black hover:from-gray-900 hover:to-gray-800 dark:from-gray-200 dark:to-white dark:hover:from-gray-100 dark:hover:to-gray-200 text-white dark:text-gray-800 font-semibold rounded-lg shadow-lg hover:shadow-xl transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed hover-lift btn-press-feedback will-change-transform"
                   >
                     {isLoading ? (
                       <>
@@ -361,7 +361,7 @@ export default function LoginPage() {
                 New to our platform?{' '}
                 <Link
                   href="/signup"
-                  className="text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 font-medium transition-colors duration-200 hover-lift"
+                  className="text-gray-700 hover:text-black dark:text-gray-300 dark:hover:text-white font-medium transition-colors duration-200 hover-lift"
                 >
                   Create an account
                 </Link>

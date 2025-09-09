@@ -32,25 +32,26 @@ export function CopyButton({ text, className, size = 'default' }: CopyButtonProp
   };
 
   return (
-    <Button
-      variant="outline"
-      size={size}
-      onClick={copyToClipboard}
-      className={cn("min-w-[80px]", className)}
-      disabled={!text}
-    >
-      {copied ? (
-        <>
-          <Check className="w-4 h-4 mr-1" />
-          Copied
-        </>
-      ) : (
-        <>
-          <Copy className="w-4 h-4 mr-1" />
-          Copy
-        </>
-      )}
-    </Button>
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <Button
+          variant="outline"
+          size={size}
+          onClick={copyToClipboard}
+          className={cn("h-9 w-9 p-0", className)}
+          disabled={!text}
+        >
+          {copied ? (
+            <Check className="w-4 h-4" />
+          ) : (
+            <Copy className="w-4 h-4" />
+          )}
+        </Button>
+      </TooltipTrigger>
+      <TooltipContent>
+        {copied ? 'Copied!' : 'Copy to clipboard'}
+      </TooltipContent>
+    </Tooltip>
   );
 }
 
@@ -220,10 +221,10 @@ export function TextInputArea({
 
   return (
     <Card className={cn(
-      "w-full bg-gradient-to-br from-white via-slate-50/50 to-blue-50/20 backdrop-blur-md border border-slate-200/40 rounded-2xl",
-      "shadow-lg shadow-slate-200/30 hover:shadow-xl hover:shadow-blue-500/10 hover:border-blue-300/40 transition-all duration-300",
+      "w-full bg-gradient-to-br from-white via-gray-50/50 to-gray-100/20 backdrop-blur-md border border-gray-200/40 rounded-2xl",
+      "shadow-lg shadow-gray-200/30 hover:shadow-xl hover:shadow-gray-500/10 hover:border-gray-300/40 transition-all duration-300",
       "ring-1 ring-white/60",
-      isDragOver && "border-blue-400 bg-blue-50/30 shadow-blue-500/20"
+      isDragOver && "border-gray-400 bg-gray-50/30 shadow-gray-500/20"
     )}>
       <CardHeader className="pb-4">
         <div className="flex items-center justify-between">
@@ -231,12 +232,12 @@ export function TextInputArea({
             "text-lg font-bold bg-gradient-to-r from-slate-800 to-slate-700 bg-clip-text text-transparent",
             "flex items-center gap-3"
           )}>
-            <div className="p-1.5 bg-gradient-to-br from-blue-100 to-indigo-100 rounded-lg">
-              <FileText className="w-4 h-4 text-blue-600" />
+            <div className="p-1.5 bg-gradient-to-br from-gray-100 to-gray-200 rounded-lg">
+              <FileText className="w-4 h-4 text-gray-600" />
             </div>
             {title}
             {value && (
-              <Badge variant="outline" className="text-xs font-medium bg-gradient-to-r from-blue-50 to-indigo-50 text-blue-700 border-blue-200/60 px-2.5 py-0.5">
+              <Badge variant="outline" className="text-xs font-medium bg-gradient-to-r from-gray-50 to-gray-100 text-gray-700 border-gray-200/60 px-2.5 py-0.5">
                 {value.length} chars
               </Badge>
             )}
@@ -260,7 +261,7 @@ export function TextInputArea({
                       onClick={() => fileInputRef.current?.click()}
                       disabled={uploadStatus === 'uploading'}
                       className={cn(
-                        "h-9 px-3.5 text-xs font-semibold rounded-xl transition-all duration-300 backdrop-blur-sm ring-1 ring-white/40",
+                        "h-9 w-9 p-0 rounded-xl transition-all duration-300 backdrop-blur-sm ring-1 ring-white/40",
                         uploadStatus === 'success' && "bg-green-50 border-green-300/60 text-green-700 hover:bg-green-100",
                         uploadStatus === 'error' && "bg-red-50 border-red-300/60 text-red-700 hover:bg-red-100",
                         uploadStatus === 'uploading' && "bg-blue-50 border-blue-300/60 text-blue-700",
@@ -268,33 +269,25 @@ export function TextInputArea({
                       )}
                     >
                       {uploadStatus === 'uploading' ? (
-                        <>
-                          <Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin" />
-                          Uploading
-                        </>
+                        <Loader2 className="w-3.5 h-3.5 animate-spin" />
                       ) : uploadStatus === 'success' ? (
-                        <>
-                          <Check className="w-3.5 h-3.5 mr-1.5" />
-                          Uploaded
-                        </>
+                        <Check className="w-3.5 h-3.5" />
                       ) : uploadStatus === 'error' ? (
-                        <>
-                          <AlertCircle className="w-3.5 h-3.5 mr-1.5" />
-                          Error
-                        </>
+                        <AlertCircle className="w-3.5 h-3.5" />
                       ) : (
-                        <>
-                          <Upload className="w-3.5 h-3.5 mr-1.5" />
-                          Upload
-                        </>
+                        <Upload className="w-3.5 h-3.5" />
                       )}
                     </Button>
                   </TooltipTrigger>
                   <TooltipContent>
                     <div className="text-xs">
-                      <p>Upload text files (Max: {maxFileSize}MB)</p>
-                      <p>Supported: {supportedFormats.slice(0, 5).join(', ')} and more</p>
-                      <p className="text-slate-400 mt-1">Or drag and drop files below</p>
+                      <p>{uploadStatus === 'uploading' ? 'Uploading...' : uploadStatus === 'success' ? 'Upload successful!' : uploadStatus === 'error' ? 'Upload failed' : 'Upload text files'}</p>
+                      {uploadStatus === 'idle' && (
+                        <>
+                          <p>Max: {maxFileSize}MB</p>
+                          <p className="text-slate-400 mt-1">Supported: {supportedFormats.slice(0, 3).join(', ')} and more</p>
+                        </>
+                      )}
                     </div>
                   </TooltipContent>
                 </Tooltip>
@@ -302,35 +295,47 @@ export function TextInputArea({
             )}
             {value && (
               <>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={downloadText}
-                  className={cn(
-                    "h-9 px-3.5 text-xs font-semibold rounded-xl",
-                    "bg-white/80 border-slate-200/60 hover:bg-green-50 hover:border-green-300/60",
-                    "hover:text-green-700 hover:shadow-md hover:shadow-green-500/10 transition-all duration-300",
-                    "backdrop-blur-sm ring-1 ring-white/40"
-                  )}
-                >
-                  <Download className="w-3.5 h-3.5 mr-1.5" />
-                  Download
-                </Button>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={downloadText}
+                      className={cn(
+                        "h-9 w-9 p-0 rounded-xl",
+                        "bg-white/80 border-slate-200/60 hover:bg-green-50 hover:border-green-300/60",
+                        "hover:text-green-700 hover:shadow-md hover:shadow-green-500/10 transition-all duration-300",
+                        "backdrop-blur-sm ring-1 ring-white/40"
+                      )}
+                    >
+                      <Download className="w-3.5 h-3.5" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    Download as text file
+                  </TooltipContent>
+                </Tooltip>
                 {!readOnly && (
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={handleClear}
-                    className={cn(
-                      "h-9 px-3.5 text-xs font-semibold rounded-xl",
-                      "bg-white/80 border-slate-200/60 hover:bg-red-50 hover:border-red-300/60",
-                      "hover:text-red-700 hover:shadow-md hover:shadow-red-500/10 transition-all duration-300",
-                      "backdrop-blur-sm ring-1 ring-white/40"
-                    )}
-                  >
-                    <Trash2 className="w-3.5 h-3.5 mr-1.5" />
-                    Clear
-                  </Button>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={handleClear}
+                        className={cn(
+                          "h-9 w-9 p-0 rounded-xl",
+                          "bg-white/80 border-slate-200/60 hover:bg-red-50 hover:border-red-300/60",
+                          "hover:text-red-700 hover:shadow-md hover:shadow-red-500/10 transition-all duration-300",
+                          "backdrop-blur-sm ring-1 ring-white/40"
+                        )}
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      Clear all text
+                    </TooltipContent>
+                  </Tooltip>
                 )}
               </>
             )}
@@ -505,8 +510,8 @@ export function TextOutputArea({
 
   return (
     <Card className={cn(
-      "w-full bg-gradient-to-br from-white via-emerald-50/40 to-blue-50/30 backdrop-blur-md border border-emerald-200/30 rounded-2xl",
-      "shadow-lg shadow-emerald-200/20 hover:shadow-xl hover:shadow-emerald-500/10 hover:border-emerald-300/40 transition-all duration-300",
+      "w-full bg-gradient-to-br from-white via-gray-50/40 to-gray-100/30 backdrop-blur-md border border-gray-200/30 rounded-2xl",
+      "shadow-lg shadow-gray-200/20 hover:shadow-xl hover:shadow-gray-500/10 hover:border-gray-300/40 transition-all duration-300",
       "ring-1 ring-white/60"
     )}>
       <CardHeader className="pb-4">
@@ -515,67 +520,74 @@ export function TextOutputArea({
             "text-lg font-bold bg-gradient-to-r from-slate-800 to-slate-700 bg-clip-text text-transparent",
             "flex items-center gap-3"
           )}>
-            <div className="p-1.5 bg-gradient-to-br from-emerald-100 to-green-100 rounded-lg">
-              <FileText className="w-4 h-4 text-emerald-600" />
+            <div className="p-1.5 bg-gradient-to-br from-gray-100 to-gray-200 rounded-lg">
+              <FileText className="w-4 h-4 text-gray-600" />
             </div>
             {title}
             {value && (
-              <Badge variant="outline" className="text-xs font-medium bg-gradient-to-r from-emerald-50 to-green-50 text-emerald-700 border-emerald-200/60 px-2.5 py-0.5">
+              <Badge variant="outline" className="text-xs font-medium bg-gradient-to-r from-gray-50 to-gray-100 text-gray-700 border-gray-200/60 px-2.5 py-0.5">
                 {value.length} chars
               </Badge>
             )}
           </CardTitle>
           <div className="flex items-center gap-2">
             {value && showCopyButton && (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleCopy}
-                className={cn(
-                  "h-9 px-3.5 text-xs font-semibold rounded-xl transition-all duration-300 backdrop-blur-sm ring-1 ring-white/40",
-                  copied 
-                    ? "bg-green-50 border-green-300/60 text-green-700 hover:bg-green-100 hover:shadow-md hover:shadow-green-500/10"
-                    : "bg-white/80 border-slate-200/60 hover:bg-blue-50 hover:border-blue-300/60 hover:text-blue-700 hover:shadow-md hover:shadow-blue-500/10"
-                )}
-              >
-                {copied ? (
-                  <>
-                    <Check className="w-3.5 h-3.5 mr-1.5" />
-                    Copied
-                  </>
-                ) : (
-                  <>
-                    <Copy className="w-3.5 h-3.5 mr-1.5" />
-                    Copy
-                  </>
-                )}
-              </Button>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleCopy}
+                    className={cn(
+                      "h-9 w-9 p-0 rounded-xl transition-all duration-300 backdrop-blur-sm ring-1 ring-white/40",
+                      copied 
+                        ? "bg-green-50 border-green-300/60 text-green-700 hover:bg-green-100 hover:shadow-md hover:shadow-green-500/10"
+                        : "bg-white/80 border-slate-200/60 hover:bg-blue-50 hover:border-blue-300/60 hover:text-blue-700 hover:shadow-md hover:shadow-blue-500/10"
+                    )}
+                  >
+                    {copied ? (
+                      <Check className="w-3.5 h-3.5" />
+                    ) : (
+                      <Copy className="w-3.5 h-3.5" />
+                    )}
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  {copied ? 'Copied!' : 'Copy to clipboard'}
+                </TooltipContent>
+              </Tooltip>
             )}
             {value && (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => {
-                  const blob = new Blob([value], { type: 'text/plain' });
-                  const url = URL.createObjectURL(blob);
-                  const a = document.createElement('a');
-                  a.href = url;
-                  a.download = `${title.toLowerCase().replace(' ', '_')}.txt`;
-                  document.body.appendChild(a);
-                  a.click();
-                  document.body.removeChild(a);
-                  URL.revokeObjectURL(url);
-                }}
-                className={cn(
-                  "h-9 px-3.5 text-xs font-semibold rounded-xl",
-                  "bg-white/80 border-slate-200/60 hover:bg-green-50 hover:border-green-300/60",
-                  "hover:text-green-700 hover:shadow-md hover:shadow-green-500/10 transition-all duration-300",
-                  "backdrop-blur-sm ring-1 ring-white/40"
-                )}
-              >
-                <Download className="w-3.5 h-3.5 mr-1.5" />
-                Download
-              </Button>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      const blob = new Blob([value], { type: 'text/plain' });
+                      const url = URL.createObjectURL(blob);
+                      const a = document.createElement('a');
+                      a.href = url;
+                      a.download = `${title.toLowerCase().replace(' ', '_')}.txt`;
+                      document.body.appendChild(a);
+                      a.click();
+                      document.body.removeChild(a);
+                      URL.revokeObjectURL(url);
+                    }}
+                    className={cn(
+                      "h-9 w-9 p-0 rounded-xl",
+                      "bg-white/80 border-slate-200/60 hover:bg-green-50 hover:border-green-300/60",
+                      "hover:text-green-700 hover:shadow-md hover:shadow-green-500/10 transition-all duration-300",
+                      "backdrop-blur-sm ring-1 ring-white/40"
+                    )}
+                  >
+                    <Download className="w-3.5 h-3.5" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  Download as text file
+                </TooltipContent>
+              </Tooltip>
             )}
           </div>
         </div>
@@ -728,43 +740,43 @@ export function UtilityActionCard({
     switch (category) {
       case 'case': 
         return {
-          iconBg: 'bg-gradient-to-br from-blue-100 to-blue-200 border border-blue-200/50',
-          iconColor: 'text-blue-600',
-          hoverGradient: 'from-blue-500/10 to-blue-600/10',
-          shadowColor: 'shadow-blue-500/20',
-          borderColor: 'border-blue-200/30'
+          iconBg: 'bg-gradient-to-br from-gray-100 to-gray-200 border border-gray-200/50',
+          iconColor: 'text-gray-700',
+          hoverGradient: 'from-gray-500/10 to-gray-600/10',
+          shadowColor: 'shadow-gray-500/20',
+          borderColor: 'border-gray-200/30'
         };
       case 'cleaning': 
         return {
-          iconBg: 'bg-gradient-to-br from-emerald-100 to-emerald-200 border border-emerald-200/50',
-          iconColor: 'text-emerald-600',
-          hoverGradient: 'from-emerald-500/10 to-emerald-600/10',
-          shadowColor: 'shadow-emerald-500/20',
-          borderColor: 'border-emerald-200/30'
+          iconBg: 'bg-gradient-to-br from-gray-100 to-gray-200 border border-gray-200/50',
+          iconColor: 'text-gray-700',
+          hoverGradient: 'from-gray-500/10 to-gray-600/10',
+          shadowColor: 'shadow-gray-500/20',
+          borderColor: 'border-gray-200/30'
         };
       case 'encoding': 
         return {
-          iconBg: 'bg-gradient-to-br from-purple-100 to-purple-200 border border-purple-200/50',
-          iconColor: 'text-purple-600',
-          hoverGradient: 'from-purple-500/10 to-purple-600/10',
-          shadowColor: 'shadow-purple-500/20',
-          borderColor: 'border-purple-200/30'
+          iconBg: 'bg-gradient-to-br from-gray-100 to-gray-200 border border-gray-200/50',
+          iconColor: 'text-gray-700',
+          hoverGradient: 'from-gray-500/10 to-gray-600/10',
+          shadowColor: 'shadow-gray-500/20',
+          borderColor: 'border-gray-200/30'
         };
       case 'json': 
         return {
-          iconBg: 'bg-gradient-to-br from-amber-100 to-orange-200 border border-orange-200/50',
-          iconColor: 'text-orange-600',
-          hoverGradient: 'from-orange-500/10 to-orange-600/10',
-          shadowColor: 'shadow-orange-500/20',
-          borderColor: 'border-orange-200/30'
+          iconBg: 'bg-gradient-to-br from-gray-100 to-gray-200 border border-gray-200/50',
+          iconColor: 'text-gray-700',
+          hoverGradient: 'from-gray-500/10 to-gray-600/10',
+          shadowColor: 'shadow-gray-500/20',
+          borderColor: 'border-gray-200/30'
         };
       default: 
         return {
-          iconBg: 'bg-gradient-to-br from-slate-100 to-slate-200 border border-slate-200/50',
-          iconColor: 'text-slate-600',
-          hoverGradient: 'from-slate-500/10 to-slate-600/10',
-          shadowColor: 'shadow-slate-500/20',
-          borderColor: 'border-slate-200/30'
+          iconBg: 'bg-gradient-to-br from-gray-100 to-gray-200 border border-gray-200/50',
+          iconColor: 'text-gray-600',
+          hoverGradient: 'from-gray-500/10 to-gray-600/10',
+          shadowColor: 'shadow-gray-500/20',
+          borderColor: 'border-gray-200/30'
         };
     }
   };

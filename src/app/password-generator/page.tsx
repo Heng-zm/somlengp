@@ -363,7 +363,7 @@ export default function PasswordGeneratorPage() {
           <CardHeader className="pb-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-blue-500 rounded-lg flex items-center justify-center">
+                <div className="w-10 h-10 bg-gray-800 rounded-lg flex items-center justify-center">
                   <Key className="w-5 h-5 text-white" />
                 </div>
                 <div>
@@ -371,7 +371,7 @@ export default function PasswordGeneratorPage() {
                   <CardDescription>Cryptographically secure & ready to use</CardDescription>
                 </div>
               </div>
-              <Badge variant="secondary" className="text-emerald-600">
+              <Badge variant="secondary" className="text-gray-700 dark:text-gray-300">
                 <Shield className="w-3 h-3 mr-1" />
                 Secure
               </Badge>
@@ -405,8 +405,8 @@ export default function PasswordGeneratorPage() {
                 className={cn(
                   "px-6 py-3 rounded-lg font-medium transition-colors",
                   copied 
-                    ? "bg-emerald-500 hover:bg-emerald-600 text-white" 
-                    : "bg-blue-500 hover:bg-blue-600 text-white"
+                    ? "bg-gray-700 hover:bg-gray-800 text-white" 
+                    : "bg-gray-900 hover:bg-black text-white"
                 )}
               >
                 {copied ? (
@@ -430,6 +430,12 @@ export default function PasswordGeneratorPage() {
                   <span className="text-sm font-medium">Password Strength</span>
                   <Badge 
                     variant={passwordStrength >= 80 ? "default" : passwordStrength >= 60 ? "secondary" : passwordStrength >= 30 ? "outline" : "destructive"}
+                    className={cn(
+                      passwordStrength >= 80 ? "bg-gray-800 text-white" :
+                      passwordStrength >= 60 ? "bg-gray-600 text-white" :
+                      passwordStrength >= 30 ? "bg-gray-400 text-gray-900" :
+                      "bg-gray-900 text-white"
+                    )}
                   >
                     {strengthInfo.label}
                   </Badge>
@@ -446,7 +452,7 @@ export default function PasswordGeneratorPage() {
             <div className="border-t pt-6">
               <div className="flex items-center justify-between mb-6">
                 <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 bg-purple-500 rounded-lg flex items-center justify-center">
+                  <div className="w-8 h-8 bg-gray-700 rounded-lg flex items-center justify-center">
                     <Settings className="w-4 h-4 text-white" />
                   </div>
                   <div>
@@ -468,7 +474,7 @@ export default function PasswordGeneratorPage() {
               <div className="space-y-4 mb-6">
                 <div className="flex items-center justify-between">
                   <Label className="text-base font-semibold text-slate-700 dark:text-slate-200">Password Length</Label>
-                  <Badge className="bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 px-3 py-1 rounded-full font-semibold border-0">
+                  <Badge className="bg-gray-100 dark:bg-gray-800/30 text-gray-800 dark:text-gray-200 px-3 py-1 rounded-full font-semibold border-0">
                     {options.length} characters
                   </Badge>
                 </div>
@@ -493,7 +499,7 @@ export default function PasswordGeneratorPage() {
               <div className="space-y-4 mb-6">
                 <div className="flex items-center justify-between">
                   <Label className="text-base font-semibold text-slate-700 dark:text-slate-200">Character Types</Label>
-                  <Badge className="bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 px-3 py-1 rounded-full font-semibold border-0">
+                  <Badge className="bg-gray-100 dark:bg-gray-800/30 text-gray-800 dark:text-gray-200 px-3 py-1 rounded-full font-semibold border-0">
                     {characterTypes.filter(type => type.checked).length} selected
                   </Badge>
                 </div>
@@ -511,10 +517,7 @@ export default function PasswordGeneratorPage() {
                               key={type.id}
                               className={cn(
                                 "w-6 h-6 rounded-md flex items-center justify-center text-xs font-bold",
-                                type.color === 'blue' && 'bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400',
-                                type.color === 'green' && 'bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400',
-                                type.color === 'orange' && 'bg-orange-100 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400',
-                                type.color === 'purple' && 'bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400'
+                                "bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300"
                               )}
                             >
                               {type.icon}
@@ -543,10 +546,7 @@ export default function PasswordGeneratorPage() {
                               <div 
                                 className={cn(
                                   "w-8 h-8 rounded-lg flex items-center justify-center text-xs font-bold",
-                                  type.color === 'blue' && 'bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400',
-                                  type.color === 'green' && 'bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400',
-                                  type.color === 'orange' && 'bg-orange-100 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400',
-                                  type.color === 'purple' && 'bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400'
+                                  "bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300"
                                 )}
                               >
                                 {type.icon}
@@ -559,7 +559,7 @@ export default function PasswordGeneratorPage() {
                             <Checkbox
                               checked={type.checked}
                               onCheckedChange={type.onChange}
-                              className="data-[state=checked]:bg-purple-600 data-[state=checked]:border-purple-600"
+                              className="data-[state=checked]:bg-gray-800 data-[state=checked]:border-gray-800"
                             />
                           </div>
                         ))}
@@ -592,7 +592,7 @@ export default function PasswordGeneratorPage() {
                   <div className="w-full h-px bg-gradient-to-r from-transparent via-slate-300 dark:via-slate-600 to-transparent mb-6"></div>
                   <div className="space-y-6 mb-6">
                     <h4 className="text-base font-semibold text-slate-700 dark:text-slate-200 flex items-center gap-2">
-                      <Sparkles className="w-4 h-4 text-purple-500" />
+                      <Sparkles className="w-4 h-4 text-gray-600" />
                       Advanced Options
                     </h4>
                     
@@ -629,7 +629,7 @@ export default function PasswordGeneratorPage() {
                         value={options.customChars}
                         onChange={(e) => setOptions(prev => ({ ...prev, customChars: e.target.value }))}
                         placeholder="Add your own characters..."
-                        className="px-4 py-2 bg-slate-50/50 dark:bg-slate-900/50 border-slate-200/50 dark:border-slate-700/50 rounded-xl focus:ring-2 focus:ring-purple-500/20 focus:border-purple-400 transition-all"
+                        className="px-4 py-2 bg-slate-50/50 dark:bg-slate-900/50 border-slate-200/50 dark:border-slate-700/50 rounded-xl focus:ring-2 focus:ring-gray-500/20 focus:border-gray-400 transition-all"
                       />
                     </div>
                   </div>
@@ -641,7 +641,7 @@ export default function PasswordGeneratorPage() {
             <Button 
               onClick={generatePassword} 
               disabled={isGenerating}
-              className="w-full py-6 text-lg font-semibold bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-[1.02] active:scale-[0.98] mt-6"
+              className="w-full py-6 text-lg font-semibold bg-gradient-to-r from-gray-800 to-gray-900 hover:from-gray-900 hover:to-black text-white rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-[1.02] active:scale-[0.98] mt-6"
             >
               {isGenerating ? (
                 <>
@@ -663,7 +663,7 @@ export default function PasswordGeneratorPage() {
           <SheetContent side="right" className="w-full sm:w-[500px] md:w-[600px] overflow-hidden flex flex-col">
             <SheetHeader className="pb-4">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-emerald-500 rounded-lg flex items-center justify-center">
+                <div className="w-10 h-10 bg-gray-700 rounded-lg flex items-center justify-center">
                   <History className="w-5 h-5 text-white" />
                 </div>
                 <div className="flex-1">
@@ -746,10 +746,10 @@ export default function PasswordGeneratorPage() {
                                   <Badge 
                                     className={cn(
                                       "text-xs font-semibold border-0 px-2 py-1 rounded-full",
-                                      item.strength >= 80 ? "bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400" :
-                                      item.strength >= 60 ? "bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400" :
-                                      item.strength >= 30 ? "bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400" :
-                                      "bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400"
+                                      item.strength >= 80 ? "bg-gray-800 dark:bg-gray-200 text-white dark:text-gray-800" :
+                                      item.strength >= 60 ? "bg-gray-600 dark:bg-gray-400 text-white dark:text-gray-800" :
+                                      item.strength >= 30 ? "bg-gray-400 dark:bg-gray-500 text-gray-800 dark:text-white" :
+                                      "bg-gray-900 dark:bg-gray-700 text-white dark:text-gray-200"
                                     )}
                                   >
                                     {itemStrength.label}
@@ -767,16 +767,16 @@ export default function PasswordGeneratorPage() {
                                 {/* Password Options Summary */}
                                 <div className="mt-2 flex items-center gap-1 flex-wrap">
                                   {item.options.includeUppercase && (
-                                    <span className="text-xs bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 px-1.5 py-0.5 rounded">A-Z</span>
+                                    <span className="text-xs bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 px-1.5 py-0.5 rounded">A-Z</span>
                                   )}
                                   {item.options.includeLowercase && (
-                                    <span className="text-xs bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400 px-1.5 py-0.5 rounded">a-z</span>
+                                    <span className="text-xs bg-gray-300 dark:bg-gray-600 text-gray-800 dark:text-gray-200 px-1.5 py-0.5 rounded">a-z</span>
                                   )}
                                   {item.options.includeNumbers && (
-                                    <span className="text-xs bg-orange-100 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400 px-1.5 py-0.5 rounded">0-9</span>
+                                    <span className="text-xs bg-gray-400 dark:bg-gray-500 text-gray-900 dark:text-white px-1.5 py-0.5 rounded">0-9</span>
                                   )}
                                   {item.options.includeSymbols && (
-                                    <span className="text-xs bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400 px-1.5 py-0.5 rounded">!@#</span>
+                                    <span className="text-xs bg-gray-500 dark:bg-gray-400 text-white dark:text-gray-900 px-1.5 py-0.5 rounded">!@#</span>
                                   )}
                                 </div>
                               </div>

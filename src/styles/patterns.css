@@ -1,24 +1,32 @@
-/* Background patterns for the profile page */
+/* Background patterns for the profile page - Pure Monochrome */
 .bg-pattern {
-  background-image: radial-gradient(circle at 2px 2px, rgba(255,255,255,0.1) 1px, transparent 0);
+  background-image: radial-gradient(circle at 2px 2px, rgba(255,255,255,0.15) 1px, transparent 0);
   background-size: 20px 20px;
 }
 
-/* Additional gradient backgrounds */
-.bg-gradient-violet {
-  background: linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%);
+/* Additional gradient backgrounds - Pure Black/Gray/White */
+.bg-gradient-dark {
+  background: linear-gradient(135deg, #000000 0%, #1f1f1f 50%, #404040 100%);
 }
 
-.bg-gradient-blue {
-  background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+.bg-gradient-gray {
+  background: linear-gradient(135deg, #404040 0%, #2a2a2a 50%, #1a1a1a 100%);
 }
 
-.bg-gradient-emerald {
-  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+.bg-gradient-light {
+  background: linear-gradient(135deg, #ffffff 0%, #f0f0f0 50%, #e0e0e0 100%);
 }
 
-.bg-gradient-amber {
-  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+.bg-gradient-neutral {
+  background: linear-gradient(135deg, #f8f8f8 0%, #e8e8e8 50%, #d8d8d8 100%);
+}
+
+.bg-gradient-pure-white {
+  background: linear-gradient(135deg, #ffffff 0%, #fafafa 100%);
+}
+
+.bg-gradient-pure-black {
+  background: linear-gradient(135deg, #000000 0%, #1a1a1a 100%);
 }
 
 /* Hover effects */
@@ -30,17 +38,25 @@
   transform: translateY(-2px);
 }
 
-/* Custom shadows */
-.shadow-violet {
-  box-shadow: 0 10px 25px -3px rgba(139, 92, 246, 0.1), 0 4px 6px -2px rgba(139, 92, 246, 0.05);
+/* Custom shadows - Pure Monochrome */
+.shadow-dark {
+  box-shadow: 0 10px 25px -3px rgba(0, 0, 0, 0.15), 0 4px 6px -2px rgba(0, 0, 0, 0.08);
 }
 
-.shadow-blue {
-  box-shadow: 0 10px 25px -3px rgba(59, 130, 246, 0.1), 0 4px 6px -2px rgba(59, 130, 246, 0.05);
+.shadow-gray {
+  box-shadow: 0 10px 25px -3px rgba(0, 0, 0, 0.12), 0 4px 6px -2px rgba(0, 0, 0, 0.06);
 }
 
-.shadow-emerald {
-  box-shadow: 0 10px 25px -3px rgba(16, 185, 129, 0.1), 0 4px 6px -2px rgba(16, 185, 129, 0.05);
+.shadow-light {
+  box-shadow: 0 10px 25px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -2px rgba(0, 0, 0, 0.03);
+}
+
+.shadow-black {
+  box-shadow: 0 15px 35px -5px rgba(0, 0, 0, 0.25), 0 8px 12px -4px rgba(0, 0, 0, 0.1);
+}
+
+.shadow-white {
+  box-shadow: 0 10px 25px -3px rgba(255, 255, 255, 0.15), 0 4px 6px -2px rgba(255, 255, 255, 0.08);
 }
 
 /* Animation for profile elements */

@@ -26,65 +26,65 @@ body {
 
 @layer base {
   :root {
-    --background: 240 10% 99%; /* Slightly off-white */
-    --foreground: 222 84% 5%; /* Near Black */
+    --background: 0 0% 100%; /* Pure White background */
+    --foreground: 0 0% 0%; /* Pure Black */
 
-    --card: 240 10% 100%; /* White */
-    --card-foreground: 222 84% 5%;
+    --card: 0 0% 100%; /* Pure White */
+    --card-foreground: 0 0% 0%;
 
-    --popover: 240 10% 100%;
-    --popover-foreground: 222 84% 5%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 0 0% 0%;
 
-    --primary: 142 71% 45%; /* A slightly more saturated green */
-    --primary-foreground: 210 40% 98%;
+    --primary: 0 0% 10%; /* Very Dark Gray */
+    --primary-foreground: 0 0% 100%;
 
-    --secondary: 240 5% 96%;
-    --secondary-foreground: 222 84% 5%;
+    --secondary: 0 0% 96%; /* Very Light Gray */
+    --secondary-foreground: 0 0% 0%;
     
-    --muted: 240 5% 90%;
-    --muted-foreground: 240 4% 46%;
+    --muted: 0 0% 92%; /* Light Gray */
+    --muted-foreground: 0 0% 35%;
 
-    --accent: 347 87% 55%; /* A richer red */
-    --accent-foreground: 210 40% 98%;
+    --accent: 0 0% 25%; /* Dark Gray */
+    --accent-foreground: 0 0% 100%;
     
-    --destructive: 0 84% 60%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive: 0 0% 35%; /* Dark Gray for destructive */
+    --destructive-foreground: 0 0% 100%;
 
-    --border: 240 6% 90%;
-    --input: 240 6% 90%;
-    --ring: 142 71% 45%;
+    --border: 0 0% 85%; /* Light Gray border */
+    --input: 0 0% 85%;
+    --ring: 0 0% 15%; /* Very Dark Gray ring */
 
     --radius: 0.8rem;
   }
 
   .dark {
-    --background: 224 71% 4%; /* Near Black */
-    --foreground: 210 40% 98%; /* White */
+    --background: 0 0% 3%; /* Very Dark Gray background */
+    --foreground: 0 0% 100%; /* Pure White */
 
-    --card: 224 71% 9%; /* Slightly lighter black */
-    --card-foreground: 210 40% 98%;
+    --card: 0 0% 8%; /* Dark Gray */
+    --card-foreground: 0 0% 100%;
 
-    --popover: 224 71% 4%;
-    --popover-foreground: 210 40% 98%;
+    --popover: 0 0% 3%;
+    --popover-foreground: 0 0% 100%;
 
-    --primary: 142 76% 50%; /* Vibrant Green */
-    --primary-foreground: 224 71% 4%;
+    --primary: 0 0% 90%; /* Very Light Gray */
+    --primary-foreground: 0 0% 0%;
 
-    --secondary: 217 33% 17%;
-    --secondary-foreground: 210 40% 98%;
+    --secondary: 0 0% 12%; /* Very Dark Gray */
+    --secondary-foreground: 0 0% 100%;
     
-    --muted: 217 33% 17%;
-    --muted-foreground: 215 20% 65%;
+    --muted: 0 0% 12%;
+    --muted-foreground: 0 0% 75%;
 
-    --accent: 347 87% 61%; /* Vibrant Red */
-    --accent-foreground: 210 40% 98%;
+    --accent: 0 0% 80%; /* Light Gray */
+    --accent-foreground: 0 0% 0%;
     
-    --destructive: 0 63% 31%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive: 0 0% 70%; /* Light Gray for destructive */
+    --destructive-foreground: 0 0% 0%;
 
-    --border: 217 33% 17%;
-    --input: 217 33% 17%;
-    --ring: 142 76% 50%;
+    --border: 0 0% 15%; /* Very Dark Gray border */
+    --input: 0 0% 15%;
+    --ring: 0 0% 90%; /* Very Light Gray ring */
   }
 }
 
@@ -222,9 +222,9 @@ body {
 
     /* Enhanced Focus States */
     .login-focus {
-        @apply focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:ring-offset-2;
+        @apply focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:ring-offset-2;
         /* High contrast focus for accessibility */
-        @apply focus-visible:ring-blue-600 focus-visible:ring-offset-2;
+        @apply focus-visible:ring-gray-700 focus-visible:ring-offset-2;
     }
 
     /* Mobile-specific utilities */
@@ -309,13 +309,6 @@ body {
         zoom: 1;
     }
 
-    /* Enhanced Accessibility Utilities */
-    .login-focus {
-        @apply focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:ring-offset-2;
-        /* High contrast focus for accessibility */
-        @apply focus-visible:ring-blue-600 focus-visible:ring-offset-2;
-    }
-
     /* Enhanced contrast for better readability */
     @media (prefers-contrast: high) {
         .login-input {
@@ -357,13 +350,13 @@ body {
 
     /* Improved error states */
     .error-state {
-        @apply border-red-500 bg-red-50/50 dark:bg-red-900/10;
-        @apply focus:border-red-600 focus:ring-red-500/20;
+        @apply border-gray-600 bg-gray-100/50 dark:bg-gray-800/10;
+        @apply focus:border-gray-700 focus:ring-gray-600/20;
     }
 
     /* Success states */
     .success-state {
-        @apply border-green-500 bg-green-50/50 dark:bg-green-900/10;
+        @apply border-gray-600 bg-gray-100/50 dark:bg-gray-800/10;
     }
 
     /* Loading states */
@@ -483,7 +476,7 @@ body {
     }
     
     .avatar-online {
-      @apply ring-2 ring-green-400/50 shadow-md;
+      @apply ring-2 ring-gray-400/50 shadow-md;
     }
 
     /* Fix for avatar image loading and border radius inheritance */

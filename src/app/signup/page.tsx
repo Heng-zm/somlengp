@@ -35,9 +35,11 @@ import {
   UserPlus, 
   Loader2, 
   CheckCircle2,
-  User
+  User,
+  Shield
 } from "lucide-react";
 import { BackToSignInIconButton } from "@/components/ui/back-to-signin-button";
+import { CaptchaVerification } from "@/components/ui/captcha-verification";
 
 // Google Icon Component
 const GoogleIcon = () => (
@@ -89,6 +91,9 @@ const signupSchema = z.object({
   agreeToTerms: z
     .boolean()
     .refine((val) => val === true, "You must agree to the terms and conditions"),
+  captchaVerified: z
+    .boolean()
+    .refine((val) => val === true, "Please verify that you are not a robot"),
 }).refine((data) => data.password === data.confirmPassword, {
   message: "Passwords don't match",
   path: ["confirmPassword"],
@@ -113,6 +118,7 @@ export default function SignupPage() {
       password: "",
       confirmPassword: "",
       agreeToTerms: false,
+      captchaVerified: false,
     },
   });
 
@@ -142,7 +148,7 @@ export default function SignupPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-blue-50 to-purple-100 dark:from-gray-900 dark:via-blue-900/20 dark:to-purple-900/20 flex items-center justify-center p-4 animate-gradient-x">
+    <div className="min-h-screen bg-gradient-to-br from-gray-100 via-white to-gray-50 dark:from-black dark:via-gray-900 dark:to-gray-800 flex items-center justify-center p-4">
       {/* Back to Sign In Button */}
       <BackToSignInIconButton 
         className="fixed top-6 left-6 z-50"
@@ -150,24 +156,24 @@ export default function SignupPage() {
 
       {/* Background decorative elements */}
       <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute -top-40 -right-32 w-80 h-80 bg-gradient-to-br from-emerald-400/20 to-blue-400/20 rounded-full blur-3xl animate-float" />
-        <div className="absolute -bottom-32 -left-40 w-96 h-96 bg-gradient-to-br from-blue-400/20 to-purple-400/20 rounded-full blur-3xl animate-float" style={{animationDelay: '1.5s'}} />
-        <div className="absolute top-1/3 right-1/4 w-64 h-64 bg-gradient-to-br from-purple-400/20 to-emerald-400/20 rounded-full blur-3xl animate-float" style={{animationDelay: '3s'}} />
+        <div className="absolute -top-40 -right-32 w-80 h-80 bg-gradient-to-br from-gray-300/10 to-gray-400/10 dark:from-gray-600/10 dark:to-gray-700/10 rounded-full blur-3xl animate-float" />
+        <div className="absolute -bottom-32 -left-40 w-96 h-96 bg-gradient-to-br from-gray-400/10 to-gray-500/10 dark:from-gray-700/10 dark:to-gray-800/10 rounded-full blur-3xl animate-float" style={{animationDelay: '1.5s'}} />
+        <div className="absolute top-1/3 right-1/4 w-64 h-64 bg-gradient-to-br from-gray-500/10 to-gray-600/10 dark:from-gray-800/10 dark:to-gray-900/10 rounded-full blur-3xl animate-float" style={{animationDelay: '3s'}} />
       </div>
 
       {/* Main container */}
       <div className="relative w-full max-w-md animate-fade-in-scale">
-        <Card className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl border border-white/20 dark:border-gray-700/50 shadow-2xl card-hover-float will-change-transform">
+        <Card className="bg-white/95 dark:bg-gray-800/95 backdrop-blur-xl border border-gray-200 dark:border-gray-700 shadow-2xl card-hover-float will-change-transform">
           <CardHeader className="space-y-4 text-center pb-8 animate-fade-in-up" style={{animationDelay: '0.1s'}}>
             <div className="mx-auto relative">
-              <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/20 via-blue-500/20 to-purple-600/20 rounded-full blur-xl animate-pulse"></div>
-              <div className="relative w-16 h-16 sm:w-20 sm:h-20 bg-gradient-to-br from-emerald-500 via-blue-500 to-purple-600 rounded-full flex items-center justify-center shadow-2xl ring-2 sm:ring-4 ring-white/50 dark:ring-gray-800/50 animate-glow hover-scale">
-                <UserPlus className="w-7 h-7 sm:w-9 sm:h-9 text-white drop-shadow-lg icon-bounce-on-hover" />
+              <div className="absolute inset-0 bg-gradient-to-br from-gray-400/20 to-gray-600/20 dark:from-gray-600/20 dark:to-gray-800/20 rounded-full blur-xl animate-pulse"></div>
+              <div className="relative w-16 h-16 sm:w-20 sm:h-20 bg-gradient-to-br from-gray-800 to-black dark:from-gray-200 dark:to-white rounded-full flex items-center justify-center shadow-2xl ring-2 sm:ring-4 ring-white/50 dark:ring-gray-800/50 hover-scale">
+                <UserPlus className="w-7 h-7 sm:w-9 sm:h-9 text-white dark:text-gray-800 drop-shadow-lg icon-bounce-on-hover" />
               </div>
             </div>
             
             <div className="space-y-2">
-              <CardTitle className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-emerald-600 via-blue-600 to-purple-600 bg-clip-text text-transparent">
+              <CardTitle className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">
                 Create Account
               </CardTitle>
               <CardDescription className="text-gray-600 dark:text-gray-400">
@@ -183,7 +189,7 @@ export default function SignupPage() {
               onClick={handleGoogleSignUp}
               disabled={isGoogleLoading || isLoading}
               className={cn(
-                "w-full h-12 bg-white hover:bg-gray-50 text-gray-900 dark:bg-gray-700 dark:hover:bg-gray-600 dark:text-gray-100",
+                              "w-full h-12 bg-white hover:bg-gray-100 text-gray-900 dark:bg-gray-800 dark:hover:bg-gray-700 dark:text-gray-100",
                 "border border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500",
                 "shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-[1.02] hover-lift btn-press-feedback",
                 "disabled:opacity-60 disabled:cursor-not-allowed disabled:hover:scale-100 will-change-transform"
@@ -226,7 +232,7 @@ export default function SignupPage() {
                           <div className="relative group">
                             <User className={cn(
                               "absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 transition-all duration-300 icon-bounce-on-hover",
-                              fieldState.error ? "text-red-500" : "text-gray-400 group-focus-within:text-emerald-500 group-focus-within:scale-110"
+                              fieldState.error ? "text-red-500" : "text-gray-400 group-focus-within:text-gray-600 dark:group-focus-within:text-gray-300 group-focus-within:scale-110"
                             )} />
                             <Input
                               placeholder="First name"
@@ -234,8 +240,8 @@ export default function SignupPage() {
                                 "pl-10 h-11 rounded-lg border-2 transition-all duration-300",
                                 "bg-gray-50/50 hover:bg-white dark:bg-gray-700/50 dark:hover:bg-gray-700",
                                 "border-gray-200 hover:border-gray-300 dark:border-gray-600 dark:hover:border-gray-500",
-                                "focus:border-emerald-500 focus:bg-white dark:focus:bg-gray-700 focus-ring-animated hover-lift",
-                                "focus:ring-4 focus:ring-emerald-500/10",
+                                "focus:border-gray-600 dark:focus:border-gray-400 focus:bg-white dark:focus:bg-gray-700 focus-ring-animated hover-lift",
+                                "focus:ring-4 focus:ring-gray-500/10",
                                 fieldState.error && "border-red-500 bg-red-50/50 dark:bg-red-900/10 focus:border-red-500 focus:ring-red-500/10 error-shake"
                               )}
                               {...field}
@@ -259,7 +265,7 @@ export default function SignupPage() {
                           <div className="relative group">
                             <User className={cn(
                               "absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 transition-all duration-300 icon-bounce-on-hover",
-                              fieldState.error ? "text-red-500" : "text-gray-400 group-focus-within:text-emerald-500 group-focus-within:scale-110"
+                              fieldState.error ? "text-red-500" : "text-gray-400 group-focus-within:text-gray-600 dark:group-focus-within:text-gray-300 group-focus-within:scale-110"
                             )} />
                             <Input
                               placeholder="Last name"
@@ -267,8 +273,8 @@ export default function SignupPage() {
                                 "pl-10 h-11 rounded-lg border-2 transition-all duration-300",
                                 "bg-gray-50/50 hover:bg-white dark:bg-gray-700/50 dark:hover:bg-gray-700",
                                 "border-gray-200 hover:border-gray-300 dark:border-gray-600 dark:hover:border-gray-500",
-                                "focus:border-emerald-500 focus:bg-white dark:focus:bg-gray-700 focus-ring-animated hover-lift",
-                                "focus:ring-4 focus:ring-emerald-500/10",
+                                "focus:border-gray-600 dark:focus:border-gray-400 focus:bg-white dark:focus:bg-gray-700 focus-ring-animated hover-lift",
+                                "focus:ring-4 focus:ring-gray-500/10",
                                 fieldState.error && "border-red-500 bg-red-50/50 dark:bg-red-900/10 focus:border-red-500 focus:ring-red-500/10 error-shake"
                               )}
                               {...field}
@@ -295,7 +301,7 @@ export default function SignupPage() {
                         <div className="relative group">
                           <Mail className={cn(
                             "absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 transition-all duration-300 icon-bounce-on-hover",
-                            fieldState.error ? "text-red-500" : "text-gray-400 group-focus-within:text-blue-500 group-focus-within:scale-110"
+                            fieldState.error ? "text-red-500" : "text-gray-400 group-focus-within:text-gray-600 dark:group-focus-within:text-gray-300 group-focus-within:scale-110"
                           )} />
                           <Input
                             placeholder="your.email@example.com"
@@ -303,8 +309,8 @@ export default function SignupPage() {
                               "pl-10 pr-10 h-11 rounded-lg border-2 transition-all duration-300",
                               "bg-gray-50/50 hover:bg-white dark:bg-gray-700/50 dark:hover:bg-gray-700",
                               "border-gray-200 hover:border-gray-300 dark:border-gray-600 dark:hover:border-gray-500",
-                              "focus:border-blue-500 focus:bg-white dark:focus:bg-gray-700 focus-ring-animated hover-lift",
-                              "focus:ring-4 focus:ring-blue-500/10",
+                              "focus:border-gray-600 dark:focus:border-gray-400 focus:bg-white dark:focus:bg-gray-700 focus-ring-animated hover-lift",
+                              "focus:ring-4 focus:ring-gray-500/10",
                               fieldState.error && "border-red-500 bg-red-50/50 dark:bg-red-900/10 focus:border-red-500 focus:ring-red-500/10 error-shake"
                             )}
                             type="email"
@@ -336,7 +342,7 @@ export default function SignupPage() {
                         <div className="relative group">
                           <Lock className={cn(
                             "absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 transition-all duration-300 icon-bounce-on-hover",
-                            fieldState.error ? "text-red-500" : "text-gray-400 group-focus-within:text-purple-500 group-focus-within:scale-110"
+                            fieldState.error ? "text-red-500" : "text-gray-400 group-focus-within:text-gray-600 dark:group-focus-within:text-gray-300 group-focus-within:scale-110"
                           )} />
                           <Input
                             placeholder="Create a strong password"
@@ -344,8 +350,8 @@ export default function SignupPage() {
                               "pl-10 pr-10 h-11 rounded-lg border-2 transition-all duration-300",
                               "bg-gray-50/50 hover:bg-white dark:bg-gray-700/50 dark:hover:bg-gray-700",
                               "border-gray-200 hover:border-gray-300 dark:border-gray-600 dark:hover:border-gray-500",
-                              "focus:border-purple-500 focus:bg-white dark:focus:bg-gray-700 focus-ring-animated hover-lift",
-                              "focus:ring-4 focus:ring-purple-500/10",
+                              "focus:border-gray-600 dark:focus:border-gray-400 focus:bg-white dark:focus:bg-gray-700 focus-ring-animated hover-lift",
+                              "focus:ring-4 focus:ring-gray-500/10",
                               fieldState.error && "border-red-500 bg-red-50/50 dark:bg-red-900/10 focus:border-red-500 focus:ring-red-500/10 error-shake"
                             )}
                             type={showPassword ? "text" : "password"}
@@ -381,7 +387,7 @@ export default function SignupPage() {
                         <div className="relative group">
                           <Lock className={cn(
                             "absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 transition-all duration-300",
-                            fieldState.error ? "text-red-500" : "text-gray-400 group-focus-within:text-purple-500"
+                            fieldState.error ? "text-red-500" : "text-gray-400 group-focus-within:text-gray-600 dark:group-focus-within:text-gray-300"
                           )} />
                           <Input
                             placeholder="Confirm your password"
@@ -389,8 +395,8 @@ export default function SignupPage() {
                               "pl-10 pr-10 h-11 rounded-lg border-2",
                               "bg-gray-50/50 hover:bg-white dark:bg-gray-700/50 dark:hover:bg-gray-700",
                               "border-gray-200 hover:border-gray-300 dark:border-gray-600 dark:hover:border-gray-500",
-                              "focus:border-purple-500 focus:bg-white dark:focus:bg-gray-700",
-                              "focus:ring-4 focus:ring-purple-500/10",
+                              "focus:border-gray-600 dark:focus:border-gray-400 focus:bg-white dark:focus:bg-gray-700",
+                              "focus:ring-4 focus:ring-gray-500/10",
                               fieldState.error && "border-red-500 bg-red-50/50 dark:bg-red-900/10 focus:border-red-500 focus:ring-red-500/10"
                             )}
                             type={showConfirmPassword ? "text" : "password"}
@@ -434,11 +440,11 @@ export default function SignupPage() {
                           fieldState.error ? "text-red-500" : "text-gray-700 dark:text-gray-300"
                         )}>
                           I agree to the{" "}
-                          <Link href="/terms" className="text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 underline">
+                          <Link href="/terms" className="text-gray-700 hover:text-black dark:text-gray-300 dark:hover:text-white underline">
                             Terms of Service
                           </Link>{" "}
                           and{" "}
-                          <Link href="/privacy" className="text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 underline">
+                          <Link href="/privacy" className="text-gray-700 hover:text-black dark:text-gray-300 dark:hover:text-white underline">
                             Privacy Policy
                           </Link>
                         </FormLabel>
@@ -448,14 +454,33 @@ export default function SignupPage() {
                   )}
                 />
 
+                {/* Enhanced Captcha Verification */}
+                <div className="animate-slide-in-right" style={{animationDelay: '0.9s'}}>
+                  <FormField
+                    control={form.control}
+                    name="captchaVerified"
+                    render={({ field, fieldState }) => (
+                      <FormItem>
+                        <FormControl>
+                          <CaptchaVerification
+                            onVerificationChange={field.onChange}
+                            error={!!fieldState.error}
+                          />
+                        </FormControl>
+                        <FormMessage className="text-xs text-red-500" />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+
                 {/* Submit Button */}
                 <Button
                   type="submit"
                   disabled={isLoading || isGoogleLoading}
                   className={cn(
-                    "w-full h-12 bg-gradient-to-r from-emerald-600 via-blue-600 to-purple-600",
-                    "hover:from-emerald-700 hover:via-blue-700 hover:to-purple-700",
-                    "text-white font-semibold shadow-lg hover:shadow-xl",
+                    "w-full h-12 bg-gradient-to-r from-gray-800 to-black",
+                    "hover:from-gray-900 hover:to-gray-800 dark:from-gray-200 dark:to-white dark:hover:from-gray-100 dark:hover:to-gray-200",
+                    "text-white dark:text-gray-800 font-semibold shadow-lg hover:shadow-xl",
                     "transition-all duration-300 hover:scale-[1.02]",
                     "disabled:opacity-60 disabled:cursor-not-allowed disabled:hover:scale-100"
                   )}
@@ -481,7 +506,7 @@ export default function SignupPage() {
               Already have an account?{" "}
               <Link
                 href="/login"
-                className="text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 font-medium transition-colors"
+                className="text-gray-700 hover:text-black dark:text-gray-300 dark:hover:text-white font-medium transition-colors"
               >
                 Sign in here
               </Link>

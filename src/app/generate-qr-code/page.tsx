@@ -139,28 +139,18 @@ export default function GenerateQRCodePage() {
 
   return (
     <FeaturePageLayout title="QR Code Generator">
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-purple-50/30">
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-100">
         <div className="container mx-auto px-4 py-8 max-w-6xl">
           
-          {/* Navigation Buttons */}
-          <div className="flex justify-center gap-4 mb-8">
-            <Button 
-              className="bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white px-8 py-3 rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105 font-semibold text-lg"
-              disabled
-            >
-              <QrCode className="h-5 w-5 mr-2" />
-              CREATE QR
-            </Button>
-          </div>
 
         <div className="grid gap-8 lg:grid-cols-2">
           {/* Input Section */}
-          <div className="bg-white/70 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/50 p-8">
+          <div className="bg-white/90 backdrop-blur-xl rounded-3xl shadow-2xl border border-gray-200 p-8">
             <div className="space-y-6">
               {/* Text Input */}
               <div className="space-y-3">
                 <Label htmlFor="input-text" className="text-base font-semibold text-gray-800 flex items-center gap-2">
-                  <span className="w-2 h-2 bg-blue-500 rounded-full"></span>
+                  <span className="w-2 h-2 bg-black rounded-full"></span>
                   Enter Your Content
                 </Label>
                 <Textarea
@@ -169,7 +159,7 @@ export default function GenerateQRCodePage() {
                   value={inputText}
                   onChange={(e) => setInputText(e.target.value)}
                   rows={4}
-                  className="w-full p-4 text-base border-2 border-gray-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-100 rounded-2xl bg-white/80 backdrop-blur-sm transition-all duration-300 resize-none placeholder:text-gray-400"
+                  className="w-full p-4 text-base border-2 border-gray-200 focus:border-gray-500 focus:ring-4 focus:ring-gray-100 rounded-2xl bg-white/80 backdrop-blur-sm transition-all duration-300 resize-none placeholder:text-gray-400"
                 />
                 <div className="text-right text-xs text-gray-500">
                   {inputText.length} characters
@@ -180,7 +170,7 @@ export default function GenerateQRCodePage() {
               {/* Settings */}
               <div className="space-y-4">
                 <h3 className="text-lg font-semibold text-gray-800 flex items-center gap-2">
-                  <span className="w-2 h-2 bg-purple-500 rounded-full"></span>
+                  <span className="w-2 h-2 bg-gray-600 rounded-full"></span>
                   Customize Settings
                 </h3>
                 
@@ -188,7 +178,7 @@ export default function GenerateQRCodePage() {
                   <div className="space-y-2">
                     <Label className="text-sm font-medium text-gray-700">Error Correction</Label>
                     <Select value={errorCorrectionLevel} onValueChange={setErrorCorrectionLevel}>
-                      <SelectTrigger className="h-12 border-2 border-gray-200 focus:border-purple-400 rounded-xl bg-white/80">
+                      <SelectTrigger className="h-12 border-2 border-gray-200 focus:border-gray-500 rounded-xl bg-white/80">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent className="bg-white/95 backdrop-blur-xl border-gray-200 rounded-xl">
@@ -220,11 +210,11 @@ export default function GenerateQRCodePage() {
               {/* Color Customization */}
               <div className="space-y-4">
                 <h3 className="text-lg font-semibold text-gray-800 flex items-center gap-2">
-                  <span className="w-2 h-2 bg-pink-500 rounded-full"></span>
+                  <span className="w-2 h-2 bg-gray-500 rounded-full"></span>
                   Color Theme
                 </h3>
                 
-                <div className="bg-gradient-to-r from-gray-50 to-blue-50/50 rounded-2xl p-6 space-y-4">
+                <div className="bg-gradient-to-r from-gray-50 to-gray-100/50 rounded-2xl p-6 space-y-4">
                   <div className="grid grid-cols-2 gap-6">
                     {/* Foreground Color */}
                     <div className="space-y-3">
@@ -239,17 +229,17 @@ export default function GenerateQRCodePage() {
                           type="color"
                           value={foregroundColor}
                           onChange={(e) => setForegroundColor(e.target.value)}
-                          className="h-16 w-full cursor-pointer border-2 border-gray-200 hover:border-blue-400 rounded-xl shadow-sm hover:shadow-md transition-all duration-300"
+                          className="h-16 w-full cursor-pointer border-2 border-gray-200 hover:border-gray-400 rounded-xl shadow-sm hover:shadow-md transition-all duration-300"
                         />
                       </div>
                       <div className="flex gap-2 justify-center">
-                        {['#000000', '#1f2937', '#dc2626', '#7c3aed', '#059669', '#ea580c'].map((color) => (
+                        {['#000000', '#1f2937', '#374151', '#4b5563', '#6b7280', '#9ca3af'].map((color) => (
                           <button
                             key={color}
                             type="button"
                             onClick={() => setForegroundColor(color)}
                             className={`w-8 h-8 rounded-full border-2 transition-all duration-200 hover:scale-110 ${
-                              foregroundColor === color ? 'border-blue-500 shadow-lg scale-110' : 'border-gray-300'
+                              foregroundColor === color ? 'border-gray-800 shadow-lg scale-110' : 'border-gray-300'
                             }`}
                             style={{ backgroundColor: color }}
                           />
@@ -274,13 +264,13 @@ export default function GenerateQRCodePage() {
                         />
                       </div>
                       <div className="flex gap-2 justify-center">
-                        {['#ffffff', '#f8fafc', '#fef3c7', '#ddd6fe', '#dcfce7', '#fed7d7'].map((color) => (
+                        {['#ffffff', '#f8fafc', '#f3f4f6', '#e5e7eb', '#d1d5db', '#9ca3af'].map((color) => (
                           <button
                             key={color}
                             type="button"
                             onClick={() => setBackgroundColor(color)}
                             className={`w-8 h-8 rounded-full border-2 transition-all duration-200 hover:scale-110 ${
-                              backgroundColor === color ? 'border-blue-500 shadow-lg scale-110' : 'border-gray-300'
+                              backgroundColor === color ? 'border-gray-800 shadow-lg scale-110' : 'border-gray-300'
                             }`}
                             style={{ backgroundColor: color }}
                           />
@@ -315,7 +305,7 @@ export default function GenerateQRCodePage() {
                           setForegroundColor('#000000');
                           setBackgroundColor('#ffffff');
                         }}
-                        className="text-xs text-blue-600 hover:text-blue-700 font-medium px-3 py-1 rounded-lg hover:bg-blue-50 transition-colors duration-200"
+                        className="text-xs text-gray-600 hover:text-gray-800 font-medium px-3 py-1 rounded-lg hover:bg-gray-50 transition-colors duration-200"
                       >
                         Reset
                       </button>
@@ -328,7 +318,7 @@ export default function GenerateQRCodePage() {
               <Button
                 onClick={generateQRCode}
                 disabled={isGenerating || !inputText.trim()}
-                className="w-full h-14 text-lg font-semibold bg-gradient-to-r from-blue-500 via-purple-500 to-indigo-600 hover:from-blue-600 hover:via-purple-600 hover:to-indigo-700 text-white rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:scale-[1.02] disabled:hover:scale-100 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full h-14 text-lg font-semibold bg-gradient-to-r from-gray-800 via-gray-700 to-black hover:from-gray-900 hover:via-gray-800 hover:to-black text-white rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:scale-[1.02] disabled:hover:scale-100 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {isGenerating ? (
                   <div className="flex items-center gap-3">
@@ -346,10 +336,10 @@ export default function GenerateQRCodePage() {
           </div>
 
           {/* Result Section - Hidden on mobile */}
-          <div className="hidden lg:block bg-white/70 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/50 p-8">
+          <div className="hidden lg:block bg-white/90 backdrop-blur-xl rounded-3xl shadow-2xl border border-gray-200 p-8">
             <div className="space-y-6">
               <div className="text-center">
-                <h2 className="text-2xl font-bold bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent mb-2">
+                <h2 className="text-2xl font-bold bg-gradient-to-r from-gray-800 to-black bg-clip-text text-transparent mb-2">
                   ✨ Your QR Code
                 </h2>
                 <p className="text-gray-600">
@@ -362,7 +352,7 @@ export default function GenerateQRCodePage() {
                   {/* QR Code Display */}
                   <div className="flex justify-center">
                     <div className="relative group">
-                      <div className="absolute -inset-2 bg-gradient-to-r from-blue-400 via-purple-400 to-green-400 rounded-3xl blur-lg opacity-20 group-hover:opacity-30 transition-opacity duration-500 animate-pulse"></div>
+                      <div className="absolute -inset-2 bg-gradient-to-r from-gray-400 via-gray-300 to-gray-500 rounded-3xl blur-lg opacity-20 group-hover:opacity-30 transition-opacity duration-500 animate-pulse"></div>
                       <div className="relative bg-white p-8 rounded-3xl shadow-2xl border border-gray-100">
                         <Image
                           src={qrCodeUrl}
@@ -372,7 +362,7 @@ export default function GenerateQRCodePage() {
                           className="w-full h-auto rounded-2xl transition-transform duration-300 hover:scale-105"
                           unoptimized={true}
                         />
-                        <div className="absolute -top-3 -right-3 w-6 h-6 bg-gradient-to-r from-green-400 to-emerald-500 rounded-full flex items-center justify-center shadow-lg animate-bounce">
+                        <div className="absolute -top-3 -right-3 w-6 h-6 bg-gradient-to-r from-gray-600 to-gray-800 rounded-full flex items-center justify-center shadow-lg animate-bounce">
                           <span className="text-white text-xs font-bold">✓</span>
                         </div>
                       </div>
@@ -383,7 +373,7 @@ export default function GenerateQRCodePage() {
                   <div className="grid grid-cols-1 gap-3">
                     <Button
                       onClick={downloadQRCode}
-                      className="w-full h-12 bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 text-white rounded-2xl shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-[1.02]"
+                      className="w-full h-12 bg-gradient-to-r from-gray-700 to-gray-900 hover:from-gray-800 hover:to-black text-white rounded-2xl shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-[1.02]"
                     >
                       <div className="flex items-center gap-2">
                         <Download className="h-4 w-4" />
@@ -394,11 +384,11 @@ export default function GenerateQRCodePage() {
                     <Button
                       onClick={copyToClipboard}
                       variant="outline"
-                      className="w-full h-12 border-2 border-purple-200 hover:border-purple-300 hover:bg-purple-50 rounded-2xl transition-all duration-200 transform hover:scale-[1.02]"
+                      className="w-full h-12 border-2 border-gray-200 hover:border-gray-300 hover:bg-gray-50 rounded-2xl transition-all duration-200 transform hover:scale-[1.02]"
                     >
                       <div className="flex items-center gap-2">
-                        <Copy className="h-4 w-4 text-purple-600" />
-                        <span className="font-medium text-purple-700">📋 Copy to Clipboard</span>
+                        <Copy className="h-4 w-4 text-gray-600" />
+                        <span className="font-medium text-gray-700">📋 Copy to Clipboard</span>
                       </div>
                     </Button>
                     
@@ -406,18 +396,18 @@ export default function GenerateQRCodePage() {
                       <Button
                         onClick={shareQRCode}
                         variant="outline"
-                        className="w-full h-12 border-2 border-green-200 hover:border-green-300 hover:bg-green-50 rounded-2xl transition-all duration-200 transform hover:scale-[1.02]"
+                        className="w-full h-12 border-2 border-gray-300 hover:border-gray-400 hover:bg-gray-100 rounded-2xl transition-all duration-200 transform hover:scale-[1.02]"
                       >
                         <div className="flex items-center gap-2">
-                          <Share2 className="h-4 w-4 text-green-600" />
-                          <span className="font-medium text-green-700">🚀 Share QR Code</span>
+                          <Share2 className="h-4 w-4 text-gray-600" />
+                          <span className="font-medium text-gray-700">🚀 Share QR Code</span>
                         </div>
                       </Button>
                     )}
                   </div>
                   
                   {/* QR Code Details */}
-                  <div className="bg-gradient-to-r from-gray-50/80 to-blue-50/50 rounded-2xl p-6 border border-gray-100">
+                  <div className="bg-gradient-to-r from-gray-50/80 to-gray-100/50 rounded-2xl p-6 border border-gray-100">
                     <h4 className="font-semibold text-gray-800 text-center mb-4 text-lg">
                       📊 QR Code Information
                     </h4>
@@ -467,7 +457,7 @@ export default function GenerateQRCodePage() {
               ) : (
                 <div className="flex flex-col items-center justify-center h-96 text-gray-500">
                   <div className="relative mb-6">
-                    <div className="absolute inset-0 bg-gradient-to-r from-blue-100 via-purple-100 to-green-100 rounded-full animate-pulse opacity-50"></div>
+                    <div className="absolute inset-0 bg-gradient-to-r from-gray-100 via-gray-200 to-gray-300 rounded-full animate-pulse opacity-50"></div>
                     <div className="relative p-6 bg-white rounded-full shadow-lg border border-gray-200">
                       <QrCode className="h-12 w-12 text-gray-400" />
                     </div>
@@ -478,9 +468,9 @@ export default function GenerateQRCodePage() {
                       Enter your content on the left and click the generate button to create your personalized QR code.
                     </p>
                     <div className="flex justify-center items-center gap-2 pt-4">
-                      <div className="w-2 h-2 bg-blue-400 rounded-full animate-bounce" style={{animationDelay: '0ms'}}></div>
-                      <div className="w-2 h-2 bg-purple-400 rounded-full animate-bounce" style={{animationDelay: '200ms'}}></div>
-                      <div className="w-2 h-2 bg-green-400 rounded-full animate-bounce" style={{animationDelay: '400ms'}}></div>
+                      <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{animationDelay: '0ms'}}></div>
+                      <div className="w-2 h-2 bg-gray-500 rounded-full animate-bounce" style={{animationDelay: '200ms'}}></div>
+                      <div className="w-2 h-2 bg-gray-600 rounded-full animate-bounce" style={{animationDelay: '400ms'}}></div>
                     </div>
                   </div>
                 </div>
@@ -510,7 +500,7 @@ export default function GenerateQRCodePage() {
           <div className="flex-shrink-0">
             <SheetHeader className="pb-4 pt-2">
               <div className="w-12 h-1.5 bg-gray-300 rounded-full mx-auto mb-4 opacity-60" />
-              <SheetTitle className="text-center text-2xl font-bold bg-gradient-to-r from-green-600 via-blue-600 to-purple-600 bg-clip-text text-transparent">
+              <SheetTitle className="text-center text-2xl font-bold bg-gradient-to-r from-gray-800 via-gray-600 to-black bg-clip-text text-transparent">
                 🎉 QR Code Generated!
               </SheetTitle>
               <SheetDescription className="text-center text-gray-600 text-base">
@@ -526,7 +516,7 @@ export default function GenerateQRCodePage() {
                 {/* QR Code Display */}
                 <div className="flex justify-center pt-2">
                   <div className="relative group">
-                    <div className="absolute inset-0 bg-gradient-to-br from-blue-400/20 via-purple-400/20 to-green-400/20 rounded-3xl blur-xl group-hover:blur-2xl transition-all duration-300 animate-pulse" />
+                    <div className="absolute inset-0 bg-gradient-to-br from-gray-400/20 via-gray-300/20 to-gray-500/20 rounded-3xl blur-xl group-hover:blur-2xl transition-all duration-300 animate-pulse" />
                     <div className="relative p-8 bg-white rounded-3xl border border-gray-100 shadow-2xl">
                       <Image
                         src={qrCodeUrl}
@@ -536,7 +526,7 @@ export default function GenerateQRCodePage() {
                         className="w-full max-w-xs h-auto rounded-2xl shadow-lg"
                         unoptimized={true}
                       />
-                      <div className="absolute -top-3 -right-3 w-6 h-6 bg-gradient-to-br from-green-400 to-green-600 rounded-full flex items-center justify-center shadow-lg animate-bounce">
+                      <div className="absolute -top-3 -right-3 w-6 h-6 bg-gradient-to-br from-gray-600 to-gray-800 rounded-full flex items-center justify-center shadow-lg animate-bounce">
                         <div className="w-2 h-2 bg-white rounded-full" />
                       </div>
                     </div>
@@ -547,7 +537,7 @@ export default function GenerateQRCodePage() {
                 <div className="flex flex-wrap gap-3 justify-center px-4">
                   <Button
                     onClick={downloadQRCode}
-                    className="flex items-center gap-2 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105 rounded-2xl px-6 py-3"
+                    className="flex items-center gap-2 bg-gradient-to-r from-gray-700 to-gray-900 hover:from-gray-800 hover:to-black text-white shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105 rounded-2xl px-6 py-3"
                   >
                     <Download className="h-4 w-4" />
                     Download
@@ -555,7 +545,7 @@ export default function GenerateQRCodePage() {
                   
                   <Button
                     onClick={copyToClipboard}
-                    className="flex items-center gap-2 bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105 rounded-2xl px-6 py-3"
+                    className="flex items-center gap-2 bg-gradient-to-r from-gray-600 to-gray-800 hover:from-gray-700 hover:to-gray-900 text-white shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105 rounded-2xl px-6 py-3"
                   >
                     <Copy className="h-4 w-4" />
                     Copy
@@ -564,7 +554,7 @@ export default function GenerateQRCodePage() {
                   {typeof navigator !== 'undefined' && 'share' in navigator && (
                     <Button
                       onClick={shareQRCode}
-                      className="flex items-center gap-2 bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105 rounded-2xl px-6 py-3"
+                      className="flex items-center gap-2 bg-gradient-to-r from-gray-500 to-gray-700 hover:from-gray-600 hover:to-gray-800 text-white shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105 rounded-2xl px-6 py-3"
                     >
                       <Share2 className="h-4 w-4" />
                       Share

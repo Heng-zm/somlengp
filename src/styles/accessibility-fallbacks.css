@@ -21,7 +21,7 @@ select:focus,
 textarea:focus,
 [tabindex]:focus,
 [contenteditable]:focus {
-  outline: 2px solid #0066cc;
+  outline: 2px solid #6b7280;
   outline-offset: 2px;
 }
 

@@ -1,50 +1,183 @@
-/* Advanced Animation System with Design Tokens */
+/* Advanced Animation System with Design Tokens - Enhanced for Smoothness */
 
 /* === ANIMATION DESIGN TOKENS === */
-  :root {
-    --motion-duration-instant: 100ms;
-    --motion-duration-fast: 200ms;
-    --motion-duration-normal: 300ms;
-    --motion-duration-slow: 500ms;
-    --motion-duration-slower: 700ms;
-    --motion-duration-slowest: 1000ms;
+:root {
+  /* Duration tokens - optimized for 60fps performance */
+  --motion-duration-instant: 100ms;
+  --motion-duration-fast: 200ms;
+  --motion-duration-normal: 350ms;
+  --motion-duration-slow: 500ms;
+  --motion-duration-slower: 700ms;
+  --motion-duration-slowest: 1000ms;
+  
+  /* Enhanced easing curves for natural motion */
+  --motion-ease-linear: linear;
+  --motion-ease-in: cubic-bezier(0.32, 0, 0.67, 0);
+  --motion-ease-out: cubic-bezier(0.33, 1, 0.68, 1);
+  --motion-ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  --motion-ease-smooth: cubic-bezier(0.4, 0, 0.2, 1);
+  --motion-ease-spring: cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  --motion-ease-bounce: cubic-bezier(0.68, -0.55, 0.265, 1.55);
+  --motion-ease-elastic: cubic-bezier(0.68, -0.6, 0.32, 1.6);
+  --motion-ease-anticipate: cubic-bezier(0.36, 0, 0.66, -0.56);
+  --motion-ease-overshoot: cubic-bezier(0.34, 1.56, 0.64, 1);
+  
+  /* Physics-based easing inspired by iOS */
+  --motion-ease-ios: cubic-bezier(0.25, 0.1, 0.25, 1);
+  --motion-ease-material: cubic-bezier(0.4, 0, 0.2, 1);
+  --motion-ease-fluent: cubic-bezier(0.33, 0, 0.67, 1);
+  
+  /* Enhanced scale values */
+  --motion-scale-xs: 1.01;
+  --motion-scale-sm: 1.025;
+  --motion-scale-md: 1.05;
+  --motion-scale-lg: 1.1;
+  --motion-scale-xl: 1.15;
+  
+  /* Enhanced translate values */
+  --motion-translate-xs: 1px;
+  --motion-translate-sm: 2px;
+  --motion-translate-md: 4px;
+  --motion-translate-lg: 8px;
+  --motion-translate-xl: 16px;
+  
+  /* Rotation values */
+  --motion-rotate-sm: 3deg;
+  --motion-rotate-md: 6deg;
+  --motion-rotate-lg: 12deg;
+  
+  /* Blur values for smooth transitions */
+  --motion-blur-sm: 4px;
+  --motion-blur-md: 8px;
+  --motion-blur-lg: 12px;
+}
 
-    --motion-ease-linear: linear;
-    --motion-ease-in: cubic-bezier(0.4, 0, 1, 1);
-    --motion-ease-out: cubic-bezier(0, 0, 0.2, 1);
-    --motion-ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
-    --motion-ease-elastic: cubic-bezier(0.68, -0.55, 0.265, 1.55);
-    --motion-ease-bounce: cubic-bezier(0.68, -0.55, 0.265, 1.55);
+/* === ENHANCED KEYFRAME ANIMATIONS === */
 
-    --motion-scale-sm: 1.025;
-    --motion-scale-md: 1.05;
-    --motion-scale-lg: 1.1;
-    --motion-translate-sm: 2px;
-    --motion-translate-md: 4px;
-    --motion-translate-lg: 8px;
+/* Optimized shimmer with hardware acceleration */
+@keyframes shimmer {
+  0% { transform: translate3d(-100%, 0, 0); }
+  100% { transform: translate3d(100%, 0, 0); }
+}
+
+/* Enhanced floating animation with 3D transforms */
+@keyframes float {
+  0%, 100% { 
+    transform: translate3d(0, 0, 0) rotate(0deg);
   }
-
-  /* === KEYFRAME ANIMATIONS === */
-  @keyframes shimmer {
-    0% { transform: translateX(-100%); }
-    100% { transform: translateX(100%); }
+  25% { 
+    transform: translate3d(2px, -4px, 0) rotate(1deg);
   }
-
-  @keyframes float {
-    0%, 100% { transform: translateY(0) rotate(0deg); }
-    50% { transform: translateY(-8px) rotate(2deg); }
+  50% { 
+    transform: translate3d(0, -8px, 0) rotate(2deg);
   }
-
-  @keyframes pulse-glow {
-    0%, 100% { 
-      box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.4);
-      transform: scale(1);
-    }
-    50% { 
-      box-shadow: 0 0 0 10px rgba(59, 130, 246, 0);
-      transform: scale(1.02);
-    }
+  75% { 
+    transform: translate3d(-2px, -4px, 0) rotate(1deg);
   }
+}
+
+/* Smooth pulse animation with better timing */
+@keyframes pulse-glow {
+  0%, 100% { 
+    box-shadow: 0 0 0 0 rgba(0, 0, 0, 0.4);
+    transform: scale3d(1, 1, 1);
+  }
+  50% { 
+    box-shadow: 0 0 0 10px rgba(0, 0, 0, 0);
+    transform: scale3d(1.02, 1.02, 1);
+  }
+}
+
+/* New smooth scale animation */
+@keyframes smooth-scale {
+  0% { transform: scale3d(0.95, 0.95, 1); }
+  50% { transform: scale3d(1.05, 1.05, 1); }
+  100% { transform: scale3d(1, 1, 1); }
+}
+
+/* Buttery smooth slide animations */
+@keyframes slide-in-smooth {
+  0% {
+    transform: translate3d(0, 30px, 0);
+    opacity: 0;
+    filter: blur(4px);
+  }
+  70% {
+    transform: translate3d(0, -2px, 0);
+    opacity: 0.9;
+    filter: blur(0px);
+  }
+  100% {
+    transform: translate3d(0, 0, 0);
+    opacity: 1;
+    filter: blur(0px);
+  }
+}
+
+/* Enhanced rotation with momentum */
+@keyframes rotate-smooth {
+  0% {
+    transform: rotate3d(0, 0, 1, -15deg) scale3d(0.9, 0.9, 1);
+    opacity: 0;
+  }
+  60% {
+    transform: rotate3d(0, 0, 1, 5deg) scale3d(1.05, 1.05, 1);
+    opacity: 0.9;
+  }
+  100% {
+    transform: rotate3d(0, 0, 1, 0deg) scale3d(1, 1, 1);
+    opacity: 1;
+  }
+}
+
+/* Smooth morphing animation */
+@keyframes morph {
+  0% {
+    border-radius: 20% 80% 40% 60%;
+    transform: rotate3d(0, 0, 1, 0deg);
+  }
+  25% {
+    border-radius: 60% 40% 80% 20%;
+    transform: rotate3d(0, 0, 1, 90deg);
+  }
+  50% {
+    border-radius: 80% 20% 60% 40%;
+    transform: rotate3d(0, 0, 1, 180deg);
+  }
+  75% {
+    border-radius: 40% 60% 20% 80%;
+    transform: rotate3d(0, 0, 1, 270deg);
+  }
+  100% {
+    border-radius: 20% 80% 40% 60%;
+    transform: rotate3d(0, 0, 1, 360deg);
+  }
+}
+
+/* Breathing animation for subtle life */
+@keyframes breathe {
+  0%, 100% {
+    transform: scale3d(1, 1, 1);
+    opacity: 0.8;
+  }
+  50% {
+    transform: scale3d(1.03, 1.03, 1);
+    opacity: 1;
+  }
+}
+
+/* Magnetic hover effect */
+@keyframes magnetic-pull {
+  0% {
+    transform: translate3d(0, 0, 0) scale3d(1, 1, 1);
+  }
+  50% {
+    transform: translate3d(0, -2px, 0) scale3d(1.02, 1.02, 1);
+  }
+  100% {
+    transform: translate3d(0, -4px, 0) scale3d(1.05, 1.05, 1);
+  }
+}
 
   @keyframes gradient-shift {
     0% { background-position: 0% 50%; }
@@ -387,14 +520,25 @@
 
 /* === MISSING LOGIN PAGE ANIMATIONS === */
 
-/* Glow animation for elements */
+/* Glow animation for elements - Pure Monochrome */
 @keyframes glow {
   0%, 100% {
-    box-shadow: 0 0 20px rgba(59, 130, 246, 0.3);
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
     transform: scale(1);
   }
   50% {
-    box-shadow: 0 0 40px rgba(59, 130, 246, 0.6), 0 0 60px rgba(139, 92, 246, 0.4);
+    box-shadow: 0 0 40px rgba(0, 0, 0, 0.6), 0 0 60px rgba(0, 0, 0, 0.4);
+    transform: scale(1.05);
+  }
+}
+
+@keyframes glow-white {
+  0%, 100% {
+    box-shadow: 0 0 20px rgba(255, 255, 255, 0.3);
+    transform: scale(1);
+  }
+  50% {
+    box-shadow: 0 0 40px rgba(255, 255, 255, 0.6), 0 0 60px rgba(255, 255, 255, 0.4);
     transform: scale(1.05);
   }
 }
@@ -477,8 +621,274 @@
   }
 }
 
+/* === ENHANCED UTILITY CLASSES === */
+
+/* New smooth animations with utility classes */
+.animate-slide-in-smooth {
+  animation: slide-in-smooth var(--motion-duration-slow) var(--motion-ease-spring);
+}
+
+.animate-rotate-smooth {
+  animation: rotate-smooth var(--motion-duration-slow) var(--motion-ease-spring);
+}
+
+.animate-smooth-scale {
+  animation: smooth-scale var(--motion-duration-normal) var(--motion-ease-spring);
+}
+
+.animate-morph {
+  animation: morph 8s var(--motion-ease-in-out) infinite;
+}
+
+.animate-breathe {
+  animation: breathe 4s var(--motion-ease-in-out) infinite;
+}
+
+.animate-magnetic-pull {
+  animation: magnetic-pull var(--motion-duration-slow) var(--motion-ease-spring) forwards;
+}
+
+/* === ENHANCED MICRO-INTERACTIONS === */
+
+/* Smooth button interactions */
+.btn-smooth {
+  transition: all var(--motion-duration-fast) var(--motion-ease-smooth);
+  transform: translate3d(0, 0, 0);
+  backface-visibility: hidden;
+}
+
+.btn-smooth:hover {
+  transform: translate3d(0, -2px, 0) scale3d(1.02, 1.02, 1);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+}
+
+.btn-smooth:active {
+  transform: translate3d(0, 0, 0) scale3d(0.98, 0.98, 1);
+  transition-duration: var(--motion-duration-instant);
+}
+
+/* Enhanced input focus states */
+.input-smooth {
+  transition: all var(--motion-duration-normal) var(--motion-ease-smooth);
+  transform: translate3d(0, 0, 0);
+}
+
+.input-smooth:focus {
+  transform: translate3d(0, -1px, 0) scale3d(1.01, 1.01, 1);
+  box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.1), 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+/* Card interactions */
+.card-smooth {
+  transition: all var(--motion-duration-normal) var(--motion-ease-smooth);
+  transform: translate3d(0, 0, 0);
+  backface-visibility: hidden;
+}
+
+.card-smooth:hover {
+  transform: translate3d(0, -4px, 0) scale3d(1.02, 1.02, 1);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.12);
+}
+
+/* Loading states */
+.loading-pulse {
+  animation: breathe 1.5s var(--motion-ease-in-out) infinite;
+}
+
+.loading-morph {
+  animation: morph 2s var(--motion-ease-in-out) infinite;
+}
+
+/* Text animations */
+.text-reveal {
+  animation: slide-in-smooth var(--motion-duration-slow) var(--motion-ease-spring);
+}
+
+.text-glow {
+  transition: text-shadow var(--motion-duration-normal) var(--motion-ease-smooth);
+}
+
+.text-glow:hover {
+  text-shadow: 0 0 8px rgba(0, 0, 0, 0.3);
+}
+
+/* === SCROLL-TRIGGERED ANIMATIONS === */
+
+/* Intersection observer friendly classes */
+.scroll-fade-in {
+  opacity: 0;
+  transform: translate3d(0, 30px, 0);
+  transition: all var(--motion-duration-slow) var(--motion-ease-spring);
+}
+
+.scroll-fade-in.in-view {
+  opacity: 1;
+  transform: translate3d(0, 0, 0);
+}
+
+.scroll-slide-left {
+  opacity: 0;
+  transform: translate3d(-50px, 0, 0);
+  transition: all var(--motion-duration-slow) var(--motion-ease-spring);
+}
+
+.scroll-slide-left.in-view {
+  opacity: 1;
+  transform: translate3d(0, 0, 0);
+}
+
+.scroll-slide-right {
+  opacity: 0;
+  transform: translate3d(50px, 0, 0);
+  transition: all var(--motion-duration-slow) var(--motion-ease-spring);
+}
+
+.scroll-slide-right.in-view {
+  opacity: 1;
+  transform: translate3d(0, 0, 0);
+}
+
+.scroll-scale-in {
+  opacity: 0;
+  transform: scale3d(0.8, 0.8, 1);
+  transition: all var(--motion-duration-slow) var(--motion-ease-spring);
+}
+
+.scroll-scale-in.in-view {
+  opacity: 1;
+  transform: scale3d(1, 1, 1);
+}
+
+/* === PERFORMANCE OPTIMIZATIONS === */
+
+/* Hardware acceleration for common patterns */
+.gpu-layer {
+  transform: translate3d(0, 0, 0);
+  backface-visibility: hidden;
+  perspective: 1000px;
+}
+
+/* Optimized transforms */
+.transform-smooth {
+  will-change: transform;
+  transform: translate3d(0, 0, 0);
+}
+
+/* Clean up will-change after animations */
+.animation-complete {
+  will-change: auto;
+}
+
+/* Composite layers for smooth scrolling */
+.scroll-smooth {
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+  transform: translate3d(0, 0, 0);
+}
+
+/* === ACCESSIBILITY ENHANCEMENTS === */
+
+/* Focus indicators with smooth transitions */
+.focus-smooth {
+  transition: all var(--motion-duration-fast) var(--motion-ease-smooth);
+  outline: 2px solid transparent;
+  outline-offset: 2px;
+}
+
+.focus-smooth:focus-visible {
+  outline-color: hsl(var(--ring));
+  transform: translate3d(0, 0, 0) scale3d(1.02, 1.02, 1);
+  box-shadow: 0 0 0 4px hsla(var(--ring), 0.2);
+}
+
+/* High contrast safe animations */
+@media (prefers-contrast: high) {
+  .animate-morph,
+  .animate-breathe,
+  .loading-morph {
+    animation: none;
+  }
+  
+  .text-glow:hover {
+    text-shadow: none;
+  }
+}
+
+/* Reduced motion support for new animations */
+@media (prefers-reduced-motion: reduce) {
+  .animate-slide-in-smooth,
+  .animate-rotate-smooth,
+  .animate-smooth-scale,
+  .animate-morph,
+  .animate-breathe,
+  .animate-magnetic-pull,
+  .loading-pulse,
+  .loading-morph,
+  .text-reveal {
+    animation: none;
+  }
+  
+  .btn-smooth:hover,
+  .btn-smooth:active,
+  .input-smooth:focus,
+  .card-smooth:hover,
+  .focus-smooth:focus-visible {
+    transform: none;
+    box-shadow: none;
+  }
+  
+  .scroll-fade-in,
+  .scroll-slide-left,
+  .scroll-slide-right,
+  .scroll-scale-in {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+}
+
+/* Mobile touch optimizations */
+@media (max-width: 768px) {
+  .btn-smooth:hover,
+  .card-smooth:hover {
+    transform: none;
+    box-shadow: none;
+  }
+  
+  /* Faster animations on mobile */
+  .btn-smooth,
+  .input-smooth,
+  .card-smooth {
+    transition-duration: var(--motion-duration-fast);
+  }
+}
+
+/* Dark mode optimizations */
+@media (prefers-color-scheme: dark) {
+  .text-glow:hover {
+    text-shadow: 0 0 8px rgba(255, 255, 255, 0.3);
+  }
+}
+
 /* Additional login page utilities */
 .backdrop-blur-xl {
   backdrop-filter: blur(24px);
   -webkit-backdrop-filter: blur(24px);
+}
+
+/* Smooth backdrop transitions */
+.backdrop-smooth {
+  transition: backdrop-filter var(--motion-duration-normal) var(--motion-ease-smooth);
+}
+
+/* Enhanced glass morphism */
+.glass-smooth {
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  transition: all var(--motion-duration-normal) var(--motion-ease-smooth);
+}
+
+.glass-smooth:hover {
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
 }

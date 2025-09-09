@@ -585,32 +585,26 @@ export function TextToolsPage() {
 
   return (
     <TooltipProvider delayDuration={300}>
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-indigo-50/40 relative overflow-hidden">
-        {/* Background decorative elements */}
-        <div className="absolute inset-0 bg-grid-slate-100/40 [mask-image:linear-gradient(0deg,white,rgba(255,255,255,0.6))]" />
-        <div className="absolute top-20 right-20 w-96 h-96 bg-gradient-to-br from-blue-400/20 to-indigo-400/30 rounded-full blur-3xl animate-pulse" />
-        <div className="absolute bottom-20 left-20 w-80 h-80 bg-gradient-to-tr from-purple-400/20 to-pink-400/30 rounded-full blur-3xl animate-pulse delay-1000" />
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-gradient-to-r from-emerald-400/10 to-cyan-400/20 rounded-full blur-2xl animate-pulse delay-500" />
-        
-        <div className="container mx-auto p-6 max-w-7xl relative z-10">
+      <div className="min-h-screen bg-white relative">
+        <div className="container mx-auto p-4 max-w-6xl relative z-10">
           <Dialog open={showKeyboardHelp} onOpenChange={setShowKeyboardHelp}>
             <DialogTrigger asChild>
               <Button
                 variant="outline"
                 size="sm"
-                className="group flex items-center gap-2 bg-white/80 backdrop-blur-sm border-slate-200/60 hover:bg-white hover:border-blue-300/60 hover:text-blue-700 hover:shadow-lg hover:shadow-blue-500/10 transition-all duration-300 rounded-xl px-4 py-2.5 fixed top-6 right-6 z-50"
+                className="group flex items-center gap-2 bg-white/80 backdrop-blur-sm border-slate-200/60 hover:bg-white hover:border-gray-400/60 hover:text-gray-800 hover:shadow-lg hover:shadow-gray-500/10 transition-all duration-300 rounded-xl px-4 py-2.5 fixed top-6 right-6 z-50"
               >
-                <div className="p-1 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-lg group-hover:from-blue-100 group-hover:to-indigo-100 transition-all duration-300">
-                  <Keyboard className="w-4 h-4 text-blue-600" />
+                <div className="p-1 bg-gradient-to-br from-gray-100 to-gray-200 rounded-lg group-hover:from-gray-200 group-hover:to-gray-300 transition-all duration-300">
+                  <Keyboard className="w-4 h-4 text-gray-700" />
                 </div>
                 <span className="font-medium">Shortcuts</span>
-                <div className="w-1.5 h-1.5 bg-blue-500 rounded-full animate-pulse" />
+                <div className="w-1.5 h-1.5 bg-gray-600 rounded-full animate-pulse" />
               </Button>
             </DialogTrigger>
             <DialogContent className="max-w-4xl max-h-[80vh]">
               <DialogHeader>
                 <DialogTitle className="flex items-center gap-2 text-xl">
-                  <div className="p-2 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg">
+                  <div className="p-2 bg-gradient-to-br from-gray-700 to-gray-800 rounded-lg">
                     <Keyboard className="w-5 h-5 text-white" />
                   </div>
                   Keyboard Shortcuts
@@ -622,19 +616,19 @@ export function TextToolsPage() {
               
               <ScrollArea className="h-[60vh] pr-4">
                 <div className="space-y-8">
-                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                    {/* Navigation Shortcuts */}
-                    <div className="space-y-4">
-                      <div className="flex items-center gap-2 mb-4">
-                        <div className="p-1.5 bg-blue-100 rounded-md">
-                          <Zap className="w-4 h-4 text-blue-600" />
-                        </div>
+                      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                        {/* Navigation Shortcuts */}
+                        <div className="space-y-4">
+                          <div className="flex items-center gap-2 mb-4">
+                            <div className="p-1.5 bg-gray-200 rounded-md">
+                              <Zap className="w-4 h-4 text-gray-700" />
+                            </div>
                         <h3 className="font-semibold text-base text-slate-800">Navigation</h3>
                       </div>
                       <div className="space-y-3">
-                        <div className="flex justify-between items-center p-3 bg-slate-50 rounded-lg hover:bg-slate-100 transition-colors">
-                          <span className="text-sm text-slate-700">Switch to Tools tab</span>
-                          <kbd className="px-3 py-1.5 bg-white border border-slate-300 rounded-md text-xs font-mono shadow-sm">Ctrl+1</kbd>
+                        <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
+                          <span className="text-sm text-gray-700">Switch to Tools tab</span>
+                          <kbd className="px-3 py-1.5 bg-white border border-gray-300 rounded-md text-xs font-mono shadow-sm">Ctrl+1</kbd>
                         </div>
                         <div className="flex justify-between items-center p-3 bg-slate-50 rounded-lg hover:bg-slate-100 transition-colors">
                           <span className="text-sm text-slate-700">Switch to Compare tab</span>
@@ -743,11 +737,9 @@ export function TextToolsPage() {
           </Dialog>
         
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <div className="relative mb-8">
+          <div className="relative mb-6">
             <TabsList className={cn(
-              "grid w-full grid-cols-4 h-16 p-1.5 bg-white/80 backdrop-blur-md",
-              "border border-slate-200/40 rounded-3xl shadow-xl shadow-slate-200/40",
-              "ring-1 ring-slate-100/80 mb-6"
+              "grid w-full grid-cols-4 h-12 sm:h-16 p-1 sm:p-1.5 bg-white border border-gray-200 rounded-xl sm:rounded-3xl shadow-lg"
             )}>
             <TabsTrigger 
               value="tools" 
@@ -813,108 +805,128 @@ export function TextToolsPage() {
           </TabsList>
         </div>
 
-        <TabsContent value="tools" className="space-y-8">
-          {/* Enhanced Hero Section */}
-          <div className="relative overflow-hidden bg-gradient-to-br from-white via-blue-50/50 to-indigo-50/60 border border-slate-200/40 rounded-3xl shadow-2xl shadow-blue-500/10">
-            {/* Enhanced Background Pattern */}
-            <div className="absolute inset-0 bg-grid-slate-100/40 [mask-image:linear-gradient(0deg,white,rgba(255,255,255,0.7))]" />
-            <div className="absolute top-0 right-0 -mt-6 -mr-6 w-32 h-32 bg-gradient-to-br from-blue-400/30 to-indigo-400/40 rounded-full blur-3xl animate-pulse" />
-            <div className="absolute bottom-0 left-0 -mb-6 -ml-6 w-40 h-40 bg-gradient-to-tr from-purple-400/25 to-pink-400/35 rounded-full blur-3xl animate-pulse delay-1000" />
-            <div className="absolute top-1/2 right-1/4 w-24 h-24 bg-gradient-to-r from-emerald-400/20 to-cyan-400/25 rounded-full blur-2xl animate-pulse delay-500" />
-            
-            {/* Floating elements */}
-            <div className="absolute top-6 left-1/3 w-2 h-2 bg-blue-400/60 rounded-full animate-bounce delay-300" />
-            <div className="absolute bottom-8 right-1/3 w-1.5 h-1.5 bg-purple-400/60 rounded-full animate-bounce delay-700" />
-            <div className="absolute top-1/3 right-8 w-1 h-1 bg-indigo-400/60 rounded-full animate-bounce delay-1000" />
-            
-            <div className="relative p-10">
-              <div className="flex flex-col lg:flex-row lg:items-center gap-6 mb-8">
-                <div className="flex items-center gap-4">
-                  <div className="relative group">
-                    <div className="p-4 bg-gradient-to-br from-blue-500 via-indigo-600 to-purple-600 rounded-2xl shadow-2xl shadow-blue-500/30 group-hover:shadow-blue-500/40 transition-all duration-300 group-hover:scale-105">
-                      <Sparkles className="w-8 h-8 text-white animate-pulse" />
-                      <div className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-full animate-bounce" />
-                    </div>
-                    <div className="absolute inset-0 bg-gradient-to-br from-blue-500 via-indigo-600 to-purple-600 rounded-2xl blur-2xl opacity-20 animate-pulse group-hover:opacity-30 transition-opacity duration-300" />
-                    <div className="absolute -inset-2 bg-gradient-to-br from-blue-400/20 to-purple-400/20 rounded-3xl blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                  </div>
-                  <div>
-                    <h2 className="text-3xl lg:text-4xl font-black bg-gradient-to-r from-slate-900 via-blue-800 to-indigo-900 bg-clip-text text-transparent mb-2">
-                      Text Processing Hub
-                    </h2>
-                    <div className="h-1.5 w-40 bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-600 rounded-full mb-3" />
-                    <p className="text-slate-600 font-medium text-lg leading-relaxed max-w-2xl">
-                      Transform, analyze, and manipulate your text with our 
-                      <span className="text-transparent bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text font-semibold">professional-grade suite</span> 
-                      of instant processing tools
-                    </p>
-                  </div>
-                </div>
-                
-                {/* Feature highlights */}
-                <div className="flex flex-row lg:flex-col gap-3 lg:ml-auto flex-wrap">
-                  <div className="flex items-center gap-2 px-3 py-2 bg-white/70 backdrop-blur-sm rounded-xl border border-slate-200/50 shadow-sm">
-                    <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
-                    <span className="text-xs font-semibold text-slate-700">Real-time</span>
-                  </div>
-                  <div className="flex items-center gap-2 px-3 py-2 bg-white/70 backdrop-blur-sm rounded-xl border border-slate-200/50 shadow-sm">
-                    <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse delay-300" />
-                    <span className="text-xs font-semibold text-slate-700">30+ Tools</span>
-                  </div>
-                  <div className="flex items-center gap-2 px-3 py-2 bg-white/70 backdrop-blur-sm rounded-xl border border-slate-200/50 shadow-sm">
-                    <div className="w-2 h-2 bg-purple-500 rounded-full animate-pulse delay-700" />
-                    <span className="text-xs font-semibold text-slate-700">No Limits</span>
-                  </div>
-                </div>
-              </div>
-              
-              {/* Search and Quick Stats */}
-              <div className="flex flex-col xl:flex-row gap-4 items-start xl:items-center">
-                <div className="relative w-full xl:flex-1 xl:max-w-md">
-                  <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
-                  <Input
-                    id="search-input"
-                    placeholder="Search tools..."
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    className="pl-12 h-12 bg-white/80 backdrop-blur-sm border-slate-200/60 rounded-xl shadow-sm hover:bg-white focus:bg-white focus:ring-2 focus:ring-blue-500/20 focus:border-blue-300 transition-all duration-200 w-full"
-                  />
-                  {searchTerm && (
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="absolute right-2 top-1/2 -translate-y-1/2 h-8 w-8 p-0 hover:bg-slate-100 rounded-lg"
-                      onClick={() => setSearchTerm('')}
-                    >
-                      <X className="w-4 h-4" />
-                    </Button>
-                  )}
-                </div>
-                
-                {inputText && (
-                  <div className="flex flex-wrap items-center gap-2 sm:gap-3 lg:gap-4">
-                    <div className="flex items-center gap-2 px-2 sm:px-3 py-1.5 sm:py-2 bg-white/60 backdrop-blur-sm rounded-lg border border-slate-200/50">
-                      <Clock className="w-3 h-3 sm:w-4 sm:h-4 text-blue-500" />
-                      <span className="text-xs sm:text-sm font-medium text-slate-700">
-                        {textStats?.readingTime || 0} min
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-2 px-2 sm:px-3 py-1.5 sm:py-2 bg-white/60 backdrop-blur-sm rounded-lg border border-slate-200/50">
-                      <Type className="w-3 h-3 sm:w-4 sm:h-4 text-indigo-500" />
-                      <span className="text-xs sm:text-sm font-medium text-slate-700">
-                        {textStats?.words || 0} words
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-2 px-2 sm:px-3 py-1.5 sm:py-2 bg-white/60 backdrop-blur-sm rounded-lg border border-slate-200/50">
-                      <Hash className="w-3 h-3 sm:w-4 sm:h-4 text-purple-500" />
-                      <span className="text-xs sm:text-sm font-medium text-slate-700">
-                        {textStats?.characters || 0} chars
-                      </span>
-                    </div>
-                  </div>
+        <TabsContent value="tools" className="space-y-6">
+          {/* Search and Quick Actions */}
+          <div className="space-y-4">
+            <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
+              <div className="relative w-full sm:w-96">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                <Input
+                  id="search-input"
+                  placeholder="Search tools (e.g., uppercase, json, base64)..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-10 h-10 bg-white border-gray-200 focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
+                />
+                {searchTerm && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="absolute right-2 top-1/2 -translate-y-1/2 h-6 w-6 p-0 hover:bg-gray-100"
+                    onClick={() => setSearchTerm('')}
+                  >
+                    <X className="w-3 h-3" />
+                  </Button>
                 )}
               </div>
+              
+              {/* Quick Access Tools */}
+              <div className="flex flex-wrap gap-2">
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => applyTransformation(toUpperCase)}
+                      disabled={!inputText.trim()}
+                      className="h-8 px-3 text-xs font-medium"
+                    >
+                      <Type className="w-3 h-3 mr-1" />
+                      UPPER
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>Convert to UPPERCASE (Ctrl+U)</TooltipContent>
+                </Tooltip>
+                
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => applyTransformation(toLowerCase)}
+                      disabled={!inputText.trim()}
+                      className="h-8 px-3 text-xs font-medium"
+                    >
+                      <Type className="w-3 h-3 mr-1" />
+                      lower
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>Convert to lowercase (Ctrl+L)</TooltipContent>
+                </Tooltip>
+                
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => applyTransformation(toTitleCase)}
+                      disabled={!inputText.trim()}
+                      className="h-8 px-3 text-xs font-medium"
+                    >
+                      <Type className="w-3 h-3 mr-1" />
+                      Title
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>Convert to Title Case (Ctrl+T)</TooltipContent>
+                </Tooltip>
+                
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => applyTransformation(removeExtraSpaces)}
+                      disabled={!inputText.trim()}
+                      className="h-8 px-3 text-xs font-medium"
+                    >
+                      <ArrowUpDown className="w-3 h-3 mr-1" />
+                      Trim
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>Remove extra spaces</TooltipContent>
+                </Tooltip>
+              </div>
             </div>
+            
+            {/* Live Stats */}
+            {inputText && (
+              <div className="flex flex-wrap gap-3 p-3 bg-gray-50 rounded-lg border">
+                <div className="flex items-center gap-1.5">
+                  <Type className="w-3 h-3 text-gray-500" />
+                  <span className="text-xs font-medium text-gray-700">
+                    {textStats?.words || 0} words
+                  </span>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <Hash className="w-3 h-3 text-gray-500" />
+                  <span className="text-xs font-medium text-gray-700">
+                    {textStats?.characters || 0} characters
+                  </span>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <Clock className="w-3 h-3 text-gray-500" />
+                  <span className="text-xs font-medium text-gray-700">
+                    {textStats?.readingTime || 0} min read
+                  </span>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <FileText className="w-3 h-3 text-gray-500" />
+                  <span className="text-xs font-medium text-gray-700">
+                    {textStats?.lines || 0} lines
+                  </span>
+                </div>
+              </div>
+            )}
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

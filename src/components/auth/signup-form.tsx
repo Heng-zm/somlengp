@@ -153,11 +153,11 @@ export function SignupForm({
         <div className="text-center space-y-2">
           <div className="mx-auto relative">
             <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/20 via-blue-500/20 to-purple-600/20 rounded-full blur-xl animate-pulse"></div>
-            <div className="relative w-12 h-12 sm:w-16 sm:h-16 bg-gradient-to-br from-emerald-500 via-blue-500 to-purple-600 rounded-full flex items-center justify-center shadow-lg ring-2 ring-white/50 dark:ring-gray-800/50">
-              <UserPlus className="w-5 h-5 sm:w-7 sm:h-7 text-white drop-shadow-lg" />
+            <div className="relative w-12 h-12 sm:w-16 sm:h-16 bg-gradient-to-br from-gray-800 to-black dark:from-gray-200 dark:to-white rounded-full flex items-center justify-center shadow-lg ring-2 ring-white/50 dark:ring-gray-800/50">
+              <UserPlus className="w-5 h-5 sm:w-7 sm:h-7 text-white dark:text-gray-800 drop-shadow-lg" />
             </div>
           </div>
-          <h2 className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-emerald-600 via-blue-600 to-purple-600 bg-clip-text text-transparent">
+          <h2 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">
             Create Account
           </h2>
           <p className="text-sm text-gray-600 dark:text-gray-400">
@@ -172,7 +172,7 @@ export function SignupForm({
             onClick={handleGoogleSignUp}
             disabled={isGoogleLoading || isLoading}
             className={cn(
-              "w-full bg-white hover:bg-gray-50 text-gray-900 dark:bg-gray-700 dark:hover:bg-gray-600 dark:text-gray-100",
+              "w-full bg-white hover:bg-gray-100 text-gray-900 dark:bg-gray-800 dark:hover:bg-gray-700 dark:text-gray-100",
               "border border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500",
               "shadow-md hover:shadow-lg transition-all duration-300 hover:scale-[1.02]",
               "disabled:opacity-60 disabled:cursor-not-allowed disabled:hover:scale-100",
@@ -216,7 +216,7 @@ export function SignupForm({
                     <div className="relative group">
                       <User className={cn(
                         "absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 transition-colors",
-                        fieldState.error ? "text-red-500" : "text-gray-400 group-focus-within:text-emerald-500"
+                        fieldState.error ? "text-red-500" : "text-gray-400 group-focus-within:text-gray-600 dark:group-focus-within:text-gray-300"
                       )} />
                       <Input
                         placeholder="First name"
@@ -224,7 +224,7 @@ export function SignupForm({
                           "pl-10 border-2 transition-colors",
                           "bg-gray-50/50 hover:bg-white dark:bg-gray-700/50 dark:hover:bg-gray-700",
                           "border-gray-200 hover:border-gray-300 dark:border-gray-600 dark:hover:border-gray-500",
-                          "focus:border-emerald-500 focus:bg-white dark:focus:bg-gray-700",
+                          "focus:border-gray-600 dark:focus:border-gray-400 focus:bg-white dark:focus:bg-gray-700",
                           fieldState.error && "border-red-500 bg-red-50/50 dark:bg-red-900/10",
                           compact ? "h-9" : "h-10"
                         )}
@@ -249,7 +249,7 @@ export function SignupForm({
                     <div className="relative group">
                       <User className={cn(
                         "absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 transition-colors",
-                        fieldState.error ? "text-red-500" : "text-gray-400 group-focus-within:text-emerald-500"
+                        fieldState.error ? "text-red-500" : "text-gray-400 group-focus-within:text-gray-600 dark:group-focus-within:text-gray-300"
                       )} />
                       <Input
                         placeholder="Last name"
@@ -257,7 +257,7 @@ export function SignupForm({
                           "pl-10 border-2 transition-colors",
                           "bg-gray-50/50 hover:bg-white dark:bg-gray-700/50 dark:hover:bg-gray-700",
                           "border-gray-200 hover:border-gray-300 dark:border-gray-600 dark:hover:border-gray-500",
-                          "focus:border-emerald-500 focus:bg-white dark:focus:bg-gray-700",
+                          "focus:border-gray-600 dark:focus:border-gray-400 focus:bg-white dark:focus:bg-gray-700",
                           fieldState.error && "border-red-500 bg-red-50/50 dark:bg-red-900/10",
                           compact ? "h-9" : "h-10"
                         )}
@@ -284,7 +284,7 @@ export function SignupForm({
                   <div className="relative group">
                     <Mail className={cn(
                       "absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 transition-colors",
-                      fieldState.error ? "text-red-500" : "text-gray-400 group-focus-within:text-blue-500"
+                      fieldState.error ? "text-red-500" : "text-gray-400 group-focus-within:text-gray-600 dark:group-focus-within:text-gray-300"
                     )} />
                     <Input
                       placeholder="your.email@example.com"
@@ -292,7 +292,7 @@ export function SignupForm({
                         "pl-10 pr-10 border-2 transition-colors",
                         "bg-gray-50/50 hover:bg-white dark:bg-gray-700/50 dark:hover:bg-gray-700",
                         "border-gray-200 hover:border-gray-300 dark:border-gray-600 dark:hover:border-gray-500",
-                        "focus:border-blue-500 focus:bg-white dark:focus:bg-gray-700",
+                        "focus:border-gray-600 dark:focus:border-gray-400 focus:bg-white dark:focus:bg-gray-700",
                         fieldState.error && "border-red-500 bg-red-50/50 dark:bg-red-900/10",
                         compact ? "h-9" : "h-10"
                       )}
@@ -323,7 +323,7 @@ export function SignupForm({
                   <div className="relative group">
                     <Lock className={cn(
                       "absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 transition-colors",
-                      fieldState.error ? "text-red-500" : "text-gray-400 group-focus-within:text-purple-500"
+                      fieldState.error ? "text-red-500" : "text-gray-400 group-focus-within:text-gray-600 dark:group-focus-within:text-gray-300"
                     )} />
                     <Input
                       placeholder="Create a strong password"
@@ -331,7 +331,7 @@ export function SignupForm({
                         "pl-10 pr-10 border-2 transition-colors",
                         "bg-gray-50/50 hover:bg-white dark:bg-gray-700/50 dark:hover:bg-gray-700",
                         "border-gray-200 hover:border-gray-300 dark:border-gray-600 dark:hover:border-gray-500",
-                        "focus:border-purple-500 focus:bg-white dark:focus:bg-gray-700",
+                        "focus:border-gray-600 dark:focus:border-gray-400 focus:bg-white dark:focus:bg-gray-700",
                         fieldState.error && "border-red-500 bg-red-50/50 dark:bg-red-900/10",
                         compact ? "h-9" : "h-10"
                       )}
@@ -366,7 +366,7 @@ export function SignupForm({
                   <div className="relative group">
                     <Lock className={cn(
                       "absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 transition-colors",
-                      fieldState.error ? "text-red-500" : "text-gray-400 group-focus-within:text-purple-500"
+                      fieldState.error ? "text-red-500" : "text-gray-400 group-focus-within:text-gray-600 dark:group-focus-within:text-gray-300"
                     )} />
                     <Input
                       placeholder="Confirm your password"
@@ -374,7 +374,7 @@ export function SignupForm({
                         "pl-10 pr-10 border-2 transition-colors",
                         "bg-gray-50/50 hover:bg-white dark:bg-gray-700/50 dark:hover:bg-gray-700",
                         "border-gray-200 hover:border-gray-300 dark:border-gray-600 dark:hover:border-gray-500",
-                        "focus:border-purple-500 focus:bg-white dark:focus:bg-gray-700",
+                        "focus:border-gray-600 dark:focus:border-gray-400 focus:bg-white dark:focus:bg-gray-700",
                         fieldState.error && "border-red-500 bg-red-50/50 dark:bg-red-900/10",
                         compact ? "h-9" : "h-10"
                       )}
@@ -418,11 +418,11 @@ export function SignupForm({
                     fieldState.error ? "text-red-500" : "text-gray-700 dark:text-gray-300"
                   )}>
                     I agree to the{" "}
-                    <Link href="/terms" className="text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 underline">
+                    <Link href="/terms" className="text-gray-700 hover:text-black dark:text-gray-300 dark:hover:text-white underline">
                       Terms of Service
                     </Link>{" "}
                     and{" "}
-                    <Link href="/privacy" className="text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 underline">
+                    <Link href="/privacy" className="text-gray-700 hover:text-black dark:text-gray-300 dark:hover:text-white underline">
                       Privacy Policy
                     </Link>
                   </FormLabel>
@@ -437,9 +437,9 @@ export function SignupForm({
             type="submit"
             disabled={isLoading || isGoogleLoading}
             className={cn(
-              "w-full bg-gradient-to-r from-emerald-600 via-blue-600 to-purple-600",
-              "hover:from-emerald-700 hover:via-blue-700 hover:to-purple-700",
-              "text-white font-medium shadow-md hover:shadow-lg",
+              "w-full bg-gradient-to-r from-gray-800 to-black",
+              "hover:from-gray-900 hover:to-gray-800 dark:from-gray-200 dark:to-white dark:hover:from-gray-100 dark:hover:to-gray-200",
+              "text-white dark:text-gray-800 font-medium shadow-md hover:shadow-lg",
               "transition-all duration-300 hover:scale-[1.02]",
               "disabled:opacity-60 disabled:cursor-not-allowed disabled:hover:scale-100",
               compact ? "h-10" : "h-11"

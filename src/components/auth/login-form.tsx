@@ -167,13 +167,13 @@ export const LoginForm = memo(function LoginForm({}: LoginFormProps) {
         <SheetHeader className="space-y-4 sm:space-y-6 pt-4 sm:pt-6">
           <div className="relative mx-auto">
             <div className="absolute inset-0 bg-gradient-to-br from-blue-500/20 to-purple-600/20 rounded-full blur-xl animate-pulse"></div>
-            <div className="relative w-16 h-16 sm:w-20 sm:h-20 bg-gradient-to-br from-blue-500 via-purple-500 to-indigo-600 rounded-full flex items-center justify-center shadow-2xl ring-2 sm:ring-4 ring-white/50 dark:ring-gray-800/50">
-              <LogIn className="w-7 h-7 sm:w-9 sm:h-9 text-white drop-shadow-lg" />
+            <div className="relative w-16 h-16 sm:w-20 sm:h-20 bg-gradient-to-br from-gray-800 to-black dark:from-gray-200 dark:to-white rounded-full flex items-center justify-center shadow-2xl ring-2 sm:ring-4 ring-white/50 dark:ring-gray-800/50">
+              <LogIn className="w-7 h-7 sm:w-9 sm:h-9 text-white dark:text-gray-800 drop-shadow-lg" />
             </div>
           </div>
           
           <div className="space-y-2">
-            <SheetTitle className="login-title text-center bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 bg-clip-text text-transparent">
+            <SheetTitle className="login-title text-center text-gray-900 dark:text-white">
               Welcome Back
             </SheetTitle>
             
@@ -235,7 +235,7 @@ export const LoginForm = memo(function LoginForm({}: LoginFormProps) {
                       <div className="relative group">
                         <Mail className={cn(
                           "absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 transition-all duration-300",
-                          fieldState.error ? "text-red-500" : "text-gray-400 group-focus-within:text-blue-500 group-focus-within:scale-110"
+                          fieldState.error ? "text-red-500" : "text-gray-400 group-focus-within:text-gray-600 dark:group-focus-within:text-gray-300 group-focus-within:scale-110"
                         )} />
                         <Input
                           placeholder="your.email@example.com"
@@ -243,8 +243,8 @@ export const LoginForm = memo(function LoginForm({}: LoginFormProps) {
                             "login-input pl-12 pr-12 rounded-xl border-2 mobile-text",
                             "bg-gray-50/50 hover:bg-white dark:bg-gray-800/50 dark:hover:bg-gray-800",
                             "border-gray-200 hover:border-gray-300 dark:border-gray-700 dark:hover:border-gray-600",
-                            "focus:border-blue-500 focus:bg-white dark:focus:bg-gray-800 login-focus",
-                            "focus:ring-4 focus:ring-blue-500/10 login-animation",
+                            "focus:border-gray-600 dark:focus:border-gray-400 focus:bg-white dark:focus:bg-gray-800 login-focus",
+                            "focus:ring-4 focus:ring-gray-500/10 login-animation",
                             "placeholder:text-gray-400 dark:placeholder:text-gray-500",
                             fieldState.error && "border-red-500 bg-red-50/50 dark:bg-red-900/10 focus:border-red-500 focus:ring-red-500/10"
                           )}
@@ -274,7 +274,7 @@ export const LoginForm = memo(function LoginForm({}: LoginFormProps) {
                       <div className="relative group">
                         <Lock className={cn(
                           "absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 transition-all duration-300",
-                          fieldState.error ? "text-red-500" : "text-gray-400 group-focus-within:text-blue-500 group-focus-within:scale-110"
+                          fieldState.error ? "text-red-500" : "text-gray-400 group-focus-within:text-gray-600 dark:group-focus-within:text-gray-300 group-focus-within:scale-110"
                         )} />
                         <Input
                           placeholder="Enter your password"
@@ -282,8 +282,8 @@ export const LoginForm = memo(function LoginForm({}: LoginFormProps) {
                             "login-input pl-12 pr-12 rounded-xl border-2 mobile-text",
                             "bg-gray-50/50 hover:bg-white dark:bg-gray-800/50 dark:hover:bg-gray-800",
                             "border-gray-200 hover:border-gray-300 dark:border-gray-700 dark:hover:border-gray-600",
-                            "focus:border-blue-500 focus:bg-white dark:focus:bg-gray-800 login-focus",
-                            "focus:ring-4 focus:ring-blue-500/10 login-animation",
+                            "focus:border-gray-600 dark:focus:border-gray-400 focus:bg-white dark:focus:bg-gray-800 login-focus",
+                            "focus:ring-4 focus:ring-gray-500/10 login-animation",
                             "placeholder:text-gray-400 dark:placeholder:text-gray-500",
                             fieldState.error && "border-red-500 bg-red-50/50 dark:bg-red-900/10 focus:border-red-500 focus:ring-red-500/10"
                           )}
@@ -330,7 +330,7 @@ export const LoginForm = memo(function LoginForm({}: LoginFormProps) {
                   <SheetTrigger asChild>
                     <Button 
                       variant="link" 
-                      className="px-0 font-semibold text-sm text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 transition-all duration-300 hover:scale-105"
+                      className="px-0 font-semibold text-sm text-gray-700 hover:text-black dark:text-gray-300 dark:hover:text-white transition-all duration-300 hover:scale-105"
                       type="button"
                     >
                       Forgot password?
@@ -341,7 +341,7 @@ export const LoginForm = memo(function LoginForm({}: LoginFormProps) {
                       <div className="mx-auto w-16 h-16 bg-gradient-to-br from-red-500 to-orange-500 rounded-full flex items-center justify-center shadow-lg">
                         <Mail className="w-8 h-8 text-white" />
                       </div>
-                      <SheetTitle className="text-2xl font-bold text-center bg-gradient-to-r from-red-600 to-orange-600 bg-clip-text text-transparent">
+                      <SheetTitle className="text-2xl font-bold text-center text-gray-900 dark:text-white">
                         Reset Password
                       </SheetTitle>
                       <SheetDescription className="text-center text-gray-600 dark:text-gray-400">
@@ -351,12 +351,12 @@ export const LoginForm = memo(function LoginForm({}: LoginFormProps) {
                     
                     <div className="space-y-6 mt-6">
                       <div className="relative group">
-                        <Mail className="absolute left-3 top-3.5 h-4 w-4 text-gray-400 group-focus-within:text-red-500 transition-colors" />
+                        <Mail className="absolute left-3 top-3.5 h-4 w-4 text-gray-400 group-focus-within:text-gray-600 dark:group-focus-within:text-gray-300 transition-colors" />
                         <Input
                           placeholder="your.email@example.com"
                           className={cn(
                             "pl-10 h-12 text-sm border-gray-200 dark:border-gray-700",
-                            "focus:border-red-500 focus:ring-red-500/20 focus:ring-2",
+                            "focus:border-gray-600 dark:focus:border-gray-400 focus:ring-gray-500/20 focus:ring-2",
                             "transition-all duration-200"
                           )}
                           type="email"
@@ -379,11 +379,11 @@ export const LoginForm = memo(function LoginForm({}: LoginFormProps) {
                           onClick={handlePasswordReset}
                           disabled={!resetEmail || !resetEmail.includes('@')}
                           className={cn(
-                            "w-full h-12 bg-gradient-to-r from-red-600 to-orange-600",
-                            "hover:from-red-700 hover:to-orange-700",
-                            "text-white font-medium shadow-lg hover:shadow-xl",
+                            "w-full h-12 bg-gradient-to-r from-gray-800 to-black",
+                            "hover:from-gray-900 hover:to-gray-800 dark:from-gray-200 dark:to-white dark:hover:from-gray-100 dark:hover:to-gray-200",
+                            "text-white dark:text-gray-800 font-medium shadow-lg hover:shadow-xl",
                             "transition-all duration-300 hover:scale-[1.02]",
-                            "focus:ring-2 focus:ring-red-500 focus:ring-offset-2",
+                            "focus:ring-2 focus:ring-gray-500 focus:ring-offset-2",
                             "disabled:opacity-60 disabled:cursor-not-allowed disabled:hover:scale-100"
                           )}
                         >
@@ -421,11 +421,11 @@ export const LoginForm = memo(function LoginForm({}: LoginFormProps) {
                   disabled={isLoading}
                   className={cn(
                     "group relative w-full h-14 overflow-hidden rounded-xl",
-                    "bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600",
-                    "hover:from-blue-700 hover:via-purple-700 hover:to-indigo-700",
-                    "text-white font-semibold text-base shadow-2xl hover:shadow-blue-500/25",
+                    "bg-gradient-to-r from-gray-800 to-black",
+                    "hover:from-gray-900 hover:to-gray-800 dark:from-gray-200 dark:to-white dark:hover:from-gray-100 dark:hover:to-gray-200",
+                    "text-white dark:text-gray-800 font-semibold text-base shadow-2xl",
                     "transition-all duration-500 hover:scale-[1.02] active:scale-[0.98]",
-                    "focus:ring-4 focus:ring-blue-500/20 focus:outline-none",
+                    "focus:ring-4 focus:ring-gray-500/20 focus:outline-none",
                     "disabled:opacity-60 disabled:cursor-not-allowed disabled:hover:scale-100",
                     "before:absolute before:inset-0 before:bg-gradient-to-r before:from-white/20 before:via-white/10 before:to-white/20",
                     "before:translate-x-[-100%] hover:before:translate-x-[100%] before:transition-transform before:duration-700"
