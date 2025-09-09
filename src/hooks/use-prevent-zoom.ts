@@ -44,7 +44,7 @@ export function usePreventZoom(options: PreventZoomOptions = {}) {
     const originalContent = viewportMeta?.getAttribute('content') || '';
 
     // Store original viewport settings
-    let originalViewport = originalContent;
+    const originalViewport = originalContent;
 
     const preventZoomViewport = allowUserScaling
       ? 'width=device-width, initial-scale=1.0, maximum-scale=3.0'

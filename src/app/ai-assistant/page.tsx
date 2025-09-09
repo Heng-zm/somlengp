@@ -36,15 +36,15 @@ import { showErrorToast, showSuccessToast } from '@/lib/toast-utils';
 import { cn } from '@/lib/utils';
 import { generateMessageId } from '@/lib/id-utils';
 import { motion, AnimatePresence } from 'framer-motion';
-import AIResponseFormatter from '@/components/ai/AIResponseFormatter';
-import { FORMAT_PRESETS, FormatPreset } from '@/lib/ai-format-presets';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { AIFormat, formatAIResponse } from '@/lib/ai-formatter';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 interface Message {
   id: string;
   role: 'user' | 'assistant';
   content: string;
   timestamp: Date;
+  format?: AIFormat; // format used for assistant messages
 }
 
 
@@ -79,7 +79,8 @@ export default function AIAssistantPage() {
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [isTyping, setIsTyping] = useState(false);
-  const [selectedModel, setSelectedModel] = useState<AIModel>(AI_MODELS[0]);
+const [selectedModel, setSelectedModel] = useState<AIModel>(AI_MODELS[0]);
+  const [responseFormat, setResponseFormat] = useState<AIFormat>('markdown');
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -167,11 +168,14 @@ export default function AIAssistantPage() {
 
       const data = await response.json();
 
+      const formattedContent = formatAIResponse(data.response, { format: responseFormat });
+
       const assistantMessage: Message = {
         id: generateMessageId(),
         role: 'assistant',
-        content: data.response,
+        content: formattedContent,
         timestamp: new Date(),
+        format: responseFormat,
       };
 
       setMessages(prev => [...prev, assistantMessage]);
@@ -192,7 +196,7 @@ export default function AIAssistantPage() {
       setIsLoading(false);
       setIsTyping(false);
     }
-  }, [input, isLoading, user, messages, selectedModel.name]);
+  }, [input, isLoading, user, messages, selectedModel.name, responseFormat]);
 
   const clearChat = useCallback(() => {
     setMessages([{
@@ -324,6 +328,20 @@ export default function AIAssistantPage() {
                       ))}
                     </DropdownMenuContent>
                   </DropdownMenu>
+
+                  {/* Response format selector */}
+                  <Select value={responseFormat} onValueChange={(v) => setResponseFormat(v as AIFormat)}>
+                    <SelectTrigger className="h-8 sm:h-10 w-[120px] rounded-xl">
+                      <SelectValue placeholder="Format" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="plain">Plain</SelectItem>
+                      <SelectItem value="markdown">Markdown</SelectItem>
+                      <SelectItem value="html">HTML</SelectItem>
+                      <SelectItem value="json">JSON</SelectItem>
+                      <SelectItem value="code">Code</SelectItem>
+                    </SelectContent>
+                  </Select>
                   
                   <Button
                     variant="outline"
@@ -393,44 +411,19 @@ export default function AIAssistantPage() {
                             )}
                             
                             <div className="relative whitespace-pre-wrap break-words word-break">
-                              {message.content}
+                              {message.role === 'assistant' && message.format === 'html' ? (
+                                <div dangerouslySetInnerHTML={{ __html: message.content }} />
+                              ) : (
+                                message.content
+                              )}
                             </div>
                             
-                            {/* Action buttons */}
+                            {/* Copy button */}
                             <div className={cn(
                               "absolute -top-1.5 -right-1.5 sm:-top-2 sm:-right-2 flex gap-1 transition-all duration-300",
                               // Visibility states - Always visible on mobile, hover on desktop
                               "opacity-100 md:opacity-0 md:group-hover:opacity-100"
                             )}>
-                              {/* Format button - only for assistant messages */}
-                              {message.role === 'assistant' && (
-                                <Dialog>
-                                  <DialogTrigger asChild>
-                                    <Button
-                                      variant="ghost"
-                                      size="sm"
-                                      className="h-7 w-7 sm:h-8 sm:w-8 p-0 rounded-full transition-all duration-300 transform hover:scale-110 active:scale-95 touch-manipulation bg-white/95 dark:bg-gray-700/90 hover:bg-gray-50 dark:hover:bg-gray-600/90 active:bg-gray-100 dark:active:bg-gray-500/90 text-gray-600 hover:text-gray-700 dark:text-gray-300 dark:hover:text-gray-200 shadow-lg shadow-gray-500/15 hover:shadow-gray-400/20 border border-gray-200/70 dark:border-gray-600/70 hover:border-gray-300/80 dark:hover:border-gray-500/80 backdrop-blur-sm"
-                                      title="Format response"
-                                      aria-label="Format response"
-                                    >
-                                      <Palette className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
-                                    </Button>
-                                  </DialogTrigger>
-                                  <DialogContent className="max-w-4xl max-h-[80vh] overflow-hidden">
-                                    <DialogHeader>
-                                      <DialogTitle className="flex items-center gap-2">
-                                        <FileText className="h-5 w-5" />
-                                        Format AI Response
-                                      </DialogTitle>
-                                    </DialogHeader>
-                                    <div className="mt-4">
-                                      <AIResponseFormatter value={message.content} />
-                                    </div>
-                                  </DialogContent>
-                                </Dialog>
-                              )}
-                              
-                              {/* Copy button */}
                               <Button
                                 variant="ghost"
                                 size="sm"

@@ -1,7 +1,5 @@
 {
-  "/api/visit/route": "app/api/visit/route.js",
   "/api/ai-assistant/route": "app/api/ai-assistant/route.js",
   "/home/page": "app/home/page.js",
-  "/login/page": "app/login/page.js",
   "/ai-assistant/page": "app/ai-assistant/page.js"
 }

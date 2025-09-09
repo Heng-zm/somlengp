@@ -215,7 +215,7 @@ export default function PasswordGeneratorPage() {
 
   // Helper function to calculate charset size for entropy calculation
   const getCharsetSize = useCallback((opts: PasswordOptions) => {
-    let size = 0;
+    const size = 0;
     let charset = '';
     
     if (opts.includeUppercase) charset += charSets.uppercase;

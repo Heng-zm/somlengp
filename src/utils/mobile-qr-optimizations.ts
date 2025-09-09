@@ -369,7 +369,7 @@ class MobileQROptimizer {
     }
 
     let lastAcceleration: { x: number; y: number; z: number } | null = null;
-    let stabilityBuffer: number[] = [];
+    const stabilityBuffer: number[] = [];
 
     const handleDeviceMotion = (event: DeviceMotionEvent) => {
       const acceleration = event.accelerationIncludingGravity;
