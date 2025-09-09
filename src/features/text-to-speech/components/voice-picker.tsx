@@ -5,7 +5,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Card, CardContent } from "@/components/ui/card";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
 import { cn } from "@/lib/utils";
-import { User, UserRound, Play, LoaderCircle, Pause } from "lucide-react";
+import { User, UserRound, Upload } from "lucide-react";
 import { useState, useRef, useEffect, memo, useCallback, useMemo } from "react";
 import { textToSpeech } from "@/ai/flows/text-to-speech-flow";
 import { showVoicePreviewErrorToast } from '@/lib/toast-utils';
@@ -148,18 +148,12 @@ const VoicePicker = memo(function VoicePicker({ selectedValue, onValueChange, di
                                             type="button"
                                             size="icon"
                                             variant="ghost"
-                                            className="absolute top-2 right-2 w-8 h-8 rounded-full z-10"
+                                            className="absolute top-2 right-2 w-8 h-8 rounded-full z-10 bg-transparent hover:bg-transparent"
                                             onClick={(e) => handlePreview(e, voice.value)}
                                             disabled={loadingPreview !== null || disabled}
                                         >
-                                            {loadingPreview === voice.value ? (
-                                                <LoaderCircle className="animate-spin" />
-                                            ) : playingPreview === voice.value ? (
-                                                <Pause className="w-5 h-5 fill-current" />
-                                            ) : (
-                                                <Play className="w-5 h-5 fill-current" />
-                                            )}
-                                            <span className="sr-only">Preview voice</span>
+                                            <Upload className="w-5 h-5 opacity-70 hover:opacity-100 transition-opacity" />
+                                            <span className="sr-only">Upload voice</span>
                                         </Button>
                                         <Avatar className="w-16 h-16 transition-transform duration-300 group-hover:scale-110">
                                             <AvatarFallback className="bg-muted/50 text-muted-foreground text-4xl">
