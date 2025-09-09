@@ -29,7 +29,14 @@ export function QRScanner({ onScanSuccess, onScanError, onClose, className = '' 
     error,
     requestBackCameraWithFallback,
     stopCamera
-  } = useBackCamera(true, 'high'); // Auto-start camera immediately
+  } = useBackCamera(false, 'high'); // Don't auto-start, we'll control it manually
+
+  // Auto-start camera when component mounts
+  useEffect(() => {
+    if (isSupported && !stream && !isLoading && !error) {
+      requestBackCameraWithFallback();
+    }
+  }, [isSupported, stream, isLoading, error, requestBackCameraWithFallback]);
 
   // Set up video element when stream is available
   useEffect(() => {

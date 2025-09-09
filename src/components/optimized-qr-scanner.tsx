@@ -53,7 +53,7 @@ export function OptimizedQRScanner({
     lastScanTime: 0
   });
 
-  // Use optimized camera hook
+  // Use optimized camera hook - auto-request camera on mount
   const {
     stream,
     isLoading,
@@ -63,6 +63,13 @@ export function OptimizedQRScanner({
     requestCamera,
     stopCamera
   } = useQRCamera();
+
+  // Auto-start camera when component mounts
+  useEffect(() => {
+    if (isSupported && !stream && !isLoading && !cameraError) {
+      requestCamera();
+    }
+  }, [isSupported, stream, isLoading, cameraError, requestCamera]);
 
   // Use Web Worker for enhanced performance
   const {
@@ -518,48 +525,38 @@ export function OptimizedQRScanner({
           </div>
         </div>
 
-        {/* Control buttons overlay */}
-        <div className="absolute bottom-4 left-0 right-0 flex justify-center gap-3 px-4">
-          {!stream ? (
+        {/* Control buttons overlay - Only show when camera stream is available */}
+        {stream && (
+          <div className="absolute bottom-4 left-0 right-0 flex justify-center gap-3 px-4">
             <Button
-              onClick={handleInitialize}
-              disabled={isLoading || !workerReady}
-              className="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-xl shadow-lg"
+              onClick={isScanning ? stopScanning : startScanning}
+              disabled={!workerReady}
+              className={`px-6 py-2 rounded-xl shadow-lg ${
+                isScanning 
+                  ? 'bg-orange-600 hover:bg-orange-700' 
+                  : 'bg-green-600 hover:bg-green-700'
+              } text-white`}
             >
-              {isLoading ? '⏳ Starting...' : '📷 Start Camera'}
+              {isScanning ? '⏸️ Pause' : '▶️ Scan'}
             </Button>
-          ) : (
-            <>
-              <Button
-                onClick={isScanning ? stopScanning : startScanning}
-                disabled={!workerReady}
-                className={`px-6 py-2 rounded-xl shadow-lg ${
-                  isScanning 
-                    ? 'bg-orange-600 hover:bg-orange-700' 
-                    : 'bg-green-600 hover:bg-green-700'
-                } text-white`}
-              >
-                {isScanning ? '⏸️ Pause' : '▶️ Scan'}
-              </Button>
-              
-              <Button
-                onClick={() => fileInputRef.current?.click()}
-                disabled={isProcessingUpload || !workerReady}
-                className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-xl shadow-lg"
-              >
-                {isProcessingUpload ? '⏳ Processing...' : '📤 Upload'}
-              </Button>
-              
-              <Button
-                onClick={handleStopScanning}
-                variant="destructive"
-                className="px-6 py-2 rounded-xl shadow-lg"
-              >
-                ❌ Stop
-              </Button>
-            </>
-          )}
-        </div>
+            
+            <Button
+              onClick={() => fileInputRef.current?.click()}
+              disabled={isProcessingUpload || !workerReady}
+              className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-xl shadow-lg"
+            >
+              {isProcessingUpload ? '⏳ Processing...' : '📤 Upload'}
+            </Button>
+            
+            <Button
+              onClick={handleStopScanning}
+              variant="destructive"
+              className="px-6 py-2 rounded-xl shadow-lg"
+            >
+              ❌ Stop
+            </Button>
+          </div>
+        )}
       </div>
 
       {/* Error Display */}
