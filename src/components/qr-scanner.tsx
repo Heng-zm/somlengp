@@ -4,6 +4,7 @@ import React, { useRef, useEffect, useState, useCallback } from 'react';
 import jsQR from 'jsqr';
 import { Button } from '@/components/ui/button';
 import { useBackCamera } from '@/hooks/use-camera-permission';
+import { Upload } from 'lucide-react';
 
 interface QRScannerProps {
   onScanSuccess?: (data: string) => void;
@@ -216,20 +217,13 @@ export function QRScanner({ onScanSuccess, onScanError, onClose, className = '' 
           <Button
             onClick={handleUploadClick}
             disabled={isProcessingUpload}
-            className="bg-blue-600 hover:bg-blue-700 text-white"
+            className="bg-transparent hover:bg-white/20 text-white p-3 rounded-xl shadow-lg border border-white/30 backdrop-blur-sm"
+            size="icon"
           >
             {isProcessingUpload ? (
-              <div className="flex items-center gap-2">
-                <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></div>
-                <span>Processing...</span>
-              </div>
+              <div className="animate-spin rounded-full h-5 w-5 border-2 border-white border-t-transparent"></div>
             ) : (
-              <>
-                <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
-                </svg>
-                Upload Image
-              </>
+              <Upload className="h-5 w-5" />
             )}
           </Button>
           <Button onClick={onClose} variant="outline">
@@ -295,48 +289,20 @@ export function QRScanner({ onScanSuccess, onScanError, onClose, className = '' 
         </div>
 
         {/* Control buttons overlay */}
-        <div className="absolute bottom-4 left-0 right-0 flex justify-center gap-3 px-4">
+        <div className="absolute bottom-4 right-4">
           {stream && (
-            <>
-              <Button
-                onClick={isScanning ? stopScanning : startScanning}
-                className={`px-6 py-2 rounded-xl shadow-lg ${
-                  isScanning 
-                    ? 'bg-orange-600 hover:bg-orange-700' 
-                    : 'bg-green-600 hover:bg-green-700'
-                } text-white`}
-              >
-                {isScanning ? '⏸️ Pause' : '▶️ Scan'}
-              </Button>
-              
-              <Button
-                onClick={handleUploadClick}
-                disabled={isProcessingUpload}
-                className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-xl shadow-lg"
-              >
-                {isProcessingUpload ? (
-                  <div className="flex items-center gap-2">
-                    <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></div>
-                    <span>Processing...</span>
-                  </div>
-                ) : (
-                  <>
-                    <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
-                    </svg>
-                    Upload
-                  </>
-                )}
-              </Button>
-              
-              <Button
-                onClick={handleStopScanning}
-                variant="destructive"
-                className="px-6 py-2 rounded-xl shadow-lg"
-              >
-                ❌ Stop
-              </Button>
-            </>
+            <Button
+              onClick={handleUploadClick}
+              disabled={isProcessingUpload}
+              className="bg-transparent hover:bg-white/20 text-white p-3 rounded-xl shadow-lg border border-white/30 backdrop-blur-sm"
+              size="icon"
+            >
+              {isProcessingUpload ? (
+                <div className="animate-spin rounded-full h-5 w-5 border-2 border-white border-t-transparent"></div>
+              ) : (
+                <Upload className="h-5 w-5" />
+              )}
+            </Button>
           )}
         </div>
       </div>
