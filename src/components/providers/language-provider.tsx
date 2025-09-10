@@ -24,9 +24,13 @@ export function LanguageProvider({ children }: LanguageProviderProps) {
         setLanguage(savedLanguage);
       }
 
-      // Set theme (default to light if not found)
+      // Set theme (default to system preference if not found)
       if (savedTheme && (savedTheme === 'light' || savedTheme === 'dark')) {
         setTheme(savedTheme);
+      } else {
+        // Detect system theme preference
+        const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+        setTheme(prefersDark ? 'dark' : 'light');
       }
     } catch (error) {
       console.warn('Failed to load language preferences from localStorage:', error);
@@ -64,14 +68,17 @@ export function LanguageProvider({ children }: LanguageProviderProps) {
     try {
       localStorage.setItem('preferred-theme', theme);
       
-      // Update document theme class
-      document.documentElement.className = document.documentElement.className.replace(/theme-\w+/g, '');
-      document.documentElement.classList.add(`theme-${theme}`);
+      // Update document theme class - use standard 'dark' class for Tailwind
+      if (theme === 'dark') {
+        document.documentElement.classList.add('dark');
+      } else {
+        document.documentElement.classList.remove('dark');
+      }
       
       // Update theme-color meta tag for mobile browsers
       const themeColorMeta = document.querySelector('meta[name="theme-color"]');
       if (themeColorMeta) {
-        themeColorMeta.setAttribute('content', theme === 'dark' ? '#1a202c' : '#ffffff');
+        themeColorMeta.setAttribute('content', theme === 'dark' ? 'hsl(224 71% 4%)' : 'hsl(240 10% 99%)');
       }
     } catch (error) {
       console.warn('Failed to save theme preference to localStorage:', error);
@@ -89,8 +96,8 @@ export function LanguageProvider({ children }: LanguageProviderProps) {
   // Don't render until initialized to prevent hydration mismatch
   if (!isInitialized) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
       </div>
     );
   }

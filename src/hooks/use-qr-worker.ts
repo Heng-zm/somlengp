@@ -135,21 +135,88 @@ export function useQRWorker(options: UseQRWorkerOptions = {}): UseQRWorkerReturn
     try {
       setError(null);
       
-      // Create worker (fallback for different environments)
+      // Create worker with proper fallback handling
       let worker: Worker;
       try {
-        // Try to load as ES module first
+        // Try to load as ES module first (works in development and modern browsers)
         worker = new Worker(
           new URL('../workers/qr-scanner.worker.ts', import.meta.url),
           { type: 'module' }
         );
       } catch (e) {
-        // Fallback for browsers that don't support module workers
-        const workerBlob = new Blob([
-          `importScripts('https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js');
-          // Fallback worker implementation would go here
-          `
-        ], { type: 'application/javascript' });
+        console.warn('Module worker failed, trying fallback:', e);
+        
+        // Enhanced fallback with inline QR scanner implementation
+        const workerCode = `
+          // Import jsQR from CDN
+          importScripts('https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js');
+          
+          // Basic QR scanning implementation
+          self.onmessage = function(event) {
+            const { type, data, id } = event.data;
+            
+            switch (type) {
+              case 'init':
+                self.postMessage({ type: 'ready', id });
+                break;
+                
+              case 'scan':
+                if (!data?.imageData) {
+                  self.postMessage({ 
+                    type: 'error', 
+                    data: { error: 'No image data provided' }, 
+                    id 
+                  });
+                  return;
+                }
+                
+                const startTime = performance.now();
+                try {
+                  const result = jsQR(
+                    data.imageData.data, 
+                    data.imageData.width, 
+                    data.imageData.height,
+                    data.options || { inversionAttempts: 'dontInvert' }
+                  );
+                  
+                  const processingTime = performance.now() - startTime;
+                  
+                  self.postMessage({
+                    type: 'result',
+                    data: {
+                      qrCode: result ? {
+                        data: result.data,
+                        location: result.location,
+                        binaryData: result.binaryData
+                      } : null,
+                      processingTime
+                    },
+                    id
+                  });
+                } catch (error) {
+                  const processingTime = performance.now() - startTime;
+                  self.postMessage({
+                    type: 'error',
+                    data: { 
+                      error: error.message || 'QR scanning failed',
+                      processingTime 
+                    },
+                    id
+                  });
+                }
+                break;
+                
+              default:
+                self.postMessage({
+                  type: 'error',
+                  data: { error: 'Unknown message type: ' + type },
+                  id
+                });
+            }
+          };
+        `;
+        
+        const workerBlob = new Blob([workerCode], { type: 'application/javascript' });
         worker = new Worker(URL.createObjectURL(workerBlob));
       }
 

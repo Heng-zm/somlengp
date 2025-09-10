@@ -65,12 +65,26 @@ export function OptimizedQRScanner({
     stopCamera
   } = useQRCamera();
 
-  // Auto-start camera when component mounts
+  // Auto-start camera when component mounts (with debounce)
   useEffect(() => {
+    let timeoutId: NodeJS.Timeout;
+    
     if (isSupported && !stream && !isLoading && !cameraError) {
-      requestCamera();
+      // Debounce camera request to prevent race conditions
+      timeoutId = setTimeout(() => {
+        requestCamera().catch(err => {
+          console.error('Failed to initialize camera:', err);
+          onScanError?.('Failed to initialize camera');
+        });
+      }, 100);
     }
-  }, [isSupported, stream, isLoading, cameraError, requestCamera]);
+    
+    return () => {
+      if (timeoutId) {
+        clearTimeout(timeoutId);
+      }
+    };
+  }, [isSupported, stream, isLoading, cameraError, requestCamera, onScanError]);
 
   // Use Web Worker for enhanced performance
   const {

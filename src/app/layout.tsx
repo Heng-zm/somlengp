@@ -75,6 +75,22 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className={`${kantumruy.variable}`}>
+      <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              (function() {
+                try {
+                  var theme = localStorage.getItem('preferred-theme');
+                  if (theme === 'dark' || (!theme && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+                    document.documentElement.classList.add('dark');
+                  }
+                } catch (e) {}
+              })();
+            `,
+          }}
+        />
+      </head>
       <body className={`antialiased font-sans`}>
         {/* REMOVE these manual script tags: */}
         {/* <!-- Google tag (gtag.js) -->

@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dark Mode Test</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        background: "hsl(var(--background))",
+                        foreground: "hsl(var(--foreground))",
+                        card: "hsl(var(--card))",
+                        "card-foreground": "hsl(var(--card-foreground))",
+                        primary: "hsl(var(--primary))",
+                        "primary-foreground": "hsl(var(--primary-foreground))",
+                        secondary: "hsl(var(--secondary))",
+                        "secondary-foreground": "hsl(var(--secondary-foreground))",
+                        border: "hsl(var(--border))"
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        :root {
+            --background: 0 0% 100%;
+            --foreground: 0 0% 0%;
+            --card: 0 0% 100%;
+            --card-foreground: 0 0% 0%;
+            --primary: 0 0% 10%;
+            --primary-foreground: 0 0% 100%;
+            --secondary: 0 0% 96%;
+            --secondary-foreground: 0 0% 0%;
+            --border: 0 0% 85%;
+        }
+
+        .dark {
+            --background: 0 0% 3%;
+            --foreground: 0 0% 100%;
+            --card: 0 0% 8%;
+            --card-foreground: 0 0% 100%;
+            --primary: 0 0% 90%;
+            --primary-foreground: 0 0% 0%;
+            --secondary: 0 0% 12%;
+            --secondary-foreground: 0 0% 100%;
+            --border: 0 0% 15%;
+        }
+    </style>
+</head>
+<body class="bg-background text-foreground min-h-screen">
+    <div class="container mx-auto p-8">
+        <div class="max-w-2xl mx-auto space-y-6">
+            <h1 class="text-3xl font-bold text-center">Dark Mode Test</h1>
+            
+            <div class="flex justify-center gap-4">
+                <button onclick="toggleTheme()" id="theme-btn" class="bg-primary text-primary-foreground px-4 py-2 rounded-lg transition-colors">
+                    🌙 Switch to Dark
+                </button>
+            </div>
+
+            <div class="grid md:grid-cols-2 gap-6">
+                <div class="bg-card border border-border rounded-lg p-6 shadow-lg">
+                    <h2 class="text-xl font-semibold text-card-foreground mb-4">Light Theme Card</h2>
+                    <p class="text-card-foreground/80 mb-4">This card demonstrates the theme switching functionality.</p>
+                    <button class="bg-secondary text-secondary-foreground px-3 py-2 rounded text-sm">
+                        Secondary Button
+                    </button>
+                </div>
+
+                <div class="bg-card border border-border rounded-lg p-6 shadow-lg">
+                    <h2 class="text-xl font-semibold text-card-foreground mb-4">Theme Test</h2>
+                    <p class="text-card-foreground/80 mb-4">Click the toggle button above to test dark mode switching.</p>
+                    <div class="w-full h-4 bg-border rounded-full"></div>
+                </div>
+            </div>
+
+            <div class="text-center text-sm text-foreground/60">
+                <p>Theme state is persisted in localStorage</p>
+                <p>Current theme: <span id="current-theme">light</span></p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function initTheme() {
+            const savedTheme = localStorage.getItem('preferred-theme');
+            const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+            const theme = savedTheme || (prefersDark ? 'dark' : 'light');
+            
+            setTheme(theme);
+        }
+
+        function setTheme(theme) {
+            const html = document.documentElement;
+            const themeBtn = document.getElementById('theme-btn');
+            const currentTheme = document.getElementById('current-theme');
+            
+            if (theme === 'dark') {
+                html.classList.add('dark');
+                themeBtn.textContent = '☀️ Switch to Light';
+            } else {
+                html.classList.remove('dark');
+                themeBtn.textContent = '🌙 Switch to Dark';
+            }
+            
+            currentTheme.textContent = theme;
+            localStorage.setItem('preferred-theme', theme);
+        }
+
+        function toggleTheme() {
+            const isDark = document.documentElement.classList.contains('dark');
+            setTheme(isDark ? 'light' : 'dark');
+        }
+
+        // Initialize theme on load
+        initTheme();
+    </script>
+</body>
+</html>

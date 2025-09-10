@@ -67,6 +67,10 @@ const nextConfig = {
         path: false,
         crypto: false,
       };
+      
+      // Web Workers are handled via fallback in use-qr-worker.ts
+      // Next.js can load workers with new URL(..., import.meta.url) in development
+      // For production, we use a blob URL fallback with embedded jsQR
     }
     
     // Fix CSS loading issues in development
