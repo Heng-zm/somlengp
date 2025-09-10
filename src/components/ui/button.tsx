@@ -10,18 +10,20 @@ const buttonVariants = cva(
   {
     variants: {
       variant: {
-        default: "bg-primary text-primary-foreground hover:bg-primary/90 shadow-md hover:shadow-lg",
+        default: "bg-black text-white hover:bg-gray-800 shadow-md hover:shadow-lg transition-all duration-200",
         destructive:
-          "bg-destructive text-destructive-foreground hover:bg-destructive/90 shadow-md hover:shadow-lg",
+          "bg-gray-800 text-white hover:bg-gray-700 shadow-md hover:shadow-lg transition-all duration-200",
         outline:
-          "border border-input bg-background hover:bg-accent hover:text-accent-foreground shadow-sm hover:shadow-md",
+          "border border-gray-300 bg-white hover:bg-gray-50 text-gray-900 hover:text-black shadow-sm hover:shadow-md transition-all duration-200",
         secondary:
-          "bg-secondary text-secondary-foreground hover:bg-secondary/80 shadow-sm hover:shadow-md",
-        ghost: "hover:bg-accent/10 hover:text-accent-foreground",
-        link: "text-primary underline-offset-4 hover:underline",
+          "bg-gray-200 text-gray-900 hover:bg-gray-300 shadow-sm hover:shadow-md transition-all duration-200",
+        ghost: "hover:bg-gray-100 hover:text-gray-900 text-gray-700 transition-all duration-200",
+        link: "text-gray-900 underline-offset-4 hover:underline hover:text-black transition-all duration-200",
         gradient: "bg-gradient-to-r from-gray-900 to-black text-white hover:from-gray-800 hover:to-gray-900 shadow-lg hover:shadow-xl",
         "mono-light": "bg-gradient-to-r from-gray-100 to-white text-gray-900 hover:from-gray-50 hover:to-gray-100 shadow-lg hover:shadow-xl border border-gray-200",
         "mono-dark": "bg-gradient-to-r from-black to-gray-900 text-white hover:from-gray-900 hover:to-gray-800 shadow-lg hover:shadow-xl",
+        "dark": "bg-gray-900 text-white hover:bg-black shadow-md hover:shadow-lg transition-all duration-200",
+        "light": "bg-white text-gray-900 hover:bg-gray-50 border border-gray-200 shadow-sm hover:shadow-md transition-all duration-200",
       },
       size: {
         xs: "h-8 px-2 text-xs",

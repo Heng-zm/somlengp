@@ -33,16 +33,16 @@ export function FloatingActionButton({
         "shadow-2xl hover:shadow-3xl",
         "transition-all duration-300 ease-in-out",
         "transform hover:scale-110 active:scale-95",
-        // Gradient background
-        "bg-gradient-to-br from-blue-500 via-purple-500 to-indigo-600",
-        "hover:from-blue-600 hover:via-purple-600 hover:to-indigo-700",
+        // Gradient background - monochrome
+        "bg-gradient-to-br from-gray-800 via-gray-900 to-black",
+        "hover:from-gray-700 hover:via-gray-800 hover:to-gray-900",
         // Border and ring effects
-        "border-2 border-white/20 hover:border-white/30",
-        "ring-2 ring-blue-500/20 hover:ring-blue-500/40",
+        "border-2 border-white/10 hover:border-white/20",
+        "ring-2 ring-gray-600/20 hover:ring-gray-500/40",
         // Text color
         "text-white",
         // Focus styles
-        "focus:outline-none focus:ring-4 focus:ring-blue-500/50",
+        "focus:outline-none focus:ring-4 focus:ring-gray-500/50",
         // Disabled styles
         "disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none",
         // Smooth backdrop blur for glassmorphism effect
