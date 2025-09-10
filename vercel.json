@@ -1,4 +1,12 @@
 {
+  "build": {
+    "env": {
+      "VERCEL_CLI_IGNORE_SYMLINKS": "1"
+    }
+  }
+}
+
+{
   "buildCommand": "npm run build",
   "installCommand": "npm install",
   "framework": "nextjs"

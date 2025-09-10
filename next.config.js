@@ -58,7 +58,7 @@ const nextConfig = {
   poweredByHeader: false,
   compress: true,
   
-  webpack: (config, { isServer }) => {
+  webpack: (config, { isServer, dev }) => {
     // Handle handlebars and other Node.js modules
     if (!isServer) {
       config.resolve.fallback = {
@@ -67,6 +67,12 @@ const nextConfig = {
         path: false,
         crypto: false,
       };
+    }
+    
+    // Fix CSS loading issues in development
+    if (dev && !isServer) {
+      // Ensure proper CSS handling in development mode
+      config.cache = false;
     }
     
     // Ignore handlebars warnings for require.extensions

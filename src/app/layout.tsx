@@ -21,6 +21,8 @@ const kantumruy = Kantumruy_Pro({
   variable: '--font-sans',
   display: 'swap',
   preload: true,
+  fallback: ['system-ui', 'arial'],
+  adjustFontFallback: false,
 });
 
 export const viewport: Viewport = {

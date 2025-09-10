@@ -76,11 +76,8 @@ export function QRScannerSheet({ open, onOpenChange, onScanSuccess, onScanError 
       >
         {/* Fixed Header */}
         <div className="flex-shrink-0">
-          <SheetHeader className="pb-4 pt-2">
-            <div className="w-12 h-1.5 bg-gray-300 rounded-full mx-auto mb-4 opacity-60" />
-            <SheetTitle className="text-center text-2xl font-bold text-gray-800">
-              QR Code Scanner
-            </SheetTitle>
+          <SheetHeader className="pb-2 pt-2">
+            <div className="w-12 h-1.5 bg-gray-300 rounded-full mx-auto" />
           </SheetHeader>
         </div>
 
@@ -176,18 +173,6 @@ export function QRScannerSheet({ open, onOpenChange, onScanSuccess, onScanError 
           )}
         </div>
 
-        {/* Fixed Close Button */}
-        <div className="flex-shrink-0 pt-4 pb-2">
-          <div className="flex justify-center">
-            <Button
-              onClick={handleClose}
-              variant="ghost"
-              className="rounded-xl px-8 py-2 text-gray-600 hover:text-gray-800 hover:bg-gray-100"
-            >
-              ✕ Close Scanner
-            </Button>
-          </div>
-        </div>
       </SheetContent>
     </Sheet>
   );

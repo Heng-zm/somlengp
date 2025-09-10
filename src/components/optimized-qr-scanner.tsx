@@ -482,12 +482,6 @@ export function OptimizedQRScanner({
               <div className="absolute -bottom-2 -left-2 w-12 h-12 border-l-2 border-b-2 border-gray-300 rounded-bl-3xl transition-all duration-500"></div>
               <div className="absolute -bottom-2 -right-2 w-12 h-12 border-r-2 border-b-2 border-gray-300 rounded-br-3xl transition-all duration-500"></div>
               
-              {/* Center crosshair - transparent */}
-              <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
-                <div className="w-6 h-0.5 bg-gray-400/70"></div>
-                <div className="w-0.5 h-6 mt-[-12px] ml-[11px] bg-gray-400/70"></div>
-              </div>
-              
               {/* Confidence indicator - transparent background */}
               {scanConfidence > 0 && (
                 <div className="absolute -top-12 left-1/2 transform -translate-x-1/2">
@@ -534,20 +528,36 @@ export function OptimizedQRScanner({
 
         {/* Control buttons overlay - Only show when camera stream is available */}
         {stream && (
-          <div className="absolute bottom-4 right-4">
-            <Button
-              onClick={() => fileInputRef.current?.click()}
-              disabled={isProcessingUpload || !workerReady}
-              className="bg-transparent hover:bg-white/20 text-white p-3 rounded-xl shadow-lg border border-white/30 backdrop-blur-sm"
-              size="icon"
-            >
-              {isProcessingUpload ? (
-                <div className="animate-spin rounded-full h-5 w-5 border-2 border-white border-t-transparent"></div>
-              ) : (
-                <Upload className="h-5 w-5" />
-              )}
-            </Button>
-          </div>
+          <>
+            {/* Upload button - bottom right */}
+            <div className="absolute bottom-4 right-4">
+              <Button
+                onClick={() => fileInputRef.current?.click()}
+                disabled={isProcessingUpload || !workerReady}
+                className="bg-transparent hover:bg-white/20 text-white p-3 rounded-xl shadow-lg border border-white/30 backdrop-blur-sm"
+                size="icon"
+              >
+                {isProcessingUpload ? (
+                  <div className="animate-spin rounded-full h-5 w-5 border-2 border-white border-t-transparent"></div>
+                ) : (
+                  <Upload className="h-5 w-5" />
+                )}
+              </Button>
+            </div>
+            
+            {/* Close button - top right */}
+            <div className="absolute top-4 right-4">
+              <Button
+                onClick={handleStopScanning}
+                className="bg-transparent hover:bg-white/20 text-white p-3 rounded-xl shadow-lg border border-white/30 backdrop-blur-sm"
+                size="icon"
+              >
+                <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </Button>
+            </div>
+          </>
         )}
       </div>
 

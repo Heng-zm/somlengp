@@ -289,22 +289,38 @@ export function QRScanner({ onScanSuccess, onScanError, onClose, className = '' 
         </div>
 
         {/* Control buttons overlay */}
-        <div className="absolute bottom-4 right-4">
-          {stream && (
-            <Button
-              onClick={handleUploadClick}
-              disabled={isProcessingUpload}
-              className="bg-transparent hover:bg-white/20 text-white p-3 rounded-xl shadow-lg border border-white/30 backdrop-blur-sm"
-              size="icon"
-            >
-              {isProcessingUpload ? (
-                <div className="animate-spin rounded-full h-5 w-5 border-2 border-white border-t-transparent"></div>
-              ) : (
-                <Upload className="h-5 w-5" />
-              )}
-            </Button>
-          )}
-        </div>
+        {stream && (
+          <>
+            {/* Upload button - bottom right */}
+            <div className="absolute bottom-4 right-4">
+              <Button
+                onClick={handleUploadClick}
+                disabled={isProcessingUpload}
+                className="bg-transparent hover:bg-white/20 text-white p-3 rounded-xl shadow-lg border border-white/30 backdrop-blur-sm"
+                size="icon"
+              >
+                {isProcessingUpload ? (
+                  <div className="animate-spin rounded-full h-5 w-5 border-2 border-white border-t-transparent"></div>
+                ) : (
+                  <Upload className="h-5 w-5" />
+                )}
+              </Button>
+            </div>
+            
+            {/* Close button - top right */}
+            <div className="absolute top-4 right-4">
+              <Button
+                onClick={handleStopScanning}
+                className="bg-transparent hover:bg-white/20 text-white p-3 rounded-xl shadow-lg border border-white/30 backdrop-blur-sm"
+                size="icon"
+              >
+                <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </Button>
+            </div>
+          </>
+        )}
       </div>
 
       {/* Error Display */}
