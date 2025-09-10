@@ -1,11 +1,10 @@
 
 'use client';
 
-import { useContext, useMemo, useState, useEffect, useCallback } from 'react';
+import { useMemo, useState, useEffect, useCallback } from 'react';
 import { Mic, FileText, Combine, Image as ImageIcon, Wand2, AudioLines, Sparkles, QrCode, Shield, Scissors } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { LanguageContext } from '@/contexts/language-context';
-import { allTranslations } from '@/lib/translations';
+import { useLanguage } from '@/hooks/use-language';
 import { getPerformanceTracker, DEFAULT_BUDGETS } from '@/lib/performance-tracker';
 import { OptimizedHomeHeader } from '@/components/home/optimized-home-header';
 import { OptimizedFeatureGrid } from '@/components/home/optimized-feature-grid';
@@ -15,21 +14,7 @@ const VISITOR_SESSION_KEY = 'ozo-designer-session-visited';
 
 export default function HomePage() {
   const [visitorCount, setVisitorCount] = useState<number | null>(null);
-  const langContext = useContext(LanguageContext);
-  
-  if (!langContext) {
-    throw new Error('Home page must be used within a LanguageProvider');
-  }
-
-const { language, toggleLanguage, theme, toggleTheme } = langContext;
-  const t = useMemo(() => {
-    const translations = allTranslations[language];
-    return {
-      ...translations,
-      // Helper to resolve function-based translations
-      getFileTooLargeDescription: (size: number) => translations.fileTooLargeDescription(size)
-    };
-  }, [language]);
+  const { language, toggleLanguage, theme, toggleTheme, t } = useLanguage();
   
   // Optimized visitor count with caching and retry logic
   const fetchVisitorCount = useMemo(() => {
@@ -142,20 +127,20 @@ const { language, toggleLanguage, theme, toggleTheme } = langContext;
 
   const featureCards = useMemo(() => [
     // Most popular tools first for better mobile UX
-    { href: '/ai-assistant', title: 'Smart AI Chat', description: 'Get instant help from an AI assistant powered by Gemini 1.5 Flash. Perfect for quick questions and tasks.', icon: Sparkles },
-    { href: '/generate-qr-code', title: 'QR Generator', description: 'Create QR codes instantly for links, text, or contact info. Share easily across devices.', icon: QrCode },
-    { href: '/voice-transcript', title: 'Voice to Text', description: 'Convert speech to text quickly and accurately. Perfect for notes and transcription.', icon: Mic },
-    { href: '/text-to-speech', title: 'Text Reader', description: 'Turn any text into natural speech. Great for accessibility and multitasking.', icon: AudioLines },
+    { href: '/ai-assistant', title: t('smartAiChat'), description: t('smartAiChatDesc'), icon: Sparkles },
+    { href: '/generate-qr-code', title: t('qrGenerator'), description: t('qrGeneratorDesc'), icon: QrCode },
+    { href: '/voice-transcript', title: t('voiceToText'), description: t('voiceToTextDesc'), icon: Mic },
+    { href: '/text-to-speech', title: t('textReader'), description: t('textReaderDesc'), icon: AudioLines },
     
     // Document tools
-    { href: '/pdf-transcript', title: 'PDF Reader', description: 'Extract and read text from PDF documents easily on your mobile device.', icon: FileText },
-    { href: '/combine-pdf', title: 'PDF Merger', description: 'Combine multiple PDF files into one document. Simple and fast processing.', icon: Combine },
-    { href: '/image-to-pdf', title: 'Image to PDF', description: 'Convert photos and images to PDF format with high quality output.', icon: ImageIcon },
-    { href: '/convert-image-format', title: 'Image Converter', description: 'Change image formats (JPG, PNG, WebP) with optimized compression.', icon: Wand2 },
+    { href: '/pdf-transcript', title: t('pdfReader'), description: t('pdfReaderDesc'), icon: FileText },
+    { href: '/combine-pdf', title: t('pdfMerger'), description: t('pdfMergerDesc'), icon: Combine },
+    { href: '/image-to-pdf', title: t('imageToPdfTitle'), description: t('imageToPdfDesc'), icon: ImageIcon },
+    { href: '/convert-image-format', title: t('imageConverter'), description: t('imageConverterDesc'), icon: Wand2 },
     
     // New useful tools
-    { href: '/password-generator', title: 'Password Gen', description: 'Generate secure, random passwords with customizable length and complexity.', icon: Shield },
-    { href: '/text-tools', title: 'Text Utils', description: 'Count words, remove duplicates, format text, and more text manipulation tools.', icon: Scissors },
+    { href: '/password-generator', title: t('passwordGen'), description: t('passwordGenDesc'), icon: Shield },
+    { href: '/text-tools', title: t('textUtils'), description: t('textUtilsDesc'), icon: Scissors },
   ], [t]);
   
   const primaryFeature = featureCards[0];
@@ -186,8 +171,8 @@ const { language, toggleLanguage, theme, toggleTheme } = langContext;
             <OptimizedFeatureGrid
               primaryFeature={primaryFeature}
               otherFeatures={otherFeatures}
-              startNowText={t.startNow}
-              otherToolsText={t.otherTools}
+              startNowText={t('startNow')}
+              otherToolsText={t('otherTools')}
             />
             
           </main>

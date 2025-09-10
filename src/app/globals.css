@@ -375,6 +375,66 @@ body {
     }
 
 
+    /* Language-specific styles */
+    .lang-km {
+      /* Khmer language specific styles */
+      font-feature-settings: 'liga' 1, 'calt' 1, 'kern' 1;
+      text-rendering: optimizeLegibility;
+      -webkit-font-smoothing: antialiased;
+    }
+    
+    .lang-km h1,
+    .lang-km h2,
+    .lang-km h3,
+    .lang-km h4,
+    .lang-km h5,
+    .lang-km h6 {
+      font-weight: 600; /* Slightly bolder for better Khmer readability */
+      line-height: 1.4; /* Better line spacing for Khmer text */
+    }
+    
+    .lang-km p,
+    .lang-km .text-sm,
+    .lang-km .text-base {
+      line-height: 1.6; /* Improved readability for Khmer script */
+    }
+    
+    .lang-km button,
+    .lang-km .btn {
+      /* Ensure buttons maintain proper sizing with Khmer text */
+      line-height: 1.2;
+      padding-top: 0.5rem;
+      padding-bottom: 0.5rem;
+    }
+    
+    .lang-km input,
+    .lang-km textarea {
+      /* Better input field styling for Khmer text */
+      line-height: 1.4;
+      padding: 0.75rem;
+    }
+    
+    .lang-en {
+      /* English language specific styles */
+      font-feature-settings: 'liga' 1, 'calt' 1, 'kern' 1;
+    }
+    
+    /* RTL support (for future use if needed) */
+    .rtl {
+      direction: rtl;
+      text-align: right;
+    }
+    
+    .ltr {
+      direction: ltr;
+      text-align: left;
+    }
+    
+    /* Language transition animations */
+    .lang-transition {
+      transition: font-family 0.3s ease, font-weight 0.3s ease, line-height 0.3s ease;
+    }
+
     /* Custom scrollbar for better UI */
     .custom-scrollbar::-webkit-scrollbar {
       width: 8px;

@@ -416,9 +416,9 @@ export function OptimizedQRScanner({
 
   if (!isSupported) {
     return (
-      <div className={`flex flex-col items-center justify-center p-8 bg-red-50 rounded-lg border border-red-200 ${className}`}>
-        <h3 className="text-red-800 font-semibold text-lg mb-2">Camera Not Supported</h3>
-        <p className="text-red-700 text-center text-sm mb-4">
+      <div className={`flex flex-col items-center justify-center p-8 bg-gray-100 rounded-lg border border-gray-300 ${className}`}>
+        <h3 className="text-gray-800 font-semibold text-lg mb-2">Camera Not Supported</h3>
+        <p className="text-gray-700 text-center text-sm mb-4">
           Camera access is not supported in this browser or requires HTTPS. You can still upload an image to scan for QR codes.
         </p>
         <div className="flex gap-3">
@@ -465,46 +465,54 @@ export function OptimizedQRScanner({
         {/* Enhanced Scanning Overlay */}
         <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
           <div className="relative">
-            {/* Dynamic scanning frame */}
+            {/* Transparent scanning frame */}
             <div 
-              className="border-2 border-white/50 rounded-xl relative transition-all duration-300"
+              className="relative transition-all duration-500 ease-in-out"
               style={{
-                width: '280px',
-                height: '280px',
-                borderColor: scanConfidence > 70 ? '#10b981' : scanConfidence > 30 ? '#f59e0b' : 'rgba(255,255,255,0.5)'
+                width: '300px',
+                height: '300px',
               }}
             >
-              {/* Animated corner indicators */}
-              <div className={`absolute top-0 left-0 w-8 h-8 border-l-4 border-t-4 rounded-tl-lg transition-colors duration-300 ${
-                scanConfidence > 70 ? 'border-green-400' : scanConfidence > 30 ? 'border-yellow-400' : 'border-blue-500'
-              }`}></div>
-              <div className={`absolute top-0 right-0 w-8 h-8 border-r-4 border-t-4 rounded-tr-lg transition-colors duration-300 ${
-                scanConfidence > 70 ? 'border-green-400' : scanConfidence > 30 ? 'border-yellow-400' : 'border-blue-500'
-              }`}></div>
-              <div className={`absolute bottom-0 left-0 w-8 h-8 border-l-4 border-b-4 rounded-bl-lg transition-colors duration-300 ${
-                scanConfidence > 70 ? 'border-green-400' : scanConfidence > 30 ? 'border-yellow-400' : 'border-blue-500'
-              }`}></div>
-              <div className={`absolute bottom-0 right-0 w-8 h-8 border-r-4 border-b-4 rounded-br-lg transition-colors duration-300 ${
-                scanConfidence > 70 ? 'border-green-400' : scanConfidence > 30 ? 'border-yellow-400' : 'border-blue-500'
-              }`}></div>
+              {/* Subtle background overlay */}
+              <div className="absolute inset-0 border border-white/20 rounded-3xl"></div>
               
-              {/* Confidence indicator */}
+              {/* Corner brackets - transparent with white borders */}
+              <div className="absolute -top-2 -left-2 w-12 h-12 border-l-2 border-t-2 border-gray-300 rounded-tl-3xl transition-all duration-500"></div>
+              <div className="absolute -top-2 -right-2 w-12 h-12 border-r-2 border-t-2 border-gray-300 rounded-tr-3xl transition-all duration-500"></div>
+              <div className="absolute -bottom-2 -left-2 w-12 h-12 border-l-2 border-b-2 border-gray-300 rounded-bl-3xl transition-all duration-500"></div>
+              <div className="absolute -bottom-2 -right-2 w-12 h-12 border-r-2 border-b-2 border-gray-300 rounded-br-3xl transition-all duration-500"></div>
+              
+              {/* Center crosshair - transparent */}
+              <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
+                <div className="w-6 h-0.5 bg-gray-400/70"></div>
+                <div className="w-0.5 h-6 mt-[-12px] ml-[11px] bg-gray-400/70"></div>
+              </div>
+              
+              {/* Confidence indicator - transparent background */}
               {scanConfidence > 0 && (
-                <div className="absolute -top-8 left-1/2 transform -translate-x-1/2">
-                  <div className="bg-black/70 text-white px-2 py-1 rounded text-xs">
-                    {scanConfidence}% confident
+                <div className="absolute -top-12 left-1/2 transform -translate-x-1/2">
+                  <div className="bg-black/60 backdrop-blur-sm text-white px-4 py-2 rounded-full text-xs font-medium shadow-lg border border-gray-300/30">
+                    <span className="flex items-center gap-1">
+                      <div className="w-2 h-2 rounded-full bg-gray-200"></div>
+                      {scanConfidence}% match
+                    </span>
                   </div>
                 </div>
               )}
               
-              {/* Scanning animation */}
+              {/* Scanning beam - transparent */}
               {isScanning && (
-                <div className="absolute inset-0 border-2 rounded-xl animate-pulse opacity-80"
-                     style={{ borderColor: scanConfidence > 30 ? '#10b981' : '#3b82f6' }}>
-                  <div 
-                    className="absolute top-1/2 left-0 right-0 h-0.5 animate-pulse transition-colors duration-300"
-                    style={{ backgroundColor: scanConfidence > 30 ? '#10b981' : '#3b82f6' }}
-                  ></div>
+                <div className="absolute inset-4">
+                  <div className="relative w-full h-full rounded-2xl overflow-hidden">
+                    <div 
+                      className="absolute left-0 right-0 h-0.5 opacity-60 animate-bounce"
+                      style={{ 
+                        top: '50%',
+                        background: 'linear-gradient(90deg, transparent, rgba(156,163,175,0.8), transparent)',
+                        boxShadow: '0 0 10px rgba(156,163,175,0.3)'
+                      }}
+                    ></div>
+                  </div>
                 </div>
               )}
             </div>
@@ -545,7 +553,7 @@ export function OptimizedQRScanner({
 
       {/* Error Display */}
       {(cameraError || workerError) && (
-        <div className="absolute top-4 left-4 right-4 bg-red-500/90 text-white p-3 rounded-lg">
+        <div className="absolute top-4 left-4 right-4 bg-black/80 text-white p-3 rounded-lg">
           <p className="text-sm font-medium">Error:</p>
           <p className="text-xs">{cameraError?.message || workerError}</p>
         </div>

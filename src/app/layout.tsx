@@ -7,6 +7,7 @@ import { Analytics } from '@vercel/analytics/next';
 import { AppLayout } from '@/layouts/app-layout';
 import { AuthProvider } from '@/contexts/auth-context';
 import { PerformanceOverlay } from '@/components/shared/performance-dashboard';
+import { LanguageProvider } from '@/components/providers/language-provider';
 import { Kantumruy_Pro } from 'next/font/google';
 import Script from 'next/script';
 
@@ -85,11 +86,13 @@ export default function RootLayout({
         </script> */}
 
         
-        <AuthProvider>
-          <AppLayout>
-            {children}
-          </AppLayout>
-        </AuthProvider>
+        <LanguageProvider>
+          <AuthProvider>
+            <AppLayout>
+              {children}
+            </AppLayout>
+          </AuthProvider>
+        </LanguageProvider>
         <Toaster />
         <Analytics />
         <PerformanceOverlay />

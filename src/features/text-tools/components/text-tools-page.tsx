@@ -50,6 +50,7 @@ import {
 import { TooltipProvider, Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { cn } from '@/lib/utils';
+import { useLanguage } from '@/hooks/use-language';
 import { 
   TextInputArea, 
   TextOutputArea, 
@@ -91,6 +92,7 @@ import {
 } from '../utils/text-processors';
 
 export function TextToolsPage() {
+  const { t } = useLanguage();
   const [inputText, setInputText] = useState('');
   const [outputText, setOutputText] = useState('');
   const [inputText2, setInputText2] = useState('');
@@ -224,57 +226,57 @@ export function TextToolsPage() {
   // Tool categories
   const caseConversionTools = [
     {
-      title: 'UPPERCASE',
-      description: 'Convert all text to uppercase letters',
+      title: t('uppercase'),
+      description: t('uppercaseDesc'),
       icon: Type,
       onClick: () => applyTransformation(toUpperCase),
       badge: 'A→A'
     },
     {
-      title: 'lowercase',
-      description: 'Convert all text to lowercase letters',
+      title: t('lowercase'),
+      description: t('lowercaseDesc'),
       icon: Type,
       onClick: () => applyTransformation(toLowerCase),
       badge: 'A→a'
     },
     {
-      title: 'Title Case',
-      description: 'Capitalize the first letter of each word',
+      title: t('titleCase'),
+      description: t('titleCaseDesc'),
       icon: Type,
       onClick: () => applyTransformation(toTitleCase),
       badge: 'Title'
     },
     {
-      title: 'camelCase',
-      description: 'Convert to camelCase format',
+      title: t('camelCase'),
+      description: t('camelCaseDesc'),
       icon: Code2,
       onClick: () => applyTransformation(toCamelCase),
       badge: 'camel'
     },
     {
-      title: 'PascalCase',
-      description: 'Convert to PascalCase format',
+      title: t('pascalCase'),
+      description: t('pascalCaseDesc'),
       icon: Code2,
       onClick: () => applyTransformation(toPascalCase),
       badge: 'Pascal'
     },
     {
-      title: 'snake_case',
-      description: 'Convert to snake_case format',
+      title: t('snakeCase'),
+      description: t('snakeCaseDesc'),
       icon: Code2,
       onClick: () => applyTransformation(toSnakeCase),
       badge: 'snake'
     },
     {
-      title: 'kebab-case',
-      description: 'Convert to kebab-case format',
+      title: t('kebabCase'),
+      description: t('kebabCaseDesc'),
       icon: Code2,
       onClick: () => applyTransformation(toKebabCase),
       badge: 'kebab'
     },
     {
-      title: 'Sentence case',
-      description: 'Capitalize only the first letter',
+      title: t('sentenceCase'),
+      description: t('sentenceCaseDesc'),
       icon: Type,
       onClick: () => applyTransformation(toSentenceCase),
       badge: 'Sent.'
@@ -283,50 +285,50 @@ export function TextToolsPage() {
 
   const textCleaningTools = [
     {
-      title: 'Remove Extra Spaces',
-      description: 'Remove duplicate spaces and trim whitespace',
+      title: t('removeExtraSpaces'),
+      description: t('removeExtraSpacesDesc'),
       icon: ArrowUpDown,
       onClick: () => applyTransformation(removeExtraSpaces)
     },
     {
-      title: 'Remove Empty Lines',
-      description: 'Remove all blank lines from text',
+      title: t('removeEmptyLines'),
+      description: t('removeEmptyLinesDesc'),
       icon: Trash2,
       onClick: () => applyTransformation(removeEmptyLines)
     },
     {
-      title: 'Sort Lines A-Z',
-      description: 'Sort all lines alphabetically (ascending)',
+      title: t('sortLinesAZ'),
+      description: t('sortLinesAZDesc'),
       icon: SortAsc,
       onClick: () => applyTransformation((text) => sortLines(text, true))
     },
     {
-      title: 'Sort Lines Z-A',
-      description: 'Sort all lines alphabetically (descending)',
+      title: t('sortLinesZA'),
+      description: t('sortLinesZADesc'),
       icon: SortDesc,
       onClick: () => applyTransformation((text) => sortLines(text, false))
     },
     {
-      title: 'Remove Duplicates',
-      description: 'Remove duplicate lines from text',
+      title: t('removeDuplicates'),
+      description: t('removeDuplicatesDesc'),
       icon: Copy,
       onClick: () => applyTransformation(removeDuplicateLines)
     },
     {
-      title: 'Add Line Numbers',
-      description: 'Add line numbers to each line',
+      title: t('addLineNumbers'),
+      description: t('addLineNumbersDesc'),
       icon: Hash,
       onClick: () => applyTransformation(addLineNumbers)
     },
     {
-      title: 'Reverse Text',
-      description: 'Reverse the entire text character by character',
+      title: t('reverseText'),
+      description: t('reverseTextDesc'),
       icon: RotateCcw,
       onClick: () => applyTransformation(reverseText)
     },
     {
-      title: 'Strip HTML',
-      description: 'Remove all HTML tags from text',
+      title: t('stripHtml'),
+      description: t('stripHtmlDesc'),
       icon: Tag,
       onClick: () => applyTransformation(stripHTML)
     }
@@ -334,44 +336,44 @@ export function TextToolsPage() {
 
   const encodingTools = [
     {
-      title: 'Encode Base64',
-      description: 'Encode text to Base64 format',
+      title: t('encodeBase64'),
+      description: t('encodeBase64Desc'),
       icon: Lock,
       onClick: () => applyTransformation(encodeBase64, 'Failed to encode to Base64')
     },
     {
-      title: 'Decode Base64',
-      description: 'Decode Base64 encoded text',
+      title: t('decodeBase64'),
+      description: t('decodeBase64Desc'),
       icon: Unlock,
       onClick: () => applyTransformation(decodeBase64, 'Invalid Base64 format')
     },
     {
-      title: 'URL Encode',
-      description: 'Encode text for URL use',
+      title: t('urlEncode'),
+      description: t('urlEncodeDesc'),
       icon: Link,
       onClick: () => applyTransformation(encodeURL)
     },
     {
-      title: 'URL Decode',
-      description: 'Decode URL encoded text',
+      title: t('urlDecode'),
+      description: t('urlDecodeDesc'),
       icon: Link,
       onClick: () => applyTransformation(decodeURL, 'Invalid URL encoding')
     },
     {
-      title: 'Escape HTML',
-      description: 'Escape HTML special characters',
+      title: t('escapeHtml'),
+      description: t('escapeHtmlDesc'),
       icon: Code2,
       onClick: () => applyTransformation(escapeHTML)
     },
     {
-      title: 'Unescape HTML',
-      description: 'Unescape HTML entities',
+      title: t('unescapeHtml'),
+      description: t('unescapeHtmlDesc'),
       icon: Code2,
       onClick: () => applyTransformation(unescapeHTML)
     },
     {
-      title: 'Generate Hash',
-      description: 'Generate SHA-256 hash of the text',
+      title: t('generateHash'),
+      description: t('generateHashDesc'),
       icon: Hash,
       onClick: () => applyAsyncTransformation(generateHash, 'Failed to generate hash')
     }
@@ -379,14 +381,14 @@ export function TextToolsPage() {
 
   const jsonTools = [
     {
-      title: 'Format JSON',
-      description: 'Format and prettify JSON with proper indentation',
+      title: t('formatJson'),
+      description: t('formatJsonDesc'),
       icon: FileText,
       onClick: () => applyTransformation(formatJSON, 'Invalid JSON format')
     },
     {
-      title: 'Minify JSON',
-      description: 'Compress JSON by removing whitespace',
+      title: t('minifyJson'),
+      description: t('minifyJsonDesc'),
       icon: Layers,
       onClick: () => applyTransformation(minifyJSON, 'Invalid JSON format')
     }
@@ -413,10 +415,10 @@ export function TextToolsPage() {
     encodingTools.map(tool => ({ 
       ...tool, 
       category: 'encoding',
-      onClick: tool.title === 'Generate Hash' 
+      onClick: tool.title === t('generateHash')
         ? () => applyAsyncTransformation(generateHash, 'Failed to generate hash')
         : () => applyTransformation(tool.onClick as any)
-    })), [applyTransformation, applyAsyncTransformation]
+    })), [applyTransformation, applyAsyncTransformation, t]
   );
 
   const memoizedJsonTools = useMemo(() => 

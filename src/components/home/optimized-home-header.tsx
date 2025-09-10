@@ -84,7 +84,7 @@ const MobileMenu = memo(function MobileMenu({
           <SheetHeader className="p-4 border-b sr-only">
             <SheetTitle>Main Menu</SheetTitle>
           </SheetHeader>
-          <Sidebar language={language} toggleLanguage={onLanguageToggle} />
+          <Sidebar />
         </SheetContent>
       </Sheet>
     </Suspense>

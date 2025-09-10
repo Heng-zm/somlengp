@@ -208,9 +208,9 @@ export function QRScanner({ onScanSuccess, onScanError, onClose, className = '' 
 
   if (!isSupported) {
     return (
-      <div className={`flex flex-col items-center justify-center p-8 bg-red-50 rounded-lg border border-red-200 ${className}`}>
-        <h3 className="text-red-800 font-semibold text-lg mb-2">Camera Not Supported</h3>
-        <p className="text-red-700 text-center text-sm mb-4">
+      <div className={`flex flex-col items-center justify-center p-8 bg-gray-100 rounded-lg border border-gray-300 ${className}`}>
+        <h3 className="text-gray-800 font-semibold text-lg mb-2">Camera Not Supported</h3>
+        <p className="text-gray-700 text-center text-sm mb-4">
           Camera access is not supported in this browser or requires HTTPS. You can still upload an image to scan for QR codes.
         </p>
         <div className="flex gap-3">
@@ -266,15 +266,15 @@ export function QRScanner({ onScanSuccess, onScanError, onClose, className = '' 
             {/* Scanning Frame */}
             <div className="w-64 h-64 border-2 border-white/50 rounded-xl relative">
               {/* Corner indicators */}
-              <div className="absolute top-0 left-0 w-6 h-6 border-l-4 border-t-4 border-blue-500 rounded-tl-lg"></div>
-              <div className="absolute top-0 right-0 w-6 h-6 border-r-4 border-t-4 border-blue-500 rounded-tr-lg"></div>
-              <div className="absolute bottom-0 left-0 w-6 h-6 border-l-4 border-b-4 border-blue-500 rounded-bl-lg"></div>
-              <div className="absolute bottom-0 right-0 w-6 h-6 border-r-4 border-b-4 border-blue-500 rounded-br-lg"></div>
+              <div className="absolute top-0 left-0 w-6 h-6 border-l-4 border-t-4 border-gray-300 rounded-tl-lg"></div>
+              <div className="absolute top-0 right-0 w-6 h-6 border-r-4 border-t-4 border-gray-300 rounded-tr-lg"></div>
+              <div className="absolute bottom-0 left-0 w-6 h-6 border-l-4 border-b-4 border-gray-300 rounded-bl-lg"></div>
+              <div className="absolute bottom-0 right-0 w-6 h-6 border-r-4 border-b-4 border-gray-300 rounded-br-lg"></div>
               
               {/* Scanning animation */}
               {isScanning && (
-                <div className="absolute inset-0 border-2 border-blue-500 rounded-xl animate-pulse">
-                  <div className="absolute top-1/2 left-0 right-0 h-0.5 bg-blue-500 animate-pulse opacity-80"></div>
+                <div className="absolute inset-0 border-2 border-white rounded-xl animate-pulse">
+                  <div className="absolute top-1/2 left-0 right-0 h-0.5 bg-white animate-pulse opacity-80"></div>
                 </div>
               )}
             </div>
@@ -309,7 +309,7 @@ export function QRScanner({ onScanSuccess, onScanError, onClose, className = '' 
 
       {/* Error Display */}
       {error && (
-        <div className="absolute top-4 left-4 right-4 bg-red-500/90 text-white p-3 rounded-lg">
+        <div className="absolute top-4 left-4 right-4 bg-black/80 text-white p-3 rounded-lg">
           <p className="text-sm font-medium">Camera Error:</p>
           <p className="text-xs">{error.message}</p>
         </div>
