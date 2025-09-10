@@ -4,11 +4,13 @@ import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { QRScanner } from '@/components/qr-scanner';
 import { OptimizedQRScanner } from '@/components/optimized-qr-scanner';
+import { SimpleQRScanner } from '@/components/simple-qr-scanner';
 import { QRScannerSheet } from '@/components/qr-scanner-sheet';
 
 export default function ScannerTestPage() {
   const [showBasicScanner, setShowBasicScanner] = useState(false);
   const [showOptimizedScanner, setShowOptimizedScanner] = useState(false);
+  const [showSimpleScanner, setShowSimpleScanner] = useState(false);
   const [showScannerSheet, setShowScannerSheet] = useState(false);
   const [lastScanResult, setLastScanResult] = useState<string>('');
   const [scanError, setScanError] = useState<string>('');
@@ -20,6 +22,7 @@ export default function ScannerTestPage() {
     // Auto-close scanners
     setShowBasicScanner(false);
     setShowOptimizedScanner(false);
+    setShowSimpleScanner(false);
   };
 
   const handleScanError = (error: string) => {
@@ -30,6 +33,7 @@ export default function ScannerTestPage() {
   const handleClose = () => {
     setShowBasicScanner(false);
     setShowOptimizedScanner(false);
+    setShowSimpleScanner(false);
     setShowScannerSheet(false);
   };
 
@@ -43,7 +47,7 @@ export default function ScannerTestPage() {
           </p>
 
           {/* Scanner Controls */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
             <Button 
               onClick={() => setShowBasicScanner(true)}
               className="h-16 text-lg"
@@ -58,6 +62,14 @@ export default function ScannerTestPage() {
               variant={showOptimizedScanner ? "destructive" : "default"}
             >
               {showOptimizedScanner ? "🔴 Close" : "⚡"} Optimized Scanner
+            </Button>
+
+            <Button 
+              onClick={() => setShowSimpleScanner(true)}
+              className="h-16 text-lg"
+              variant={showSimpleScanner ? "destructive" : "default"}
+            >
+              {showSimpleScanner ? "🔴 Close" : "🔍"} Simple Scanner
             </Button>
 
             <Button 
@@ -131,6 +143,21 @@ export default function ScannerTestPage() {
               enableSound={false}
               scanRegion="auto"
               scanQuality="balanced"
+            />
+          </div>
+        )}
+
+        {showSimpleScanner && (
+          <div className="bg-white rounded-lg shadow-lg p-6 mb-6">
+            <h2 className="text-xl font-semibold mb-4">Simple QR Scanner (Fallback)</h2>
+            <p className="text-gray-600 text-sm mb-4">
+              A simplified QR scanner without Web Workers for better compatibility.
+            </p>
+            <SimpleQRScanner
+              onScanSuccess={handleScanSuccess}
+              onScanError={handleScanError}
+              onClose={handleClose}
+              className="w-full max-w-md mx-auto"
             />
           </div>
         )}

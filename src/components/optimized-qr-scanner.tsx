@@ -141,13 +141,13 @@ export function OptimizedQRScanner({
 
   // Adaptive scan interval based on device performance
   const getScanInterval = useCallback(() => {
-    const baseInterval = scanQuality === 'fast' ? 150 : scanQuality === 'accurate' ? 500 : 300;
+    const baseInterval = scanQuality === 'fast' ? 100 : scanQuality === 'accurate' ? 200 : 150;
     
     // Adjust based on processing times
     if (workerStats.averageProcessingTime > 100) {
-      return baseInterval + 100; // Slower for heavy processing
+      return baseInterval + 50; // Slightly slower for heavy processing
     } else if (workerStats.averageProcessingTime < 50) {
-      return Math.max(100, baseInterval - 50); // Faster for light processing
+      return Math.max(80, baseInterval - 30); // Faster for light processing
     }
     
     return baseInterval;
@@ -222,10 +222,15 @@ export function OptimizedQRScanner({
       // Get image data for the scan region
       const imageData = context.getImageData(region.x, region.y, region.width, region.height);
 
-      // Scan using Web Worker
+      // Scan using Web Worker with better options
       const result = await scanQR(imageData, {
-        inversionAttempts: scanQuality === 'fast' ? 'dontInvert' : 
-                          scanQuality === 'accurate' ? 'attemptBoth' : 'attemptBoth'
+        inversionAttempts: 'attemptBoth', // Always try both for better detection
+        locateOptions: {
+          skipUntilFound: scanQuality === 'fast',
+          assumeSquare: false,
+          centerROI: false,
+          maxFinderPatternStdDev: scanQuality === 'accurate' ? 5 : 10
+        }
       });
 
       // Update scan statistics
@@ -248,7 +253,8 @@ export function OptimizedQRScanner({
         setScanConfidence(confidence);
 
         // Check if this is a new scan result
-        if (result.qrCode.data !== lastScannedData) {
+        if (result.qrCode.data && result.qrCode.data.trim() !== '' && result.qrCode.data !== lastScannedData) {
+          console.log('OptimizedQRScanner: QR Code detected:', result.qrCode.data);
           setLastScannedData(result.qrCode.data);
           setIsScanning(false);
           
@@ -385,7 +391,14 @@ export function OptimizedQRScanner({
 
           const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
           
-          const result = await scanQR(imageData, { inversionAttempts: 'attemptBoth' });
+          const result = await scanQR(imageData, { 
+            inversionAttempts: 'attemptBoth',
+            locateOptions: {
+              skipUntilFound: false,
+              assumeSquare: false,
+              centerROI: false
+            }
+          });
 
           if (result.qrCode) {
             setLastScannedData(result.qrCode.data);
