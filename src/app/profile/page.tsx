@@ -127,20 +127,20 @@ export default function ProfilePage() {
           {/* Profile Header with Cover Photo */}
           <div className="rounded-3xl overflow-hidden bg-white dark:bg-gray-950 shadow-xl">
             {/* Cover Photo with Edit Button */}
-            <div className="relative h-48 md:h-64 lg:h-80 bg-gradient-to-r from-blue-600 via-violet-600 to-indigo-600 overflow-hidden">
-              <div className="absolute inset-0 bg-pattern opacity-10"></div>
-              <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-black/10"></div>
+            <div className="relative h-48 md:h-64 lg:h-80 bg-gradient-to-r from-mono-gray-900 via-mono-gray-800 to-mono-gray-700 overflow-hidden">
+              <div className="absolute inset-0 bg-pattern opacity-5"></div>
+              <div className="absolute inset-0 bg-gradient-to-t from-mono-black/60 via-transparent to-mono-black/20"></div>
               
               {/* Background Elements */}
               <div className="absolute inset-0 overflow-hidden">
-                <div className="absolute top-1/4 left-1/4 w-32 h-32 bg-white/10 rounded-full blur-2xl animate-pulse"></div>
-                <div className="absolute bottom-1/3 right-1/4 w-24 h-24 bg-violet-300/20 rounded-full blur-xl animate-pulse delay-300"></div>
-                <div className="absolute top-1/2 right-1/3 w-40 h-40 bg-blue-300/10 rounded-full blur-xl animate-pulse delay-700"></div>
+                <div className="absolute top-1/4 left-1/4 w-32 h-32 bg-mono-white/5 rounded-full blur-2xl animate-pulse"></div>
+                <div className="absolute bottom-1/3 right-1/4 w-24 h-24 bg-mono-gray/10 rounded-full blur-xl animate-pulse delay-300"></div>
+                <div className="absolute top-1/2 right-1/3 w-40 h-40 bg-mono-white/3 rounded-full blur-xl animate-pulse delay-700"></div>
               </div>
               
               {/* Edit Cover Photo Button */}
               <div className="absolute top-4 right-4 z-10">
-                <Button variant="secondary" size="sm" className="bg-white/20 backdrop-blur-md hover:bg-white/30 transition-all duration-200 text-white border-white/30">
+                <Button variant="secondary" size="sm" className="bg-mono-white/20 backdrop-blur-md hover:bg-mono-white/30 transition-all duration-200 text-mono-white border-mono-white/30">
                   <Camera className="h-4 w-4 mr-2" />
                   Edit Cover
                 </Button>
@@ -163,8 +163,8 @@ export default function ProfilePage() {
                     />
                     
                     {/* Online Status Indicator */}
-                    <div className="absolute -bottom-1 -right-1 w-8 h-8 bg-emerald-500 rounded-full border-4 border-white dark:border-gray-900 flex items-center justify-center shadow-lg">
-                      <div className="w-3 h-3 bg-white rounded-full animate-pulse"></div>
+                    <div className="absolute -bottom-1 -right-1 w-8 h-8 bg-mono-gray-700 rounded-full border-4 border-white dark:border-gray-900 flex items-center justify-center shadow-lg">
+                      <div className="w-3 h-3 bg-mono-white rounded-full animate-pulse"></div>
                     </div>
                   </div>
                   
@@ -184,20 +184,20 @@ export default function ProfilePage() {
                   
                   <div className="flex flex-wrap items-center justify-center md:justify-start gap-2">
                     {user.providerData?.length > 0 && (
-                      <Badge className="bg-gradient-to-r from-blue-500 to-violet-600 text-white border-0 shadow-sm py-1.5">
+                      <Badge className="bg-mono-gray-800 text-mono-white border-0 shadow-sm py-1.5 hover:bg-mono-gray-700 transition-colors">
                         <span className="mr-1">✨</span>
                         {user.providerData[0].providerId === 'google.com' ? 'Google Account' : user.providerData[0].providerId}
                       </Badge>
                     )}
                     
                     {user.emailVerified && (
-                      <Badge className="bg-gradient-to-r from-emerald-500 to-green-600 text-white border-0 shadow-sm py-1.5">
+                      <Badge className="bg-mono-black text-mono-white border-0 shadow-sm py-1.5 hover:bg-mono-gray-900 transition-colors">
                         <Shield className="h-3 w-3 mr-1" />
                         Verified Account
                       </Badge>
                     )}
                     
-                    <Badge className="bg-gradient-to-r from-indigo-500 to-blue-600 text-white border-0 shadow-sm py-1.5">
+                    <Badge className="bg-mono-gray-600 text-mono-white border-0 shadow-sm py-1.5 hover:bg-mono-gray-500 transition-colors">
                       <User2 className="h-3 w-3 mr-1" />
                       Active User
                     </Badge>
@@ -238,47 +238,47 @@ export default function ProfilePage() {
               {/* User Statistics */}
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-3xl mx-auto md:mx-0 mb-6">
                 {userCreationTime && (
-                  <div className="p-4 rounded-xl bg-gray-50 dark:bg-gray-900 border border-gray-100 dark:border-gray-800 hover:border-violet-200 dark:hover:border-violet-800 transition-all duration-200">
+                  <div className="p-4 rounded-xl bg-mono-gray-50 dark:bg-mono-gray-900 border border-mono-gray-200 dark:border-mono-gray-800 hover:border-mono-gray-300 dark:hover:border-mono-gray-700 transition-all duration-200">
                     <div className="flex items-center gap-3 mb-2">
-                      <div className="p-2 rounded-lg bg-violet-100 dark:bg-violet-900">
-                        <Calendar className="h-4 w-4 text-violet-700 dark:text-violet-300" />
+                      <div className="p-2 rounded-lg bg-mono-gray-200 dark:bg-mono-gray-800">
+                        <Calendar className="h-4 w-4 text-mono-gray-700 dark:text-mono-gray-300" />
                       </div>
-                      <span className="text-xs text-gray-500 dark:text-gray-400 uppercase font-medium">Member Since</span>
+                      <span className="text-xs text-mono-gray-500 dark:text-mono-gray-400 uppercase font-medium">Member Since</span>
                     </div>
-                    <p className="text-sm font-semibold text-gray-900 dark:text-white">{formatRelativeTime(userCreationTime)}</p>
+                    <p className="text-sm font-semibold text-mono-gray-900 dark:text-mono-white">{formatRelativeTime(userCreationTime)}</p>
                   </div>
                 )}
                 
                 {lastSignInTime && (
-                  <div className="p-4 rounded-xl bg-gray-50 dark:bg-gray-900 border border-gray-100 dark:border-gray-800 hover:border-emerald-200 dark:hover:border-emerald-800 transition-all duration-200">
+                  <div className="p-4 rounded-xl bg-mono-gray-50 dark:bg-mono-gray-900 border border-mono-gray-200 dark:border-mono-gray-800 hover:border-mono-gray-300 dark:hover:border-mono-gray-700 transition-all duration-200">
                     <div className="flex items-center gap-3 mb-2">
-                      <div className="p-2 rounded-lg bg-emerald-100 dark:bg-emerald-900">
-                        <Activity className="h-4 w-4 text-emerald-700 dark:text-emerald-300" />
+                      <div className="p-2 rounded-lg bg-mono-gray-200 dark:bg-mono-gray-800">
+                        <Activity className="h-4 w-4 text-mono-gray-700 dark:text-mono-gray-300" />
                       </div>
-                      <span className="text-xs text-gray-500 dark:text-gray-400 uppercase font-medium">Last Active</span>
+                      <span className="text-xs text-mono-gray-500 dark:text-mono-gray-400 uppercase font-medium">Last Active</span>
                     </div>
-                    <p className="text-sm font-semibold text-gray-900 dark:text-white">{formatRelativeTime(lastSignInTime)}</p>
+                    <p className="text-sm font-semibold text-mono-gray-900 dark:text-mono-white">{formatRelativeTime(lastSignInTime)}</p>
                   </div>
                 )}
                 
-                <div className="p-4 rounded-xl bg-gray-50 dark:bg-gray-900 border border-gray-100 dark:border-gray-800 hover:border-blue-200 dark:hover:border-blue-800 transition-all duration-200">
+                <div className="p-4 rounded-xl bg-mono-gray-50 dark:bg-mono-gray-900 border border-mono-gray-200 dark:border-mono-gray-800 hover:border-mono-gray-300 dark:hover:border-mono-gray-700 transition-all duration-200">
                   <div className="flex items-center gap-3 mb-2">
-                    <div className="p-2 rounded-lg bg-blue-100 dark:bg-blue-900">
-                      <FileText className="h-4 w-4 text-blue-700 dark:text-blue-300" />
+                    <div className="p-2 rounded-lg bg-mono-gray-200 dark:bg-mono-gray-800">
+                      <FileText className="h-4 w-4 text-mono-gray-700 dark:text-mono-gray-300" />
                     </div>
-                    <span className="text-xs text-gray-500 dark:text-gray-400 uppercase font-medium">Sessions</span>
+                    <span className="text-xs text-mono-gray-500 dark:text-mono-gray-400 uppercase font-medium">Sessions</span>
                   </div>
-                  <p className="text-sm font-semibold text-gray-900 dark:text-white">12 active</p>
+                  <p className="text-sm font-semibold text-mono-gray-900 dark:text-mono-white">12 active</p>
                 </div>
                 
-                <div className="p-4 rounded-xl bg-gray-50 dark:bg-gray-900 border border-gray-100 dark:border-gray-800 hover:border-amber-200 dark:hover:border-amber-800 transition-all duration-200">
+                <div className="p-4 rounded-xl bg-mono-gray-50 dark:bg-mono-gray-900 border border-mono-gray-200 dark:border-mono-gray-800 hover:border-mono-gray-300 dark:hover:border-mono-gray-700 transition-all duration-200">
                   <div className="flex items-center gap-3 mb-2">
-                    <div className="p-2 rounded-lg bg-amber-100 dark:bg-amber-900">
-                      <UserCog className="h-4 w-4 text-amber-700 dark:text-amber-300" />
+                    <div className="p-2 rounded-lg bg-mono-gray-200 dark:bg-mono-gray-800">
+                      <UserCog className="h-4 w-4 text-mono-gray-700 dark:text-mono-gray-300" />
                     </div>
-                    <span className="text-xs text-gray-500 dark:text-gray-400 uppercase font-medium">Status</span>
+                    <span className="text-xs text-mono-gray-500 dark:text-mono-gray-400 uppercase font-medium">Status</span>
                   </div>
-                  <p className="text-sm font-semibold text-gray-900 dark:text-white">Active</p>
+                  <p className="text-sm font-semibold text-mono-gray-900 dark:text-mono-white">Active</p>
                 </div>
               </div>
               
@@ -318,7 +318,7 @@ export default function ProfilePage() {
                     <li>
                       <Button 
                         variant="ghost" 
-                        className="w-full justify-start text-left text-amber-600 dark:text-amber-400 hover:bg-amber-50 dark:hover:bg-amber-900/20"
+                        className="w-full justify-start text-left text-mono-gray-700 dark:text-mono-gray-300 hover:bg-mono-gray-100 dark:hover:bg-mono-gray-800"
                         onClick={handleLogout}
                       >
                         <LogOut className="h-4 w-4 mr-3" />
@@ -328,7 +328,7 @@ export default function ProfilePage() {
                     <li>
                       <Button 
                         variant="ghost" 
-                        className="w-full justify-start text-left text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20"
+                        className="w-full justify-start text-left text-mono-gray-800 dark:text-mono-gray-200 hover:bg-mono-gray-100 dark:hover:bg-mono-gray-800"
                         onClick={() => setShowDeleteDialog(true)}
                       >
                         <Trash2 className="h-4 w-4 mr-3" />

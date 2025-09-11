@@ -83,6 +83,9 @@ export async function POST(request: NextRequest) {
         { status: 400 }
       );
     }
+
+    // Check if any messages have file attachments
+    const hasAttachments = messages.some(msg => msg.attachments && msg.attachments.length > 0);
     
     // Get the model name
     const modelName = requestedModel || 'gemini-1.5-flash';
@@ -109,14 +112,74 @@ export async function POST(request: NextRequest) {
       );
     }
     
+    // Helper function to create parts array for a message with potential attachments
+    const createMessageParts = (message: any) => {
+      const parts: any[] = [];
+      
+      // Add text content
+      if (message.content && message.content.trim()) {
+        parts.push({ text: message.content });
+      }
+      
+      // Add file attachments if present
+      if (message.attachments && message.attachments.length > 0) {
+        for (const attachment of message.attachments) {
+          if (attachment.type.startsWith('image/')) {
+            // For images, add as inline data
+            parts.push({
+              inlineData: {
+                mimeType: attachment.type,
+                data: attachment.content // base64 encoded content
+              }
+            });
+          } else if (attachment.type === 'text/plain' || attachment.type === 'application/json') {
+            // For text files, decode and add as text
+            try {
+              const textContent = Buffer.from(attachment.content, 'base64').toString('utf-8');
+              parts.push({ 
+                text: `File "${attachment.name}" contents:\n${textContent}` 
+              });
+            } catch (error) {
+              console.error('Error decoding text file:', error);
+              parts.push({ 
+                text: `File "${attachment.name}" could not be read` 
+              });
+            }
+          } else {
+            // For other file types, just mention the file
+            parts.push({ 
+              text: `File uploaded: "${attachment.name}" (${attachment.type}, ${Math.round(attachment.size / 1024)}KB)` 
+            });
+          }
+        }
+      }
+      
+      return parts;
+    };
+    
     // Get the last user message
     const lastMessage = messages[messages.length - 1];
     
     let result;
     if (messages.length === 1) {
       // First message - no history
-      const prompt = `${systemMessage}\n\nUser: ${lastMessage.content}`;
-      result = await model.generateContent(prompt);
+      const lastMessageParts = createMessageParts(lastMessage);
+      
+      if (lastMessageParts.length === 0) {
+        return NextResponse.json(
+          { error: 'Message content is required' },
+          { status: 400 }
+        );
+      }
+      
+      // Add system message as text if there are attachments
+      if (lastMessage.attachments && lastMessage.attachments.length > 0) {
+        lastMessageParts.unshift({ text: systemMessage + '\n\n' });
+      } else {
+        lastMessageParts[0] = { text: `${systemMessage}\n\nUser: ${lastMessage.content}` };
+      }
+      
+      result = await model.generateContent(lastMessageParts);
     } else {
       // Multiple messages - use chat history
       
@@ -129,10 +192,13 @@ export async function POST(request: NextRequest) {
         const assistantMsg = historyMessages[i + 1];
         
         if (userMsg && userMsg.role === 'user') {
-          history.push({
-            role: 'user',
-            parts: [{ text: userMsg.content }],
-          });
+          const userParts = createMessageParts(userMsg);
+          if (userParts.length > 0) {
+            history.push({
+              role: 'user',
+              parts: userParts,
+            });
+          }
         }
         
         if (assistantMsg && assistantMsg.role === 'assistant') {
@@ -154,8 +220,16 @@ export async function POST(request: NextRequest) {
         },
       });
       
-      // Send the current message
-      result = await chat.sendMessage(lastMessage.content);
+      // Send the current message with potential attachments
+      const currentMessageParts = createMessageParts(lastMessage);
+      if (currentMessageParts.length === 0) {
+        return NextResponse.json(
+          { error: 'Message content is required' },
+          { status: 400 }
+        );
+      }
+      
+      result = await chat.sendMessage(currentMessageParts);
     }
     const response = result.response;
     const text = response.text();

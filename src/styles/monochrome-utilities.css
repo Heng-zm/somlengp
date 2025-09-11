@@ -1,0 +1,405 @@
+/* Enhanced Monochrome Utilities - Perfect Black, Gray, and White Color System */
+
+/* Background Colors - Perfect Grayscale Progression */
+.bg-mono-black { background-color: #000000; }        /* Pure Black (0%) */
+.bg-mono-gray-950 { background-color: #0A0A0A; }     /* Near Black (4%) */
+.bg-mono-gray-900 { background-color: #1A1A1A; }     /* Very Dark Gray (10%) */
+.bg-mono-gray-800 { background-color: #262626; }     /* Dark Gray (15%) */
+.bg-mono-gray-700 { background-color: #404040; }     /* Medium-dark Gray (25%) */
+.bg-mono-gray-600 { background-color: #525252; }     /* Dark Gray (32%) */
+.bg-mono-gray-500 { background-color: #808080; }     /* True Gray (50%) */
+.bg-mono-gray-400 { background-color: #A3A3A3; }     /* Medium-light Gray (64%) */
+.bg-mono-gray-300 { background-color: #BFBFBF; }     /* Light Gray (75%) */
+.bg-mono-gray-200 { background-color: #E5E5E5; }     /* Very Light Gray (90%) */
+.bg-mono-gray-100 { background-color: #F5F5F5; }     /* Near White (96%) */
+.bg-mono-gray-50 { background-color: #FAFAFA; }      /* Ultra Light Gray (98%) */
+.bg-mono-white { background-color: #FFFFFF; }        /* Pure White (100%) */
+
+/* Text Colors - Perfect Grayscale Progression */
+.text-mono-black { color: #000000; }        /* Pure Black (0%) */
+.text-mono-gray-950 { color: #0A0A0A; }     /* Near Black (4%) */
+.text-mono-gray-900 { color: #1A1A1A; }     /* Very Dark Gray (10%) */
+.text-mono-gray-800 { color: #262626; }     /* Dark Gray (15%) */
+.text-mono-gray-700 { color: #404040; }     /* Medium-dark Gray (25%) */
+.text-mono-gray-600 { color: #525252; }     /* Dark Gray (32%) */
+.text-mono-gray-500 { color: #808080; }     /* True Gray (50%) */
+.text-mono-gray-400 { color: #A3A3A3; }     /* Medium-light Gray (64%) */
+.text-mono-gray-300 { color: #BFBFBF; }     /* Light Gray (75%) */
+.text-mono-gray-200 { color: #E5E5E5; }     /* Very Light Gray (90%) */
+.text-mono-gray-100 { color: #F5F5F5; }     /* Near White (96%) */
+.text-mono-gray-50 { color: #FAFAFA; }      /* Ultra Light Gray (98%) */
+.text-mono-white { color: #FFFFFF; }        /* Pure White (100%) */
+
+/* Border Colors - Perfect Grayscale Progression */
+.border-mono-black { border-color: #000000; }        /* Pure Black (0%) */
+.border-mono-gray-950 { border-color: #0A0A0A; }     /* Near Black (4%) */
+.border-mono-gray-900 { border-color: #1A1A1A; }     /* Very Dark Gray (10%) */
+.border-mono-gray-800 { border-color: #262626; }     /* Dark Gray (15%) */
+.border-mono-gray-700 { border-color: #404040; }     /* Medium-dark Gray (25%) */
+.border-mono-gray-600 { border-color: #525252; }     /* Dark Gray (32%) */
+.border-mono-gray-500 { border-color: #808080; }     /* True Gray (50%) */
+.border-mono-gray-400 { border-color: #A3A3A3; }     /* Medium-light Gray (64%) */
+.border-mono-gray-300 { border-color: #BFBFBF; }     /* Light Gray (75%) */
+.border-mono-gray-200 { border-color: #E5E5E5; }     /* Very Light Gray (90%) */
+.border-mono-gray-100 { border-color: #F5F5F5; }     /* Near White (96%) */
+.border-mono-gray-50 { border-color: #FAFAFA; }      /* Ultra Light Gray (98%) */
+.border-mono-white { border-color: #FFFFFF; }        /* Pure White (100%) */
+
+/* Gradient Backgrounds */
+.bg-gradient-black-to-gray {
+  background: linear-gradient(135deg, #000000 0%, #808080 100%);
+}
+
+.bg-gradient-gray-to-white {
+  background: linear-gradient(135deg, #808080 0%, #FFFFFF 100%);
+}
+
+.bg-gradient-black-to-white {
+  background: linear-gradient(135deg, #000000 0%, #FFFFFF 100%);
+}
+
+.bg-gradient-white-to-black {
+  background: linear-gradient(135deg, #FFFFFF 0%, #000000 100%);
+}
+
+.bg-gradient-subtle-gray {
+  background: linear-gradient(135deg, #F5F5F5 0%, #E6E6E6 100%);
+}
+
+/* Advanced Button Styles */
+.btn-mono-primary {
+  background-color: #000000;
+  color: #FFFFFF;
+  border: 2px solid #000000;
+  padding: 0.5rem 1rem;
+  border-radius: 0.5rem;
+  transition: all 0.2s ease-in-out;
+}
+
+.btn-mono-primary:hover {
+  background-color: #1A1A1A;
+  border-color: #1A1A1A;
+  transform: translateY(-1px);
+}
+
+.btn-mono-secondary {
+  background-color: #FFFFFF;
+  color: #000000;
+  border: 2px solid #000000;
+  padding: 0.5rem 1rem;
+  border-radius: 0.5rem;
+  transition: all 0.2s ease-in-out;
+}
+
+.btn-mono-secondary:hover {
+  background-color: #F5F5F5;
+  transform: translateY(-1px);
+}
+
+.btn-mono-ghost {
+  background-color: transparent;
+  color: #000000;
+  border: 2px solid #808080;
+  padding: 0.5rem 1rem;
+  border-radius: 0.5rem;
+  transition: all 0.2s ease-in-out;
+}
+
+.btn-mono-ghost:hover {
+  background-color: #F5F5F5;
+  border-color: #000000;
+}
+
+/* Card Styles */
+.card-mono {
+  background: #FFFFFF;
+  border: 1px solid #E6E6E6;
+  border-radius: 0.5rem;
+  padding: 1rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease-in-out;
+}
+
+.card-mono:hover {
+  border-color: #BFBFBF;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  transform: translateY(-2px);
+}
+
+.card-mono-dark {
+  background: #1A1A1A;
+  border: 1px solid #404040;
+  color: #FFFFFF;
+  padding: 1rem;
+  border-radius: 0.5rem;
+  transition: all 0.3s ease-in-out;
+}
+
+.card-mono-dark:hover {
+  border-color: #666666;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+/* Input Styles */
+.input-mono {
+  background: #FFFFFF;
+  border: 2px solid #E6E6E6;
+  color: #000000;
+  padding: 0.5rem;
+  border-radius: 0.25rem;
+  transition: all 0.2s ease-in-out;
+}
+
+.input-mono:focus {
+  border-color: #808080;
+  box-shadow: 0 0 0 3px rgba(128, 128, 128, 0.1);
+  outline: none;
+}
+
+/* Glass Effects */
+.glass-mono-light {
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.glass-mono-dark {
+  background: rgba(0, 0, 0, 0.1);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(0, 0, 0, 0.2);
+}
+
+/* Shadow Utilities */
+.shadow-mono-sm {
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+}
+
+.shadow-mono {
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+}
+
+.shadow-mono-lg {
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+}
+
+/* Hover Effects */
+.hover-mono-lift {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.hover-mono-lift:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+}
+
+/* Focus States */
+.focus-mono-ring {
+  outline: none;
+  transition: all 0.2s ease-in-out;
+}
+
+.focus-mono-ring:focus-visible {
+  outline: 2px solid #808080;
+  outline-offset: 2px;
+  box-shadow: 0 0 0 4px rgba(128, 128, 128, 0.2);
+}
+
+/* Typography */
+.text-mono-gradient {
+  background: linear-gradient(135deg, #000000 0%, #808080 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* CSS Variables */
+:root {
+  --mono-transition: all 0.2s ease-in-out;
+  --mono-shadow-light: 0 1px 3px rgba(0, 0, 0, 0.1);
+  --mono-shadow-medium: 0 4px 6px rgba(0, 0, 0, 0.1);
+  --mono-shadow-heavy: 0 10px 25px rgba(0, 0, 0, 0.15);
+  --mono-border-radius: 8px;
+}
+
+.dark {
+  --mono-shadow-light: 0 1px 3px rgba(0, 0, 0, 0.3);
+  --mono-shadow-medium: 0 4px 6px rgba(0, 0, 0, 0.3);
+  --mono-shadow-heavy: 0 10px 25px rgba(0, 0, 0, 0.5);
+}
+
+/* ===== Additional Utility Classes ===== */
+
+/* Opacity Utilities for Layering */
+.bg-mono-black\/5 { background-color: rgba(0, 0, 0, 0.05); }
+.bg-mono-black\/10 { background-color: rgba(0, 0, 0, 0.10); }
+.bg-mono-black\/20 { background-color: rgba(0, 0, 0, 0.20); }
+.bg-mono-black\/30 { background-color: rgba(0, 0, 0, 0.30); }
+.bg-mono-black\/40 { background-color: rgba(0, 0, 0, 0.40); }
+.bg-mono-black\/50 { background-color: rgba(0, 0, 0, 0.50); }
+.bg-mono-black\/60 { background-color: rgba(0, 0, 0, 0.60); }
+.bg-mono-black\/70 { background-color: rgba(0, 0, 0, 0.70); }
+.bg-mono-black\/80 { background-color: rgba(0, 0, 0, 0.80); }
+.bg-mono-black\/90 { background-color: rgba(0, 0, 0, 0.90); }
+
+.bg-mono-white\/5 { background-color: rgba(255, 255, 255, 0.05); }
+.bg-mono-white\/10 { background-color: rgba(255, 255, 255, 0.10); }
+.bg-mono-white\/20 { background-color: rgba(255, 255, 255, 0.20); }
+.bg-mono-white\/30 { background-color: rgba(255, 255, 255, 0.30); }
+.bg-mono-white\/40 { background-color: rgba(255, 255, 255, 0.40); }
+.bg-mono-white\/50 { background-color: rgba(255, 255, 255, 0.50); }
+.bg-mono-white\/60 { background-color: rgba(255, 255, 255, 0.60); }
+.bg-mono-white\/70 { background-color: rgba(255, 255, 255, 0.70); }
+.bg-mono-white\/80 { background-color: rgba(255, 255, 255, 0.80); }
+.bg-mono-white\/90 { background-color: rgba(255, 255, 255, 0.90); }
+
+.bg-mono-gray\/5 { background-color: rgba(128, 128, 128, 0.05); }
+.bg-mono-gray\/10 { background-color: rgba(128, 128, 128, 0.10); }
+.bg-mono-gray\/20 { background-color: rgba(128, 128, 128, 0.20); }
+.bg-mono-gray\/30 { background-color: rgba(128, 128, 128, 0.30); }
+.bg-mono-gray\/40 { background-color: rgba(128, 128, 128, 0.40); }
+.bg-mono-gray\/50 { background-color: rgba(128, 128, 128, 0.50); }
+
+/* Ring/Outline Utilities */
+.ring-mono-black { --tw-ring-color: #000000; }
+.ring-mono-gray { --tw-ring-color: #808080; }
+.ring-mono-white { --tw-ring-color: #FFFFFF; }
+
+/* Divide Colors */
+.divide-mono-black > :not([hidden]) ~ :not([hidden]) { --tw-divide-opacity: 1; border-color: rgb(0 0 0 / var(--tw-divide-opacity)); }
+.divide-mono-gray > :not([hidden]) ~ :not([hidden]) { --tw-divide-opacity: 1; border-color: rgb(128 128 128 / var(--tw-divide-opacity)); }
+.divide-mono-white > :not([hidden]) ~ :not([hidden]) { --tw-divide-opacity: 1; border-color: rgb(255 255 255 / var(--tw-divide-opacity)); }
+
+/* Placeholder Colors */
+.placeholder-mono-black::placeholder { color: #000000; }
+.placeholder-mono-gray::placeholder { color: #808080; }
+.placeholder-mono-white::placeholder { color: #FFFFFF; }
+.placeholder-mono-gray-400::placeholder { color: #A3A3A3; }
+.placeholder-mono-gray-600::placeholder { color: #525252; }
+
+/* Accent Colors */
+.accent-mono-black { accent-color: #000000; }
+.accent-mono-gray { accent-color: #808080; }
+.accent-mono-white { accent-color: #FFFFFF; }
+
+/* Caret Colors */
+.caret-mono-black { caret-color: #000000; }
+.caret-mono-gray { caret-color: #808080; }
+.caret-mono-white { caret-color: #FFFFFF; }
+
+/* Fill and Stroke for SVGs */
+.fill-mono-black { fill: #000000; }
+.fill-mono-gray { fill: #808080; }
+.fill-mono-white { fill: #FFFFFF; }
+
+.stroke-mono-black { stroke: #000000; }
+.stroke-mono-gray { stroke: #808080; }
+.stroke-mono-white { stroke: #FFFFFF; }
+
+/* Component Utilities */
+.btn-mono-minimal {
+  background-color: transparent;
+  color: #808080;
+  border: 1px solid transparent;
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.25rem;
+  transition: var(--mono-transition);
+}
+
+.btn-mono-minimal:hover {
+  color: #000000;
+  background-color: #F5F5F5;
+}
+
+.btn-mono-outline {
+  background-color: transparent;
+  color: #000000;
+  border: 1px solid #E5E5E5;
+  padding: 0.5rem 1rem;
+  border-radius: 0.5rem;
+  transition: var(--mono-transition);
+}
+
+.btn-mono-outline:hover {
+  border-color: #808080;
+  background-color: #FAFAFA;
+}
+
+.input-mono-minimal {
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid #E5E5E5;
+  color: #000000;
+  padding: 0.5rem 0;
+  border-radius: 0;
+  transition: var(--mono-transition);
+}
+
+.input-mono-minimal:focus {
+  border-bottom-color: #000000;
+  box-shadow: none;
+  outline: none;
+}
+
+/* Dark mode variants */
+.dark .btn-mono-minimal {
+  color: #A3A3A3;
+}
+
+.dark .btn-mono-minimal:hover {
+  color: #FFFFFF;
+  background-color: #1A1A1A;
+}
+
+.dark .btn-mono-outline {
+  color: #FFFFFF;
+  border-color: #404040;
+}
+
+.dark .btn-mono-outline:hover {
+  border-color: #808080;
+  background-color: #0A0A0A;
+}
+
+.dark .input-mono-minimal {
+  color: #FFFFFF;
+  border-bottom-color: #404040;
+}
+
+.dark .input-mono-minimal:focus {
+  border-bottom-color: #FFFFFF;
+}
+
+/* Animations */
+@keyframes mono-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+.animate-mono-pulse {
+  animation: mono-pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@keyframes mono-fade-in {
+  0% { opacity: 0; transform: translateY(10px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+
+.animate-mono-fade-in {
+  animation: mono-fade-in 0.5s ease-out;
+}
+
+/* Responsive helpers */
+@media (prefers-color-scheme: dark) {
+  .auto-mono-invert {
+    filter: invert(1);
+  }
+}
+
+/* Print-friendly styles */
+@media print {
+  .print-mono-black { color: #000000 !important; }
+  .print-mono-white { color: #FFFFFF !important; background-color: #000000 !important; }
+  .print-hide-bg { background: none !important; }
+}

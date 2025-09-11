@@ -5,6 +5,8 @@ import { AIFormat, FormatOptions, inferExportOptions, formatAIResponse } from '@
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Label } from '@/components/ui/label';
 import { Download } from 'lucide-react';
 
 interface Props {
@@ -17,18 +19,25 @@ export default function AIResponseFormatter({ value, onFormatted }: Props) {
   const [language, setLanguage] = React.useState<string>('');
   const [headingLevel, setHeadingLevel] = React.useState<1 | 2 | 3 | 4 | 5 | 6 | undefined>(undefined);
   const [wrapAt, setWrapAt] = React.useState<number | undefined>(undefined);
+  // Text styling options
+  const [enableBold, setEnableBold] = React.useState<boolean>(true);
+  const [enableItalic, setEnableItalic] = React.useState<boolean>(true);
+  const [enableInlineCode, setEnableInlineCode] = React.useState<boolean>(true);
 
   const formatted = React.useMemo(() => {
     const options: FormatOptions = {
       format,
       language: format === 'code' ? language : undefined,
       headingLevel: format === 'markdown' ? headingLevel : undefined,
+      enableBold,
+      enableItalic,
+      enableInlineCode,
       wrapAt,
     };
     const out = formatAIResponse(value, options);
     onFormatted?.(out);
     return out;
-  }, [value, format, language, headingLevel, wrapAt, onFormatted]);
+  }, [value, format, language, headingLevel, enableBold, enableItalic, enableInlineCode, wrapAt, onFormatted]);
 
   const handleDownload = () => {
     const { filename, mime } = inferExportOptions(format);
@@ -92,6 +101,40 @@ export default function AIResponseFormatter({ value, onFormatted }: Props) {
           Export
         </Button>
       </div>
+
+      {/* Text styling controls - only show for markdown and html formats */}
+      {(format === 'markdown' || format === 'html') && (
+        <div className="flex items-center gap-4 p-2 bg-gray-50 dark:bg-gray-800 rounded-lg">
+          <span className="text-sm font-medium">Text Styling:</span>
+          
+          <div className="flex items-center space-x-2">
+            <Checkbox 
+              id="bold" 
+              checked={enableBold} 
+              onCheckedChange={(checked) => setEnableBold(!!checked)}
+            />
+            <Label htmlFor="bold" className="text-sm font-bold">**Bold**</Label>
+          </div>
+
+          <div className="flex items-center space-x-2">
+            <Checkbox 
+              id="italic" 
+              checked={enableItalic} 
+              onCheckedChange={(checked) => setEnableItalic(!!checked)}
+            />
+            <Label htmlFor="italic" className="text-sm italic">*Italic*</Label>
+          </div>
+
+          <div className="flex items-center space-x-2">
+            <Checkbox 
+              id="code" 
+              checked={enableInlineCode} 
+              onCheckedChange={(checked) => setEnableInlineCode(!!checked)}
+            />
+            <Label htmlFor="code" className="text-sm font-mono bg-gray-200 dark:bg-gray-700 px-1 rounded">`Code`</Label>
+          </div>
+        </div>
+      )}
 
       <div className="border rounded-xl p-3 bg-white dark:bg-gray-900 text-sm overflow-auto max-h-96">
         {format === 'html' ? (

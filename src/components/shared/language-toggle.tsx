@@ -26,8 +26,8 @@ export function LanguageToggle({ variant = 'button', className }: LanguageToggle
         onClick={toggleLanguage}
         className={cn(
           'flex items-center gap-2 px-3 py-1.5 text-sm font-medium rounded-md transition-colors',
-          'hover:bg-gray-100 dark:hover:bg-gray-800',
-          'text-gray-700 dark:text-gray-300',
+          'hover:bg-accent hover:text-accent-foreground',
+          'text-foreground',
           className
         )}
         title={`Switch to ${isKhmer ? 'English' : 'ភាសាខ្មែរ'}`}
@@ -47,8 +47,8 @@ export function LanguageToggle({ variant = 'button', className }: LanguageToggle
         onClick={toggleLanguage}
         className={cn(
           'flex items-center gap-3 px-3 py-2 w-full text-left text-sm font-medium rounded-lg transition-colors',
-          'hover:bg-gray-100 dark:hover:bg-gray-800',
-          'text-gray-700 dark:text-gray-300',
+          'hover:bg-accent hover:text-accent-foreground',
+          'text-foreground',
           className
         )}
         title={`Switch to ${isKhmer ? 'English' : 'ភាសាខ្មែរ'}`}
@@ -56,7 +56,7 @@ export function LanguageToggle({ variant = 'button', className }: LanguageToggle
         <Globe className="h-4 w-4 flex-shrink-0" />
         <div className="flex items-center justify-between w-full">
           <span>Language</span>
-          <span className="text-xs bg-gray-200 dark:bg-gray-700 px-2 py-1 rounded">
+          <span className="text-xs bg-muted text-muted-foreground px-2 py-1 rounded">
             {isKhmer ? 'ខ្មែរ' : 'EN'}
           </span>
         </div>
@@ -90,27 +90,27 @@ export function LanguageToggle({ variant = 'button', className }: LanguageToggle
           onClick={() => language !== 'en' && toggleLanguage()}
           className={cn(
             'flex items-center gap-2 cursor-pointer',
-            isEnglish && 'bg-blue-50 dark:bg-blue-900/20'
+            isEnglish && 'bg-accent text-accent-foreground'
           )}
         >
           <div className="flex items-center gap-2">
             <span className="text-lg">🇺🇸</span>
             <span>English</span>
           </div>
-          {isEnglish && <span className="ml-auto text-blue-600">✓</span>}
+          {isEnglish && <span className="ml-auto text-primary">✓</span>}
         </DropdownMenuItem>
         <DropdownMenuItem
           onClick={() => language !== 'km' && toggleLanguage()}
           className={cn(
             'flex items-center gap-2 cursor-pointer',
-            isKhmer && 'bg-blue-50 dark:bg-blue-900/20'
+            isKhmer && 'bg-accent text-accent-foreground'
           )}
         >
           <div className="flex items-center gap-2">
             <span className="text-lg">🇰🇭</span>
             <span>ភាសាខ្មែរ</span>
           </div>
-          {isKhmer && <span className="ml-auto text-blue-600">✓</span>}
+          {isKhmer && <span className="ml-auto text-primary">✓</span>}
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

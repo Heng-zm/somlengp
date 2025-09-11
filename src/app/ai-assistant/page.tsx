@@ -30,7 +30,11 @@ import {
   Settings,
   ChevronDown,
   Palette,
-  FileText
+  FileText,
+  Paperclip,
+  X,
+  Image,
+  File
 } from 'lucide-react';
 import { showErrorToast, showSuccessToast } from '@/lib/toast-utils';
 import { cn } from '@/lib/utils';
@@ -39,12 +43,21 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { AIFormat, formatAIResponse } from '@/lib/ai-formatter';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
+interface FileAttachment {
+  name: string;
+  type: string;
+  size: number;
+  content: string; // base64 encoded content
+  url?: string; // preview URL for images
+}
+
 interface Message {
   id: string;
   role: 'user' | 'assistant';
   content: string;
   timestamp: Date;
   format?: AIFormat; // format used for assistant messages
+  attachments?: FileAttachment[]; // file attachments
 }
 
 
@@ -79,10 +92,17 @@ export default function AIAssistantPage() {
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [isTyping, setIsTyping] = useState(false);
-const [selectedModel, setSelectedModel] = useState<AIModel>(AI_MODELS[0]);
+  const [selectedModel, setSelectedModel] = useState<AIModel>(AI_MODELS[0]);
   const [responseFormat, setResponseFormat] = useState<AIFormat>('markdown');
+  const [attachedFiles, setAttachedFiles] = useState<FileAttachment[]>([]);
+  const [isDragOver, setIsDragOver] = useState(false);
+  // Text styling options
+  const [enableBold, setEnableBold] = useState<boolean>(true);
+  const [enableItalic, setEnableItalic] = useState<boolean>(true);
+  const [enableInlineCode, setEnableInlineCode] = useState<boolean>(true);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Auto-scroll to bottom when new messages arrive
   useEffect(() => {
@@ -127,17 +147,19 @@ const [selectedModel, setSelectedModel] = useState<AIModel>(AI_MODELS[0]);
   }, [selectedModel.id, selectedModel.displayName, selectedModel.icon, selectedModel.description, messages.length]);
 
   const sendMessage = useCallback(async () => {
-    if (!input.trim() || isLoading || !user) return;
+    if ((!input.trim() && attachedFiles.length === 0) || isLoading || !user) return;
 
     const userMessage: Message = {
       id: generateMessageId(),
       role: 'user',
-      content: input.trim(),
+      content: input.trim() || (attachedFiles.length > 0 ? `[Uploaded ${attachedFiles.length} file${attachedFiles.length > 1 ? 's' : ''}]` : ''),
       timestamp: new Date(),
+      attachments: attachedFiles.length > 0 ? [...attachedFiles] : undefined,
     };
 
     setMessages(prev => [...prev, userMessage]);
     setInput('');
+    setAttachedFiles([]);
     setIsLoading(true);
     setIsTyping(true);
 
@@ -145,20 +167,24 @@ const [selectedModel, setSelectedModel] = useState<AIModel>(AI_MODELS[0]);
       // Get user's Firebase token for authentication
       const token = await user.getIdToken();
 
+      // Prepare the request data
+      const requestData = {
+        messages: [...messages, userMessage].map(msg => ({
+          role: msg.role,
+          content: msg.content,
+          attachments: msg.attachments || []
+        })),
+        userId: user.uid,
+        model: selectedModel.name,
+      };
+
       const response = await fetch('/api/ai-assistant', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`,
         },
-        body: JSON.stringify({
-          messages: [...messages, userMessage].map(msg => ({
-            role: msg.role,
-            content: msg.content,
-          })),
-          userId: user.uid,
-          model: selectedModel.name,
-        }),
+        body: JSON.stringify(requestData),
       });
 
       if (!response.ok) {
@@ -168,7 +194,12 @@ const [selectedModel, setSelectedModel] = useState<AIModel>(AI_MODELS[0]);
 
       const data = await response.json();
 
-      const formattedContent = formatAIResponse(data.response, { format: responseFormat });
+      const formattedContent = formatAIResponse(data.response, { 
+        format: responseFormat,
+        enableBold,
+        enableItalic,
+        enableInlineCode
+      });
 
       const assistantMessage: Message = {
         id: generateMessageId(),
@@ -196,7 +227,7 @@ const [selectedModel, setSelectedModel] = useState<AIModel>(AI_MODELS[0]);
       setIsLoading(false);
       setIsTyping(false);
     }
-  }, [input, isLoading, user, messages, selectedModel.name, responseFormat]);
+  }, [input, isLoading, user, messages, selectedModel.name, responseFormat, attachedFiles, enableBold, enableItalic, enableInlineCode]);
 
   const clearChat = useCallback(() => {
     setMessages([{
@@ -205,6 +236,7 @@ const [selectedModel, setSelectedModel] = useState<AIModel>(AI_MODELS[0]);
       content: `Chat cleared! 🧹 I'm ready for a fresh conversation. What can I help you with?`,
       timestamp: new Date(),
     }]);
+    setAttachedFiles([]);
   }, []);
 
   const copyMessage = useCallback(async (content: string) => {
@@ -226,6 +258,98 @@ const [selectedModel, setSelectedModel] = useState<AIModel>(AI_MODELS[0]);
   const goBackToHome = useCallback(() => {
     router.push('/home');
   }, [router]);
+
+  // File handling functions
+  const handleFileUpload = useCallback((files: FileList | File[]) => {
+    const fileArray = Array.from(files);
+    const maxFileSize = 10 * 1024 * 1024; // 10MB limit
+    const supportedTypes = [
+      'image/jpeg', 'image/png', 'image/gif', 'image/webp',
+      'text/plain', 'text/csv',
+      'application/pdf',
+      'application/json'
+    ];
+
+    fileArray.forEach(file => {
+      if (file.size > maxFileSize) {
+        showErrorToast('File too large', `${file.name} exceeds 10MB limit`);
+        return;
+      }
+
+      if (!supportedTypes.includes(file.type)) {
+        showErrorToast('Unsupported file type', `${file.type} is not supported`);
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const content = e.target?.result as string;
+        const base64Content = content.split(',')[1]; // Remove data URL prefix
+        
+        const newAttachment: FileAttachment = {
+          name: file.name,
+          type: file.type,
+          size: file.size,
+          content: base64Content,
+          url: file.type.startsWith('image/') ? content : undefined
+        };
+
+        setAttachedFiles(prev => [...prev, newAttachment]);
+        showSuccessToast('File attached', `${file.name} attached successfully`);
+      };
+
+      reader.onerror = () => {
+        showErrorToast('File read error', `Failed to read ${file.name}`);
+      };
+
+      reader.readAsDataURL(file);
+    });
+  }, []);
+
+  const removeAttachment = useCallback((index: number) => {
+    setAttachedFiles(prev => prev.filter((_, i) => i !== index));
+  }, []);
+
+  const handleFileInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files.length > 0) {
+      handleFileUpload(e.target.files);
+    }
+    // Reset input value to allow same file upload again
+    e.target.value = '';
+  }, [handleFileUpload]);
+
+  const handleDrop = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragOver(false);
+    
+    if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+      handleFileUpload(e.dataTransfer.files);
+    }
+  }, [handleFileUpload]);
+
+  const handleDragOver = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragOver(true);
+  }, []);
+
+  const handleDragLeave = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragOver(false);
+  }, []);
+
+  const formatFileSize = useCallback((bytes: number): string => {
+    if (bytes === 0) return '0 Bytes';
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+  }, []);
+
+  const getFileIcon = useCallback((type: string) => {
+    if (type.startsWith('image/')) return <Image className="h-4 w-4" />;
+    if (type === 'application/pdf') return <FileText className="h-4 w-4" />;
+    return <File className="h-4 w-4" />;
+  }, []);
 
   return (
     <AuthGuard>
@@ -410,6 +534,49 @@ const [selectedModel, setSelectedModel] = useState<AIModel>(AI_MODELS[0]);
                               <div className="absolute inset-0 bg-gradient-to-br from-gray-200/10 to-gray-300/10 dark:from-gray-600/10 dark:to-gray-500/10" />
                             )}
                             
+                            {/* File attachments in message */}
+                            {message.attachments && message.attachments.length > 0 && (
+                              <div className="mb-3">
+                                <div className="flex flex-wrap gap-2">
+                                  {message.attachments.map((attachment, index) => (
+                                    <div
+                                      key={index}
+                                      className={cn(
+                                        "flex items-center gap-2 rounded-lg px-2 py-1.5 text-xs",
+                                        message.role === 'user'
+                                          ? "bg-gray-600/50 text-gray-100"
+                                          : "bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300"
+                                      )}
+                                    >
+                                      {attachment.url && attachment.type.startsWith('image/') ? (
+                                        <img 
+                                          src={attachment.url} 
+                                          alt={attachment.name} 
+                                          className="w-5 h-5 rounded object-cover" 
+                                        />
+                                      ) : (
+                                        <div className={cn(
+                                          "text-current",
+                                          message.role === 'user' ? "text-gray-200" : "text-gray-500 dark:text-gray-400"
+                                        )}>
+                                          {getFileIcon(attachment.type)}
+                                        </div>
+                                      )}
+                                      <span className="truncate max-w-24">
+                                        {attachment.name}
+                                      </span>
+                                      <span className={cn(
+                                        "text-xs",
+                                        message.role === 'user' ? "text-gray-300" : "text-gray-500 dark:text-gray-400"
+                                      )}>
+                                        {formatFileSize(attachment.size)}
+                                      </span>
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
+                            
                             <div className="relative whitespace-pre-wrap break-words word-break">
                               {message.role === 'assistant' && message.format === 'html' ? (
                                 <div dangerouslySetInnerHTML={{ __html: message.content }} />
@@ -485,9 +652,70 @@ const [selectedModel, setSelectedModel] = useState<AIModel>(AI_MODELS[0]);
             </ScrollArea>
 
             {/* Input Area */}
-            <footer className="border-t border-gray-200/60 dark:border-gray-700/60 backdrop-blur-xl bg-white/80 dark:bg-gray-900/80">
+            <footer 
+              className={cn(
+                "border-t border-gray-200/60 dark:border-gray-700/60 backdrop-blur-xl bg-white/80 dark:bg-gray-900/80 relative",
+                isDragOver && "bg-blue-50 dark:bg-blue-900/20 border-blue-300 dark:border-blue-600"
+              )}
+              onDrop={handleDrop}
+              onDragOver={handleDragOver}
+              onDragLeave={handleDragLeave}
+            >
+              {isDragOver && (
+                <div className="absolute inset-0 bg-blue-500/10 border-2 border-dashed border-blue-500 rounded-lg flex items-center justify-center z-10">
+                  <div className="text-center">
+                    <Paperclip className="h-8 w-8 text-blue-500 mx-auto mb-2" />
+                    <p className="text-blue-600 dark:text-blue-400 font-medium">Drop files here to attach</p>
+                  </div>
+                </div>
+              )}
+              
               <div className="px-3 py-3 sm:px-4 sm:py-4 md:px-6">
                 <div className="max-w-4xl mx-auto">
+                  {/* File attachments preview */}
+                  {attachedFiles.length > 0 && (
+                    <div className="mb-3">
+                      <div className="flex flex-wrap gap-2">
+                        {attachedFiles.map((file, index) => (
+                          <motion.div
+                            key={index}
+                            initial={{ opacity: 0, scale: 0.9 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            exit={{ opacity: 0, scale: 0.9 }}
+                            className="flex items-center gap-2 bg-gray-100 dark:bg-gray-700 rounded-lg px-3 py-2 text-sm"
+                          >
+                            {file.url && file.type.startsWith('image/') ? (
+                              <img 
+                                src={file.url} 
+                                alt={file.name} 
+                                className="w-6 h-6 rounded object-cover" 
+                              />
+                            ) : (
+                              <div className="text-gray-500 dark:text-gray-400">
+                                {getFileIcon(file.type)}
+                              </div>
+                            )}
+                            <span className="text-gray-700 dark:text-gray-300 truncate max-w-32">
+                              {file.name}
+                            </span>
+                            <span className="text-xs text-gray-500 dark:text-gray-400">
+                              {formatFileSize(file.size)}
+                            </span>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="h-5 w-5 p-0 text-gray-500 hover:text-red-500 dark:text-gray-400 dark:hover:text-red-400"
+                              onClick={() => removeAttachment(index)}
+                              title="Remove attachment"
+                            >
+                              <X className="h-3 w-3" />
+                            </Button>
+                          </motion.div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                  
                   <div className="flex items-end gap-2 sm:gap-3">
                     <div className="flex-1 relative">
                       <Input
@@ -497,13 +725,26 @@ const [selectedModel, setSelectedModel] = useState<AIModel>(AI_MODELS[0]);
                         onKeyPress={handleKeyPress}
                         placeholder="Type your message..."
                         disabled={isLoading}
-                        className="min-h-[48px] sm:min-h-[52px] pr-2 sm:pr-3 rounded-xl sm:rounded-2xl border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 focus:ring-2 focus:ring-gray-500 focus:border-transparent transition-all duration-200 text-sm sm:text-base resize-none touch-manipulation"
+                        className="min-h-[48px] sm:min-h-[52px] pr-12 sm:pr-14 rounded-xl sm:rounded-2xl border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 focus:ring-2 focus:ring-gray-500 focus:border-transparent transition-all duration-200 text-sm sm:text-base resize-none touch-manipulation"
                       />
+                      
+                      {/* File upload button inside input */}
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => fileInputRef.current?.click()}
+                        disabled={isLoading}
+                        className="absolute right-2 top-1/2 -translate-y-1/2 h-8 w-8 p-0 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg"
+                        title="Attach file"
+                        aria-label="Attach file"
+                      >
+                        <Paperclip className="h-4 w-4" />
+                      </Button>
                     </div>
                     
                     <Button
                       onClick={sendMessage}
-                      disabled={!input.trim() || isLoading}
+                      disabled={(!input.trim() && attachedFiles.length === 0) || isLoading}
                       className="h-[48px] w-[48px] sm:h-[52px] sm:w-[52px] rounded-xl sm:rounded-2xl bg-gradient-to-r from-gray-700 via-gray-800 to-black hover:from-gray-600 hover:via-gray-700 hover:to-gray-900 active:from-gray-800 active:via-gray-900 active:to-black shadow-lg shadow-gray-500/25 hover:shadow-xl hover:shadow-gray-500/30 transition-all duration-200 disabled:opacity-50 disabled:shadow-none disabled:cursor-not-allowed touch-manipulation transform hover:scale-105 active:scale-95 backdrop-blur-sm border border-gray-400/20 hover:border-gray-300/30"
                       title={isLoading ? "Sending message..." : "Send message"}
                       aria-label={isLoading ? "Sending message..." : "Send message"}
@@ -537,6 +778,17 @@ const [selectedModel, setSelectedModel] = useState<AIModel>(AI_MODELS[0]);
               </div>
             </footer>
           </main>
+          
+          {/* Hidden file input */}
+          <input
+            ref={fileInputRef}
+            type="file"
+            multiple
+            accept="image/*,.pdf,.txt,.csv,.json"
+            onChange={handleFileInputChange}
+            className="hidden"
+            aria-label="Upload files"
+          />
         </div>
       </div>
     </AuthGuard>

@@ -8,9 +8,47 @@ interface LanguageProviderProps {
   children: ReactNode;
 }
 
+// Helper function to get initial theme without causing hydration mismatch
+function getInitialTheme(): string {
+  // Always return 'light' on server-side to match initial render
+  if (typeof window === 'undefined') {
+    return 'light';
+  }
+  
+  try {
+    const savedTheme = localStorage.getItem('preferred-theme');
+    if (savedTheme && (savedTheme === 'light' || savedTheme === 'dark')) {
+      return savedTheme;
+    }
+    
+    // Check system preference
+    return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  } catch {
+    return 'light';
+  }
+}
+
+// Helper function to get initial language
+function getInitialLanguage(): Language {
+  if (typeof window === 'undefined') {
+    return 'en';
+  }
+  
+  try {
+    const savedLanguage = localStorage.getItem('preferred-language') as Language;
+    if (savedLanguage && (savedLanguage === 'km' || savedLanguage === 'en')) {
+      return savedLanguage;
+    }
+  } catch {
+    // Ignore errors
+  }
+  
+  return 'en';
+}
+
 export function LanguageProvider({ children }: LanguageProviderProps) {
-  const [language, setLanguage] = useState<Language>('en');
-  const [theme, setTheme] = useState('light');
+  const [language, setLanguage] = useState<Language>(getInitialLanguage);
+  const [theme, setTheme] = useState(getInitialTheme);
   const [isInitialized, setIsInitialized] = useState(false);
 
   // Initialize language and theme from localStorage
@@ -18,6 +56,7 @@ export function LanguageProvider({ children }: LanguageProviderProps) {
     try {
       const savedLanguage = localStorage.getItem('preferred-language') as Language;
       const savedTheme = localStorage.getItem('preferred-theme');
+      let actualTheme = 'light';
 
       // Set language (default to English if not found)
       if (savedLanguage && (savedLanguage === 'km' || savedLanguage === 'en')) {
@@ -26,12 +65,21 @@ export function LanguageProvider({ children }: LanguageProviderProps) {
 
       // Set theme (default to system preference if not found)
       if (savedTheme && (savedTheme === 'light' || savedTheme === 'dark')) {
-        setTheme(savedTheme);
+        actualTheme = savedTheme;
       } else {
         // Detect system theme preference
         const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-        setTheme(prefersDark ? 'dark' : 'light');
+        actualTheme = prefersDark ? 'dark' : 'light';
       }
+      
+      // Apply theme immediately to prevent flash
+      if (actualTheme === 'dark') {
+        document.documentElement.classList.add('dark');
+      } else {
+        document.documentElement.classList.remove('dark');
+      }
+      
+      setTheme(actualTheme);
     } catch (error) {
       console.warn('Failed to load language preferences from localStorage:', error);
     } finally {

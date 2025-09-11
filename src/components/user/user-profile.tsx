@@ -107,9 +107,9 @@ export const UserProfile = memo(function UserProfile({
         'relative overflow-hidden'
       ),
       fallbackClasses: cn(
-        'bg-gradient-to-br from-blue-500 via-purple-500 to-indigo-600', 
-        'text-white font-bold shadow-inner',
-        'transition-all duration-300 group-hover:from-blue-600 group-hover:to-purple-700',
+        'bg-gradient-to-br from-mono-gray-800 via-mono-gray-700 to-mono-gray-900', 
+        'text-mono-white font-bold shadow-inner',
+        'transition-all duration-300 group-hover:from-mono-gray-700 group-hover:to-mono-gray-800',
         sizeClasses.fallback
       )
     };
@@ -133,7 +133,7 @@ export const UserProfile = memo(function UserProfile({
         {showStatusDot && (
           <div className={cn(
             'absolute -bottom-0.5 -right-0.5 rounded-full',
-            'bg-gradient-to-r from-green-400 to-emerald-500',
+            'bg-mono-gray-700',
             'ring-2 ring-white dark:ring-gray-800',
             'animate-pulse shadow-sm',
             sizeClasses.statusDot
@@ -145,9 +145,9 @@ export const UserProfile = memo(function UserProfile({
         <div className={variantClasses.content}>
           <div className="space-y-1">
             <p className={cn(
-              'font-semibold bg-gradient-to-r from-gray-900 to-gray-700 dark:from-gray-100 dark:to-gray-300',
+              'font-semibold bg-gradient-to-r from-mono-gray-900 to-mono-gray-700 dark:from-mono-gray-100 dark:to-mono-gray-300',
               'bg-clip-text text-transparent truncate transition-all duration-200',
-              'group-hover:from-blue-900 group-hover:to-purple-700 dark:group-hover:from-blue-100 dark:group-hover:to-purple-300',
+              'group-hover:from-mono-black group-hover:to-mono-gray-800 dark:group-hover:from-mono-white dark:group-hover:to-mono-gray-200',
               sizeClasses.text
             )}>
               {user.displayName || user.email || 'User'}
@@ -173,7 +173,7 @@ export const UserProfile = memo(function UserProfile({
             
             {/* Email Verification Badge */}
             {user.emailVerified && (
-              <Badge className="text-xs bg-gradient-to-r from-emerald-500 to-green-500 hover:from-emerald-600 hover:to-green-600 transition-all duration-200 shadow-sm">
+              <Badge className="text-xs bg-mono-gray-700 text-mono-white hover:bg-mono-gray-600 transition-all duration-200 shadow-sm">
                 Verified
               </Badge>
             )}
@@ -184,7 +184,7 @@ export const UserProfile = memo(function UserProfile({
             {/* Last Sign In */}
             {showLastSignIn && lastSignInTime && (
               <div className="flex items-center space-x-2 text-xs text-gray-500 dark:text-gray-400 transition-colors duration-200 group-hover:text-gray-700 dark:group-hover:text-gray-300">
-                <Clock className="h-3 w-3 text-blue-500" />
+                <Clock className="h-3 w-3 text-mono-gray-500" />
                 <span>Last seen {formatRelativeTime(lastSignInTime)}</span>
               </div>
             )}
@@ -192,7 +192,7 @@ export const UserProfile = memo(function UserProfile({
             {/* Creation Date */}
             {showCreationDate && creationTime && (
               <div className="flex items-center space-x-2 text-xs text-gray-500 dark:text-gray-400 transition-colors duration-200 group-hover:text-gray-700 dark:group-hover:text-gray-300">
-                <Calendar className="h-3 w-3 text-purple-500" />
+                <Calendar className="h-3 w-3 text-mono-gray-600" />
                 <span>Joined {formatRelativeTime(creationTime)}</span>
               </div>
             )}

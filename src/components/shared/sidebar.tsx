@@ -65,7 +65,7 @@ export const Sidebar = memo(function Sidebar() {
           <Link href="/home" className="flex items-center gap-2">
             <Image src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRfXQ6IUyl8D8fpZl8p9BvXg-PCxKPa-1vOp0oPC2-uKH-H_M1T" alt="logo" width={32} height={32} data-ai-hint="logo" className="rounded-full" />
             <div>
-              <h1 className="text-xl font-bold">Somleng</h1>
+              <h1 className="text-xl font-bold text-foreground">Somleng</h1>
               <p className="text-xs text-muted-foreground">{t('version')} 2.2.5</p>
             </div>
           </Link>
@@ -96,7 +96,7 @@ export const Sidebar = memo(function Sidebar() {
           {history.length > 0 && (
                 <div className='p-4 pt-0'>
                     <Separator className="my-2" />
-                    <h2 className="mb-2 mt-4 px-2 text-lg font-semibold tracking-tight flex items-center">{t('history')}</h2>
+                    <h2 className="mb-2 mt-4 px-2 text-lg font-semibold tracking-tight flex items-center text-foreground">{t('history')}</h2>
                     <div className="space-y-1">
                         {recentHistory.map(item => (
                             <Link key={`history-${item.href}`} href={item.href} passHref>
@@ -113,7 +113,7 @@ export const Sidebar = memo(function Sidebar() {
                     </div>
                     {history.length > 3 && (
                          <Link href="/history" passHref>
-                            <Button variant="link" className="w-full justify-start text-sm py-3 text-primary" type="button">
+                            <Button variant="link" className="w-full justify-start text-sm py-3" type="button">
                                 <ArrowRight className="mr-3 h-5 w-5" />
                                 {t('seeAll')}
                             </Button>

@@ -74,22 +74,9 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${kantumruy.variable}`}>
+    <html lang="en" className={`${kantumruy.variable}`} suppressHydrationWarning={true}>
       <head>
-        <script
-          dangerouslySetInnerHTML={{
-            __html: `
-              (function() {
-                try {
-                  var theme = localStorage.getItem('preferred-theme');
-                  if (theme === 'dark' || (!theme && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
-                    document.documentElement.classList.add('dark');
-                  }
-                } catch (e) {}
-              })();
-            `,
-          }}
-        />
+        {/* Theme is now handled by LanguageProvider to prevent hydration mismatch */}
       </head>
       <body className={`antialiased font-sans`}>
         {/* REMOVE these manual script tags: */}

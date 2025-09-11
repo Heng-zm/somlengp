@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Monochrome Color System Test</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Import our monochrome utilities */
+        @import url('./src/styles/monochrome-utilities.css');
+    </style>
+</head>
+<body class="bg-mono-white text-mono-black p-8">
+    <div class="max-w-6xl mx-auto">
+        <h1 class="text-4xl font-bold mb-8 text-mono-black">Monochrome Color System Test</h1>
+        
+        <!-- Color Palette Display -->
+        <section class="mb-12">
+            <h2 class="text-2xl font-semibold mb-6">Color Palette</h2>
+            <div class="grid grid-cols-11 gap-4">
+                <div class="bg-mono-black text-mono-white p-4 text-center rounded">Black</div>
+                <div class="bg-mono-gray-900 text-mono-white p-4 text-center rounded">900</div>
+                <div class="bg-mono-gray-800 text-mono-white p-4 text-center rounded">800</div>
+                <div class="bg-mono-gray-700 text-mono-white p-4 text-center rounded">700</div>
+                <div class="bg-mono-gray-600 text-mono-white p-4 text-center rounded">600</div>
+                <div class="bg-mono-gray-500 text-mono-white p-4 text-center rounded">500</div>
+                <div class="bg-mono-gray-400 text-mono-black p-4 text-center rounded">400</div>
+                <div class="bg-mono-gray-300 text-mono-black p-4 text-center rounded">300</div>
+                <div class="bg-mono-gray-200 text-mono-black p-4 text-center rounded">200</div>
+                <div class="bg-mono-gray-100 text-mono-black p-4 text-center rounded">100</div>
+                <div class="bg-mono-white border border-mono-gray-300 text-mono-black p-4 text-center rounded">White</div>
+            </div>
+        </section>
+
+        <!-- Gradient Examples -->
+        <section class="mb-12">
+            <h2 class="text-2xl font-semibold mb-6">Gradient Examples</h2>
+            <div class="grid grid-cols-3 gap-4">
+                <div class="bg-gradient-black-to-gray text-mono-white p-6 text-center rounded">
+                    Black to Gray
+                </div>
+                <div class="bg-gradient-gray-to-white text-mono-black p-6 text-center rounded">
+                    Gray to White
+                </div>
+                <div class="bg-gradient-black-to-white text-mono-black p-6 text-center rounded">
+                    Black to White
+                </div>
+            </div>
+        </section>
+
+        <!-- Button Examples -->
+        <section class="mb-12">
+            <h2 class="text-2xl font-semibold mb-6">Button Examples</h2>
+            <div class="flex gap-4 flex-wrap">
+                <button class="btn-mono-primary">Primary Button</button>
+                <button class="btn-mono-secondary">Secondary Button</button>
+                <button class="btn-mono-ghost">Ghost Button</button>
+            </div>
+        </section>
+
+        <!-- Card Examples -->
+        <section class="mb-12">
+            <h2 class="text-2xl font-semibold mb-6">Card Examples</h2>
+            <div class="grid grid-cols-2 gap-6">
+                <div class="card-mono">
+                    <h3 class="text-xl font-semibold mb-2 text-mono-black">Light Card</h3>
+                    <p class="text-mono-gray-600">This is a light card with hover effects.</p>
+                </div>
+                <div class="card-mono-dark">
+                    <h3 class="text-xl font-semibold mb-2 text-mono-white">Dark Card</h3>
+                    <p class="text-mono-gray-300">This is a dark card with hover effects.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Input Example -->
+        <section class="mb-12">
+            <h2 class="text-2xl font-semibold mb-6">Input Example</h2>
+            <input type="text" class="input-mono w-full max-w-md" placeholder="Enter some text...">
+        </section>
+
+        <!-- Glass Effects -->
+        <section class="mb-12">
+            <h2 class="text-2xl font-semibold mb-6">Glass Effects</h2>
+            <div class="bg-mono-gray-200 p-8 rounded relative">
+                <div class="glass-mono-light p-6 rounded mb-4">
+                    <p class="text-mono-black">Light glass effect</p>
+                </div>
+                <div class="glass-mono-dark p-6 rounded">
+                    <p class="text-mono-white">Dark glass effect</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Shadow and Hover Examples -->
+        <section class="mb-12">
+            <h2 class="text-2xl font-semibold mb-6">Shadow & Hover Examples</h2>
+            <div class="grid grid-cols-3 gap-4">
+                <div class="bg-mono-white p-6 rounded shadow-mono">
+                    <p class="text-mono-black">Small Shadow</p>
+                </div>
+                <div class="bg-mono-white p-6 rounded shadow-mono-lg">
+                    <p class="text-mono-black">Large Shadow</p>
+                </div>
+                <div class="bg-mono-white p-6 rounded hover-mono-lift cursor-pointer">
+                    <p class="text-mono-black">Hover to Lift</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Typography -->
+        <section class="mb-12">
+            <h2 class="text-2xl font-semibold mb-6">Typography</h2>
+            <p class="text-mono-gradient text-4xl font-bold mb-4">Gradient Text Effect</p>
+            <p class="text-mono-gray-700 mb-2">This is text in dark gray</p>
+            <p class="text-mono-gray-500 mb-2">This is text in medium gray</p>
+            <p class="text-mono-gray-300">This is text in light gray</p>
+        </section>
+
+        <!-- Focus State Example -->
+        <section>
+            <h2 class="text-2xl font-semibold mb-6">Focus State</h2>
+            <button class="focus-mono-ring p-4 bg-mono-gray-100 rounded">
+                Tab to focus this button
+            </button>
+        </section>
+    </div>
+</body>
+</html>
