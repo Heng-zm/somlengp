@@ -84,7 +84,7 @@ const nextConfig = {
       /require\.extensions is not supported by webpack/,
     ];
     
-    // Enhanced bundle splitting for better performance - simplified to fix text-tools lambda issue
+    // Enhanced bundle splitting for better performance
     config.optimization = {
       ...config.optimization,
       splitChunks: {

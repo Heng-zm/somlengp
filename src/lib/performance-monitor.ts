@@ -579,11 +579,11 @@ class PerformanceMonitor {
 // Singleton instance
 let performanceMonitor: PerformanceMonitor | null = null;
 
-export function getPerformanceMonitor(config?: Partial<PerformanceConfig>): PerformanceMonitor {
+export function getPerformanceMonitor(config?: Partial<PerformanceConfig>): PerformanceMonitor | null {
   if (!performanceMonitor && typeof window !== 'undefined') {
     performanceMonitor = new PerformanceMonitor(config);
   }
-  return performanceMonitor!;
+  return performanceMonitor;
 }
 
 // React hook for performance monitoring

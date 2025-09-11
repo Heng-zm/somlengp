@@ -125,7 +125,6 @@ interface BaseTranslations {
     textToSpeech: string;
     generateQrCode: string;
     passwordGenerator: string;
-    textTools: string;
     contact: string;
     premium: string;
     version: string;
@@ -214,125 +213,6 @@ interface BaseTranslations {
     resolution: string;
     duration: string;
     
-    // Text Tools Categories
-    caseConversion: string;
-    textCleaning: string;
-    textCleaningFormatting: string;
-    encodingDecoding: string;
-    jsonTools: string;
-    
-    // Text Tools - Case Conversion
-    uppercase: string;
-    uppercaseDesc: string;
-    lowercase: string;
-    lowercaseDesc: string;
-    titleCase: string;
-    titleCaseDesc: string;
-    camelCase: string;
-    camelCaseDesc: string;
-    pascalCase: string;
-    pascalCaseDesc: string;
-    snakeCase: string;
-    snakeCaseDesc: string;
-    kebabCase: string;
-    kebabCaseDesc: string;
-    sentenceCase: string;
-    sentenceCaseDesc: string;
-    
-    // Text Tools - Cleaning
-    removeExtraSpaces: string;
-    removeExtraSpacesDesc: string;
-    removeEmptyLines: string;
-    removeEmptyLinesDesc: string;
-    sortLinesAZ: string;
-    sortLinesAZDesc: string;
-    sortLinesZA: string;
-    sortLinesZADesc: string;
-    removeDuplicates: string;
-    removeDuplicatesDesc: string;
-    addLineNumbers: string;
-    addLineNumbersDesc: string;
-    reverseText: string;
-    reverseTextDesc: string;
-    stripHtml: string;
-    stripHtmlDesc: string;
-    
-    // Text Tools - Encoding
-    encodeBase64: string;
-    encodeBase64Desc: string;
-    decodeBase64: string;
-    decodeBase64Desc: string;
-    urlEncode: string;
-    urlEncodeDesc: string;
-    urlDecode: string;
-    urlDecodeDesc: string;
-    escapeHtml: string;
-    escapeHtmlDesc: string;
-    unescapeHtml: string;
-    unescapeHtmlDesc: string;
-    generateHash: string;
-    generateHashDesc: string;
-    
-    // Text Tools - JSON
-    formatJson: string;
-    formatJsonDesc: string;
-    minifyJson: string;
-    minifyJsonDesc: string;
-    
-    // Text Tools - UI Labels
-    tools: string;
-    compare: string;
-    extract: string;
-    hash: string;
-    inputText: string;
-    transformedText: string;
-    outputWillAppear: string;
-    enterTextToTransform: string;
-    transformedTextWillAppear: string;
-    searchTools: string;
-    quickActions: string;
-    favoriteTools: string;
-    keyboardShortcuts: string;
-    navigation: string;
-    switchToToolsTab: string;
-    switchToCompareTab: string;
-    switchToExtractTab: string;
-    switchToHashTab: string;
-    focusSearchBox: string;
-    convertToUppercase: string;
-    convertToLowercase: string;
-    convertToTitleCase: string;
-    showShortcuts: string;
-    toolNavigation: string;
-    navigateToolsUp: string;
-    navigateToolsDown: string;
-    applyFocusedTool: string;
-    proTips: string;
-    shortcutsWorkWhenNotTyping: string;
-    useArrowKeysToNavigate: string;
-    starToolsToFavorite: string;
-    searchFiltersAllTools: string;
-    
-    // Text Tools - Comparison
-    text1: string;
-    text2: string;
-    enterFirstTextToCompare: string;
-    enterSecondTextToCompare: string;
-    
-    // Text Tools - Extract
-    enterTextToExtract: string;
-    emailAddresses: string;
-    urls: string;
-    phoneNumbers: string;
-    noEmailsFound: string;
-    noUrlsFound: string;
-    noPhonesFound: string;
-    
-    // Text Tools - Hash
-    enterTextToGenerateHash: string;
-    generateSHA256Hash: string;
-    sha256Hash: string;
-    
     // AI Model Translations
     selectAiModel: string;
     fastAndEfficient: string;
@@ -359,6 +239,8 @@ interface BaseTranslations {
     imageConverterDesc: string;
     passwordGen: string;
     passwordGenDesc: string;
+    imageResize: string;
+    imageResizeDesc: string;
     textUtils: string;
     textUtilsDesc: string;
     
@@ -525,7 +407,6 @@ const enTranslations: Translations = {
     textToSpeech: "Text to Speech",
     generateQrCode: "Generate QR Code",
     passwordGenerator: "Password Generator",
-    textTools: "Text Tools",
     contact: "Contact Us",
     premium: "Premium",
     version: "Version",
@@ -614,124 +495,6 @@ const enTranslations: Translations = {
     resolution: "Resolution",
     duration: "Duration",
     
-    // Text Tools Categories
-    caseConversion: "Case Conversion",
-    textCleaning: "Text Cleaning",
-    textCleaningFormatting: "Text Cleaning & Formatting",
-    encodingDecoding: "Encoding & Decoding",
-    jsonTools: "JSON Tools",
-    
-    // Text Tools - Case Conversion
-    uppercase: "UPPERCASE",
-    uppercaseDesc: "Convert all text to uppercase letters",
-    lowercase: "lowercase",
-    lowercaseDesc: "Convert all text to lowercase letters",
-    titleCase: "Title Case",
-    titleCaseDesc: "Capitalize the first letter of each word",
-    camelCase: "camelCase",
-    camelCaseDesc: "Convert to camelCase format",
-    pascalCase: "PascalCase",
-    pascalCaseDesc: "Convert to PascalCase format",
-    snakeCase: "snake_case",
-    snakeCaseDesc: "Convert to snake_case format",
-    kebabCase: "kebab-case",
-    kebabCaseDesc: "Convert to kebab-case format",
-    sentenceCase: "Sentence case",
-    sentenceCaseDesc: "Capitalize only the first letter",
-    
-    // Text Tools - Cleaning
-    removeExtraSpaces: "Remove Extra Spaces",
-    removeExtraSpacesDesc: "Remove duplicate spaces and trim whitespace",
-    removeEmptyLines: "Remove Empty Lines",
-    removeEmptyLinesDesc: "Remove all blank lines from text",
-    sortLinesAZ: "Sort Lines A-Z",
-    sortLinesAZDesc: "Sort all lines alphabetically (ascending)",
-    sortLinesZA: "Sort Lines Z-A",
-    sortLinesZADesc: "Sort all lines alphabetically (descending)",
-    removeDuplicates: "Remove Duplicates",
-    removeDuplicatesDesc: "Remove duplicate lines from text",
-    addLineNumbers: "Add Line Numbers",
-    addLineNumbersDesc: "Add line numbers to each line",
-    reverseText: "Reverse Text",
-    reverseTextDesc: "Reverse the entire text character by character",
-    stripHtml: "Strip HTML",
-    stripHtmlDesc: "Remove all HTML tags from text",
-    
-    // Text Tools - Encoding
-    encodeBase64: "Encode Base64",
-    encodeBase64Desc: "Encode text to Base64 format",
-    decodeBase64: "Decode Base64",
-    decodeBase64Desc: "Decode Base64 encoded text",
-    urlEncode: "URL Encode",
-    urlEncodeDesc: "Encode text for URL use",
-    urlDecode: "URL Decode",
-    urlDecodeDesc: "Decode URL encoded text",
-    escapeHtml: "Escape HTML",
-    escapeHtmlDesc: "Escape HTML special characters",
-    unescapeHtml: "Unescape HTML",
-    unescapeHtmlDesc: "Unescape HTML entities",
-    generateHash: "Generate Hash",
-    generateHashDesc: "Generate SHA-256 hash of the text",
-    
-    // Text Tools - JSON
-    formatJson: "Format JSON",
-    formatJsonDesc: "Format and prettify JSON with proper indentation",
-    minifyJson: "Minify JSON",
-    minifyJsonDesc: "Compress JSON by removing whitespace",
-    
-    // Text Tools - UI Labels
-    tools: "Tools",
-    compare: "Compare",
-    extract: "Extract",
-    hash: "Hash",
-    inputText: "Input Text",
-    transformedText: "Transformed Text",
-    outputWillAppear: "Output will appear here",
-    enterTextToTransform: "Enter your text here to transform...",
-    transformedTextWillAppear: "Transformed text will appear here...",
-    searchTools: "Search tools (e.g., uppercase, json, base64)...",
-    quickActions: "Quick Actions",
-    favoriteTools: "Favorite Tools",
-    keyboardShortcuts: "Keyboard Shortcuts",
-    navigation: "Navigation",
-    switchToToolsTab: "Switch to Tools tab",
-    switchToCompareTab: "Switch to Compare tab",
-    switchToExtractTab: "Switch to Extract tab",
-    switchToHashTab: "Switch to Hash tab",
-    focusSearchBox: "Focus search box",
-    convertToUppercase: "Convert to UPPERCASE",
-    convertToLowercase: "Convert to lowercase",
-    convertToTitleCase: "Convert to Title Case",
-    showShortcuts: "Show shortcuts",
-    toolNavigation: "Tool Navigation",
-    navigateToolsUp: "Navigate tools up",
-    navigateToolsDown: "Navigate tools down",
-    applyFocusedTool: "Apply focused tool",
-    proTips: "Pro Tips",
-    shortcutsWorkWhenNotTyping: "Keyboard shortcuts work when not typing in text areas",
-    useArrowKeysToNavigate: "Use arrow keys to navigate through visible tools",
-    starToolsToFavorite: "Star tools to add them to your favorites list",
-    searchFiltersAllTools: "Search filters all available tools instantly",
-    
-    // Text Tools - Comparison
-    text1: "Text 1",
-    text2: "Text 2",
-    enterFirstTextToCompare: "Enter first text to compare...",
-    enterSecondTextToCompare: "Enter second text to compare...",
-    
-    // Text Tools - Extract
-    enterTextToExtract: "Enter text to extract emails, URLs, and phone numbers...",
-    emailAddresses: "Email Addresses",
-    urls: "URLs",
-    phoneNumbers: "Phone Numbers",
-    noEmailsFound: "No email addresses found",
-    noUrlsFound: "No URLs found",
-    noPhonesFound: "No phone numbers found",
-    
-    // Text Tools - Hash
-    enterTextToGenerateHash: "Enter text to generate hash...",
-    generateSHA256Hash: "Generate SHA-256 Hash",
-    sha256Hash: "SHA-256 Hash",
     
     // AI Model Translations
     selectAiModel: "Select AI Model",
@@ -759,6 +522,8 @@ const enTranslations: Translations = {
     imageConverterDesc: "Change image formats (JPG, PNG, WebP) with optimized compression.",
     passwordGen: "Password Gen",
     passwordGenDesc: "Generate secure, random passwords with customizable length and complexity.",
+    imageResize: "Image Resize",
+    imageResizeDesc: "Resize images to different dimensions while maintaining quality",
     textUtils: "Text Utils",
     textUtilsDesc: "Count words, remove duplicates, format text, and more text manipulation tools.",
 };
@@ -885,7 +650,6 @@ const kmTranslations: Translations = {
     textToSpeech: "អត្ថបទទៅសំឡេង",
     generateQrCode: "បង្កើតកូដ QR",
     passwordGenerator: "បង្កើតលេខសម្ងាត់",
-    textTools: "ឧបករណ៍អត្ថបទ",
     contact: "ទាក់ទងយើង",
     premium: "ពិសេស",
     version: "កំណែ",
@@ -974,125 +738,6 @@ const kmTranslations: Translations = {
     resolution: "គុណភាពរូបភាព",
     duration: "រយៈពេល",
     
-    // Text Tools Categories
-    caseConversion: "បម្លែងព្រុយអក្សរ",
-    textCleaning: "សម្អាតអត្ថបទ",
-    textCleaningFormatting: "សម្អាត និងធ្វើទ្រង់ទ្រាយអត្ថបទ",
-    encodingDecoding: "អ៊ិនកូដ និងដេកូដ",
-    jsonTools: "ឧបករណ៍ JSON",
-    
-    // Text Tools - Case Conversion
-    uppercase: "ព្រុយអក្សរធំ",
-    uppercaseDesc: "បម្លែងអត្ថបទទាំងអស់ទៅជាអក្សរធំ",
-    lowercase: "ព្រុយអក្សរតូច",
-    lowercaseDesc: "បម្លែងអត្ថបទទាំងអស់ទៅជាអក្សរតូច",
-    titleCase: "ព្រុយចំណងជើង",
-    titleCaseDesc: "ធ្វើឱ្យអក្សរដំបូងនៃពាក្យនីមួយៗធំ",
-    camelCase: "ព្រុយអូន្ត",
-    camelCaseDesc: "បម្លែងទៅជាទម្រង់ camelCase",
-    pascalCase: "ព្រុយ Pascal",
-    pascalCaseDesc: "បម្លែងទៅជាទម្រង់ PascalCase",
-    snakeCase: "ព្រុយពស់",
-    snakeCaseDesc: "បម្លែងទៅជាទម្រង់ snake_case",
-    kebabCase: "ព្រុយកាបាប់",
-    kebabCaseDesc: "បម្លែងទៅជាទម្រង់ kebab-case",
-    sentenceCase: "ព្រុយប្រយោគ",
-    sentenceCaseDesc: "ធ្វើឱ្យតែអក្សរដំបូងប៉ុណ្ណោះធំ",
-    
-    // Text Tools - Cleaning
-    removeExtraSpaces: "លុបចន្លោះបន្ថែម",
-    removeExtraSpacesDesc: "លុបចន្លោះស្ទួន និងកាត់ចន្លោះនៅដើម-ចុង",
-    removeEmptyLines: "លុបបន្ទាត់ទទេ",
-    removeEmptyLinesDesc: "លុបបន្ទាត់ទទេទាំងអស់ពីអត្ថបទ",
-    sortLinesAZ: "តម្រៀបបន្ទាត់ ក-អ",
-    sortLinesAZDesc: "តម្រៀបបន្ទាត់ទាំងអស់តាមអក្ខរក្រម (ឡើង)",
-    sortLinesZA: "តម្រៀបបន្ទាត់ អ-ក",
-    sortLinesZADesc: "តម្រៀបបន្ទាត់ទាំងអស់តាមអក្ខរក្រម (ចុះ)",
-    removeDuplicates: "លុបស្ទួន",
-    removeDuplicatesDesc: "លុបបន្ទាត់ស្ទួនពីអត្ថបទ",
-    addLineNumbers: "បន្ថែមលេខបន្ទាត់",
-    addLineNumbersDesc: "បន្ថែមលេខបន្ទាត់ទៅបន្ទាត់នីមួយៗ",
-    reverseText: "បញ្ច្រាសអត្ថបទ",
-    reverseTextDesc: "បញ្ច្រាសអត្ថបទទាំងមូលតាមតួអក្សរ",
-    stripHtml: "លុប HTML",
-    stripHtmlDesc: "លុបស្លាក HTML ទាំងអស់ពីអត្ថបទ",
-    
-    // Text Tools - Encoding
-    encodeBase64: "អ៊ិនកូដ Base64",
-    encodeBase64Desc: "អ៊ិនកូដអត្ថបទទៅជាទម្រង់ Base64",
-    decodeBase64: "ដេកូដ Base64",
-    decodeBase64Desc: "ដេកូដអត្ថបទដែលបានអ៊ិនកូដ Base64",
-    urlEncode: "អ៊ិនកូដ URL",
-    urlEncodeDesc: "អ៊ិនកូដអត្ថបទសម្រាប់ប្រើក្នុង URL",
-    urlDecode: "ដេកូដ URL",
-    urlDecodeDesc: "ដេកូដអត្ថបទដែលបានអ៊ិនកូដ URL",
-    escapeHtml: "គេច HTML",
-    escapeHtmlDesc: "គេចតួអក្សរពិសេស HTML",
-    unescapeHtml: "មិនគេច HTML",
-    unescapeHtmlDesc: "មិនគេច HTML entities",
-    generateHash: "បង្កើតហាស",
-    generateHashDesc: "បង្កើតហាស SHA-256 នៃអត្ថបទ",
-    
-    // Text Tools - JSON
-    formatJson: "ធ្វើទ្រង់ទ្រាយ JSON",
-    formatJsonDesc: "ធ្វើទ្រង់ទ្រាយ និងធ្វើឱ្យស្អាត JSON ជាមួយការចុះបន្ទាត់ត្រឹមត្រូវ",
-    minifyJson: "បង្រួម JSON",
-    minifyJsonDesc: "បង្រួម JSON ដោយការលុបចន្លោះ",
-    
-    // Text Tools - UI Labels
-    tools: "ឧបករណ៍",
-    compare: "ប្រៀបធៀប",
-    extract: "ស្រង់ចេញ",
-    hash: "ហាស",
-    inputText: "អត្ថបទបញ្ចូល",
-    transformedText: "អត្ថបទដែលបានបម្លែង",
-    outputWillAppear: "លទ្ធផលនឹងបង្ហាញនៅទីនេះ",
-    enterTextToTransform: "បញ្ចូលអត្ថបទរបស់អ្នកនៅទីនេះដើម្បីបម្លែង...",
-    transformedTextWillAppear: "អត្ថបទដែលបានបម្លែងនឹងបង្ហាញនៅទីនេះ...",
-    searchTools: "ស្វែងរកឧបករណ៍ (ឧ. អក្សរធំ, json, base64)...",
-    quickActions: "សកម្មភាពរហ័ស",
-    favoriteTools: "ឧបករណ៍ពេញចិត្ត",
-    keyboardShortcuts: "ផ្លូវកាត់ក្ដារចុច",
-    navigation: "រុករក",
-    switchToToolsTab: "ប្តូរទៅផ្ទាំងឧបករណ៍",
-    switchToCompareTab: "ប្តូរទៅផ្ទាំងប្រៀបធៀប",
-    switchToExtractTab: "ប្តូរទៅផ្ទាំងស្រង់ចេញ",
-    switchToHashTab: "ប្តូរទៅផ្ទាំងហាស",
-    focusSearchBox: "ផ្តោតលើប្រអប់ស្វែងរក",
-    convertToUppercase: "បម្លែងទៅជាអក្សរធំ",
-    convertToLowercase: "បម្លែងទៅជាអក្សរតូច",
-    convertToTitleCase: "បម្លែងទៅជាព្រុយចំណងជើង",
-    showShortcuts: "បង្ហាញផ្លូវកាត់",
-    toolNavigation: "រុករកឧបករណ៍",
-    navigateToolsUp: "រុករកឧបករណ៍ឡើងលើ",
-    navigateToolsDown: "រុករកឧបករណ៍ចុះក្រោម",
-    applyFocusedTool: "ប្រើឧបករណ៍ដែលកំពុងផ្តោត",
-    proTips: "គន្លឹះអ្នកជំនាញ",
-    shortcutsWorkWhenNotTyping: "ផ្លូវកាត់ក្ដារចុចដំណើរការនៅពេលមិនវាយក្នុងផ្ទៃអត្ថបទ",
-    useArrowKeysToNavigate: "ប្រើគ្រាប់ចុចព្រួញដើម្បីរុករកតាមឧបករណ៍ដែលមើលឃើញ",
-    starToolsToFavorite: "ដាក់ផ្កាយឧបករណ៍ដើម្បីបន្ថែមទៅក្នុងបញ្ជីពេញចិត្ត",
-    searchFiltersAllTools: "ការស្វែងរកតម្រងឧបករណ៍ទាំងអស់ភ្លាមៗ",
-    
-    // Text Tools - Comparison
-    text1: "អត្ថបទ ១",
-    text2: "អត្ថបទ ២",
-    enterFirstTextToCompare: "បញ្ចូលអត្ថបទទីមួយដើម្បីប្រៀបធៀប...",
-    enterSecondTextToCompare: "បញ្ចូលអត្ថបទទីពីរដើម្បីប្រៀបធៀប...",
-    
-    // Text Tools - Extract
-    enterTextToExtract: "បញ្ចូលអត្ថបទដើម្បីស្រង់ចេញអ៊ីមែល URL និងលេខទូរស័ព្ទ...",
-    emailAddresses: "អាស័យដ្ឋានអ៊ីមែល",
-    urls: "URLs",
-    phoneNumbers: "លេខទូរស័ព្ទ",
-    noEmailsFound: "រកមិនឃើញអាស័យដ្ឋានអ៊ីមែល",
-    noUrlsFound: "រកមិនឃើញ URLs",
-    noPhonesFound: "រកមិនឃើញលេខទូរស័ព្ទ",
-    
-    // Text Tools - Hash
-    enterTextToGenerateHash: "បញ្ចូលអត្ថបទដើម្បីបង្កើតហាស...",
-    generateSHA256Hash: "បង្កើតហាស SHA-256",
-    sha256Hash: "ហាស SHA-256",
-    
     // AI Model Translations
     selectAiModel: "ជ្រើសរើសម៉ូដែល AI",
     fastAndEfficient: "លឿន និងមានប្រសិទ្ធភាពសម្រាប់ការងារភាគច្រើន",
@@ -1119,6 +764,8 @@ const kmTranslations: Translations = {
     imageConverterDesc: "ផ្លាស់ប្តូរទ្រង់ទ្រាយរូបភាព (JPG, PNG, WebP) ជាមួយការបង្រួមបង្កើន។",
     passwordGen: "បង្កើតពាក្យសម្ងាត់",
     passwordGenDesc: "បង្កើតពាក្យសម្ងាត់សុវត្ថិភាព ចៃដន្យ ជាមួយប្រវែង និងភាពស្មុគស្មាញដែលអាចកំណត់បាន។",
+    imageResize: "ផ្លាស់ប្តូរទំហំរូបភាព",
+    imageResizeDesc: "ផ្លាស់ប្តូរទំហំរូបភាពទៅវិមាត្រផ្សេងៗ ខណៈរក្សាគុណភាព",
     textUtils: "ឧបករណ៍អត្ថបទ",
     textUtilsDesc: "រាប់ពាក្យ លុបស្ទួន ធ្វើទ្រង់ទ្រាយអត្ថបទ និងឧបករណ៍រៀបចំអត្ថបទបន្ថែមទៀត។",
 };

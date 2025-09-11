@@ -2,7 +2,7 @@
 'use client';
 
 import { useMemo, useState, useEffect, useCallback } from 'react';
-import { Mic, FileText, Combine, Image as ImageIcon, Wand2, AudioLines, Sparkles, QrCode, Shield, Scissors } from 'lucide-react';
+import { Mic, FileText, Combine, Image as ImageIcon, Wand2, AudioLines, Sparkles, QrCode, Shield, Maximize2 } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useLanguage } from '@/hooks/use-language';
 import { getPerformanceTracker, DEFAULT_BUDGETS } from '@/lib/performance-tracker';
@@ -137,10 +137,10 @@ export default function HomePage() {
     { href: '/combine-pdf', title: t('pdfMerger'), description: t('pdfMergerDesc'), icon: Combine },
     { href: '/image-to-pdf', title: t('imageToPdfTitle'), description: t('imageToPdfDesc'), icon: ImageIcon },
     { href: '/convert-image-format', title: t('imageConverter'), description: t('imageConverterDesc'), icon: Wand2 },
+    { href: '/image-resize', title: t('imageResize') || 'Image Resize', description: t('imageResizeDesc') || 'Resize images to different dimensions while maintaining quality', icon: Maximize2 },
     
     // New useful tools
     { href: '/password-generator', title: t('passwordGen'), description: t('passwordGenDesc'), icon: Shield },
-    { href: '/text-tools', title: t('textUtils'), description: t('textUtilsDesc'), icon: Scissors },
   ], [t]);
   
   const primaryFeature = featureCards[0];

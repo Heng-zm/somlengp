@@ -4,12 +4,10 @@
 import { useMemo, memo } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { FileText, LifeBuoy, Mic, Combine, Image as ImageIcon, Wand2, FileHeart, AudioLines, Sun, Moon, History, ArrowRight, Home, Bot, QrCode, Shield, Type } from 'lucide-react';
+import { FileText, LifeBuoy, Mic, Combine, Image as ImageIcon, Wand2, FileHeart, AudioLines, Sun, Moon, Home, Bot, QrCode, Shield } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { useLanguage } from '@/hooks/use-language';
-import { useHistory } from '@/hooks/use-history';
-import { Separator } from '../ui/separator';
 import { LanguageToggle } from './language-toggle';
 import Image from 'next/image';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -17,7 +15,6 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 export const Sidebar = memo(function Sidebar() {
   const pathname = usePathname();
   const { t, theme, toggleTheme } = useLanguage();
-  const { history } = useHistory();
 
   const navItems = useMemo(() => [
     // Main Pages
@@ -33,7 +30,6 @@ export const Sidebar = memo(function Sidebar() {
     // Text & Utility Tools
     { href: '/generate-qr-code', label: t('generateQrCode'), icon: QrCode },
     { href: '/password-generator', label: t('passwordGenerator'), icon: Shield },
-    { href: '/text-tools', label: t('textTools'), icon: Type },
     
     // Document Tools
     { href: '/pdf-transcript', label: t('pdfTranscript'), icon: FileText },
@@ -42,19 +38,6 @@ export const Sidebar = memo(function Sidebar() {
     { href: '/convert-image-format', label: t('convertImageFormat'), icon: Wand2 },
   ], [t]);
 
-  const recentHistory = useMemo(() => {
-    // Find the corresponding nav item for each history entry to get the icon
-    return history
-        .sort((a,b) => b.timestamp - a.timestamp)
-        .slice(0, 3)
-        .map(h => {
-            const navItem = navItems.find(item => item.href === h.href);
-            return {
-                ...h,
-                icon: navItem?.icon || History, // Fallback icon
-            };
-    });
-  }, [history, navItems]);
 
 
   return (
@@ -92,34 +75,6 @@ export const Sidebar = memo(function Sidebar() {
               ))}
           </nav>
           
-          {history.length > 0 && (
-                <div className='p-4 pt-0'>
-                    <Separator className="my-2" />
-                    <h2 className="mb-2 mt-4 px-2 text-lg font-semibold tracking-tight flex items-center text-foreground">{t('history')}</h2>
-                    <div className="space-y-1">
-                        {recentHistory.map(item => (
-                            <Link key={`history-${item.href}`} href={item.href} passHref>
-                                <Button
-                                    variant='ghost'
-                                    className="w-full justify-start text-sm py-3"
-                                    type="button"
-                                >
-                                    <item.icon className="mr-3 h-5 w-5" />
-                                    {item.label}
-                                </Button>
-                            </Link>
-                        ))}
-                    </div>
-                    {history.length > 3 && (
-                         <Link href="/history" passHref>
-                            <Button variant="link" className="w-full justify-start text-sm py-3" type="button">
-                                <ArrowRight className="mr-3 h-5 w-5" />
-                                {t('seeAll')}
-                            </Button>
-                         </Link>
-                    )}
-                </div>
-          )}
       </ScrollArea>
 
       <div className="flex-shrink-0 p-4 border-t mt-auto">

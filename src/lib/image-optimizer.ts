@@ -609,11 +609,11 @@ class ImageOptimizer {
 // Singleton instance
 let imageOptimizer: ImageOptimizer | null = null;
 
-export function getImageOptimizer(): ImageOptimizer {
+export function getImageOptimizer(): ImageOptimizer | null {
   if (!imageOptimizer && typeof window !== 'undefined') {
     imageOptimizer = new ImageOptimizer();
   }
-  return imageOptimizer!;
+  return imageOptimizer;
 }
 
 // Utility functions
@@ -622,6 +622,9 @@ export function optimizeImageUrl(
   preset: keyof typeof OPTIMIZATION_PRESETS = 'gallery'
 ): Promise<ImageProcessingResult> {
   const optimizer = getImageOptimizer();
+  if (!optimizer) {
+    return Promise.reject(new Error('ImageOptimizer not available in this environment'));
+  }
   return optimizer.optimizeImage(url, OPTIMIZATION_PRESETS[preset]);
 }
 
@@ -630,13 +633,16 @@ export function createResponsiveImageSet(
   breakpoints: Array<{ width: number; quality?: number }>
 ): Promise<ImageProcessingResult[]> {
   const optimizer = getImageOptimizer();
+  if (!optimizer) {
+    return Promise.reject(new Error('ImageOptimizer not available in this environment'));
+  }
   const promises = breakpoints.map(bp => {
     const config: ImageOptimizationConfig = {
       ...OPTIMIZATION_PRESETS.gallery,
       maxWidth: bp.width,
       quality: bp.quality || OPTIMIZATION_PRESETS.gallery.quality
     };
-    return optimizer.optimizeImage(url, config);
+    return optimizer!.optimizeImage(url, config);
   });
   
   return Promise.all(promises);
