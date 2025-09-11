@@ -50,7 +50,16 @@ export function physicalToPixels(dimension: Dimension, dpi: number): Dimension {
     return { ...dimension };
   }
 
-  // Convert to inches first
+  // Validate inputs
+  if (!isFinite(dimension.value) || dimension.value <= 0) {
+    throw new Error('Invalid dimension value for conversion');
+  }
+  
+  if (!isFinite(dpi) || dpi <= 0) {
+    throw new Error('Invalid DPI value for conversion');
+  }
+
+  // Convert to inches first using high precision constants
   let inches: number;
   
   switch (dimension.unit) {
@@ -58,20 +67,28 @@ export function physicalToPixels(dimension: Dimension, dpi: number): Dimension {
       inches = dimension.value;
       break;
     case DimensionUnit.CENTIMETER:
-      inches = dimension.value / 2.54;
+      inches = dimension.value / 2.54; // Exact conversion
       break;
     case DimensionUnit.MILLIMETER:
-      inches = dimension.value / 25.4;
+      inches = dimension.value / 25.4; // Exact conversion
       break;
     case DimensionUnit.METER:
-      inches = dimension.value * 39.3701;
+      inches = dimension.value / 0.0254; // More precise than * 39.3701
       break;
     default:
       throw new Error(`Unsupported unit for conversion: ${dimension.unit}`);
   }
 
   const pixels = inches * dpi;
-  return createDimension(Math.round(pixels), DimensionUnit.PIXEL);
+  
+  // Ensure result is finite and within reasonable bounds
+  if (!isFinite(pixels) || pixels < 0) {
+    throw new Error('Invalid pixel calculation result');
+  }
+  
+  // Round to nearest integer, ensuring at least 1 pixel
+  const roundedPixels = Math.max(1, Math.round(pixels));
+  return createDimension(roundedPixels, DimensionUnit.PIXEL);
 }
 
 /**

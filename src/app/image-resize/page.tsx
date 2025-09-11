@@ -152,22 +152,126 @@ export default function ImageResizePage() {
   }, [files, selectedFileId]);
 
   const ratio = useMemo(() => {
-    if (!natural) return 1;
-    return natural.w / natural.h;
+    if (!natural || !natural.w || !natural.h) return 1;
+    
+    // Validate input values more comprehensively
+    if (!isFinite(natural.w) || !isFinite(natural.h) || 
+        natural.w <= 0 || natural.h <= 0 || 
+        natural.w > 100000 || natural.h > 100000) {
+      console.warn('Invalid natural dimensions:', natural);
+      return 1;
+    }
+    
+    // Use higher precision calculation with safe division
+    const safeWidth = Math.max(1, Math.abs(natural.w));
+    const safeHeight = Math.max(1, Math.abs(natural.h));
+    const calculatedRatio = safeWidth / safeHeight;
+    
+    // Enhanced validation for calculated ratio
+    if (!isFinite(calculatedRatio) || calculatedRatio <= 0 || calculatedRatio === Infinity) {
+      console.warn('Invalid calculated ratio:', calculatedRatio, 'from dimensions:', { w: safeWidth, h: safeHeight });
+      return 1;
+    }
+    
+    // Clamp to reasonable bounds with better precision (1:1000 to 1000:1)
+    const clampedRatio = Math.max(0.001, Math.min(1000, calculatedRatio));
+    
+    // Round to avoid floating-point precision issues
+    return Math.round(clampedRatio * 1000000) / 1000000;
   }, [natural]);
+
+  // Helper function to calculate dimensions with better precision
+  const calculateDimensions = useCallback((baseValue: number, targetRatio: number, isWidth: boolean) => {
+    // Validate inputs
+    if (!isFinite(baseValue) || baseValue <= 0) {
+      console.warn('Invalid baseValue for dimension calculation:', baseValue);
+      return Math.max(1, Math.min(8192, Math.round(baseValue) || 1));
+    }
+    
+    if (!isFinite(targetRatio) || targetRatio <= 0) {
+      console.warn('Invalid targetRatio for dimension calculation:', targetRatio);
+      return Math.max(1, Math.min(8192, Math.round(baseValue)));
+    }
+    
+    let result;
+    if (isWidth) {
+      // Calculate height from width
+      result = Math.round(baseValue / targetRatio);
+    } else {
+      // Calculate width from height
+      result = Math.round(baseValue * targetRatio);
+    }
+    
+    // Validate result
+    if (!isFinite(result) || result <= 0) {
+      console.warn('Invalid calculated result:', result, 'from baseValue:', baseValue, 'ratio:', targetRatio);
+      result = isWidth ? 600 : 800; // fallback dimensions
+    }
+    
+    // Ensure result is within valid bounds
+    return Math.max(1, Math.min(8192, result));
+  }, []);
 
   // Generate unique ID for files
   const generateFileId = useCallback(() => {
     return `file_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
   }, []);
 
+  // Supported image formats and their MIME types
+  const SUPPORTED_FORMATS = {
+    'image/jpeg': { extension: 'jpg', maxSize: 50 * 1024 * 1024 }, // 50MB
+    'image/jpg': { extension: 'jpg', maxSize: 50 * 1024 * 1024 },
+    'image/png': { extension: 'png', maxSize: 50 * 1024 * 1024 },
+    'image/webp': { extension: 'webp', maxSize: 50 * 1024 * 1024 },
+    'image/gif': { extension: 'gif', maxSize: 20 * 1024 * 1024 }, // 20MB for GIFs
+    'image/bmp': { extension: 'bmp', maxSize: 20 * 1024 * 1024 },
+    'image/tiff': { extension: 'tiff', maxSize: 30 * 1024 * 1024 },
+    'image/svg+xml': { extension: 'svg', maxSize: 5 * 1024 * 1024 }, // 5MB for SVG
+  };
+
+  // Validate image file format and size
+  const validateImageFile = useCallback((file: File): { valid: boolean; error?: string } => {
+    // Check file type
+    if (!file.type || !file.type.startsWith('image/')) {
+      return { valid: false, error: 'File is not an image' };
+    }
+
+    // Check if format is supported
+    const formatInfo = SUPPORTED_FORMATS[file.type as keyof typeof SUPPORTED_FORMATS];
+    if (!formatInfo) {
+      const supportedTypes = Object.keys(SUPPORTED_FORMATS).map(type => type.split('/')[1].toUpperCase()).join(', ');
+      return { valid: false, error: `Unsupported format. Supported formats: ${supportedTypes}` };
+    }
+
+    // Check file size
+    if (file.size > formatInfo.maxSize) {
+      const maxSizeMB = Math.round(formatInfo.maxSize / (1024 * 1024));
+      const fileSizeMB = Math.round(file.size / (1024 * 1024));
+      return { valid: false, error: `File too large (${fileSizeMB}MB). Maximum size for ${formatInfo.extension.toUpperCase()}: ${maxSizeMB}MB` };
+    }
+
+    // Check for minimum file size (prevent empty files)
+    if (file.size < 100) {
+      return { valid: false, error: 'File is too small or empty' };
+    }
+
+    return { valid: true };
+  }, []);
+
   // Handle file selection and drag-and-drop
   const handleFiles = useCallback(async (fileList: FileList | File[]) => {
     const newFiles: FileWithPreview[] = [];
+    const errors: string[] = [];
     
     for (let i = 0; i < fileList.length; i++) {
       const file = fileList[i];
-      if (!file.type.startsWith('image/')) continue;
+      
+      // Validate file
+      const validation = validateImageFile(file);
+      if (!validation.valid) {
+        errors.push(`${file.name}: ${validation.error}`);
+        continue;
+      }
       
       const fileId = generateFileId();
       const preview = URL.createObjectURL(file);
@@ -188,23 +292,37 @@ export default function ImageResizePage() {
         newFiles.push(fileWithPreview);
       } catch (error) {
         console.error('Failed to generate thumbnail:', error);
+        errors.push(`${file.name}: Failed to generate thumbnail`);
+        
+        // Still add file, but with preview as thumbnail
         const fileWithPreview: FileWithPreview = Object.assign(file, {
           id: fileId,
           preview,
-          thumbnail: preview
+          thumbnail: preview,
+          error: 'Thumbnail generation failed'
         });
         newFiles.push(fileWithPreview);
       }
     }
     
-    setFiles(prev => [...prev, ...newFiles]);
-    
-    // Select first file if none selected
-    if (!selectedFileId && newFiles.length > 0) {
-      setSelectedFileId(newFiles[0].id);
-      loadImageDimensions(newFiles[0]);
+    // Show errors if any
+    if (errors.length > 0) {
+      const errorMessage = errors.length === 1 
+        ? errors[0]
+        : `${errors.length} files had issues:\n${errors.slice(0, 5).join('\n')}${errors.length > 5 ? '\n... and more' : ''}`;
+      alert(errorMessage);
     }
-  }, [generateFileId, workerManager, selectedFileId]);
+    
+    if (newFiles.length > 0) {
+      setFiles(prev => [...prev, ...newFiles]);
+      
+      // Select first file if none selected
+      if (!selectedFileId) {
+        setSelectedFileId(newFiles[0].id);
+        loadImageDimensions(newFiles[0]);
+      }
+    }
+  }, [generateFileId, workerManager, selectedFileId, validateImageFile]);
 
   const onFileChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
@@ -236,18 +354,36 @@ export default function ImageResizePage() {
   const loadImageDimensions = useCallback(async (file: File) => {
     try {
       const dimensions = await workerManager.loadImageDimensions(file);
-      setNatural({ w: dimensions.width, h: dimensions.height });
-      setWidth(dimensions.width);
-      setHeight(dimensions.height);
+      
+      // Validate dimensions
+      if (!dimensions || !dimensions.width || !dimensions.height || 
+          !isFinite(dimensions.width) || !isFinite(dimensions.height) ||
+          dimensions.width <= 0 || dimensions.height <= 0) {
+        throw new Error(`Invalid image dimensions: ${dimensions?.width}x${dimensions?.height}`);
+      }
+      
+      // Clamp dimensions to reasonable bounds
+      const validWidth = Math.max(1, Math.min(16384, Math.round(dimensions.width)));
+      const validHeight = Math.max(1, Math.min(16384, Math.round(dimensions.height)));
+      
+      const validDimensions = { width: validWidth, height: validHeight };
+      
+      setNatural({ w: validWidth, h: validHeight });
+      setWidth(validWidth);
+      setHeight(validHeight);
       
       // Update file with dimensions
       setFiles(prev => prev.map(f => 
         f.id === selectedFileId 
-          ? { ...f, originalDimensions: dimensions }
+          ? { ...f, originalDimensions: validDimensions }
           : f
       ));
     } catch (error) {
       console.error('Failed to load image dimensions:', error);
+      // Set fallback dimensions
+      setNatural({ w: 800, h: 600 });
+      setWidth(800);
+      setHeight(600);
     }
   }, [workerManager, selectedFileId]);
 
@@ -281,52 +417,102 @@ export default function ImageResizePage() {
 
   // Separate handlers for direct input changes that need aspect ratio logic
   const updateWidthWithAspect = useCallback((val: number) => {
-    if (keepAspect && natural) {
-      const newH = Math.round(val / ratio);
-      setWidth(val);
-      setHeight(newH);
-    } else {
-      setWidth(val);
+    // Validate and sanitize input
+    const sanitizedWidth = Math.max(1, Math.min(8192, Math.round(Number(val) || 1)));
+    setWidth(sanitizedWidth);
+    
+    if (keepAspect && natural && ratio > 0 && isFinite(ratio)) {
+      const newHeight = calculateDimensions(sanitizedWidth, ratio, true);
+      setHeight(newHeight);
     }
-  }, [keepAspect, natural, ratio]);
+  }, [keepAspect, natural, ratio, calculateDimensions]);
 
   const updateHeightWithAspect = useCallback((val: number) => {
-    if (keepAspect && natural) {
-      const newW = Math.round(val * ratio);
-      setHeight(val);
-      setWidth(newW);
-    } else {
-      setHeight(val);
+    // Validate and sanitize input
+    const sanitizedHeight = Math.max(1, Math.min(8192, Math.round(Number(val) || 1)));
+    setHeight(sanitizedHeight);
+    
+    if (keepAspect && natural && ratio > 0 && isFinite(ratio)) {
+      const newWidth = calculateDimensions(sanitizedHeight, ratio, false);
+      setWidth(newWidth);
     }
-  }, [keepAspect, natural, ratio]);
+  }, [keepAspect, natural, ratio, calculateDimensions]);
 
   // Apply preset configuration
   const applyPreset = useCallback((preset: PresetConfig) => {
-    if (preset.height === 0 && natural) {
+    const presetWidth = Math.max(1, Math.min(8192, preset.width));
+    
+    if (preset.height === 0 && natural && ratio > 0) {
       // Auto height based on aspect ratio
-      const autoHeight = Math.round(preset.width / ratio);
-      setWidth(preset.width);
+      const autoHeight = calculateDimensions(presetWidth, ratio, true);
+      setWidth(presetWidth);
       setHeight(autoHeight);
     } else {
-      setWidth(preset.width);
-      setHeight(preset.height);
+      const presetHeight = Math.max(1, Math.min(8192, preset.height));
+      setWidth(presetWidth);
+      setHeight(presetHeight);
     }
-    setQuality(preset.quality);
+    
+    // Validate and sanitize quality
+    const sanitizedQuality = Math.max(1, Math.min(100, preset.quality));
+    setQuality(sanitizedQuality);
     setFormat(preset.format as any);
     setKeepAspect(preset.height === 0);
-  }, [natural, ratio]);
+  }, [natural, ratio, calculateDimensions]);
+
+  // Enhanced error handling with user-friendly messages
+  const getErrorMessage = useCallback((error: unknown): string => {
+    if (!error) return 'An unknown error occurred';
+    
+    const errorMsg = error instanceof Error ? error.message : String(error);
+    
+    // Map common technical errors to user-friendly messages
+    const errorMappings = {
+      'Failed to create image bitmap': 'The image file appears to be corrupted or in an unsupported format. Please try a different image.',
+      'File too large': 'The image file is too large to process. Please use an image smaller than 50MB.',
+      'Invalid target dimensions': 'The requested image size is too large. Please choose smaller dimensions.',
+      'Worker not available': 'Image processing service is temporarily unavailable. Please refresh the page and try again.',
+      'Processing timeout': 'Image processing took too long and was cancelled. Please try with a smaller image.',
+      'Memory': 'Not enough memory to process this image. Please try with a smaller image or refresh the page.',
+      'Network': 'Network connection issue. Please check your internet connection and try again.',
+    };
+    
+    // Find matching error pattern
+    for (const [pattern, friendlyMsg] of Object.entries(errorMappings)) {
+      if (errorMsg.toLowerCase().includes(pattern.toLowerCase())) {
+        return friendlyMsg;
+      }
+    }
+    
+    // Return original message for unrecognized errors, but make it more user-friendly
+    return `Processing failed: ${errorMsg}. Please try again or choose a different image.`;
+  }, []);
 
   // Process single image
   const processImage = useCallback(async () => {
     if (!selectedFile || !natural) return;
     
+    // Validate inputs before processing
+    if (width < 1 || height < 1 || width > 8192 || height > 8192) {
+      alert('Image dimensions must be between 1x1 and 8192x8192 pixels.');
+      return;
+    }
+    
+    if (quality < 1 || quality > 100) {
+      alert('Quality must be between 1 and 100.');
+      return;
+    }
+    
     setProcessing(true);
-    setProgressText("Processing image...");
-    setProcessProgress(0);
+    setProgressText("Preparing image for processing...");
+    setProcessProgress(10);
     
     try {
       const startTime = Date.now();
       const originalSize = selectedFile.size;
+      
+      setProgressText("Processing image...");
+      setProcessProgress(30);
       
       const result = await workerManager.processImage(
         selectedFile,
@@ -341,6 +527,9 @@ export default function ImageResizePage() {
           stripMetadata: true
         }
       );
+      
+      setProgressText("Finalizing...");
+      setProcessProgress(80);
       
       if (result.success && result.data) {
         const dataUrl = await workerManager.arrayBufferToDataURL(
@@ -368,20 +557,39 @@ export default function ImageResizePage() {
         
         setProgressText("Processing complete!");
         setProcessProgress(100);
+        
+        // Show success feedback
+        const sizeDiff = originalSize - (result.size || 0);
+        const sizeSaving = sizeDiff > 0 ? ` (saved ${Math.round(sizeDiff / 1024)}KB)` : '';
+        setProgressText(`✓ Successfully processed to ${width}×${height}${sizeSaving}`);
       } else {
         throw new Error(result.error || 'Processing failed');
       }
     } catch (error) {
       console.error('Processing failed:', error);
-      alert(`Failed to process image: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      const friendlyMessage = getErrorMessage(error);
+      setProgressText(`✗ ${friendlyMessage}`);
+      
+      // Show error in a more user-friendly way
+      setTimeout(() => {
+        alert(friendlyMessage);
+      }, 500);
     } finally {
       setProcessing(false);
       setTimeout(() => {
-        setProcessProgress(0);
-        setProgressText("");
-      }, 2000);
+        if (progressText.includes('✓') || progressText.includes('✗')) {
+          // Keep success/error messages visible longer
+          setTimeout(() => {
+            setProcessProgress(0);
+            setProgressText("");
+          }, 3000);
+        } else {
+          setProcessProgress(0);
+          setProgressText("");
+        }
+      }, 1000);
     }
-  }, [selectedFile, natural, width, height, quality, format, enableSharpening, adjustBrightness, adjustContrast, workerManager]);
+  }, [selectedFile, natural, width, height, quality, format, enableSharpening, adjustBrightness, adjustContrast, workerManager, getErrorMessage, progressText]);
 
   // Process all files in batch
   const processBatch = useCallback(async () => {
@@ -574,12 +782,12 @@ export default function ImageResizePage() {
                     {dragOver ? 'Release to upload' : 'Drop images here or click to select'}
                   </p>
                   <p className="text-xs text-gray-500">
-                    JPEG, PNG, WebP • Up to 8K (8192×8192)
+                    JPEG, PNG, WebP, GIF, BMP, TIFF, SVG • Up to 50MB
                   </p>
                   <input
                     ref={fileInputRef}
                     type="file"
-                    accept="image/*"
+                    accept="image/jpeg,image/jpg,image/png,image/webp,image/gif,image/bmp,image/tiff,image/svg+xml"
                     multiple
                     className="hidden"
                     onChange={onFileChange}

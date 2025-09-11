@@ -2,21 +2,23 @@ import { Dimension, DimensionUnit, DimensionPair, DimensionSchema } from './type
 import { physicalToPixels, pixelsToPhysical, convertWithDPI } from './physical-to-pixel-converter';
 
 // Physical dimension conversion rates (all to millimeters)
+// Using high precision constants to avoid floating point errors
 const CONVERSION_TO_MM = {
-  [DimensionUnit.METER]: 1000,
-  [DimensionUnit.CENTIMETER]: 10,
-  [DimensionUnit.MILLIMETER]: 1,
+  [DimensionUnit.METER]: 1000.0,
+  [DimensionUnit.CENTIMETER]: 10.0,
+  [DimensionUnit.MILLIMETER]: 1.0,
   [DimensionUnit.INCH]: 25.4,
-  [DimensionUnit.PIXEL]: 0.264583 // Assuming 96 DPI standard
+  [DimensionUnit.PIXEL]: 25.4 / 96.0 // Exactly 25.4mm / 96 DPI
 } as const;
 
 // Conversion from millimeters to other units
+// Using reciprocals with high precision
 const CONVERSION_FROM_MM = {
-  [DimensionUnit.METER]: 1 / 1000,
-  [DimensionUnit.CENTIMETER]: 1 / 10,
-  [DimensionUnit.MILLIMETER]: 1,
-  [DimensionUnit.INCH]: 1 / 25.4,
-  [DimensionUnit.PIXEL]: 1 / 0.264583 // Assuming 96 DPI standard
+  [DimensionUnit.METER]: 0.001,
+  [DimensionUnit.CENTIMETER]: 0.1,
+  [DimensionUnit.MILLIMETER]: 1.0,
+  [DimensionUnit.INCH]: 1.0 / 25.4,
+  [DimensionUnit.PIXEL]: 96.0 / 25.4 // Exactly 96 DPI / 25.4mm
 } as const;
 
 /**

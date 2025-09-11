@@ -82,9 +82,12 @@ export const OPTIMIZATION_PRESETS: Record<string, ImageOptimizationConfig> = {
 class ImageOptimizer {
   private cache: Map<string, ImageCacheEntry> = new Map();
   private readonly maxCacheSize = 100;
+  private readonly maxCacheSizeBytes = 50 * 1024 * 1024; // 50MB
+  private currentCacheSizeBytes = 0;
   private readonly cacheExpirationTime = 24 * 60 * 60 * 1000; // 24 hours
   private readonly performanceMonitor = getPerformanceMonitor();
   private processingQueue: Set<string> = new Set();
+  private cacheAccessOrder: string[] = []; // Track access order for LRU
 
   constructor() {
     this.loadCache();
@@ -408,6 +411,13 @@ class ImageOptimizer {
     if (entry) {
       entry.lastAccessed = Date.now();
       entry.hitCount++;
+      
+      // Update LRU order
+      const index = this.cacheAccessOrder.indexOf(cacheKey);
+      if (index > -1) {
+        this.cacheAccessOrder.splice(index, 1);
+      }
+      this.cacheAccessOrder.push(cacheKey);
     }
   }
 
@@ -418,9 +428,17 @@ class ImageOptimizer {
     config: ImageOptimizationConfig,
     result: ImageProcessingResult
   ) {
-    // Remove oldest entries if cache is full
-    if (this.cache.size >= this.maxCacheSize) {
-      this.evictOldestCacheEntry();
+    const entrySize = result.originalSize + result.optimizedSize;
+    
+    // Remove entries if cache size limits are exceeded
+    while (
+      this.cache.size >= this.maxCacheSize || 
+      this.currentCacheSizeBytes + entrySize > this.maxCacheSizeBytes
+    ) {
+      if (!this.evictLeastRecentlyUsed()) {
+        // If no entries to evict, don't cache this entry
+        return;
+      }
     }
     
     const entry: ImageCacheEntry = {
@@ -434,24 +452,58 @@ class ImageOptimizer {
     };
     
     this.cache.set(cacheKey, entry);
+    this.cacheAccessOrder.push(cacheKey);
+    this.currentCacheSizeBytes += entrySize;
     this.saveCache();
   }
 
-  // Evict oldest cache entry
-  private evictOldestCacheEntry() {
-    let oldestKey = '';
-    let oldestTime = Date.now();
+  // Evict least recently used entry
+  private evictLeastRecentlyUsed(): boolean {
+    if (this.cacheAccessOrder.length === 0) {
+      return false;
+    }
+    
+    const lruKey = this.cacheAccessOrder.shift()!;
+    const entry = this.cache.get(lruKey);
+    
+    if (entry) {
+      const entrySize = entry.result.originalSize + entry.result.optimizedSize;
+      this.currentCacheSizeBytes = Math.max(0, this.currentCacheSizeBytes - entrySize);
+      this.cache.delete(lruKey);
+      return true;
+    }
+    
+    return false;
+  }
+  
+  // Evict expired entries
+  private evictExpiredEntries(): number {
+    const now = Date.now();
+    let evictedCount = 0;
+    const keysToDelete: string[] = [];
     
     for (const [key, entry] of this.cache.entries()) {
-      if (entry.lastAccessed < oldestTime) {
-        oldestTime = entry.lastAccessed;
-        oldestKey = key;
+      if (now - entry.timestamp > this.cacheExpirationTime) {
+        keysToDelete.push(key);
       }
     }
     
-    if (oldestKey) {
-      this.cache.delete(oldestKey);
+    for (const key of keysToDelete) {
+      const entry = this.cache.get(key);
+      if (entry) {
+        const entrySize = entry.result.originalSize + entry.result.optimizedSize;
+        this.currentCacheSizeBytes = Math.max(0, this.currentCacheSizeBytes - entrySize);
+      }
+      
+      this.cache.delete(key);
+      const accessIndex = this.cacheAccessOrder.indexOf(key);
+      if (accessIndex > -1) {
+        this.cacheAccessOrder.splice(accessIndex, 1);
+      }
+      evictedCount++;
     }
+    
+    return evictedCount;
   }
 
   // Wait for ongoing processing
@@ -530,21 +582,18 @@ class ImageOptimizer {
   // Setup cache cleanup
   private setupCacheCleanup() {
     setInterval(() => {
-      const now = Date.now();
-      const keysToDelete: string[] = [];
+      const evictedCount = this.evictExpiredEntries();
       
-      for (const [key, entry] of this.cache.entries()) {
-        if (now - entry.timestamp > this.cacheExpirationTime) {
-          keysToDelete.push(key);
+      // Also perform size-based cleanup if we're over the size limit
+      while (this.currentCacheSizeBytes > this.maxCacheSizeBytes * 0.9) {
+        if (!this.evictLeastRecentlyUsed()) {
+          break;
         }
       }
       
-      for (const key of keysToDelete) {
-        this.cache.delete(key);
-      }
-      
-      if (keysToDelete.length > 0) {
+      if (evictedCount > 0) {
         this.saveCache();
+        console.debug(`Cache cleanup: evicted ${evictedCount} expired entries`);
       }
     }, 60000); // Check every minute
   }
@@ -560,18 +609,24 @@ class ImageOptimizer {
     return {
       cacheSize: this.cache.size,
       maxCacheSize: this.maxCacheSize,
+      cacheSizeBytes: this.currentCacheSizeBytes,
+      maxCacheSizeBytes: this.maxCacheSizeBytes,
+      cacheUtilization: this.maxCacheSizeBytes > 0 ? this.currentCacheSizeBytes / this.maxCacheSizeBytes : 0,
       totalHits,
       totalSavings,
       averageCompressionRatio: entries.length > 0 
         ? entries.reduce((sum, entry) => sum + entry.result.compressionRatio, 0) / entries.length 
         : 0,
-      hitRate: totalHits > 0 ? entries.filter(e => e.hitCount > 0).length / entries.length : 0
+      hitRate: totalHits > 0 ? entries.filter(e => e.hitCount > 0).length / entries.length : 0,
+      accessOrderLength: this.cacheAccessOrder.length
     };
   }
 
   // Clear cache
   clearCache() {
     this.cache.clear();
+    this.cacheAccessOrder.length = 0;
+    this.currentCacheSizeBytes = 0;
     this.saveCache();
   }
 
