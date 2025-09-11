@@ -126,7 +126,7 @@ export function CaptchaVerification({ onVerificationChange, className, error }: 
       {/* Header */}
       <div className="flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-gray-300">
         <Shield className={cn("w-4 h-4", error ? "text-red-500" : "text-blue-500")} />
-        <span>Verify you're human</span>
+        <span>Verify you&apos;re human</span>
         {isVerified && (
           <CheckCircle2 className="w-4 h-4 text-green-500 ml-auto" />
         )}

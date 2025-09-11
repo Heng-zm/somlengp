@@ -60,8 +60,8 @@ export function LanguageTest() {
           <li>Click the language toggle button above</li>
           <li>Verify that all text updates to the new language</li>
           <li>Refresh the page and verify language preference is persisted</li>
-          <li>Check browser localStorage for 'preferred-language' key</li>
-          <li>Verify that the body gets the correct 'lang-{language}' class</li>
+          <li>Check browser localStorage for &apos;preferred-language&apos; key</li>
+          <li>Verify that the body gets the correct &apos;lang-{language}&apos; class</li>
         </ol>
       </div>
     </div>

@@ -18,7 +18,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { AIModel } from '@/components/shared/model-selector';
-import { 
+import {
   Send, 
   Bot, 
   User, 
@@ -29,7 +29,6 @@ import {
   ArrowLeft,
   Settings,
   ChevronDown,
-  Palette,
   FileText,
   Paperclip,
   X,
@@ -97,15 +96,15 @@ export default function AIAssistantPage() {
   const [attachedFiles, setAttachedFiles] = useState<FileAttachment[]>([]);
   const [isDragOver, setIsDragOver] = useState(false);
   // Text styling options
-  const [enableBold, setEnableBold] = useState<boolean>(true);
-  const [enableItalic, setEnableItalic] = useState<boolean>(true);
-  const [enableInlineCode, setEnableInlineCode] = useState<boolean>(true);
+  const [enableBold] = useState<boolean>(true);
+  const [enableItalic] = useState<boolean>(true);
+  const [enableInlineCode] = useState<boolean>(true);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Auto-scroll to bottom when new messages arrive
-  useEffect(() => {
+  const scrollToBottom = useCallback(() => {
     if (scrollAreaRef.current) {
       // Find the viewport element within the scroll area
       const viewport = scrollAreaRef.current.querySelector('[data-radix-scroll-area-viewport]') as HTMLDivElement;
@@ -113,7 +112,11 @@ export default function AIAssistantPage() {
         viewport.scrollTo({ top: viewport.scrollHeight, behavior: 'smooth' });
       }
     }
-  }, [messages, isTyping]);
+  }, []);
+
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages, isTyping, scrollToBottom]);
 
   // Focus input on mount
   useEffect(() => {
@@ -121,7 +124,7 @@ export default function AIAssistantPage() {
   }, []);
 
   // Initialize with welcome message
-  useEffect(() => {
+  const initializeWelcomeMessage = useCallback(() => {
     if (messages.length === 0) {
       setMessages([{
         id: generateMessageId(),
@@ -132,9 +135,13 @@ export default function AIAssistantPage() {
     }
   }, [messages.length, selectedModel.displayName]);
 
+  useEffect(() => {
+    initializeWelcomeMessage();
+  }, [initializeWelcomeMessage]);
+
   // Update welcome message when model changes (only when switching models)
   const prevSelectedModelId = useRef(selectedModel.id);
-  useEffect(() => {
+  const updateWelcomeMessageOnModelChange = useCallback(() => {
     if (messages.length > 0 && prevSelectedModelId.current !== selectedModel.id) {
       setMessages([{
         id: generateMessageId(),
@@ -145,6 +152,10 @@ export default function AIAssistantPage() {
       prevSelectedModelId.current = selectedModel.id;
     }
   }, [selectedModel.id, selectedModel.displayName, selectedModel.icon, selectedModel.description, messages.length]);
+  
+  useEffect(() => {
+    updateWelcomeMessageOnModelChange();
+  }, [updateWelcomeMessageOnModelChange]);
 
   const sendMessage = useCallback(async () => {
     if ((!input.trim() && attachedFiles.length === 0) || isLoading || !user) return;
@@ -549,11 +560,11 @@ export default function AIAssistantPage() {
                                       )}
                                     >
                                       {attachment.url && attachment.type.startsWith('image/') ? (
-                                        <img 
-                                          src={attachment.url} 
-                                          alt={attachment.name} 
-                                          className="w-5 h-5 rounded object-cover" 
-                                        />
+                              <img 
+                                src={attachment.url} 
+                                alt={`Attachment: ${attachment.name}`}
+                                className="w-5 h-5 rounded object-cover" 
+                              />
                                       ) : (
                                         <div className={cn(
                                           "text-current",
@@ -687,7 +698,7 @@ export default function AIAssistantPage() {
                             {file.url && file.type.startsWith('image/') ? (
                               <img 
                                 src={file.url} 
-                                alt={file.name} 
+                                alt={`File preview: ${file.name}`}
                                 className="w-6 h-6 rounded object-cover" 
                               />
                             ) : (

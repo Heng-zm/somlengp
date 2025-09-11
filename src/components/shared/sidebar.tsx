@@ -4,7 +4,7 @@
 import { useMemo, memo } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { FileText, LifeBuoy, Mic, Combine, Image as ImageIcon, Wand2, FileHeart, AudioLines, Sun, Moon, History, ArrowRight, Home, Bot, QrCode, Shield, Type, Settings } from 'lucide-react';
+import { FileText, LifeBuoy, Mic, Combine, Image as ImageIcon, Wand2, FileHeart, AudioLines, Sun, Moon, History, ArrowRight, Home, Bot, QrCode, Shield, Type } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { useLanguage } from '@/hooks/use-language';
@@ -22,7 +22,6 @@ export const Sidebar = memo(function Sidebar() {
   const navItems = useMemo(() => [
     // Main Pages
     { href: '/home', label: t('home'), icon: Home },
-    { href: '/features', label: t('features'), icon: Settings },
     
     // AI & Smart Tools
     { href: '/ai-assistant', label: t('aiAssistant'), icon: Bot, premium: true },

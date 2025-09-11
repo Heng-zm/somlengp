@@ -48,7 +48,7 @@ function applyTextStyling(text: string, options: FormatOptions): string {
     
     if (!enableItalic) {
       // Split by bold markers to avoid removing asterisks from bold text
-      let parts = styledText.split('**');
+      const parts = styledText.split('**');
       for (let i = 0; i < parts.length; i += 2) {
         parts[i] = parts[i].replace(/\*([^*]+?)\*/g, '$1');
       }
