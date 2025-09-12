@@ -567,9 +567,16 @@ export class ImageWorkerManager {
           resolve();
         }
       };
-
-      this.worker.addEventListener('message', testHandler);
-      this.worker.postMessage({ type: 'test' });
+      
+      // Store a reference to worker to ensure TypeScript understands it's not null
+      const worker = this.worker;
+      if (!worker) {
+        reject(new Error('Worker became unavailable'));
+        return;
+      }
+      
+      worker.addEventListener('message', testHandler);
+      worker.postMessage({ type: 'test' });
     });
   }
 
@@ -664,7 +671,12 @@ export class ImageWorkerManager {
         const task = this.taskQueue.shift()!;
         // Register as pending before sending
         this.pendingTasks.set(task.id, task);
-        this.worker!.postMessage({ type: task.type, id: task.id, data: task.data });
+        
+        // Store a reference to worker to ensure TypeScript understands it's not null
+        const worker = this.worker;
+        if (!worker) break; // Extra safety check
+        
+        worker.postMessage({ type: task.type, id: task.id, data: task.data });
         // Yield to allow message loop to process responses
         await new Promise(resolve => setTimeout(resolve, 0));
       }
