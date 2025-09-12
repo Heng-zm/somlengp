@@ -269,22 +269,47 @@ export function DimensionPresets({
 
   if (showPopular) {
     return (
-      <div className={`grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2 ${className}`}>
-        {filteredPresets.map((preset) => {
+      <div className={`grid grid-cols-2 gap-3 ${className}`}>
+        {filteredPresets.map((preset, index) => {
           const convertedDimensions = convertDimensionPair(preset.dimensions, currentUnit);
+          const gradientColors = [
+            'from-blue-500/20 via-cyan-500/10 to-blue-500/20 dark:from-blue-600/30 dark:via-cyan-600/20 dark:to-blue-600/30',
+            'from-emerald-500/20 via-green-500/10 to-emerald-500/20 dark:from-emerald-600/30 dark:via-green-600/20 dark:to-emerald-600/30',
+            'from-purple-500/20 via-pink-500/10 to-purple-500/20 dark:from-purple-600/30 dark:via-pink-600/20 dark:to-purple-600/30',
+            'from-orange-500/20 via-amber-500/10 to-orange-500/20 dark:from-orange-600/30 dark:via-amber-600/20 dark:to-orange-600/30'
+          ];
+          const borderColors = [
+            'border-blue-200/60 dark:border-blue-700/60 hover:border-blue-300 dark:hover:border-blue-600',
+            'border-emerald-200/60 dark:border-emerald-700/60 hover:border-emerald-300 dark:hover:border-emerald-600',
+            'border-purple-200/60 dark:border-purple-700/60 hover:border-purple-300 dark:hover:border-purple-600',
+            'border-orange-200/60 dark:border-orange-700/60 hover:border-orange-300 dark:hover:border-orange-600'
+          ];
+          const iconColors = [
+            'text-blue-600 dark:text-blue-400',
+            'text-emerald-600 dark:text-emerald-400',
+            'text-purple-600 dark:text-purple-400',
+            'text-orange-600 dark:text-orange-400'
+          ];
           return (
             <Button
               key={preset.id}
               variant="outline"
-              className="h-auto p-3 flex flex-col items-center gap-2"
+              className={`h-auto p-4 flex flex-col items-center gap-3 bg-gradient-to-br ${gradientColors[index % 4]} backdrop-blur-sm border-2 ${borderColors[index % 4]} rounded-xl transition-all duration-300 hover:scale-105 hover:shadow-lg group`}
               onClick={() => handlePresetSelect(preset)}
             >
-              {preset.icon}
+              <div className={`w-8 h-8 rounded-lg bg-white/60 dark:bg-gray-800/60 backdrop-blur-sm flex items-center justify-center ${iconColors[index % 4]} group-hover:scale-110 transition-all duration-300`}>
+                {preset.icon}
+              </div>
               <div className="text-center">
-                <div className="text-xs font-medium">{preset.name}</div>
-                <div className="text-xs text-gray-500 mt-1">
+                <div className="text-xs font-bold text-gray-800 dark:text-gray-200 mb-1">{preset.name}</div>
+                <div className="text-xs text-gray-600 dark:text-gray-400 font-medium">
                   {formatDimensionPair(convertedDimensions, 1)}
                 </div>
+                {preset.popular && (
+                  <Badge variant="secondary" className="text-xs mt-2 bg-gradient-to-r from-yellow-100 to-amber-100 dark:from-yellow-900/50 dark:to-amber-900/50 border-yellow-300 dark:border-yellow-700">
+                    ⭐ Popular
+                  </Badge>
+                )}
               </div>
             </Button>
           );

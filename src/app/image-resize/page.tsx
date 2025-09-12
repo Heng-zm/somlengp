@@ -11,6 +11,7 @@ import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { 
   Download, 
   Image as ImageIcon, 
@@ -18,23 +19,30 @@ import {
   Upload, 
   Settings, 
   Zap, 
-  Monitor,
-  Smartphone,
-  Instagram,
-  Twitter,
   FileImage,
   Trash2,
   PlayCircle,
   SplitSquareHorizontal,
   ZoomIn,
-  ZoomOut
+  ZoomOut,
+  ChevronDown,
+  ChevronUp,
+  X,
+  Eye,
+  EyeOff,
+  RotateCcw,
+  Maximize2,
+  ImagePlus,
+  Palette,
+  Sliders,
+  Lock,
+  Unlock
 } from "lucide-react";
 import { getImageWorkerManager, type BatchProcessingProgress } from "@/lib/image-worker-manager";
 import { OPTIMIZATION_PRESETS } from "@/lib/image-optimizer";
 import { Dimension, DimensionUnit, DimensionPair } from "@/lib/types";
 import { createDimension, convertDimension, formatDimensionPair } from "@/lib/dimension-utils";
 import { DimensionPairInput, DimensionDisplay } from "@/components/ui/dimension-input";
-import { QuickDimensionPresets } from "@/components/ui/dimension-presets";
 import { VisualDimensionControl } from "@/components/ui/visual-dimension-control";
 
 interface FileWithPreview extends File {
@@ -48,54 +56,6 @@ interface FileWithPreview extends File {
   error?: string;
 }
 
-interface PresetConfig {
-  name: string;
-  description: string;
-  width: number;
-  height: number;
-  quality: number;
-  format: string;
-  icon: React.ReactNode;
-}
-
-const SMART_PRESETS: PresetConfig[] = [
-  {
-    name: "Web Optimized",
-    description: "Perfect for websites (1920px wide)",
-    width: 1920,
-    height: 0, // Auto height
-    quality: 85,
-    format: "webp",
-    icon: <Monitor className="w-4 h-4" />
-  },
-  {
-    name: "Mobile Friendly",
-    description: "Optimized for mobile devices (800px wide)",
-    width: 800,
-    height: 0,
-    quality: 80,
-    format: "webp",
-    icon: <Smartphone className="w-4 h-4" />
-  },
-  {
-    name: "Instagram Square",
-    description: "Perfect square for Instagram posts",
-    width: 1080,
-    height: 1080,
-    quality: 90,
-    format: "jpeg",
-    icon: <Instagram className="w-4 h-4" />
-  },
-  {
-    name: "Twitter Header",
-    description: "Twitter header image dimensions",
-    width: 1200,
-    height: 675,
-    quality: 85,
-    format: "jpeg",
-    icon: <Twitter className="w-4 h-4" />
-  }
-];
 
 export default function ImageResizePage() {
   // File management
@@ -121,6 +81,21 @@ export default function ImageResizePage() {
   const [enableSharpening, setEnableSharpening] = useState<boolean>(true);
   const [adjustBrightness, setAdjustBrightness] = useState<number>(1);
   const [adjustContrast, setAdjustContrast] = useState<number>(1);
+  
+  // Unit selection states
+  const [widthUnit, setWidthUnit] = useState<string>('pixel');
+  const [heightUnit, setHeightUnit] = useState<string>('pixel');
+  const [resolutionUnit, setResolutionUnit] = useState<string>('pixel/inch');
+  
+  // Format dialog state
+  const [formatDialogOpen, setFormatDialogOpen] = useState<boolean>(false);
+  const [customFileName, setCustomFileName] = useState<string>('');
+  const [customDate, setCustomDate] = useState<string>('');
+  
+  // UI state
+  const [showAdvanced, setShowAdvanced] = useState<boolean>(false);
+  const [showPreview, setShowPreview] = useState<boolean>(true);
+  const [cornerRadius, setCornerRadius] = useState<number>(0);
   
   // Processing state
   const [processing, setProcessing] = useState<boolean>(false);
@@ -214,7 +189,7 @@ export default function ImageResizePage() {
 
   // Generate unique ID for files
   const generateFileId = useCallback(() => {
-    return `file_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    return `file_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`;
   }, []);
 
   // Supported image formats and their MIME types
@@ -258,14 +233,80 @@ export default function ImageResizePage() {
     return { valid: true };
   }, []);
 
+  // Load image dimensions with caching - Define first to avoid circular dependency
+  const dimensionCache = useRef<Map<string, {w: number, h: number}>>(new Map());
+  
+  const loadImageDimensions = useCallback(async (file: File) => {
+    const cacheKey = `${file.name}_${file.size}_${file.lastModified}`;
+    
+    // Check cache first
+    const cachedDimensions = dimensionCache.current.get(cacheKey);
+    if (cachedDimensions) {
+      setNatural(cachedDimensions);
+      setWidth(cachedDimensions.w);
+      setHeight(cachedDimensions.h);
+      return;
+    }
+    
+    try {
+      // Add timeout for dimension loading
+      const dimensionPromise = workerManager.loadImageDimensions(file);
+      const timeoutPromise = new Promise<never>((_, reject) => 
+        setTimeout(() => reject(new Error('Dimension loading timeout')), 5000)
+      );
+      
+      const dimensions = await Promise.race([dimensionPromise, timeoutPromise]);
+      
+      // Validate dimensions
+      if (!dimensions || !dimensions.width || !dimensions.height || 
+          !isFinite(dimensions.width) || !isFinite(dimensions.height) ||
+          dimensions.width <= 0 || dimensions.height <= 0) {
+        throw new Error(`Invalid image dimensions: ${dimensions?.width}x${dimensions?.height}`);
+      }
+      
+      // Clamp dimensions to reasonable bounds
+      const validWidth = Math.max(1, Math.min(16384, Math.round(dimensions.width)));
+      const validHeight = Math.max(1, Math.min(16384, Math.round(dimensions.height)));
+      
+      const validDimensions = { width: validWidth, height: validHeight };
+      const naturalDims = { w: validWidth, h: validHeight };
+      
+      // Cache the dimensions
+      dimensionCache.current.set(cacheKey, naturalDims);
+      
+      setNatural(naturalDims);
+      setWidth(validWidth);
+      setHeight(validHeight);
+      
+      // Update file with dimensions (batch update)
+      setFiles(prev => prev.map(f => 
+        f.id === selectedFileId 
+          ? { ...f, originalDimensions: validDimensions }
+          : f
+      ));
+    } catch (error) {
+      console.warn('Failed to load image dimensions:', error);
+      // Set fallback dimensions
+      const fallbackDims = { w: 800, h: 600 };
+      setNatural(fallbackDims);
+      setWidth(800);
+      setHeight(600);
+    }
+  }, [workerManager, selectedFileId]);
+
   // Handle file selection and drag-and-drop
   const handleFiles = useCallback(async (fileList: FileList | File[]) => {
     const newFiles: FileWithPreview[] = [];
     const errors: string[] = [];
+    const maxFiles = 20; // Limit concurrent processing
     
-    for (let i = 0; i < fileList.length; i++) {
-      const file = fileList[i];
-      
+    // Process files in batches to avoid memory issues
+    const filesToProcess = Array.from(fileList).slice(0, maxFiles);
+    if (fileList.length > maxFiles) {
+      errors.push(`Only processing first ${maxFiles} files. Selected ${fileList.length} files.`);
+    }
+    
+    for (const file of filesToProcess) {
       // Validate file
       const validation = validateImageFile(file);
       if (!validation.valid) {
@@ -276,9 +317,14 @@ export default function ImageResizePage() {
       const fileId = generateFileId();
       const preview = URL.createObjectURL(file);
       
-      // Generate thumbnail
+      // Generate thumbnail with timeout and better error handling
       try {
-        const thumbResult = await workerManager.generateThumbnail(file, 150);
+        const thumbPromise = workerManager.generateThumbnail(file, 150);
+        const timeoutPromise = new Promise<never>((_, reject) => 
+          setTimeout(() => reject(new Error('Thumbnail generation timeout')), 10000)
+        );
+        
+        const thumbResult = await Promise.race([thumbPromise, timeoutPromise]);
         const thumbnail = thumbResult.success && thumbResult.data 
           ? await workerManager.arrayBufferToDataURL(thumbResult.data, 'image/jpeg')
           : preview;
@@ -291,9 +337,7 @@ export default function ImageResizePage() {
         
         newFiles.push(fileWithPreview);
       } catch (error) {
-        console.error('Failed to generate thumbnail:', error);
-        errors.push(`${file.name}: Failed to generate thumbnail`);
-        
+        console.warn('Failed to generate thumbnail:', error);
         // Still add file, but with preview as thumbnail
         const fileWithPreview: FileWithPreview = Object.assign(file, {
           id: fileId,
@@ -305,24 +349,37 @@ export default function ImageResizePage() {
       }
     }
     
-    // Show errors if any
+    // Show errors with better UX
     if (errors.length > 0) {
       const errorMessage = errors.length === 1 
         ? errors[0]
-        : `${errors.length} files had issues:\n${errors.slice(0, 5).join('\n')}${errors.length > 5 ? '\n... and more' : ''}`;
-      alert(errorMessage);
+        : `${errors.length} files had issues:\n${errors.slice(0, 3).join('\n')}${errors.length > 3 ? '\n... and more' : ''}`;
+      
+      // Use a more user-friendly notification instead of alert
+      console.warn('File processing issues:', errors);
+      // You could replace this with a toast notification
+      setTimeout(() => alert(errorMessage), 100);
     }
     
     if (newFiles.length > 0) {
-      setFiles(prev => [...prev, ...newFiles]);
+      setFiles(prev => {
+        // Prevent duplicate files
+        const existingIds = new Set(prev.map(f => f.name + f.size));
+        const uniqueNewFiles = newFiles.filter(f => !existingIds.has(f.name + f.size));
+        return [...prev, ...uniqueNewFiles];
+      });
       
       // Select first file if none selected
-      if (!selectedFileId) {
-        setSelectedFileId(newFiles[0].id);
-        loadImageDimensions(newFiles[0]);
+      if (!selectedFileId && newFiles.length > 0) {
+        const firstFile = newFiles[0];
+        setSelectedFileId(firstFile.id);
+        // Use requestAnimationFrame for better performance
+        requestAnimationFrame(() => {
+          loadImageDimensions(firstFile);
+        });
       }
     }
-  }, [generateFileId, workerManager, selectedFileId, validateImageFile]);
+  }, [generateFileId, workerManager, selectedFileId, validateImageFile, loadImageDimensions]);
 
   const onFileChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
@@ -349,43 +406,6 @@ export default function ImageResizePage() {
       handleFiles(e.dataTransfer.files);
     }
   }, [handleFiles]);
-
-  // Load image dimensions
-  const loadImageDimensions = useCallback(async (file: File) => {
-    try {
-      const dimensions = await workerManager.loadImageDimensions(file);
-      
-      // Validate dimensions
-      if (!dimensions || !dimensions.width || !dimensions.height || 
-          !isFinite(dimensions.width) || !isFinite(dimensions.height) ||
-          dimensions.width <= 0 || dimensions.height <= 0) {
-        throw new Error(`Invalid image dimensions: ${dimensions?.width}x${dimensions?.height}`);
-      }
-      
-      // Clamp dimensions to reasonable bounds
-      const validWidth = Math.max(1, Math.min(16384, Math.round(dimensions.width)));
-      const validHeight = Math.max(1, Math.min(16384, Math.round(dimensions.height)));
-      
-      const validDimensions = { width: validWidth, height: validHeight };
-      
-      setNatural({ w: validWidth, h: validHeight });
-      setWidth(validWidth);
-      setHeight(validHeight);
-      
-      // Update file with dimensions
-      setFiles(prev => prev.map(f => 
-        f.id === selectedFileId 
-          ? { ...f, originalDimensions: validDimensions }
-          : f
-      ));
-    } catch (error) {
-      console.error('Failed to load image dimensions:', error);
-      // Set fallback dimensions
-      setNatural({ w: 800, h: 600 });
-      setWidth(800);
-      setHeight(600);
-    }
-  }, [workerManager, selectedFileId]);
 
   // Handle file selection
   const selectFile = useCallback((fileId: string) => {
@@ -438,27 +458,6 @@ export default function ImageResizePage() {
     }
   }, [keepAspect, natural, ratio, calculateDimensions]);
 
-  // Apply preset configuration
-  const applyPreset = useCallback((preset: PresetConfig) => {
-    const presetWidth = Math.max(1, Math.min(8192, preset.width));
-    
-    if (preset.height === 0 && natural && ratio > 0) {
-      // Auto height based on aspect ratio
-      const autoHeight = calculateDimensions(presetWidth, ratio, true);
-      setWidth(presetWidth);
-      setHeight(autoHeight);
-    } else {
-      const presetHeight = Math.max(1, Math.min(8192, preset.height));
-      setWidth(presetWidth);
-      setHeight(presetHeight);
-    }
-    
-    // Validate and sanitize quality
-    const sanitizedQuality = Math.max(1, Math.min(100, preset.quality));
-    setQuality(sanitizedQuality);
-    setFormat(preset.format as any);
-    setKeepAspect(preset.height === 0);
-  }, [natural, ratio, calculateDimensions]);
 
   // Enhanced error handling with user-friendly messages
   const getErrorMessage = useCallback((error: unknown): string => {
@@ -503,22 +502,37 @@ export default function ImageResizePage() {
       return;
     }
     
+    // Check if processing is already in progress
+    if (processing) {
+      console.warn('Processing already in progress');
+      return;
+    }
+    
     setProcessing(true);
     setProgressText("Preparing image for processing...");
     setProcessProgress(10);
+    
+    // Create abort controller for cancellation
+    const abortController = new AbortController();
     
     try {
       const startTime = Date.now();
       const originalSize = selectedFile.size;
       
+      // Check for reasonable file size limits
+      if (originalSize > 100 * 1024 * 1024) { // 100MB
+        throw new Error('File too large for processing. Please use files smaller than 100MB.');
+      }
+      
       setProgressText("Processing image...");
       setProcessProgress(30);
       
-      const result = await workerManager.processImage(
+      // Add timeout for processing
+      const processingPromise = workerManager.processImage(
         selectedFile,
         Math.max(1, Math.min(8192, width)),
         Math.max(1, Math.min(8192, height)),
-        quality,
+        Math.max(1, Math.min(100, quality)),
         format,
         {
           enableSharpening,
@@ -527,6 +541,12 @@ export default function ImageResizePage() {
           stripMetadata: true
         }
       );
+      
+      const timeoutPromise = new Promise<never>((_, reject) => 
+        setTimeout(() => reject(new Error('Processing timeout after 60 seconds')), 60000)
+      );
+      
+      const result = await Promise.race([processingPromise, timeoutPromise]);
       
       setProgressText("Finalizing...");
       setProcessProgress(80);
@@ -537,30 +557,39 @@ export default function ImageResizePage() {
           `image/${format}`
         );
         
+        // Clean up previous result for this file to prevent memory leaks
+        const previousUrl = outputUrls.get(selectedFile.id);
+        if (previousUrl && previousUrl.startsWith('blob:')) {
+          URL.revokeObjectURL(previousUrl);
+        }
+        
         setOutputUrls(prev => new Map(prev.set(selectedFile.id, dataUrl)));
         if (typeof result.size === 'number') {
           setProcessedSizes(prev => new Map(prev.set(selectedFile.id, result.size as number)));
         }
         setPreviewMode('after');
         
-        // Update processing stats
+        // Update processing stats with better precision
         const processingTime = Date.now() - startTime;
         const savedBytes = Math.max(0, originalSize - (result.size || 0));
         const compressionRatio = result.size ? result.size / originalSize : 1;
         
-        setProcessingStats(prev => ({
-          totalProcessed: prev.totalProcessed + 1,
-          totalSaved: prev.totalSaved + savedBytes,
-          averageTime: (prev.averageTime * prev.totalProcessed + processingTime) / (prev.totalProcessed + 1),
-          compressionRatio: (prev.compressionRatio * prev.totalProcessed + compressionRatio) / (prev.totalProcessed + 1)
-        }));
+        setProcessingStats(prev => {
+          const newTotal = prev.totalProcessed + 1;
+          return {
+            totalProcessed: newTotal,
+            totalSaved: prev.totalSaved + savedBytes,
+            averageTime: (prev.averageTime * prev.totalProcessed + processingTime) / newTotal,
+            compressionRatio: (prev.compressionRatio * prev.totalProcessed + compressionRatio) / newTotal
+          };
+        });
         
         setProgressText("Processing complete!");
         setProcessProgress(100);
         
-        // Show success feedback
+        // Show success feedback with better formatting
         const sizeDiff = originalSize - (result.size || 0);
-        const sizeSaving = sizeDiff > 0 ? ` (saved ${Math.round(sizeDiff / 1024)}KB)` : '';
+        const sizeSaving = sizeDiff > 0 ? ` (saved ${(sizeDiff / 1024).toFixed(1)}KB)` : '';
         setProgressText(`✓ Successfully processed to ${width}×${height}${sizeSaving}`);
       } else {
         throw new Error(result.error || 'Processing failed');
@@ -570,26 +599,32 @@ export default function ImageResizePage() {
       const friendlyMessage = getErrorMessage(error);
       setProgressText(`✗ ${friendlyMessage}`);
       
-      // Show error in a more user-friendly way
+      // Show error in a more user-friendly way with better timing
       setTimeout(() => {
-        alert(friendlyMessage);
+        if (!abortController.signal.aborted) {
+          alert(friendlyMessage);
+        }
       }, 500);
     } finally {
       setProcessing(false);
-      setTimeout(() => {
+      
+      // Better cleanup timing
+      const cleanup = () => {
         if (progressText.includes('✓') || progressText.includes('✗')) {
           // Keep success/error messages visible longer
           setTimeout(() => {
             setProcessProgress(0);
             setProgressText("");
-          }, 3000);
+          }, 2000);
         } else {
           setProcessProgress(0);
           setProgressText("");
         }
-      }, 1000);
+      };
+      
+      setTimeout(cleanup, 800);
     }
-  }, [selectedFile, natural, width, height, quality, format, enableSharpening, adjustBrightness, adjustContrast, workerManager, getErrorMessage, progressText]);
+  }, [selectedFile, natural, width, height, quality, format, enableSharpening, adjustBrightness, adjustContrast, workerManager, getErrorMessage, progressText, processing, outputUrls]);
 
   // Process all files in batch
   const processBatch = useCallback(async () => {
@@ -665,11 +700,26 @@ export default function ImageResizePage() {
     
     const a = document.createElement("a");
     a.href = outputUrl;
-    const base = selectedFile.name.replace(/\.[^.]+$/, "") || "image";
+    
+    // Generate filename based on user input or defaults
+    let filename = customFileName.trim();
+    if (!filename) {
+      const base = selectedFile.name.replace(/\.[^.]+$/, "") || "image";
+      filename = `${base}-${width}x${height}`;
+    }
+    
+    // Add date prefix if provided
+    if (customDate.trim()) {
+      filename = `${customDate.trim()}-${filename}`;
+    }
+    
     const ext = format === "png" ? "png" : format === "webp" ? "webp" : "jpg";
-    a.download = `${base}-${width}x${height}.${ext}`;
+    a.download = `${filename}.${ext}`;
     a.click();
-  }, [selectedFile, outputUrls, format, width, height]);
+    
+    // Close dialog after download
+    setFormatDialogOpen(false);
+  }, [selectedFile, outputUrls, format, width, height, customFileName, customDate]);
 
   const downloadAll = useCallback(() => {
     files.forEach((file) => {
@@ -739,588 +789,854 @@ export default function ImageResizePage() {
   }, [files, outputUrls]);
 
   
-  // Cleanup on unmount
+  // Cleanup on unmount with better memory management
   useEffect(() => {
     return () => {
+      // Clean up all object URLs to prevent memory leaks
       files.forEach(file => {
-        if (file.preview) URL.revokeObjectURL(file.preview);
+        if (file.preview && file.preview.startsWith('blob:')) {
+          URL.revokeObjectURL(file.preview);
+        }
+        if (file.thumbnail && file.thumbnail.startsWith('blob:') && file.thumbnail !== file.preview) {
+          URL.revokeObjectURL(file.thumbnail);
+        }
       });
-      outputUrls.forEach(url => URL.revokeObjectURL(url));
+      
+      outputUrls.forEach(url => {
+        if (url.startsWith('blob:')) {
+          URL.revokeObjectURL(url);
+        }
+      });
+      
+      // Clear dimension cache
+      dimensionCache.current.clear();
     };
   }, [files, outputUrls]);
 
   return (
-    <FeaturePageLayout title="Image Resize">
-      <div className="max-w-7xl mx-auto p-2 sm:p-4 text-gray-900 dark:text-gray-100">
-        
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-3 sm:gap-4">
-          {/* Left: File Management */}
-          <div className="lg:col-span-1 space-y-3 sm:space-y-4 order-1 lg:order-1">
-            {/* Upload Zone */}
-            <Card>
-              <CardHeader className="pb-3">
-                <CardTitle className="flex items-center gap-2 text-sm">
-                  <Upload className="w-4 h-4" />
-                  Upload Images
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="pt-0">
-                <div
-                  ref={dropZoneRef}
-                  className={`border-2 border-dashed rounded-lg p-4 text-center cursor-pointer transition-colors ${
-                    dragOver
-                      ? 'border-blue-500 bg-blue-50 dark:bg-blue-950'
-                      : 'border-gray-300 dark:border-gray-700 hover:border-gray-400'
-                  }`}
-                  onDragOver={handleDragOver}
-                  onDragLeave={handleDragLeave}
-                  onDrop={handleDrop}
-                  onClick={() => fileInputRef.current?.click()}
-                >
-                  <Upload className={`w-6 h-6 mx-auto mb-1 ${dragOver ? 'text-blue-500' : 'text-gray-400'}`} />
-                  <p className="text-xs text-gray-600 dark:text-gray-400 mb-1">
-                    {dragOver ? 'Release to upload' : 'Drop images here or click to select'}
-                  </p>
-                  <p className="text-xs text-gray-500">
-                    JPEG, PNG, WebP, GIF, BMP, TIFF, SVG • Up to 50MB
-                  </p>
-                  <input
-                    ref={fileInputRef}
-                    type="file"
-                    accept="image/jpeg,image/jpg,image/png,image/webp,image/gif,image/bmp,image/tiff,image/svg+xml"
-                    multiple
-                    className="hidden"
-                    onChange={onFileChange}
-                    aria-label="Select images to resize"
-                  />
-                </div>
-              </CardContent>
-            </Card>
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900 text-white">
+      {/* Header */}
+      <div className="border-b border-gray-800/50 backdrop-blur-sm bg-black/20 px-4 py-6 sticky top-0 z-10">
+        <div className="max-w-4xl mx-auto flex items-center justify-center relative">
+          <h1 className="text-2xl font-bold bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent">
+            Image Resize
+          </h1>
+          {files.length > 0 && (
+            <div className="absolute right-0 flex items-center space-x-2 text-sm">
+              <FileImage className="w-4 h-4 text-gray-400" />
+              <span className="text-gray-300">{files.length} file{files.length !== 1 ? 's' : ''}</span>
+              {processingStats.totalProcessed > 0 && (
+                <Badge variant="outline" className="border-green-500 text-green-400">
+                  {processingStats.totalProcessed} processed
+                </Badge>
+              )}
+            </div>
+          )}
+        </div>
+      </div>
 
-            {/* File List */}
-            {files.length > 0 && (
-              <Card>
-                <CardHeader className="flex flex-row items-center justify-between pb-2">
-                  <CardTitle className="text-sm">Files ({files.length})</CardTitle>
-                  <Button variant="ghost" size="sm" onClick={clearAll}>
-                    <Trash2 className="w-3 h-3" />
-                  </Button>
-                </CardHeader>
-                <CardContent className="pt-0">
-                  <div className="space-y-1 max-h-48 overflow-y-auto">
+      <div className="max-w-4xl mx-auto p-6 space-y-8">
+        {!selectedFile ? (
+          /* Upload State */
+          <div className="space-y-8">
+            {/* Upload Zone */}
+            <div className="relative">
+              <div
+                className={`relative border-2 border-dashed rounded-3xl p-20 text-center cursor-pointer transition-all duration-500 group overflow-hidden ${
+                  dragOver
+                    ? 'border-blue-400 bg-blue-500/10 scale-[1.02]'
+                    : 'border-gray-600 hover:border-blue-500 hover:bg-blue-500/5 hover:scale-[1.01]'
+                }`}
+                onDragOver={handleDragOver}
+                onDragLeave={handleDragLeave}
+                onDrop={handleDrop}
+                onClick={() => fileInputRef.current?.click()}
+              >
+                {/* Animated background */}
+                <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 via-purple-500/5 to-pink-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                
+                <div className="relative space-y-6">
+                  <div className="w-32 h-32 mx-auto bg-gradient-to-br from-gray-800 to-gray-700 rounded-3xl flex items-center justify-center shadow-2xl group-hover:shadow-blue-500/20 transition-all duration-300">
+                    <ImagePlus className={`w-16 h-16 transition-all duration-300 ${
+                      dragOver ? 'text-blue-400 scale-110' : 'text-gray-400 group-hover:text-blue-500'
+                    }`} />
+                  </div>
+                  <div className="space-y-3">
+                    <h3 className="text-2xl font-bold bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent">
+                      {dragOver ? 'Drop your images here!' : 'Upload Your Images'}
+                    </h3>
+                    <p className="text-gray-400 text-lg">
+                      Drag & drop or click to select multiple files
+                    </p>
+                    <div className="flex flex-wrap justify-center gap-2 mt-4">
+                      {['JPEG', 'PNG', 'WebP', 'GIF', 'BMP', 'TIFF', 'SVG'].map((format) => (
+                        <Badge key={format} variant="outline" className="border-gray-600 text-gray-400">
+                          {format}
+                        </Badge>
+                      ))}
+                    </div>
+                    <p className="text-sm text-gray-500 mt-2">
+                      Maximum file size: 50MB per image
+                    </p>
+                  </div>
+                </div>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/jpeg,image/jpg,image/png,image/webp,image/gif,image/bmp,image/tiff,image/svg+xml"
+                  multiple
+                  className="hidden"
+                  onChange={onFileChange}
+                />
+              </div>
+            </div>
+          </div>
+        ) : (
+          /* Uploaded State */
+          <div className="grid lg:grid-cols-3 gap-8">
+            {/* Left Column - File Management & Preview */}
+            <div className="lg:col-span-2 space-y-6">
+              {/* Files List */}
+              {files.length > 1 && (
+                <div className="bg-gray-900/50 rounded-2xl p-4 border border-gray-700/50">
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="text-lg font-semibold text-white flex items-center gap-2">
+                      <FileImage className="w-5 h-5" />
+                      Images ({files.length})
+                    </h3>
+                    <Button
+                      onClick={clearAll}
+                      variant="outline"
+                      size="sm"
+                      className="border-gray-600 text-gray-400 hover:text-white hover:border-red-500"
+                    >
+                      <Trash2 className="w-4 h-4 mr-1" />
+                      Clear All
+                    </Button>
+                  </div>
+                  <div className="grid grid-cols-4 sm:grid-cols-6 gap-2 max-h-32 overflow-y-auto">
                     {files.map((file) => (
                       <div
                         key={file.id}
-                        className={`flex items-center gap-2 p-1.5 rounded cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800 transition ${
-                          selectedFileId === file.id ? 'bg-blue-100 dark:bg-blue-900' : ''
+                        className={`relative group cursor-pointer rounded-lg overflow-hidden border-2 transition-all ${
+                          selectedFileId === file.id
+                            ? 'border-blue-500 ring-2 ring-blue-500/20'
+                            : 'border-gray-600 hover:border-gray-500'
                         }`}
                         onClick={() => selectFile(file.id)}
-                        role="button"
-                        tabIndex={0}
-                        aria-label={`Select ${file.name} for processing`}
                       >
-                        <img
-                          src={file.thumbnail || file.preview}
-                          alt={file.name}
-                          className="w-8 h-8 object-cover rounded"
-                        />
-                        <div className="flex-1 min-w-0">
-                          <p className="text-xs font-medium truncate">{file.name}</p>
-                          <p className="text-xs text-gray-500">
-                            {Math.round(file.size / 1024)}KB
-                          </p>
+                        <div className="aspect-square bg-gray-800">
+                          {file.thumbnail && (
+                            <img
+                              src={file.thumbnail}
+                              alt={file.name}
+                              className="w-full h-full object-cover"
+                            />
+                          )}
                         </div>
                         {outputUrls.has(file.id) && (
-                          <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                          <div className="absolute top-1 right-1 w-3 h-3 bg-green-500 rounded-full" />
                         )}
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="h-6 w-6 p-0"
+                        <button
                           onClick={(e) => {
                             e.stopPropagation();
                             removeFile(file.id);
                           }}
-                          aria-label={`Remove ${file.name}`}
+                          className="absolute top-1 left-1 w-5 h-5 bg-red-500 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
                         >
-                          <Trash2 className="w-3 h-3" />
-                        </Button>
+                          <X className="w-3 h-3 text-white" />
+                        </button>
                       </div>
                     ))}
                   </div>
-                </CardContent>
-              </Card>
-            )}
-
-            {/* Performance Stats - Compact */}
-            {processingStats.totalProcessed > 0 && (
-              <Card>
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-sm flex items-center gap-1">
-                    <Zap className="w-3 h-3" />
-                    Stats
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="pt-0">
-                  <div className="grid grid-cols-2 gap-2 text-xs">
-                    <div className="flex justify-between">
-                      <span className="text-gray-600">Files:</span>
-                      <span>{processingStats.totalProcessed}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-600">Saved:</span>
-                      <span>{Math.round(processingStats.totalSaved / 1024)}KB</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-600">Time:</span>
-                      <span>{Math.round(processingStats.averageTime)}ms</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-600">Ratio:</span>
-                      <span>{Math.round(processingStats.compressionRatio * 100)}%</span>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            )}
-          </div>
-
-          {/* Center: Preview */}
-          <div className="lg:col-span-1 space-y-3 sm:space-y-4 order-2 lg:order-2">
-            {/* Preview Modes */}
-            {selectedFile && (
-              <Card>
-                <CardHeader className="pb-2">
-                  <div className="flex items-center justify-between">
-                    <CardTitle className="text-sm flex items-center gap-1">
-                      <ImageIcon className="w-4 h-4" />
-                      Preview
-                    </CardTitle>
-                    <div className="flex items-center gap-1">
-                      <Button
-                        variant={previewMode === 'before' ? 'default' : 'outline'}
-                        size="sm"
-                        className="text-xs h-8 sm:h-7 px-3 sm:px-2 touch-manipulation"
-                        onClick={() => setPreviewMode('before')}
-                      >
-                        Before
-                      </Button>
-                      <Button
-                        variant={previewMode === 'after' ? 'default' : 'outline'}
-                        size="sm"
-                        className="text-xs h-8 sm:h-7 px-3 sm:px-2 touch-manipulation"
-                        onClick={() => setPreviewMode('after')}
-                        disabled={!outputUrls.has(selectedFile.id)}
-                      >
-                        After
-                      </Button>
-                      <Button
-                        variant={previewMode === 'split' ? 'default' : 'outline'}
-                        size="sm"
-                        className="text-xs h-8 sm:h-7 px-3 sm:px-2 touch-manipulation"
-                        onClick={() => setPreviewMode('split')}
-                        disabled={!outputUrls.has(selectedFile.id)}
-                      >
-                        Split
-                      </Button>
-                    </div>
-                  </div>
-                </CardHeader>
-                <CardContent className="pt-0">
-                  <div className="space-y-2">
-                    {/* Zoom controls */}
-                    <div className="flex items-center gap-2">
-                      <Button 
-                        variant="outline" 
-                        size="sm" 
-                        className="h-8 sm:h-7 px-3 sm:px-2 touch-manipulation" 
-                        onClick={() => setZoom(z => Math.max(0.25, +(z - 0.25).toFixed(2)))}
-                        aria-label="Zoom out"
-                      >
-                        <ZoomOut className="w-4 h-4 sm:w-3 sm:h-3" />
-                      </Button>
-                      <div className="flex-1">
-                        <Slider 
-                          value={[zoom]} 
-                          min={0.25} 
-                          max={4} 
-                          step={0.25} 
-                          onValueChange={(v) => setZoom(v[0])} 
-                          className="touch-manipulation"
-                          aria-label="Zoom level"
-                        />
+                </div>
+              )}
+              
+              {/* Main Preview */}
+              <div className="bg-gray-900/50 rounded-2xl border border-gray-700/50 overflow-hidden">
+                <div className="flex items-center justify-between p-4 border-b border-gray-700/50">
+                  <h3 className="text-lg font-semibold text-white flex items-center gap-2">
+                    <Eye className="w-5 h-5" />
+                    Preview
+                  </h3>
+                  <div className="flex items-center gap-2">
+                    {outputUrls.has(selectedFile.id) && (
+                      <div className="flex bg-gray-800 rounded-lg p-1">
+                        {(['before', 'after', 'split'] as const).map((mode) => (
+                          <button
+                            key={mode}
+                            onClick={() => setPreviewMode(mode)}
+                            className={`px-3 py-1 rounded-md text-xs font-medium transition-colors ${
+                              previewMode === mode
+                                ? 'bg-blue-600 text-white'
+                                : 'text-gray-400 hover:text-white'
+                            }`}
+                          >
+                            {mode.charAt(0).toUpperCase() + mode.slice(1)}
+                          </button>
+                        ))}
                       </div>
-                      <Button 
-                        variant="outline" 
-                        size="sm" 
-                        className="h-8 sm:h-7 px-3 sm:px-2 touch-manipulation" 
-                        onClick={() => setZoom(z => Math.min(4, +(z + 0.25).toFixed(2)))}
-                        aria-label="Zoom in"
-                      >
-                        <ZoomIn className="w-4 h-4 sm:w-3 sm:h-3" />
-                      </Button>
-                      <Badge className="ml-1" variant="outline">{Math.round(zoom * 100)}%</Badge>
-                    </div>
-
-                    <div className="relative w-full aspect-video bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-md overflow-hidden touch-pan-x touch-pan-y">
-                      <div className="absolute inset-0 overflow-auto">
-                        {/* Before Image */}
-                        {selectedFile.preview && (
-                          <img
-                            src={selectedFile.preview}
-                            alt="preview"
-                            className="object-contain w-full h-full select-none"
-                            style={{ transform: `scale(${zoom})`, transformOrigin: 'center center' }}
-                            draggable={false}
-                          />
-                        )}
-                        {/* After Image - conditionally overlay for after or split */}
-                        {outputUrls.has(selectedFile.id) && (
-                          <img
-                            src={outputUrls.get(selectedFile.id)!}
-                            alt="result"
-                            className="object-contain w-full h-full absolute inset-0 select-none"
-                            style={{ 
-                              transform: `scale(${zoom})`, 
-                              transformOrigin: 'center center', 
-                              clipPath: previewMode === 'split' ? `inset(0 ${100 - splitPosition}% 0 0)` : undefined,
-                              opacity: previewMode === 'after' ? 1 : previewMode === 'before' ? 0 : 1
-                            }}
-                            draggable={false}
-                          />
-                        )}
-                        {previewMode === 'after' && !outputUrls.has(selectedFile.id) && (
-                          <div className="flex items-center justify-center h-full text-gray-500 text-sm">
-                            Process to see preview
-                          </div>
-                        )}
-                      </div>
-
-                      {/* Split slider handle */}
-                      {previewMode === 'split' && outputUrls.has(selectedFile.id) && (
-                        <div className="absolute inset-0 pointer-events-none">
-                          <div className="absolute top-0 bottom-0" style={{ left: `${splitPosition}%` }}>
-                            <div className="w-1 sm:w-0.5 h-full bg-white/70 dark:bg-black/50 shadow" />
-                          </div>
-                          <input
-                            type="range"
-                            min={0}
-                            max={100}
-                            value={splitPosition}
-                            onChange={(e) => setSplitPosition(parseInt(e.target.value, 10))}
-                            className="pointer-events-auto absolute bottom-2 left-1/2 -translate-x-1/2 w-3/4 sm:w-1/2 opacity-80 touch-manipulation"
-                          />
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                  
-                  {/* Image Info - Compact */}
-                  {natural && (
-                    <div className="grid grid-cols-3 gap-2 text-xs text-gray-600 dark:text-gray-400 mt-2">
-                      <div className="text-center">
-                        <div className="font-medium">Original</div>
-                        <div>{natural.w}×{natural.h}</div>
-                      </div>
-                      <div className="text-center">
-                        <div className="font-medium">Target</div>
-                        <div>{width}×{height}</div>
-                      </div>
-                      <div className="text-center">
-                        <div className="font-medium">Size</div>
-                        <div>
-                          {Math.round(selectedFile.size / 1024)}KB
-                          {processedSizes.has(selectedFile.id) && (
-                            <> → {Math.round((processedSizes.get(selectedFile.id)!)/1024)}KB</>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-            )}
-          </div>
-
-          {/* Right: Controls */}
-          <div className="lg:col-span-1 space-y-3 sm:space-y-4 order-3 lg:order-3">
-            {/* Smart Presets - Compact */}
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm">Presets</CardTitle>
-              </CardHeader>
-              <CardContent className="pt-0">
-                <div className="grid grid-cols-2 gap-2">
-                  {SMART_PRESETS.map((preset) => (
+                    )}
                     <Button
-                      key={preset.name}
+                      onClick={() => setShowPreview(!showPreview)}
                       variant="outline"
                       size="sm"
-                      className="h-auto p-3 sm:p-2 text-xs flex flex-col items-center gap-1 touch-manipulation"
-                      onClick={() => applyPreset(preset)}
+                      className="border-gray-600"
                     >
-                      {preset.icon}
-                      <span className="font-medium leading-tight">{preset.name}</span>
-                    </Button>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Visual Dimension Controls */}
-            <Card>
-              <CardHeader className="pb-2">
-                <div className="flex items-center justify-between">
-                  <CardTitle className="text-sm">Dimensions</CardTitle>
-                  <div className="flex gap-1">
-                    <Button
-                      variant={dimensionMode === 'pixels' ? 'default' : 'outline'}
-                      size="sm"
-                      className="h-8 sm:h-6 px-3 sm:px-2 text-xs touch-manipulation"
-                      onClick={() => {
-                        setDimensionMode('pixels');
-                        const pixelDims = {
-                          width: createDimension(width, DimensionUnit.PIXEL),
-                          height: createDimension(height, DimensionUnit.PIXEL)
-                        };
-                        setCurrentDimensions(pixelDims);
-                      }}
-                    >
-                      Pixels
-                    </Button>
-                    <Button
-                      variant={dimensionMode === 'physical' ? 'default' : 'outline'}
-                      size="sm"
-                      className="h-8 sm:h-6 px-3 sm:px-2 text-xs touch-manipulation"
-                      onClick={() => {
-                        setDimensionMode('physical');
-                        // Convert current pixel dimensions to physical based on DPI
-                        const inchWidth = width / physicalDPI;
-                        const inchHeight = height / physicalDPI;
-                        const physicalDims = {
-                          width: createDimension(inchWidth, DimensionUnit.INCH),
-                          height: createDimension(inchHeight, DimensionUnit.INCH)
-                        };
-                        setCurrentDimensions(physicalDims);
-                      }}
-                    >
-                      Physical
+                      {showPreview ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                     </Button>
                   </div>
                 </div>
-              </CardHeader>
-              <CardContent className="pt-0 space-y-3">
-                {dimensionMode === 'pixels' ? (
-                  <VisualDimensionControl
-                    width={width}
-                    height={height}
-                    originalWidth={natural?.w}
-                    originalHeight={natural?.h}
-                    onWidthChange={updateWidth}
-                    onHeightChange={updateHeight}
-                    keepAspectRatio={keepAspect}
-                    onKeepAspectRatioChange={setKeepAspect}
-                  />
-                ) : (
-                  <div className="space-y-3">
-                    <DimensionPairInput
-                      value={currentDimensions}
-                      onChange={(newDims) => {
-                        setCurrentDimensions(newDims);
-                        // Convert to pixels for processing
-                        const pixelWidth = convertDimension(newDims.width, DimensionUnit.PIXEL);
-                        const pixelHeight = convertDimension(newDims.height, DimensionUnit.PIXEL);
-                        setWidth(Math.round(pixelWidth.value));
-                        setHeight(Math.round(pixelHeight.value));
-                      }}
-                      lockAspectRatio={keepAspect}
-                      onAspectRatioToggle={setKeepAspect}
-                      allowedUnits={[DimensionUnit.METER, DimensionUnit.CENTIMETER, DimensionUnit.MILLIMETER, DimensionUnit.INCH]}
-                      className=""
-                    />
-                    
-                    <div className="space-y-1">
-                      <Label className="text-xs font-medium">Print DPI</Label>
-                      <div className="flex items-center gap-2">
-                        <Input
-                          type="number"
-                          value={physicalDPI}
-                          min={72}
-                          max={600}
-                          onChange={(e) => setPhysicalDPI(parseInt(e.target.value || "300", 10))}
-                          className="h-8 w-20 text-sm"
-                          placeholder="300"
+                
+                {showPreview && (
+                  <div className="relative bg-gray-800 aspect-video flex items-center justify-center">
+                    {selectedFile.preview && (
+                      <div className="relative max-w-full max-h-full">
+                        <img
+                          src={previewMode === 'after' && outputUrls.has(selectedFile.id) 
+                            ? outputUrls.get(selectedFile.id)! 
+                            : selectedFile.preview}
+                          alt="preview"
+                          className="max-w-full max-h-full object-contain rounded-lg shadow-2xl"
                         />
-                        <span className="text-xs text-gray-500">DPI</span>
+                        {previewMode === 'split' && outputUrls.has(selectedFile.id) && (
+                          <div className="absolute inset-0 flex">
+                            <div className="flex-1 overflow-hidden rounded-l-lg">
+                              <img
+                                src={selectedFile.preview}
+                                alt="before"
+                                className="w-full h-full object-cover"
+                              />
+                            </div>
+                            <div className="flex-1 overflow-hidden rounded-r-lg">
+                              <img
+                                src={outputUrls.get(selectedFile.id)!}
+                                alt="after"
+                                className="w-full h-full object-cover"
+                              />
+                            </div>
+                          </div>
+                        )}
                       </div>
-                    </div>
-                    
-                    {/* Current dimensions display */}
-                    <div className="text-xs text-gray-500 space-y-1">
-                      <DimensionDisplay 
-                        pair={currentDimensions} 
-                        precision={1}
-                        className="justify-start"
-                      />
-                      <div>Pixels: {width} × {height}</div>
-                    </div>
+                    )}
                   </div>
                 )}
+              </div>
+              
+              {/* Image Information Cards */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <Card className="bg-gray-900/50 border-gray-700/50">
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-base text-white flex items-center gap-2">
+                      <FileImage className="w-4 h-4" />
+                      Original
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-2 text-sm">
+                    <div className="flex justify-between">
+                      <span className="text-gray-400">Size:</span>
+                      <span className="text-white font-medium">
+                        {(selectedFile.size / 1024 / 1024).toFixed(2)} MB
+                      </span>
+                    </div>
+                    {natural && (
+                      <>
+                        <div className="flex justify-between">
+                          <span className="text-gray-400">Dimensions:</span>
+                          <span className="text-white font-medium">{natural.w} × {natural.h}px</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-gray-400">Aspect Ratio:</span>
+                          <span className="text-white font-medium">{ratio.toFixed(2)}:1</span>
+                        </div>
+                      </>
+                    )}
+                    <div className="flex justify-between">
+                      <span className="text-gray-400">Format:</span>
+                      <span className="text-white font-medium">
+                        {selectedFile.type.split('/')[1].toUpperCase()}
+                      </span>
+                    </div>
+                  </CardContent>
+                </Card>
+                
+                <Card className="bg-gray-900/50 border-gray-700/50">
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-base text-white flex items-center gap-2">
+                      <Zap className="w-4 h-4" />
+                      Target
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-2 text-sm">
+                    <div className="flex justify-between">
+                      <span className="text-gray-400">Dimensions:</span>
+                      <span className="text-white font-medium">{width} × {height}px</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-400">Quality:</span>
+                      <span className="text-white font-medium">{quality}%</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-400">Format:</span>
+                      <span className="text-white font-medium">{format.toUpperCase()}</span>
+                    </div>
+                    {processedSizes.has(selectedFile.id) && (
+                      <div className="flex justify-between">
+                        <span className="text-gray-400">Est. Size:</span>
+                        <span className="text-white font-medium">
+                          {(processedSizes.get(selectedFile.id)! / 1024 / 1024).toFixed(2)} MB
+                        </span>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              </div>
+            </div>
+            
+            {/* Right Column - Controls */}
+            <div className="space-y-6">
+            {/* Dimension Controls */}
+            <Card className="bg-gray-900/50 border-gray-700/50">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-base text-white flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Maximize2 className="w-4 h-4" />
+                    Dimensions
+                  </div>
+                  <Button
+                    onClick={() => setKeepAspect(!keepAspect)}
+                    variant="outline"
+                    size="sm"
+                    className={`border-gray-600 text-xs ${
+                      keepAspect ? 'bg-blue-600 text-white border-blue-600' : 'text-gray-400'
+                    }`}
+                  >
+                    {keepAspect ? <Lock className="w-3 h-3 mr-1" /> : <Unlock className="w-3 h-3 mr-1" />}
+                    {keepAspect ? 'Locked' : 'Free'}
+                  </Button>
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {/* Current Settings Display */}
+                <div className="bg-gray-800/50 rounded-lg p-3 space-y-1 text-xs">
+                  <div className="flex justify-between">
+                    <span className="text-gray-400">Current Size:</span>
+                    <span className="text-white font-medium">{width} × {height}px</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-400">Aspect Ratio:</span>
+                    <span className="text-white font-medium">{ratio.toFixed(3)}:1</span>
+                  </div>
+                  {natural && (
+                    <div className="flex justify-between">
+                      <span className="text-gray-400">Scale Factor:</span>
+                      <span className="text-white font-medium">
+                        {((width / natural.w) * 100).toFixed(0)}%
+                      </span>
+                    </div>
+                  )}
+                </div>
+              
+              {/* Width Input */}
+              <div className="flex items-center gap-3">
+                <label className="text-sm text-gray-300 w-12">Width</label>
+                <div className="flex-1 flex items-center gap-2">
+                  <input
+                    type="number"
+                    min="1"
+                    max="8192"
+                    value={width}
+                    onChange={(e) => {
+                      const value = Math.max(1, Math.min(8192, parseInt(e.target.value) || 0));
+                      updateWidthWithAspect(value);
+                    }}
+                    onBlur={(e) => {
+                      if (!e.target.value) {
+                        e.target.value = String(width);
+                      }
+                    }}
+                    className="flex-1 bg-white text-black px-3 py-2 rounded-lg text-center"
+                  />
+                  <div className="relative">
+                    <select 
+                      className="bg-gray-700 text-white px-3 py-2 rounded-lg appearance-none pr-8"
+                      value={widthUnit}
+                      onChange={(e) => setWidthUnit(e.target.value)}
+                    >
+                      <option value="pixel">Pixel</option>
+                      <option value="cm">CM</option>
+                      <option value="inch">Inch</option>
+                      <option value="mm">MM</option>
+                      <option value="m">M</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+              
+              {/* Height Input */}
+              <div className="flex items-center gap-3">
+                <label className="text-sm text-gray-300 w-12">Height</label>
+                <div className="flex-1 flex items-center gap-2">
+                  <input
+                    type="number"
+                    min="1"
+                    max="8192"
+                    value={height}
+                    onChange={(e) => {
+                      const value = Math.max(1, Math.min(8192, parseInt(e.target.value) || 0));
+                      updateHeightWithAspect(value);
+                    }}
+                    onBlur={(e) => {
+                      if (!e.target.value) {
+                        e.target.value = String(height);
+                      }
+                    }}
+                    className="flex-1 bg-white text-black px-3 py-2 rounded-lg text-center"
+                  />
+                  <div className="relative">
+                    <select 
+                      className="bg-gray-700 text-white px-3 py-2 rounded-lg appearance-none pr-8"
+                      value={heightUnit}
+                      onChange={(e) => setHeightUnit(e.target.value)}
+                    >
+                      <option value="pixel">Pixel</option>
+                      <option value="cm">CM</option>
+                      <option value="inch">Inch</option>
+                      <option value="mm">MM</option>
+                      <option value="m">M</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+              
+              {/* Resolution Input */}
+              <div className="flex items-center gap-3">
+                <label className="text-sm text-gray-300 w-16">Resolution</label>
+                <div className="flex-1 flex items-center gap-2">
+                  <input
+                    type="number"
+                    min="72"
+                    max="600"
+                    value={physicalDPI}
+                    onChange={(e) => {
+                      const value = Math.max(72, Math.min(600, parseInt(e.target.value) || 300));
+                      setPhysicalDPI(value);
+                    }}
+                    onBlur={(e) => {
+                      if (!e.target.value) {
+                        e.target.value = String(physicalDPI);
+                      }
+                    }}
+                    className="flex-1 bg-white text-black px-3 py-2 rounded-lg text-center"
+                  />
+                  <div className="relative">
+                    <select 
+                      className="bg-gray-700 text-white px-3 py-2 rounded-lg appearance-none pr-8"
+                      value={resolutionUnit}
+                      onChange={(e) => setResolutionUnit(e.target.value)}
+                    >
+                      <option value="pixel/inch">Pixel/inch</option>
+                      <option value="pixel/cm">Pixel/cm</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+              
+              {/* Corner Radius Input */}
+              <div className="flex items-center gap-3">
+                <label className="text-sm text-gray-300 w-12">Corner</label>
+                <div className="flex-1 flex items-center gap-2">
+                  <input
+                    type="number"
+                    min="0"
+                    max="200"
+                    defaultValue={10}
+                    onBlur={(e) => {
+                      const value = Math.max(0, Math.min(200, parseInt(e.target.value) || 0));
+                      e.target.value = String(value);
+                    }}
+                    className="flex-1 bg-white text-black px-3 py-2 rounded-lg text-center"
+                  />
+                  <span className="text-gray-300 px-3">Pixel</span>
+                </div>
+              </div>
               </CardContent>
             </Card>
             
-            {/* Dimension Presets */}
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm">Quick Presets</CardTitle>
+            {/* Format & Quality */}
+            <Card className="bg-gray-900/50 border-gray-700/50">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-base text-white flex items-center gap-2">
+                  <Palette className="w-4 h-4" />
+                  Output Settings
+                </CardTitle>
               </CardHeader>
-              <CardContent className="pt-0">
-                <QuickDimensionPresets
-                  onSelect={(presetDims) => {
-                    // Convert preset to current mode
-                    let targetDims = presetDims;
-                    if (dimensionMode === 'physical' && presetDims.width.unit === DimensionUnit.PIXEL) {
-                      // Convert pixels to physical using DPI
-                      const inchWidth = presetDims.width.value / physicalDPI;
-                      const inchHeight = presetDims.height.value / physicalDPI;
-                      targetDims = {
-                        width: createDimension(inchWidth, DimensionUnit.INCH),
-                        height: createDimension(inchHeight, DimensionUnit.INCH)
-                      };
-                    } else if (dimensionMode === 'pixels' && presetDims.width.unit !== DimensionUnit.PIXEL) {
-                      targetDims = {
-                        width: convertDimension(presetDims.width, DimensionUnit.PIXEL),
-                        height: convertDimension(presetDims.height, DimensionUnit.PIXEL)
-                      };
-                    }
+              <CardContent className="space-y-4">
+                {/* Format Selection */}
+                <div className="space-y-2">
+                  <Label className="text-sm text-gray-300">Format</Label>
+                  <div className="grid grid-cols-3 gap-2">
+                    {(['jpeg', 'png', 'webp'] as const).map((fmt) => (
+                      <button
+                        key={fmt}
+                        onClick={() => setFormat(fmt)}
+                        className={`py-2 px-3 rounded-lg text-sm font-medium transition-colors ${
+                          format === fmt
+                            ? 'bg-blue-600 text-white border border-blue-600'
+                            : 'bg-gray-800 text-gray-300 border border-gray-700 hover:border-gray-600'
+                        }`}
+                      >
+                        {fmt.toUpperCase()}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                
+                {/* Quality Slider */}
+                <div className="space-y-3">
+                  <div className="flex justify-between items-center">
+                    <Label className="text-sm text-gray-300">Quality</Label>
+                    <Badge variant="outline" className="border-gray-600 text-gray-300">
+                      {quality}%
+                    </Badge>
+                  </div>
+                  <div className="px-2">
+                    <input
+                      type="range"
+                      min="1"
+                      max="100"
+                      value={quality}
+                      onChange={(e) => setQuality(parseInt(e.target.value))}
+                      className="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer slider"
+                    />
+                  </div>
+                  <div className="flex justify-between text-xs text-gray-500">
+                    <span>Smaller</span>
+                    <span>Higher Quality</span>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+            
+            {/* Advanced Settings */}
+            <Card className="bg-gray-900/50 border-gray-700/50">
+              <CardHeader className="pb-3">
+                <button
+                  onClick={() => setShowAdvanced(!showAdvanced)}
+                  className="w-full flex items-center justify-between text-base text-white hover:text-gray-300 transition-colors"
+                >
+                  <div className="flex items-center gap-2">
+                    <Sliders className="w-4 h-4" />
+                    Advanced Settings
+                  </div>
+                  {showAdvanced ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                </button>
+              </CardHeader>
+              {showAdvanced && (
+                <CardContent className="space-y-4">
+                  {/* Sharpening */}
+                  <div className="flex items-center justify-between">
+                    <Label className="text-sm text-gray-300">Enable Sharpening</Label>
+                    <button
+                      onClick={() => setEnableSharpening(!enableSharpening)}
+                      className={`w-12 h-6 rounded-full transition-colors ${
+                        enableSharpening ? 'bg-blue-600' : 'bg-gray-600'
+                      }`}
+                    >
+                      <div className={`w-5 h-5 bg-white rounded-full transition-transform ${
+                        enableSharpening ? 'translate-x-6' : 'translate-x-0.5'
+                      }`} />
+                    </button>
+                  </div>
+                  
+                  {/* Brightness */}
+                  <div className="space-y-2">
+                    <div className="flex justify-between items-center">
+                      <Label className="text-sm text-gray-300">Brightness</Label>
+                      <Badge variant="outline" className="border-gray-600 text-gray-300">
+                        {adjustBrightness.toFixed(2)}
+                      </Badge>
+                    </div>
+                    <input
+                      type="range"
+                      min="0.5"
+                      max="2"
+                      step="0.1"
+                      value={adjustBrightness}
+                      onChange={(e) => setAdjustBrightness(parseFloat(e.target.value))}
+                      className="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer slider"
+                    />
+                  </div>
+                  
+                  {/* Contrast */}
+                  <div className="space-y-2">
+                    <div className="flex justify-between items-center">
+                      <Label className="text-sm text-gray-300">Contrast</Label>
+                      <Badge variant="outline" className="border-gray-600 text-gray-300">
+                        {adjustContrast.toFixed(2)}
+                      </Badge>
+                    </div>
+                    <input
+                      type="range"
+                      min="0.5"
+                      max="2"
+                      step="0.1"
+                      value={adjustContrast}
+                      onChange={(e) => setAdjustContrast(parseFloat(e.target.value))}
+                      className="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer slider"
+                    />
+                  </div>
+                  
+                  {/* Corner Radius */}
+                  <div className="space-y-2">
+                    <div className="flex justify-between items-center">
+                      <Label className="text-sm text-gray-300">Corner Radius</Label>
+                      <Badge variant="outline" className="border-gray-600 text-gray-300">
+                        {cornerRadius}px
+                      </Badge>
+                    </div>
+                    <input
+                      type="range"
+                      min="0"
+                      max="50"
+                      value={cornerRadius}
+                      onChange={(e) => setCornerRadius(parseInt(e.target.value))}
+                      className="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer slider"
+                    />
+                  </div>
+                  
+                  {/* Reset Button */}
+                  <Button
+                    onClick={() => {
+                      setAdjustBrightness(1);
+                      setAdjustContrast(1);
+                      setCornerRadius(0);
+                      setEnableSharpening(true);
+                    }}
+                    variant="outline"
+                    size="sm"
+                    className="w-full border-gray-600 text-gray-400 hover:text-white"
+                  >
+                    <RotateCcw className="w-4 h-4 mr-2" />
+                    Reset to Defaults
+                  </Button>
+                </CardContent>
+              )}
+            </Card>
+            
+            {/* Action Buttons */}
+            <div className="space-y-3">
+              {/* Show process button only if image is not processed */}
+              {!outputUrls.has(selectedFile.id) && (
+                <Button
+                  onClick={processImage}
+                  disabled={processing}
+                  className="w-full sm:w-[90%] lg:w-full xl:w-[90%] h-[50px] mx-auto bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white rounded-xl text-sm sm:text-base font-bold transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-1 sm:gap-2 px-2 sm:px-4"
+                >
+                  {processing ? (
+                    <>
+                      <RefreshCw className="w-4 h-4 animate-spin" />
+                      <span className="hidden xs:inline sm:inline">Processing...</span>
+                      <span className="xs:hidden sm:hidden">...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Zap className="w-4 h-4" />
+                      <span className="hidden xs:inline sm:inline">Process Image</span>
+                      <span className="xs:hidden sm:hidden">Process</span>
+                    </>
+                  )}
+                </Button>
+              )}
+              
+              {/* Show download popup button when processing is complete */}
+              {outputUrls.has(selectedFile.id) && (
+                <Dialog open={formatDialogOpen} onOpenChange={setFormatDialogOpen}>
+                  <DialogTrigger asChild>
+                    <Button className="w-full sm:w-[90%] lg:w-full xl:w-[90%] h-[50px] mx-auto bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white rounded-xl text-base font-bold transition-all duration-300 animate-pulse flex items-center justify-center gap-2">
+                      <Download className="w-4 h-4" />
+                      <span>Download</span>
+                    </Button>
+                  </DialogTrigger>
+                  {/* Backdrop Overlay */}
+                  {formatDialogOpen && (
+                    <div className="fixed inset-0 z-[9998] bg-black/50 backdrop-blur-sm data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0" />
+                  )}
+                  <DialogContent className="sm:max-w-lg w-full fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 md:bottom-4 md:top-auto md:left-4 md:right-4 md:translate-x-0 md:translate-y-0 z-[9999] bg-gray-900/95 backdrop-blur-md text-white border border-gray-700 rounded-2xl md:rounded-t-2xl max-h-[90vh] md:max-h-[80vh] overflow-y-auto data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95 data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95 md:data-[state=closed]:slide-out-to-bottom md:data-[state=open]:slide-in-from-bottom md:data-[state=closed]:zoom-out-100 md:data-[state=open]:zoom-in-100">
+                    <DialogHeader className="p-6 pb-4">
+                      <DialogTitle className="text-xl font-bold text-white text-center">Download Image</DialogTitle>
+                      <DialogDescription className="text-gray-400 text-center">
+                        Your image has been processed successfully.
+                      </DialogDescription>
+                    </DialogHeader>
                     
-                    setCurrentDimensions(targetDims);
-                    const pixelWidth = convertDimension(targetDims.width, DimensionUnit.PIXEL);
-                    const pixelHeight = convertDimension(targetDims.height, DimensionUnit.PIXEL);
-                    setWidth(Math.round(pixelWidth.value));
-                    setHeight(Math.round(pixelHeight.value));
-                  }}
-                  currentUnit={dimensionMode === 'pixels' ? DimensionUnit.PIXEL : DimensionUnit.INCH}
-                  className=""
-                />
-              </CardContent>
-            </Card>
-
-            {/* Quality & Format - Compact */}
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm">Quality & Format</CardTitle>
-              </CardHeader>
-              <CardContent className="pt-0 space-y-3">
-                <div>
-                  <Label className="text-xs mb-1 block">Quality: {quality}%</Label>
-                  <Slider
-                    value={[quality]}
-                    min={1}
-                    max={100}
-                    step={1}
-                    onValueChange={(v) => setQuality(v[0])}
-                    className="w-full"
-                  />
-                </div>
-                
-                <div className="grid grid-cols-3 gap-1">
-                  <Button
-                    variant={format === "jpeg" ? "default" : "outline"}
-                    size="sm"
-                    onClick={() => setFormat("jpeg")}
-                    className="text-xs h-7"
-                  >
-                    JPEG
-                  </Button>
-                  <Button
-                    variant={format === "png" ? "default" : "outline"}
-                    size="sm"
-                    onClick={() => setFormat("png")}
-                    className="text-xs h-7"
-                  >
-                    PNG
-                  </Button>
-                  <Button
-                    variant={format === "webp" ? "default" : "outline"}
-                    size="sm"
-                    onClick={() => setFormat("webp")}
-                    className="text-xs h-7"
-                  >
-                    WebP
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Processing Actions - Compact */}
-            <Card>
-              <CardContent className="pt-4 space-y-2">
-                {/* Progress */}
-                {(processing || batchProcessing || processProgress > 0) && (
-                  <div className="space-y-1">
-                    <Progress value={processProgress} className="h-1.5" />
-                    <p className="text-xs text-gray-600 dark:text-gray-400 text-center">
-                      {progressText}
-                    </p>
+                    <div className="px-6 pb-6 space-y-6">
+                      {/* Format Selection */}
+                      <div className="space-y-3">
+                        <Label className="text-base font-medium text-gray-200">Format</Label>
+                        <div className="grid grid-cols-4 gap-3">
+                          {['jpeg', 'png', 'webp', 'svg'].map((fmt) => (
+                            <button
+                              key={fmt}
+                              onClick={() => setFormat(fmt as any)}
+                              className={`py-3 px-3 rounded-xl text-sm font-bold transition-all duration-300 ${
+                                format === fmt
+                                  ? 'bg-white text-black shadow-lg scale-105'
+                                  : 'bg-gray-800 text-gray-300 hover:bg-gray-700 hover:scale-105'
+                              }`}
+                            >
+                              {fmt.toUpperCase()}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                      
+                      {/* File Info */}
+                      <div className="bg-gray-800/50 rounded-xl p-4 space-y-2">
+                        <div className="flex justify-between items-center">
+                          <span className="text-gray-400">Original Size:</span>
+                          <span className="text-white font-medium">{Math.round(selectedFile.size / 1024)}KB</span>
+                        </div>
+                        <div className="flex justify-between items-center">
+                          <span className="text-gray-400">Dimensions:</span>
+                          <span className="text-white font-medium">{width} × {height}px</span>
+                        </div>
+                        <div className="flex justify-between items-center">
+                          <span className="text-gray-400">Format:</span>
+                          <span className="text-white font-medium">{format.toUpperCase()}</span>
+                        </div>
+                        {processedSizes.has(selectedFile.id) && (
+                          <div className="flex justify-between items-center">
+                            <span className="text-gray-400">Processed Size:</span>
+                            <span className="text-white font-medium">{Math.round(processedSizes.get(selectedFile.id)! / 1024)}KB</span>
+                          </div>
+                        )}
+                      </div>
+                      
+                      {/* Download Button */}
+                      <Button
+                        onClick={downloadSingle}
+                        className="w-full h-14 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white rounded-xl text-lg font-bold transition-all duration-300 shadow-lg hover:shadow-xl"
+                      >
+                        <Download className="w-5 h-5 mr-2" />
+                        Download Image
+                      </Button>
+                    </div>
+                  </DialogContent>
+                </Dialog>
+              )}
+              
+              {/* Batch processing button - only show if multiple files and not all processed */}
+              {files.length > 1 && outputUrls.size < files.length && (
+                <Button
+                  onClick={processBatch}
+                  disabled={batchProcessing || processing}
+                  variant="outline"
+                  className="w-full border-gray-600 text-gray-300 hover:text-white py-3 rounded-xl text-base font-medium transition-all duration-300"
+                >
+                  {batchProcessing ? (
+                    <div className="flex items-center gap-2">
+                      <RefreshCw className="w-4 h-4 animate-spin" />
+                      Processing Batch...
+                    </div>
+                  ) : (
+                    <div className="flex items-center gap-2">
+                      <PlayCircle className="w-4 h-4" />
+                      Process Remaining {files.length - outputUrls.size} Images
+                    </div>
+                  )}
+                </Button>
+              )}
+              
+              {/* Reprocess button - allow user to process again with different settings */}
+              {outputUrls.has(selectedFile.id) && (
+                <Button
+                  onClick={processImage}
+                  disabled={processing}
+                  variant="outline"
+                  className="w-full sm:w-[90%] lg:w-full xl:w-[90%] h-[50px] mx-auto border-blue-600 text-blue-400 hover:bg-blue-600 hover:text-white rounded-xl text-sm sm:text-base font-medium transition-all duration-300 flex items-center justify-center gap-1 sm:gap-2 px-2 sm:px-4"
+                >
+                  {processing ? (
+                    <>
+                      <RefreshCw className="w-4 h-4 animate-spin" />
+                      <span className="hidden sm:inline">Reprocessing...</span>
+                      <span className="sm:hidden">Reprocess...</span>
+                    </>
+                  ) : (
+                    <>
+                      <RefreshCw className="w-4 h-4" />
+                      <span className="hidden sm:inline">Reprocess</span>
+                      <span className="sm:hidden">Reprocess</span>
+                    </>
+                  )}
+                </Button>
+              )}
+            </div>
+            
+            
+            {/* Progress Bar */}
+            {(processing || batchProcessing || processProgress > 0) && (
+              <Card className="bg-gray-900/50 border-gray-700/50">
+                <CardContent className="pt-6">
+                  <div className="space-y-3">
+                    <div className="flex justify-between items-center text-sm">
+                      <span className="text-gray-300">Progress</span>
+                      <span className="text-white font-medium">{processProgress}%</span>
+                    </div>
+                    <div className="w-full bg-gray-700 rounded-full h-3">
+                      <div 
+                        className="bg-gradient-to-r from-blue-600 to-purple-600 h-3 rounded-full transition-all duration-500 relative overflow-hidden"
+                        style={{ width: `${processProgress}%` }}
+                      >
+                        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent animate-pulse" />
+                      </div>
+                    </div>
+                    {progressText && (
+                      <p className="text-sm text-gray-300 text-center font-medium">{progressText}</p>
+                    )}
                   </div>
-                )}
-                
-                {/* Single Image Actions */}
-                {selectedFile && (
-                  <div className="flex gap-1">
-                    <Button
-                      onClick={processImage}
-                      disabled={!selectedFile || processing || batchProcessing}
-                      className="flex-1 text-xs h-8"
-                      size="sm"
-                      aria-label="Process current image"
-                    >
-                      <PlayCircle className="w-3 h-3 mr-1" />
-                      Process
-                    </Button>
-                    <Button
-                      onClick={downloadSingle}
-                      disabled={!outputUrls.has(selectedFile.id)}
-                      variant="outline"
-                      size="sm"
-                      className="text-xs h-8 px-2"
-                      aria-label="Download processed image"
-                    >
-                      <Download className="w-3 h-3" />
-                    </Button>
-                  </div>
-                )}
-                
-                {/* Batch Actions */}
-                {files.length > 1 && (
-                  <div className="flex gap-1 pt-1 border-t border-gray-200 dark:border-gray-700">
-                    <Button
-                      onClick={processBatch}
-                      disabled={files.length === 0 || processing || batchProcessing}
-                      variant="secondary"
-                      size="sm"
-                      className="flex-1 text-xs h-7"
-                    >
-                      <Zap className="w-3 h-3 mr-1" />
-                      Batch ({files.length})
-                    </Button>
-                    <Button
-                      onClick={downloadAll}
-                      disabled={outputUrls.size === 0}
-                      variant="outline"
-                      size="sm"
-                      className="text-xs h-7 px-2"
-                    >
-                      <Download className="w-3 h-3" />
-                    </Button>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
+                </CardContent>
+              </Card>
+            )}
+            
+            {/* Batch Download Section - Only show when multiple files are processed */}
+            {files.length > 1 && outputUrls.size > 1 && (
+              <div className="space-y-3">
+                <Button
+                  onClick={downloadAll}
+                  variant="outline"
+                  className="w-full border-green-600 text-green-400 hover:bg-green-600 hover:text-white py-3 rounded-xl text-base font-medium transition-all duration-300"
+                >
+                  <Download className="w-4 h-4 mr-2" />
+                  Download All Processed ({outputUrls.size})
+                </Button>
+              </div>
+            )}
+            </div>
           </div>
-        </div>
+        )}
       </div>
-    </FeaturePageLayout>
+      
+      <style jsx>{`
+        .slider::-webkit-slider-thumb {
+          appearance: none;
+          height: 20px;
+          width: 20px;
+          border-radius: 50%;
+          background: white;
+          cursor: pointer;
+          border: 2px solid #000;
+        }
+        
+        .slider::-moz-range-thumb {
+          height: 20px;
+          width: 20px;
+          border-radius: 50%;
+          background: white;
+          cursor: pointer;
+          border: 2px solid #000;
+        }
+      `}</style>
+    </div>
   );
 }

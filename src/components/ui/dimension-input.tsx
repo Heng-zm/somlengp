@@ -46,6 +46,7 @@ export function DimensionInput({
 }: DimensionInputProps) {
   const [inputValue, setInputValue] = useState(value.value.toString());
   const [isValid, setIsValid] = useState(true);
+  const [isFocused, setIsFocused] = useState(false);
 
   // Update input when value prop changes
   useEffect(() => {
@@ -84,47 +85,93 @@ export function DimensionInput({
   }, [onChange, allowedUnits]);
 
   return (
-    <div className={`space-y-2 ${className}`}>
+    <div className={`space-y-3 ${className}`}>
       {label && (
-        <Label className="text-sm font-medium">{label}</Label>
+        <Label className="text-sm font-semibold text-gray-700 dark:text-gray-300 flex items-center gap-2">
+          <div className="w-1.5 h-1.5 bg-gradient-to-r from-indigo-500 to-purple-500 rounded-full" />
+          {label}
+        </Label>
       )}
-      <div className="flex gap-2">
-        <Input
-          type="number"
-          value={inputValue}
-          onChange={(e) => handleValueChange(e.target.value)}
-          onBlur={(e) => {
-            // Try to parse as dimension string if it doesn't parse as number
-            if (isNaN(parseFloat(e.target.value))) {
-              handleParsedInput(e.target.value);
-            }
-          }}
-          placeholder={placeholder}
-          disabled={disabled}
-          min={min}
-          max={max}
-          step="any"
-          className={`flex-1 ${!isValid ? 'border-red-500' : ''}`}
-        />
+      <div className="relative flex gap-2">
+        <div className="relative flex-1">
+          <Input
+            type="number"
+            value={inputValue}
+            onChange={(e) => handleValueChange(e.target.value)}
+            onFocus={() => setIsFocused(true)}
+            onBlur={(e) => {
+              setIsFocused(false);
+              // Try to parse as dimension string if it doesn't parse as number
+              if (isNaN(parseFloat(e.target.value))) {
+                handleParsedInput(e.target.value);
+              }
+            }}
+            placeholder={placeholder}
+            disabled={disabled}
+            min={min}
+            max={max}
+            step="any"
+            className={`h-11 pl-4 pr-3 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border-2 rounded-xl transition-all duration-300 focus:scale-105 ${
+              !isValid 
+                ? 'border-red-400 dark:border-red-500 bg-red-50/50 dark:bg-red-900/20 shadow-red-100 dark:shadow-red-900/20 shadow-lg animate-shake' 
+                : isFocused
+                ? 'border-indigo-400 dark:border-indigo-400 bg-indigo-50/30 dark:bg-indigo-900/20 shadow-indigo-100 dark:shadow-indigo-900/20 shadow-lg'
+                : 'border-gray-200 dark:border-gray-600 hover:border-indigo-300 dark:hover:border-indigo-500 shadow-sm hover:shadow-md'
+            } ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}
+          />
+          {/* Value indicator */}
+          {isValid && inputValue && (
+            <div className="absolute right-3 top-1/2 -translate-y-1/2">
+              <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
+            </div>
+          )}
+        </div>
+        
         {showUnitSelector && (
-          <Select value={value.unit} onValueChange={handleUnitChange} disabled={disabled}>
-            <SelectTrigger className="w-20">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {allowedUnits.map(unit => (
-                <SelectItem key={unit} value={unit}>
-                  {getUnitSymbol(unit)}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          <div className="relative">
+            <Select value={value.unit} onValueChange={handleUnitChange} disabled={disabled}>
+              <SelectTrigger className={`w-24 h-11 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border-2 rounded-xl transition-all duration-300 ${
+                disabled 
+                  ? 'opacity-50 cursor-not-allowed border-gray-200 dark:border-gray-600' 
+                  : 'border-gray-200 dark:border-gray-600 hover:border-indigo-300 dark:hover:border-indigo-500 hover:shadow-md focus:border-indigo-400 dark:focus:border-indigo-400 focus:shadow-lg'
+              }`}>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent className="bg-white/95 dark:bg-gray-800/95 backdrop-blur-sm border border-gray-200/50 dark:border-gray-700/50 rounded-xl shadow-xl">
+                {allowedUnits.map(unit => (
+                  <SelectItem 
+                    key={unit} 
+                    value={unit}
+                    className="hover:bg-indigo-50/80 dark:hover:bg-indigo-900/30 transition-colors duration-200"
+                  >
+                    <div className="flex items-center gap-2">
+                      <span className="font-medium">{getUnitSymbol(unit)}</span>
+                      <span className="text-xs text-gray-500 dark:text-gray-400">{getUnitName(unit)}</span>
+                    </div>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
         )}
       </div>
+      
+      {/* Enhanced validation message */}
       {!isValid && (
-        <p className="text-xs text-red-500">
-          Invalid dimension value
-        </p>
+        <div className="flex items-center gap-2 p-2 bg-red-50/80 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
+          <div className="w-1.5 h-1.5 bg-red-500 rounded-full animate-pulse" />
+          <p className="text-xs text-red-700 dark:text-red-400 font-medium">
+            Please enter a valid value between {min} and {max}
+          </p>
+        </div>
+      )}
+      
+      {/* Success indicator */}
+      {isValid && inputValue && parseFloat(inputValue) > 0 && (
+        <div className="flex items-center gap-2 text-xs text-green-600 dark:text-green-400">
+          <div className="w-1.5 h-1.5 bg-green-500 rounded-full" />
+          <span className="font-medium">Valid {getUnitName(value.unit)} value</span>
+        </div>
       )}
     </div>
   );
