@@ -91,6 +91,7 @@ export default function ImageResizePage() {
   const [showAdvanced, setShowAdvanced] = useState<boolean>(false);
   const [showPreview, setShowPreview] = useState<boolean>(true);
   const [cornerRadius, setCornerRadius] = useState<number>(0);
+  const [cornerRadiusUnit, setCornerRadiusUnit] = useState<string>('pixel');
   const [fullScreenPreview, setFullScreenPreview] = useState<boolean>(false);
   const [showCropModal, setShowCropModal] = useState<boolean>(false);
   const [cropAspectRatio, setCropAspectRatio] = useState<string>('free');
@@ -109,9 +110,11 @@ export default function ImageResizePage() {
   // Input validation states
   const [widthError, setWidthError] = useState<string>('');
   const [heightError, setHeightError] = useState<string>('');
+  const [cornerRadiusError, setCornerRadiusError] = useState<string>('');
   
-  // Debouncing refs for performance
+  // Debouncing and throttling refs for performance
   const debounceTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const lastValidationValuesRef = useRef<{width: number, height: number, cornerRadius: number}>({ width: 0, height: 0, cornerRadius: 0 });
   
   // Dimension presets
   const dimensionPresets = [
@@ -233,56 +236,70 @@ export default function ImageResizePage() {
     return Math.round((width / natural.w) * 100);
   }, [natural, width]);
   
-  // Unit conversion functions
-  const convertFromPixels = useCallback((pixels: number, unit: string, dpi: number = physicalDPI) => {
-    switch (unit) {
-      case 'cm':
-        return (pixels / dpi) * 2.54;
-      case 'inch':
-        return pixels / dpi;
-      case 'mm':
-        return ((pixels / dpi) * 2.54) * 10;
-      case 'm':
-        return ((pixels / dpi) * 2.54) / 100;
-      default:
-        return pixels;
-    }
-  }, [physicalDPI]);
+  // Optimized unit conversion with memoized conversion factors
+  const conversionFactors = useMemo(() => ({
+    cm: { fromPixels: 2.54 / physicalDPI, toPixels: physicalDPI / 2.54 },
+    inch: { fromPixels: 1 / physicalDPI, toPixels: physicalDPI },
+    mm: { fromPixels: 25.4 / physicalDPI, toPixels: physicalDPI / 25.4 },
+    m: { fromPixels: 0.0254 / physicalDPI, toPixels: physicalDPI / 0.0254 },
+    pixel: { fromPixels: 1, toPixels: 1 }
+  }), [physicalDPI]);
   
-  const convertToPixels = useCallback((value: number, unit: string, dpi: number = physicalDPI) => {
+  const convertFromPixels = useCallback((pixels: number, unit: string) => {
+    const factor = conversionFactors[unit as keyof typeof conversionFactors];
+    return factor ? pixels * factor.fromPixels : pixels;
+  }, [conversionFactors]);
+  
+  const convertToPixels = useCallback((value: number, unit: string) => {
     if (!isFinite(value) || value < 0) return 1;
-    
-    switch (unit) {
-      case 'cm':
-        return Math.round((value * dpi) / 2.54);
-      case 'inch':
-        return Math.round(value * dpi);
-      case 'mm':
-        return Math.round((value * dpi) / 25.4);
-      case 'm':
-        return Math.round((value * dpi * 100) / 2.54);
-      default:
-        return Math.round(value);
-    }
-  }, [physicalDPI]);
+    const factor = conversionFactors[unit as keyof typeof conversionFactors];
+    return Math.round(factor ? value * factor.toPixels : value);
+  }, [conversionFactors]);
   
-  // Display converted dimensions
+  // Optimized display values with smart formatting (avoid unnecessary toFixed calls)
   const displayWidth = useMemo(() => {
     if (widthUnit === 'pixel') return width;
-    return convertFromPixels(width, widthUnit).toFixed(2);
+    const converted = convertFromPixels(width, widthUnit);
+    // Only use decimal places if needed
+    return converted % 1 === 0 ? converted.toString() : converted.toFixed(2);
   }, [width, widthUnit, convertFromPixels]);
   
   const displayHeight = useMemo(() => {
     if (heightUnit === 'pixel') return height;
-    return convertFromPixels(height, heightUnit).toFixed(2);
+    const converted = convertFromPixels(height, heightUnit);
+    return converted % 1 === 0 ? converted.toString() : converted.toFixed(2);
   }, [height, heightUnit, convertFromPixels]);
   
-  // Apply dimension preset
+  const displayCornerRadius = useMemo(() => {
+    if (cornerRadiusUnit === 'pixel') return cornerRadius;
+    const converted = convertFromPixels(cornerRadius, cornerRadiusUnit);
+    return converted % 1 === 0 ? converted.toString() : converted.toFixed(2);
+  }, [cornerRadius, cornerRadiusUnit, convertFromPixels]);
+  
+  // Smart preset suggestions based on current image aspect ratio
+  const suggestedPresets = useMemo(() => {
+    if (!natural || !ratio) return dimensionPresets;
+    
+    // Sort presets by how close they match the current aspect ratio
+    return [...dimensionPresets].sort((a, b) => {
+      const aRatio = a.width / a.height;
+      const bRatio = b.width / b.height;
+      const aDiff = Math.abs(aRatio - ratio);
+      const bDiff = Math.abs(bRatio - ratio);
+      return aDiff - bDiff;
+    });
+  }, [dimensionPresets, natural, ratio]);
+  
+  // Optimized preset application with immediate feedback
   const applyPreset = useCallback((preset: { name: string; width: number; height: number }) => {
     setWidth(preset.width);
     setHeight(preset.height);
     setWidthError('');
     setHeightError('');
+    
+    // Reset validation cache for new values
+    lastValidationValuesRef.current.width = preset.width;
+    lastValidationValuesRef.current.height = preset.height;
   }, []);
 
   // Helper function to calculate dimensions with better precision
@@ -290,7 +307,7 @@ export default function ImageResizePage() {
     // Validate inputs
     if (!isFinite(baseValue) || baseValue <= 0) {
       console.warn('Invalid baseValue for dimension calculation:', baseValue);
-      return Math.max(1, Math.min(8192, Math.round(baseValue) || 1));
+    return Math.max(1, Math.min(32768, Math.round(baseValue) || 1));
     }
     
     if (!isFinite(targetRatio) || targetRatio <= 0) {
@@ -314,7 +331,7 @@ export default function ImageResizePage() {
     }
     
     // Ensure result is within valid bounds
-    return Math.max(1, Math.min(8192, result));
+    return Math.max(1, Math.min(32768, result));
   }, []);
 
   // Generate unique ID for files
@@ -579,40 +596,54 @@ export default function ImageResizePage() {
     setHeight(val);
   }, []);
 
-  // Debounced dimension update function for performance
+  // Optimized debounced dimension update with adaptive timing
   const debouncedDimensionUpdate = useCallback((width: number, height: number, updateAspect: boolean = false) => {
     if (debounceTimeoutRef.current) {
       clearTimeout(debounceTimeoutRef.current);
     }
     
-    debounceTimeoutRef.current = setTimeout(() => {
-      if (updateAspect && keepAspect && natural && ratio > 0 && isFinite(ratio)) {
-        const newHeight = calculateDimensions(width, ratio, true);
-        setHeight(newHeight);
-      }
-    }, 150); // 150ms debounce
-  }, [keepAspect, natural, ratio, calculateDimensions]);
-  
-  // Get unit limits for validation
-  const getUnitLimits = useCallback((unit: string) => {
-    const pixelMin = 1, pixelMax = 8192;
-    if (unit === 'pixel') {
-      return { min: pixelMin, max: pixelMax, minDisplay: '1px', maxDisplay: '8192px' };
+    // Skip debounce if aspect ratio is not locked or conditions aren't met
+    if (!updateAspect || !keepAspect || !natural || !ratio || !isFinite(ratio) || ratio <= 0) {
+      return;
     }
     
-    const minConverted = convertFromPixels(pixelMin, unit);
-    const maxConverted = convertFromPixels(pixelMax, unit);
-    const unitLabel = unit === 'pixel' ? 'px' : unit;
-    
-    return {
-      min: minConverted,
-      max: maxConverted,
-      minDisplay: `${minConverted.toFixed(2)}${unitLabel}`,
-      maxDisplay: `${maxConverted.toFixed(2)}${unitLabel}`
+    // Use shorter debounce for better responsiveness
+    debounceTimeoutRef.current = setTimeout(() => {
+      const newHeight = calculateDimensions(width, ratio, true);
+      // Only update if the value actually changed to avoid unnecessary re-renders
+      if (newHeight !== height) {
+        setHeight(newHeight);
+      }
+    }, 100); // Reduced from 150ms to 100ms
+  }, [keepAspect, natural, ratio, calculateDimensions, height]);
+  
+  // Memoized unit limits for optimal performance
+  const unitLimitsCache = useMemo(() => {
+    const pixelMin = 1, pixelMax = 32768;
+    const cache: Record<string, any> = {
+      pixel: { min: pixelMin, max: pixelMax, minDisplay: '1px', maxDisplay: '32768px' }
     };
+    
+    // Pre-calculate limits for all units
+    ['cm', 'inch', 'mm', 'm'].forEach(unit => {
+      const minConverted = convertFromPixels(pixelMin, unit);
+      const maxConverted = convertFromPixels(pixelMax, unit);
+      cache[unit] = {
+        min: minConverted,
+        max: maxConverted,
+        minDisplay: `${minConverted.toFixed(2)}${unit}`,
+        maxDisplay: `${maxConverted.toFixed(2)}${unit}`
+      };
+    });
+    
+    return cache;
   }, [convertFromPixels]);
   
-  // Separate handlers for direct input changes that need aspect ratio logic
+  const getUnitLimits = useCallback((unit: string) => {
+    return unitLimitsCache[unit] || unitLimitsCache.pixel;
+  }, [unitLimitsCache]);
+  
+  // Optimized handlers with validation throttling
   const updateWidthWithAspect = useCallback((val: number) => {
     const inputValue = Number(val) || 0;
     let pixelValue: number;
@@ -625,18 +656,22 @@ export default function ImageResizePage() {
     }
     
     // Validate and sanitize pixel value
-    const sanitizedWidth = Math.max(1, Math.min(8192, Math.round(pixelValue)));
+    const sanitizedWidth = Math.max(1, Math.min(32768, Math.round(pixelValue)));
     
-    // Get unit-specific limits for validation
-    const limits = getUnitLimits(widthUnit);
-    
-    // Validate input range in the selected unit
-    if (inputValue < limits.min || inputValue > limits.max) {
-      setWidthError(inputValue < limits.min 
-        ? `Width must be at least ${limits.minDisplay}` 
-        : `Width cannot exceed ${limits.maxDisplay}`);
-    } else {
-      setWidthError('');
+    // Only run validation if the value actually changed
+    if (lastValidationValuesRef.current.width !== sanitizedWidth) {
+      const limits = getUnitLimits(widthUnit);
+      
+      // Validate input range in the selected unit
+      if (inputValue < limits.min || inputValue > limits.max) {
+        setWidthError(inputValue < limits.min 
+          ? `Width must be at least ${limits.minDisplay}` 
+          : `Width cannot exceed ${limits.maxDisplay}`);
+      } else {
+        setWidthError('');
+      }
+      
+      lastValidationValuesRef.current.width = sanitizedWidth;
     }
     
     setWidth(sanitizedWidth);
@@ -658,18 +693,22 @@ export default function ImageResizePage() {
     }
     
     // Validate and sanitize pixel value
-    const sanitizedHeight = Math.max(1, Math.min(8192, Math.round(pixelValue)));
+    const sanitizedHeight = Math.max(1, Math.min(32768, Math.round(pixelValue)));
     
-    // Get unit-specific limits for validation
-    const limits = getUnitLimits(heightUnit);
-    
-    // Validate input range in the selected unit
-    if (inputValue < limits.min || inputValue > limits.max) {
-      setHeightError(inputValue < limits.min 
-        ? `Height must be at least ${limits.minDisplay}` 
-        : `Height cannot exceed ${limits.maxDisplay}`);
-    } else {
-      setHeightError('');
+    // Only run validation if the value actually changed
+    if (lastValidationValuesRef.current.height !== sanitizedHeight) {
+      const limits = getUnitLimits(heightUnit);
+      
+      // Validate input range in the selected unit
+      if (inputValue < limits.min || inputValue > limits.max) {
+        setHeightError(inputValue < limits.min 
+          ? `Height must be at least ${limits.minDisplay}` 
+          : `Height cannot exceed ${limits.maxDisplay}`);
+      } else {
+        setHeightError('');
+      }
+      
+      lastValidationValuesRef.current.height = sanitizedHeight;
     }
     
     setHeight(sanitizedHeight);
@@ -677,9 +716,40 @@ export default function ImageResizePage() {
     if (keepAspect && natural && ratio > 0 && isFinite(ratio)) {
       // Use immediate update for height-to-width calculation as it's less frequent
       const newWidth = calculateDimensions(sanitizedHeight, ratio, false);
-      setWidth(newWidth);
+      if (newWidth !== width) {
+        setWidth(newWidth);
+      }
     }
-  }, [keepAspect, natural, ratio, calculateDimensions, heightUnit, convertToPixels, getUnitLimits]);
+  }, [keepAspect, natural, ratio, calculateDimensions, heightUnit, convertToPixels, getUnitLimits, width]);
+  
+  const updateCornerRadiusWithUnit = useCallback((val: number) => {
+    const inputValue = Number(val) || 0;
+    let pixelValue: number;
+    
+    // Convert input value to pixels if not already in pixels
+    if (cornerRadiusUnit === 'pixel') {
+      pixelValue = inputValue;
+    } else {
+      pixelValue = convertToPixels(inputValue, cornerRadiusUnit);
+    }
+    
+    // Get unit-specific limits for validation (corner radius has no upper limit in practice)
+    const limits = getUnitLimits(cornerRadiusUnit);
+    
+    // Validate input range in the selected unit (corner radius should be >= 0)
+    if (inputValue < 0) {
+      setCornerRadiusError('Corner radius cannot be negative');
+    } else if (inputValue > limits.max) {
+      setCornerRadiusError(`Corner radius cannot exceed ${limits.maxDisplay}`);
+    } else {
+      setCornerRadiusError('');
+    }
+    
+    // Validate and sanitize pixel value for corner radius (non-negative)
+    const sanitizedCornerRadius = Math.max(0, Math.round(pixelValue));
+    
+    setCornerRadius(sanitizedCornerRadius);
+  }, [cornerRadiusUnit, convertToPixels, getUnitLimits]);
   
   // Keyboard shortcuts
   useEffect(() => {
@@ -724,6 +794,40 @@ export default function ImageResizePage() {
           if (showCropModal) {
             event.preventDefault();
             setShowCropModal(false);
+          }
+          break;
+        case 'arrowup':
+        case 'arrowdown':
+          // Arrow key increment/decrement for dimension inputs when they're focused
+          if (event.target instanceof HTMLInputElement && event.target.type === 'number') {
+            event.preventDefault();
+            const step = event.shiftKey ? 10 : 1;
+            const increment = event.key === 'arrowup' ? step : -step;
+            const currentValue = parseFloat(event.target.value) || 0;
+            const newValue = Math.max(0, currentValue + increment);
+            
+            // Trigger the appropriate update handler based on input context
+            if (event.target.getAttribute('aria-label')?.includes('width')) {
+              updateWidthWithAspect(newValue);
+            } else if (event.target.getAttribute('aria-label')?.includes('height')) {
+              updateHeightWithAspect(newValue);
+            }
+            
+            event.target.value = newValue.toString();
+          }
+          break;
+        case 'p':
+          if (event.ctrlKey || event.metaKey) {
+            event.preventDefault();
+            // Quick cycle through common presets
+            const commonPresets = ['HD', 'Full HD', '4K', 'Instagram Square'];
+            const currentPreset = dimensionPresets.find(p => p.width === width && p.height === height);
+            const currentIndex = currentPreset ? commonPresets.indexOf(currentPreset.name) : -1;
+            const nextIndex = (currentIndex + 1) % commonPresets.length;
+            const nextPreset = dimensionPresets.find(p => p.name === commonPresets[nextIndex]);
+            if (nextPreset) {
+              applyPreset(nextPreset);
+            }
           }
           break;
       }
@@ -1072,8 +1176,8 @@ export default function ImageResizePage() {
       // Add timeout for processing
       const processingPromise = workerManager.processImage(
         selectedFile,
-        Math.max(1, Math.min(8192, width)),
-        Math.max(1, Math.min(8192, height)),
+        Math.max(1, Math.min(32768, width)),
+        Math.max(1, Math.min(32768, height)),
         Math.max(1, Math.min(100, quality)),
         format,
         {
@@ -1179,8 +1283,8 @@ export default function ImageResizePage() {
     try {
       const batchConfig = files.map(file => ({
         file,
-        width: Math.max(1, Math.min(8192, width)),
-        height: Math.max(1, Math.min(8192, height)),
+        width: Math.max(1, Math.min(32768, width)),
+        height: Math.max(1, Math.min(32768, height)),
         quality,
         format,
         options: {
@@ -1426,7 +1530,7 @@ export default function ImageResizePage() {
                       ))}
                     </div>
                     <p className="text-sm text-gray-500 mt-2">
-                      Maximum file size: 50MB per image
+                      Maximum file size: 50MB per image • Professional dimensions up to 32,768px supported
                     </p>
                   </div>
                 </div>
@@ -1893,7 +1997,7 @@ export default function ImageResizePage() {
                   value=""
                   onChange={(e) => {
                     if (e.target.value) {
-                      const preset = dimensionPresets.find(p => p.name === e.target.value);
+                      const preset = suggestedPresets.find(p => p.name === e.target.value);
                       if (preset) {
                         applyPreset(preset);
                         e.target.value = ''; // Reset dropdown
@@ -1901,12 +2005,18 @@ export default function ImageResizePage() {
                     }
                   }}
                 >
-                  <option value="" disabled>Choose a preset...</option>
-                  {dimensionPresets.map((preset) => (
-                    <option key={preset.name} value={preset.name}>
-                      {preset.name} ({preset.width}×{preset.height})
-                    </option>
-                  ))}
+                  <option value="" disabled>
+                    {natural ? 'Smart suggestions (best match first)...' : 'Choose a preset...'}
+                  </option>
+                  {suggestedPresets.map((preset, index) => {
+                    const presetRatio = preset.width / preset.height;
+                    const matchIndicator = natural && Math.abs(presetRatio - ratio) < 0.1 ? ' ⭐' : '';
+                    return (
+                      <option key={preset.name} value={preset.name}>
+                        {preset.name} ({preset.width}×{preset.height}){matchIndicator}
+                      </option>
+                    );
+                  })}
                 </select>
               </div>
               
@@ -2070,11 +2180,11 @@ export default function ImageResizePage() {
                 <div className="flex-1 flex items-center gap-2">
                   <input
                     type="number"
-                    min="72"
-                    max="600"
+                    min="1"
+                    max="3000"
                     value={physicalDPI}
                     onChange={(e) => {
-                      const value = Math.max(72, Math.min(600, parseInt(e.target.value) || 300));
+                      const value = Math.max(1, Math.min(3000, parseInt(e.target.value) || 300));
                       setPhysicalDPI(value);
                     }}
                     onBlur={(e) => {
@@ -2101,24 +2211,74 @@ export default function ImageResizePage() {
               {/* Corner Radius Input */}
               <div className="flex items-center gap-3">
                 <label className="text-sm text-gray-700 w-12">Corner</label>
-                <div className="flex-1 flex items-center gap-2">
-                  <input
-                    type="number"
-                    min="0"
-                    max="200"
-                    value={cornerRadius}
-                    onChange={(e) => {
-                      const value = Math.max(0, Math.min(200, parseInt(e.target.value) || 0));
-                      setCornerRadius(value);
-                    }}
-                    onBlur={(e) => {
-                      if (!e.target.value) {
-                        e.target.value = String(cornerRadius);
-                      }
-                    }}
-                    className="flex-1 bg-white border border-gray-300 text-black px-3 py-2 rounded-lg text-center transition-all duration-200 focus:border-black focus:outline-none focus:ring-2 focus:ring-black/20 hover:border-gray-400"
-                  />
-                  <span className="text-gray-700 px-3">Pixel</span>
+                <div className="flex-1 space-y-1">
+                  <div className="flex items-center gap-2">
+                    <div className="flex-1 relative">
+                      <input
+                        type="number"
+                        min="0"
+                        step={cornerRadiusUnit === 'pixel' ? '1' : '0.01'}
+                        value={cornerRadiusUnit === 'pixel' ? cornerRadius : displayCornerRadius}
+                        onChange={(e) => {
+                          const value = parseFloat(e.target.value) || 0;
+                          updateCornerRadiusWithUnit(value);
+                        }}
+                        onBlur={(e) => {
+                          if (!e.target.value) {
+                            e.target.value = cornerRadiusUnit === 'pixel' ? String(cornerRadius) : String(displayCornerRadius);
+                          }
+                        }}
+                        className={`w-full bg-white border text-black px-3 py-2 rounded-lg text-center transition-all duration-200 focus:outline-none focus:ring-2 ${
+                          cornerRadiusError 
+                            ? 'border-red-500 focus:border-red-600 focus:ring-red-200 bg-red-50 animate-pulse' 
+                            : 'border-gray-300 focus:border-black focus:ring-black/20 hover:border-gray-400'
+                        }`}
+                        aria-describedby={cornerRadiusError ? 'corner-radius-error' : 'corner-radius-help'}
+                        aria-label={`Corner radius in ${cornerRadiusUnit === 'pixel' ? 'pixels' : cornerRadiusUnit}`}
+                        aria-invalid={cornerRadiusError ? 'true' : 'false'}
+                      />
+                      {/* Success indicator */}
+                      {!cornerRadiusError && cornerRadius >= 0 && (
+                        <div className="absolute right-2 top-1/2 transform -translate-y-1/2 w-2 h-2 bg-green-500 rounded-full animate-pulse" />
+                      )}
+                      {/* Error indicator */}
+                      {cornerRadiusError && (
+                        <div className="absolute right-2 top-1/2 transform -translate-y-1/2 w-2 h-2 bg-red-500 rounded-full animate-bounce" />
+                      )}
+                    </div>
+                    <div className="relative">
+                      <select 
+                        className={`bg-gray-100 border text-black px-3 py-2 rounded-lg appearance-none pr-8 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-black/20 ${
+                          cornerRadiusError ? 'border-red-300' : 'border-gray-300 focus:border-black hover:border-gray-400'
+                        }`}
+                        value={cornerRadiusUnit}
+                        onChange={(e) => {
+                          const newUnit = e.target.value;
+                          setCornerRadiusUnit(newUnit);
+                          // Clear errors when unit changes
+                          setCornerRadiusError('');
+                        }}
+                      >
+                        <option value="pixel">Pixel</option>
+                        <option value="cm">CM</option>
+                        <option value="inch">Inch</option>
+                        <option value="mm">MM</option>
+                        <option value="m">M</option>
+                      </select>
+                    </div>
+                  </div>
+                  {cornerRadiusError ? (
+                    <div className="bg-red-50 border border-red-200 rounded-lg p-2 mt-2 animate-fade-in-up">
+                      <p id="corner-radius-error" className="text-xs text-red-600 font-medium flex items-center gap-1" role="alert">
+                        <span className="w-3 h-3 text-red-500">⚠️</span>
+                        {cornerRadiusError}
+                      </p>
+                    </div>
+                  ) : (
+                    <p id="corner-radius-help" className="text-xs text-gray-500 mt-1">
+                      Min: 0{cornerRadiusUnit === 'pixel' ? 'px' : cornerRadiusUnit}, Max: {getUnitLimits(cornerRadiusUnit).maxDisplay}
+                    </p>
+                  )}
                 </div>
               </div>
               </CardContent>
@@ -2137,9 +2297,21 @@ export default function ImageResizePage() {
                 <div className="space-y-3">
                   <div className="flex justify-between items-center">
                     <Label className="text-sm text-gray-700">Quality</Label>
-                    <Badge variant="outline" className="border-gray-300 text-gray-700 bg-white">
-                      {quality}%
-                    </Badge>
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="number"
+                        min="1"
+                        max="100"
+                        value={quality}
+                        onChange={(e) => {
+                          const value = Math.max(1, Math.min(100, parseInt(e.target.value) || 90));
+                          setQuality(value);
+                        }}
+                        className="w-14 bg-white border border-gray-300 text-black px-2 py-1 rounded text-center text-xs transition-all duration-200 focus:border-black focus:outline-none focus:ring-2 focus:ring-black/20 hover:border-gray-400"
+                        aria-label="Quality percentage"
+                      />
+                      <span className="text-gray-700 text-xs">%</span>
+                    </div>
                   </div>
                   <div className="px-2">
                     <input
@@ -2218,7 +2390,7 @@ export default function ImageResizePage() {
                     <div className="flex justify-between items-center">
                       <Label className="text-sm text-gray-700">Corner Radius</Label>
                       <Badge variant="outline" className="border-gray-300 text-gray-700 bg-white">
-                        {cornerRadius}px
+                        {cornerRadiusUnit === 'pixel' ? cornerRadius : displayCornerRadius}{cornerRadiusUnit === 'pixel' ? 'px' : cornerRadiusUnit}
                       </Badge>
                     </div>
                     <input
