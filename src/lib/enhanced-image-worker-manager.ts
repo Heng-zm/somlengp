@@ -1,610 +1,297 @@
+// Enhanced Image Worker Manager with progressive loading, better caching and performance
 'use client';
 
-import { getImageWorkerManager, type BatchProcessingProgress } from './image-worker-manager';
+import { ImageWorkerManager, ProcessingTask, ProcessingResult } from './image-worker-manager';
 
-// Enhanced types for better performance tracking
-export interface ProcessingOptions {
-  enableSharpening?: boolean;
-  adjustBrightness?: number;
-  adjustContrast?: number;
-  stripMetadata?: boolean;
-  priority?: 'low' | 'normal' | 'high';
-  maxRetries?: number;
-  timeout?: number;
+interface DimensionCacheEntry {
+  w: number;
+  h: number;
+  timestamp: number;
+  priority: number; // Higher = more likely to be kept in cache
 }
 
-export interface ProcessingResult {
-  success: boolean;
-  data?: ArrayBuffer;
-  size?: number;
-  format?: string;
+interface ProgressiveImageResult {
+  preview?: string; // Low quality preview (blur-up)
+  thumbnail?: string; // Thumbnail for listing
+  fullImage?: string; // Full quality image
   dimensions?: { width: number; height: number };
   error?: string;
-  originalName?: string;
-  processingTime?: number;
-  memoryUsage?: number;
-  compressionRatio?: number;
 }
 
-export interface ProcessingTask {
-  id: string;
-  type: 'process' | 'batch' | 'thumbnail';
-  data: any;
-  resolve: (result: any) => void;
-  reject: (error: any) => void;
-  onProgress?: (progress: number) => void;
-  priority?: 'low' | 'normal' | 'high';
-  createdAt: number;
-  retries: number;
-  maxRetries: number;
-  timeout: number;
-}
-
-export interface MemoryStatus {
-  usedJSHeapSize: number;
-  totalJSHeapSize: number;
-  jsHeapSizeLimit: number;
-  usagePercentage: number;
-  isHighPressure: boolean;
-  availableMemory: number;
-}
-
-export interface PerformanceMetrics {
-  totalProcessed: number;
-  totalFailed: number;
-  averageProcessingTime: number;
-  totalMemoryUsed: number;
-  cacheHitRate: number;
-  compressionEfficiency: number;
-  queueSize: number;
-  activeTasks: number;
-}
-
-class EnhancedImageWorkerManager {
-  private baseManager = getImageWorkerManager();
-  private processingQueue: ProcessingTask[] = [];
-  private activeTasks = new Map<string, ProcessingTask>();
-  private processedCache = new Map<string, { result: ProcessingResult; timestamp: number; size: number }>();
-  private performanceMetrics: PerformanceMetrics = {
+export class EnhancedImageWorkerManager extends ImageWorkerManager {
+  private dimensionCache = new Map<string, DimensionCacheEntry>();
+  private progressiveCache = new Map<string, ProgressiveImageResult>();
+  private maxCacheSize = 100;
+  private cleanupInterval: NodeJS.Timeout | null = null;
+  
+  // Enhanced performance tracking
+  private performanceStats = {
     totalProcessed: 0,
-    totalFailed: 0,
     averageProcessingTime: 0,
-    totalMemoryUsed: 0,
-    cacheHitRate: 0,
-    compressionEfficiency: 0,
-    queueSize: 0,
-    activeTasks: 0
+    cacheHitRate: 0
   };
-
-  private readonly maxCacheSize = 50 * 1024 * 1024; // 50MB cache limit
-  private readonly maxCacheItems = 100;
-  private readonly cacheExpiryTime = 30 * 60 * 1000; // 30 minutes
-  private readonly maxConcurrentTasks = navigator.hardwareConcurrency || 4;
-  private readonly memoryCheckInterval = 5000; // 5 seconds
-  private readonly performanceUpdateInterval = 1000; // 1 second
-
-  private memoryMonitoringId?: NodeJS.Timeout;
-  private performanceUpdateId?: NodeJS.Timeout;
-  private isProcessingQueue = false;
-  private abortController = new AbortController();
-
+  
   constructor() {
-    this.startMemoryMonitoring();
-    this.startPerformanceTracking();
-    this.setupCleanupListeners();
+    super();
+    this.setupCacheCleanup();
   }
-
-  // Memory management methods
-  private _getMemoryStatus(): MemoryStatus {
-    const memory = (performance as any).memory;
-    if (!memory) {
-      return {
-        usedJSHeapSize: 0,
-        totalJSHeapSize: 0,
-        jsHeapSizeLimit: 0,
-        usagePercentage: 0,
-        isHighPressure: false,
-        availableMemory: 0
-      };
-    }
-
-    const usagePercentage = (memory.usedJSHeapSize / memory.jsHeapSizeLimit) * 100;
+  
+  // Enhanced memory pressure check with caching considerations
+  protected checkMemoryPressure(): { isHigh: boolean; usage: number; limit: number } {
+    const baseResult = super.checkMemoryPressure();
+    
+    // Add cache memory estimation
+    const cacheMemoryEstimate = (this.dimensionCache.size * 0.1) + (this.progressiveCache.size * 1); // Rough estimate in MB
+    const totalUsage = baseResult.usage + cacheMemoryEstimate;
+    
     return {
-      usedJSHeapSize: memory.usedJSHeapSize,
-      totalJSHeapSize: memory.totalJSHeapSize,
-      jsHeapSizeLimit: memory.jsHeapSizeLimit,
-      usagePercentage,
-      isHighPressure: usagePercentage > 70,
-      availableMemory: memory.jsHeapSizeLimit - memory.usedJSHeapSize
+      isHigh: baseResult.isHigh || totalUsage > baseResult.limit * 0.6, // More conservative with caching
+      usage: totalUsage,
+      limit: baseResult.limit
     };
   }
-
-  private startMemoryMonitoring(): void {
-    this.memoryMonitoringId = setInterval(() => {
-      const memoryStatus = this._getMemoryStatus();
-      
-      if (memoryStatus.isHighPressure) {
-        console.warn('High memory pressure detected:', memoryStatus);
-        this.handleMemoryPressure();
-      }
-      
-      this.performanceMetrics.totalMemoryUsed = memoryStatus.usedJSHeapSize;
-    }, this.memoryCheckInterval);
+  
+  private setupCacheCleanup() {
+    // Perform cache cleanup every 2 minutes
+    this.cleanupInterval = setInterval(() => this.performCacheCleanup(), 2 * 60 * 1000);
   }
-
-  private handleMemoryPressure(): void {
-    // Trigger garbage collection if available
-    if ((window as any).gc) {
-      (window as any).gc();
-    }
-
-    // Clear old cache entries
-    this.clearExpiredCache();
-    
-    // Reduce processing load temporarily
-    this.pauseProcessing(2000);
-    
-    // Clear unused object URLs
-    this.cleanupObjectUrls();
-  }
-
-  private clearExpiredCache(): void {
-    const now = Date.now();
-    let clearedSize = 0;
-    let clearedCount = 0;
-
-    for (const [key, entry] of this.processedCache.entries()) {
-      if (now - entry.timestamp > this.cacheExpiryTime) {
-        clearedSize += entry.size;
-        this.processedCache.delete(key);
-        clearedCount++;
-      }
-    }
-
-    console.debug(`Cleared ${clearedCount} expired cache entries, freed ${Math.round(clearedSize / 1024)}KB`);
-  }
-
-  private cleanupObjectUrls(): void {
-    // This would be called when cleaning up file previews and processed results
-    // Implementation depends on how URLs are tracked in the main component
-  }
-
-  // Enhanced processing with priority queue
-  async processImageEnhanced(
+  
+  // Override generateThumbnail to return ProcessingResult
+  async generateThumbnail(
     file: File,
-    width: number,
-    height: number,
-    quality: number = 90,
-    format: string = 'webp',
-    options: ProcessingOptions = {}
+    maxSize: number = 200
   ): Promise<ProcessingResult> {
-    // Check cache first
-    const cacheKey = this.generateCacheKey(file, width, height, quality, format, options);
-    const cached = this.getCachedResult(cacheKey);
-    if (cached) {
-      this.performanceMetrics.cacheHitRate = 
-        (this.performanceMetrics.cacheHitRate * this.performanceMetrics.totalProcessed + 1) / 
-        (this.performanceMetrics.totalProcessed + 1);
-      return cached.result;
-    }
-
-    // Create processing task
-    const task: ProcessingTask = {
-      id: `task_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-      type: 'process',
-      data: { file, width, height, quality, format, options },
-      resolve: () => {},
-      reject: () => {},
-      priority: options.priority || 'normal',
-      createdAt: Date.now(),
-      retries: 0,
-      maxRetries: options.maxRetries || 3,
-      timeout: options.timeout || 30000
-    };
-
-    return new Promise<ProcessingResult>((resolve, reject) => {
-      task.resolve = resolve;
-      task.reject = reject;
-      this.addToQueue(task);
-    });
-  }
-
-  // Enhanced batch processing with intelligent chunking
-  async processBatchEnhanced(
-    files: Array<{
-      file: File;
-      width: number;
-      height: number;
-      quality?: number;
-      format?: string;
-      options?: ProcessingOptions;
-      originalName?: string;
-    }>,
-    onProgress?: (progress: BatchProcessingProgress) => void
-  ): Promise<ProcessingResult[]> {
-    const results: ProcessingResult[] = [];
-    const memoryStatus = this._getMemoryStatus();
-    
-    // Adaptive chunk size based on memory and file sizes
-    let chunkSize = this.calculateOptimalChunkSize(files, memoryStatus);
-    
-    for (let i = 0; i < files.length; i += chunkSize) {
-      const chunk = files.slice(i, i + chunkSize);
+    try {
+      const result = await super.generateThumbnail(file, maxSize);
       
-      // Check memory pressure before each chunk
-      const currentMemoryStatus = this._getMemoryStatus();
-      if (currentMemoryStatus.isHighPressure) {
-        chunkSize = Math.max(1, Math.floor(chunkSize / 2));
-        await this.waitForMemoryRelief();
-      }
+      // Update performance stats
+      this.performanceStats.totalProcessed++;
       
-      try {
-        const chunkResults = await this.processChunkConcurrently(chunk, onProgress, i, files.length);
-        results.push(...chunkResults);
-      } catch (error) {
-        console.error('Chunk processing failed:', error);
-        // Add error results for failed chunk
-        const errorResults = chunk.map(config => ({
-          success: false,
-          error: `Chunk processing failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
-          originalName: config.originalName || config.file.name
-        } as ProcessingResult));
-        results.push(...errorResults);
-      }
-      
-      // Brief pause between chunks
-      await this.sleep(100);
-    }
-    
-    return results;
-  }
-
-  private calculateOptimalChunkSize(
-    files: Array<{ file: File; width: number; height: number }>,
-    memoryStatus: MemoryStatus
-  ): number {
-    const averageFileSize = files.reduce((sum, f) => sum + f.file.size, 0) / files.length;
-    const estimatedMemoryPerFile = averageFileSize * 3; // Rough estimate for processing overhead
-    const availableMemoryPercentage = Math.max(0.1, (100 - memoryStatus.usagePercentage) / 100);
-    const safeMemoryLimit = memoryStatus.availableMemory * 0.5; // Use only 50% of available memory
-    
-    const maxChunkSize = Math.floor(safeMemoryLimit / estimatedMemoryPerFile);
-    const adaptiveChunkSize = Math.min(this.maxConcurrentTasks, Math.max(1, maxChunkSize));
-    
-    return adaptiveChunkSize;
-  }
-
-  private async processChunkConcurrently(
-    chunk: Array<{
-      file: File;
-      width: number;
-      height: number;
-      quality?: number;
-      format?: string;
-      options?: ProcessingOptions;
-      originalName?: string;
-    }>,
-    onProgress?: (progress: BatchProcessingProgress) => void,
-    baseIndex: number = 0,
-    totalFiles: number = chunk.length
-  ): Promise<ProcessingResult[]> {
-    const promises = chunk.map(async (config, index) => {
-      try {
-        const result = await this.processImageEnhanced(
-          config.file,
-          config.width,
-          config.height,
-          config.quality || 90,
-          config.format || 'webp',
-          config.options || {}
-        );
-        
-        // Update progress
-        onProgress?.({
-          progress: ((baseIndex + index + 1) / totalFiles) * 100,
-          completed: baseIndex + index + 1,
-          total: totalFiles
-        });
-        
-        return { ...result, originalName: config.originalName || config.file.name };
-      } catch (error) {
-        return {
-          success: false,
-          error: error instanceof Error ? error.message : 'Unknown error',
-          originalName: config.originalName || config.file.name
-        } as ProcessingResult;
-      }
-    });
-    
-    return Promise.all(promises);
-  }
-
-  private async waitForMemoryRelief(): Promise<void> {
-    return new Promise(resolve => {
-      const checkMemory = () => {
-        const memoryStatus = this._getMemoryStatus();
-        if (!memoryStatus.isHighPressure) {
-          resolve();
-        } else {
-          setTimeout(checkMemory, 1000);
-        }
+      return result;
+    } catch (error) {
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Unknown error',
+        originalName: file.name
       };
-      checkMemory();
-    });
+    }
   }
 
-  // Priority queue management
-  private addToQueue(task: ProcessingTask): void {
-    // Insert task in priority order
-    const priorityOrder = { high: 0, normal: 1, low: 2 };
-    const taskPriority = priorityOrder[task.priority || 'normal'];
-    
-    let insertIndex = this.processingQueue.length;
-    for (let i = 0; i < this.processingQueue.length; i++) {
-      const existingPriority = priorityOrder[this.processingQueue[i].priority || 'normal'];
-      if (taskPriority < existingPriority) {
-        insertIndex = i;
-        break;
-      }
+  public dispose() {
+    // Clean up when component unmounts
+    if (this.cleanupInterval) {
+      clearInterval(this.cleanupInterval);
     }
     
-    this.processingQueue.splice(insertIndex, 0, task);
-    this.processQueue();
+    // Perform final cache cleanup
+    this.performCacheCleanup(true);
+    
+    // Call parent dispose method
+    this.terminate();
   }
-
-  private async processQueue(): Promise<void> {
-    if (this.isProcessingQueue || this.activeTasks.size >= this.maxConcurrentTasks) {
+  
+  private performCacheCleanup(clearAll = false) {
+    console.log(`Performing cache cleanup, total entries: ${this.dimensionCache.size} dimensions, ${this.progressiveCache.size} images`);
+    
+    if (clearAll) {
+      // Revoke all blob URLs
+      this.progressiveCache.forEach(entry => {
+        if (entry.preview && entry.preview.startsWith('blob:')) {
+          URL.revokeObjectURL(entry.preview);
+        }
+        if (entry.thumbnail && entry.thumbnail.startsWith('blob:')) {
+          URL.revokeObjectURL(entry.thumbnail);
+        }
+        if (entry.fullImage && entry.fullImage.startsWith('blob:')) {
+          URL.revokeObjectURL(entry.fullImage);
+        }
+      });
+      
+      this.dimensionCache.clear();
+      this.progressiveCache.clear();
       return;
     }
     
-    this.isProcessingQueue = true;
-    
-    try {
-      while (this.processingQueue.length > 0 && this.activeTasks.size < this.maxConcurrentTasks) {
-        const task = this.processingQueue.shift()!;
-        this.processTaskConcurrently(task);
-      }
-    } finally {
-      this.isProcessingQueue = false;
+    // Only clear if over size limit
+    if (this.dimensionCache.size > this.maxCacheSize) {
+      // Sort by priority and timestamp, keep most important entries
+      const entries = Array.from(this.dimensionCache.entries());
+      entries.sort((a, b) => {
+        // First by priority (higher = keep)
+        if (b[1].priority !== a[1].priority) {
+          return b[1].priority - a[1].priority;
+        }
+        // Then by recency (newer = keep)
+        return b[1].timestamp - a[1].timestamp;
+      });
+      
+      // Keep top entries, remove the rest
+      const toRemove = entries.slice(Math.floor(this.maxCacheSize * 0.7));
+      toRemove.forEach(([key]) => {
+        this.dimensionCache.delete(key);
+      });
     }
     
-    this.updatePerformanceMetrics();
-  }
-
-  private async processTaskConcurrently(task: ProcessingTask): Promise<void> {
-    this.activeTasks.set(task.id, task);
+    // Clear old image entries
+    const now = Date.now();
+    const MAX_AGE = 10 * 60 * 1000; // 10 minutes
     
-    const startTime = performance.now();
-    const startMemory = this._getMemoryStatus().usedJSHeapSize;
+    this.progressiveCache.forEach((entry, key) => {
+      const cacheEntry = this.dimensionCache.get(key);
+      if (!cacheEntry || now - cacheEntry.timestamp > MAX_AGE) {
+        // Revoke blob URLs before removing
+        if (entry.preview && entry.preview.startsWith('blob:')) {
+          URL.revokeObjectURL(entry.preview);
+        }
+        if (entry.thumbnail && entry.thumbnail.startsWith('blob:')) {
+          URL.revokeObjectURL(entry.thumbnail);
+        }
+        if (entry.fullImage && entry.fullImage.startsWith('blob:')) {
+          URL.revokeObjectURL(entry.fullImage);
+        }
+        this.progressiveCache.delete(key);
+      }
+    });
+  }
+  
+  // Create a cache key from file metadata
+  private createCacheKey(file: File): string {
+    return `${file.name}_${file.size}_${file.lastModified}`;
+  }
+  
+  // Load image with progressive features (preview, thumbnail, dimensions)
+  public async loadImageProgressive(
+    file: File,
+    options: {
+      generateThumbnail?: boolean;
+      thumbnailSize?: number;
+      priority?: number;
+      onProgress?: (phase: string, progress: number) => void;
+    } = {}
+  ): Promise<ProgressiveImageResult> {
+    const { generateThumbnail = true, thumbnailSize = 150, onProgress } = options;
+    const cacheKey = this.createCacheKey(file);
     
     try {
-      const result = await this.executeTask(task);
-      const endTime = performance.now();
-      const endMemory = this._getMemoryStatus().usedJSHeapSize;
+      onProgress?.('init', 0);
       
-      // Enhanced result with metrics
-      const enhancedResult: ProcessingResult = {
-        ...result,
-        processingTime: endTime - startTime,
-        memoryUsage: endMemory - startMemory
+      // Check cache first
+      const cached = this.progressiveCache.get(cacheKey);
+      if (cached && !cached.error) {
+        onProgress?.('complete', 100);
+        this.performanceStats.totalProcessed++;
+        return cached;
+      }
+      
+      // Create preview URL
+      const preview = URL.createObjectURL(file);
+      onProgress?.('preview', 30);
+      
+      // Generate thumbnail if requested
+      let thumbnailUrl: string | undefined;
+      if (generateThumbnail) {
+        try {
+          const thumbnailResult = await this.generateThumbnail(file, thumbnailSize);
+          if (thumbnailResult.success && thumbnailResult.data) {
+            const blob = new Blob([thumbnailResult.data], { type: 'image/jpeg' });
+            thumbnailUrl = URL.createObjectURL(blob);
+          }
+          onProgress?.('thumbnail', 60);
+        } catch (error) {
+          console.warn('Failed to generate thumbnail:', error);
+          thumbnailUrl = preview; // Fallback to preview
+        }
+      }
+      
+      // Load dimensions
+      const dimensions = await super.loadImageDimensions(file);
+      onProgress?.('complete', 100);
+      
+      const result: ProgressiveImageResult = {
+        preview,
+        thumbnail: thumbnailUrl || preview,
+        dimensions
       };
       
-      // Cache successful results
-      if (result.success && task.type === 'process') {
-        this.cacheResult(task, enhancedResult);
-      }
+      // Cache the result
+      this.progressiveCache.set(cacheKey, result);
       
-      this.performanceMetrics.totalProcessed++;
-      this.performanceMetrics.averageProcessingTime = 
-        (this.performanceMetrics.averageProcessingTime * (this.performanceMetrics.totalProcessed - 1) + 
-         (endTime - startTime)) / this.performanceMetrics.totalProcessed;
+      return result;
       
-      task.resolve(enhancedResult);
     } catch (error) {
-      this.performanceMetrics.totalFailed++;
+      const errorResult = {
+        error: error instanceof Error ? error.message : 'Failed to load image progressively'
+      };
       
-      // Retry logic
-      if (task.retries < task.maxRetries) {
-        task.retries++;
-        setTimeout(() => this.addToQueue(task), 1000 * task.retries); // Exponential backoff
-      } else {
-        task.reject(error);
-      }
-    } finally {
-      this.activeTasks.delete(task.id);
-      // Continue processing queue
-      this.processQueue();
+      this.progressiveCache.set(cacheKey, errorResult);
+      return errorResult;
     }
   }
 
-  private async executeTask(task: ProcessingTask): Promise<ProcessingResult> {
-    const { file, width, height, quality, format, options } = task.data;
+  // Enhanced dimension loading with caching
+  public async loadImageDimensionsWithCache(file: File): Promise<{ width: number; height: number } | null> {
+    const cacheKey = this.createCacheKey(file);
     
-    // Add timeout handling
-    const timeoutPromise = new Promise<never>((_, reject) => {
-      setTimeout(() => reject(new Error('Processing timeout')), task.timeout);
-    });
+    // Check cache first
+    const cached = this.dimensionCache.get(cacheKey);
+    if (cached) {
+      cached.timestamp = Date.now(); // Update access time
+      cached.priority += 1; // Boost priority
+      return { width: cached.w, height: cached.h };
+    }
     
-    const processingPromise = this.baseManager.processImage(
-      file,
-      width,
-      height,
-      quality,
-      format,
-      options
-    );
-    
-    return Promise.race([processingPromise, timeoutPromise]);
-  }
-
-  // Caching methods
-  private generateCacheKey(
-    file: File,
-    width: number,
-    height: number,
-    quality: number,
-    format: string,
-    options: ProcessingOptions
-  ): string {
-    const optionsKey = JSON.stringify(options);
-    return `${file.name}_${file.size}_${file.lastModified}_${width}x${height}_q${quality}_${format}_${btoa(optionsKey)}`;
-  }
-
-  private getCachedResult(cacheKey: string): { result: ProcessingResult; timestamp: number; size: number } | null {
-    const cached = this.processedCache.get(cacheKey);
-    if (!cached) return null;
-    
-    // Check expiration
-    if (Date.now() - cached.timestamp > this.cacheExpiryTime) {
-      this.processedCache.delete(cacheKey);
+    try {
+      // Load dimensions using parent method
+      const dimensions = await super.loadImageDimensions(file);
+      
+      if (dimensions) {
+        // Cache the result
+        this.dimensionCache.set(cacheKey, {
+          w: dimensions.width,
+          h: dimensions.height,
+          timestamp: Date.now(),
+          priority: 1
+        });
+      }
+      
+      return dimensions;
+    } catch (error) {
+      console.warn('Failed to load image dimensions:', error);
       return null;
     }
-    
-    return cached;
   }
-
-  private cacheResult(task: ProcessingTask, result: ProcessingResult): void {
-    if (!result.success || !result.data) return;
-    
-    const cacheKey = this.generateCacheKey(
-      task.data.file,
-      task.data.width,
-      task.data.height,
-      task.data.quality,
-      task.data.format,
-      task.data.options
-    );
-    
-    const cacheEntry = {
-      result,
-      timestamp: Date.now(),
-      size: result.data.byteLength
-    };
-    
-    // Check cache size limits
-    if (this.shouldEvictCache(cacheEntry.size)) {
-      this.evictOldestCacheEntries();
+  
+  // Add compatibility method for loadImageDimensionsProgressive
+  public async loadImageDimensionsProgressive(
+    file: File,
+    options: {
+      priority?: number;
+      useQueue?: boolean;
+      timeout?: number;
+      onProgress?: (phase: string, progress: number) => void;
+    } = {}
+  ): Promise<{ w: number; h: number } | null> {
+    const dimensions = await this.loadImageDimensionsWithCache(file);
+    if (dimensions) {
+      return { w: dimensions.width, h: dimensions.height };
     }
-    
-    this.processedCache.set(cacheKey, cacheEntry);
+    return null;
   }
-
-  private shouldEvictCache(newEntrySize: number): boolean {
-    const currentSize = Array.from(this.processedCache.values())
-      .reduce((sum, entry) => sum + entry.size, 0);
-    
-    return (
-      this.processedCache.size >= this.maxCacheItems ||
-      currentSize + newEntrySize > this.maxCacheSize
-    );
-  }
-
-  private evictOldestCacheEntries(): void {
-    const entries = Array.from(this.processedCache.entries())
-      .sort(([, a], [, b]) => a.timestamp - b.timestamp);
-    
-    // Remove oldest 25% of entries
-    const removeCount = Math.ceil(entries.length * 0.25);
-    for (let i = 0; i < removeCount && i < entries.length; i++) {
-      this.processedCache.delete(entries[i][0]);
-    }
-  }
-
-  // Performance tracking
-  private startPerformanceTracking(): void {
-    this.performanceUpdateId = setInterval(() => {
-      this.updatePerformanceMetrics();
-    }, this.performanceUpdateInterval);
-  }
-
-  private updatePerformanceMetrics(): void {
-    this.performanceMetrics.queueSize = this.processingQueue.length;
-    this.performanceMetrics.activeTasks = this.activeTasks.size;
-    
-    // Calculate compression efficiency
-    if (this.performanceMetrics.totalProcessed > 0) {
-      // This would be calculated from actual compression results
-      this.performanceMetrics.compressionEfficiency = 0.7; // Placeholder
-    }
-  }
-
-  // Utility methods
-  private sleep(ms: number): Promise<void> {
-    return new Promise(resolve => setTimeout(resolve, ms));
-  }
-
-  private pauseProcessing(ms: number): void {
-    const resumeTime = Date.now() + ms;
-    const originalProcessQueue = this.processQueue.bind(this);
-    
-    this.processQueue = async () => {
-      if (Date.now() >= resumeTime) {
-        this.processQueue = originalProcessQueue;
-        await originalProcessQueue();
+  
+  // Get performance statistics
+  public getPerformanceStats() {
+    return {
+      ...this.performanceStats,
+      cacheSize: {
+        dimensions: this.dimensionCache.size,
+        progressive: this.progressiveCache.size
       }
     };
   }
-
-  private setupCleanupListeners(): void {
-    // Cleanup on page unload
-    window.addEventListener('beforeunload', () => {
-      this.cleanup();
-    });
-    
-    // Handle visibility change
-    document.addEventListener('visibilitychange', () => {
-      if (document.hidden) {
-        this.pauseProcessing(1000);
-      }
-    });
-  }
-
-  // Public API methods
-  getPerformanceMetrics(): PerformanceMetrics {
-    return { ...this.performanceMetrics };
-  }
-
-  getMemoryStatus(): MemoryStatus {
-    return this._getMemoryStatus();
-  }
-
-  clearCache(): void {
-    this.processedCache.clear();
-    console.debug('Processing cache cleared');
-  }
-
-  cancelAllTasks(): void {
-    this.processingQueue.length = 0;
-    this.abortController.abort();
-    this.abortController = new AbortController();
-  }
-
-  cleanup(): void {
-    if (this.memoryMonitoringId) {
-      clearInterval(this.memoryMonitoringId);
-    }
-    if (this.performanceUpdateId) {
-      clearInterval(this.performanceUpdateId);
-    }
-    this.cancelAllTasks();
-    this.clearCache();
-  }
-
-  // Delegate other methods to base manager
-  async generateThumbnail(file: File, maxSize: number = 200): Promise<ProcessingResult> {
-    return this.baseManager.generateThumbnail(file, maxSize);
-  }
-
-  arrayBufferToBlob(arrayBuffer: ArrayBuffer, mimeType: string = 'image/jpeg'): Blob {
-    return this.baseManager.arrayBufferToBlob(arrayBuffer, mimeType);
-  }
-
-  arrayBufferToDataURL(arrayBuffer: ArrayBuffer, mimeType: string = 'image/jpeg'): Promise<string> {
-    return this.baseManager.arrayBufferToDataURL(arrayBuffer, mimeType);
-  }
-
-  loadImageDimensions(file: File): Promise<{ width: number; height: number }> {
-    return this.baseManager.loadImageDimensions(file);
+  
+  // Clear all caches
+  public clearCaches(): void {
+    this.performCacheCleanup(true);
   }
 }
 
@@ -618,4 +305,10 @@ export function getEnhancedImageWorkerManager(): EnhancedImageWorkerManager {
   return enhancedImageWorkerManager;
 }
 
-export default EnhancedImageWorkerManager;
+// Clean up function for component unmounting
+export function disposeEnhancedImageWorkerManager(): void {
+  if (enhancedImageWorkerManager) {
+    enhancedImageWorkerManager.dispose();
+    enhancedImageWorkerManager = null;
+  }
+}

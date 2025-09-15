@@ -2,7 +2,7 @@
  * Smooth Scroll Animation Hook
  * Provides intersection observer based animations for enhanced user experience
  */
-import { useEffect, useRef, useCallback } from 'react';
+import { useEffect, useRef, useCallback, useMemo } from 'react';
 
 interface ScrollAnimationOptions {
   threshold?: number;
@@ -110,14 +110,24 @@ export function useStaggeredScrollAnimation<T extends HTMLElement = HTMLElement>
   baseDelay: number = 100,
   options: ScrollAnimationOptions = {}
 ) {
-  const animations = Array.from({ length: count }, (_, index) => 
-    useScrollAnimation<T>({
+  // Calculate the animation options for each index
+  const animationOptions = useMemo(() => {
+    return Array.from({ length: count }, (_, index) => ({
       ...options,
       delay: (options.delay || 0) + (baseDelay * index),
-    })
-  );
+    }));
+  }, [count, baseDelay, options]);
 
-  return animations;
+  // Since we can't call hooks in a loop dynamically, we'll return a factory function
+  // that components can use to create individual animations
+  return useMemo(() => {
+    return animationOptions.map((_, index) => {
+      return {
+        ...options,
+        delay: (options.delay || 0) + (baseDelay * index),
+      };
+    });
+  }, [animationOptions, options, baseDelay]);
 }
 
 /**

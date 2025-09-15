@@ -1,13 +1,13 @@
 'use client';
 
-interface ProcessingOptions {
+export interface ProcessingOptions {
   enableSharpening?: boolean;
   adjustBrightness?: number;
   adjustContrast?: number;
   stripMetadata?: boolean;
 }
 
-interface ProcessingTask {
+export interface ProcessingTask {
   id: string;
   type: 'process' | 'batch' | 'thumbnail';
   data: any;
@@ -16,7 +16,7 @@ interface ProcessingTask {
   onProgress?: (progress: number) => void;
 }
 
-interface ProcessingResult {
+export interface ProcessingResult {
   success: boolean;
   data?: ArrayBuffer;
   size?: number;
@@ -56,6 +56,17 @@ export class ImageWorkerManager {
   private initializationPromise: Promise<void> | null = null;
   private taskQueue: ProcessingTask[] = [];
   private isProcessingQueue = false;
+  
+  // Enhanced error handling and monitoring
+  private lastHealthCheck = 0;
+  private healthCheckInterval = 30000; // 30 seconds
+  private taskTimeouts = new Map<string, NodeJS.Timeout>();
+  private defaultTaskTimeout = 60000; // 60 seconds
+  private workerStartTime = 0;
+  private consecutiveErrors = 0;
+  private maxConsecutiveErrors = 5;
+  private lastError: string | null = null;
+  private workerHealthScore = 100; // 0-100, lower = less healthy
 
   constructor() {
     this.initializeWorker();
@@ -177,15 +188,20 @@ export class ImageWorkerManager {
 
   private async performInitialization(): Promise<void> {
     try {
-      // Terminate existing worker if any
+      // Clean up existing worker and timeouts
       if (this.worker) {
         this.worker.terminate();
         this.worker = null;
         this.isInitialized = false;
       }
+      
+      // Clear all existing timeouts
+      this.taskTimeouts.forEach((timeout) => clearTimeout(timeout));
+      this.taskTimeouts.clear();
 
       // Create worker from public/workers directory
       this.worker = new Worker('/workers/image-worker.js');
+      this.workerStartTime = Date.now();
       
       this.worker.addEventListener('message', this.handleWorkerMessage.bind(this));
       this.worker.addEventListener('error', this.handleWorkerError.bind(this));
@@ -199,6 +215,11 @@ export class ImageWorkerManager {
       this.isInitialized = true;
       this.retryAttempts = 0;
       this.isRecovering = false;
+      this.consecutiveErrors = 0;
+      this.lastError = null;
+      this.workerHealthScore = 100;
+      this.lastHealthCheck = Date.now();
+      
       console.log('ImageWorker initialized successfully');
       
       // Process any queued tasks
@@ -206,8 +227,73 @@ export class ImageWorkerManager {
     } catch (error) {
       console.error('Failed to initialize ImageWorker:', error);
       this.isInitialized = false;
+      this.degradeHealthScore(20);
+      this.lastError = error instanceof Error ? error.message : 'Unknown initialization error';
       await this.attemptRecovery();
     }
+  }
+  
+  // Perform periodic health checks
+  private performHealthCheck(): boolean {
+    const now = Date.now();
+    
+    // Skip if not enough time has passed
+    if (now - this.lastHealthCheck < this.healthCheckInterval) {
+      return this.workerHealthScore > 20; // Consider healthy if score > 20
+    }
+    
+    this.lastHealthCheck = now;
+    
+    // Check if worker is still responsive
+    if (this.isInitialized && this.worker) {
+      // Test worker responsiveness
+      this.testWorkerResponsiveness().catch(error => {
+        console.warn('Worker health check failed:', error);
+        this.degradeHealthScore(15);
+        
+        // If health is critically low, attempt recovery
+        if (this.workerHealthScore < 30) {
+          console.warn('Worker health critically low, attempting recovery');
+          this.attemptRecovery();
+        }
+      });
+    }
+    
+    // Gradual health recovery over time if no recent errors
+    if (this.consecutiveErrors === 0 && this.workerHealthScore < 100) {
+      this.improveHealthScore(1);
+    }
+    
+    return this.workerHealthScore > 20;
+  }
+  
+  // Test worker responsiveness with a lightweight ping
+  private async testWorkerResponsiveness(): Promise<void> {
+    if (!this.worker) {
+      throw new Error('Worker not available');
+    }
+    
+    return new Promise((resolve, reject) => {
+      const timeout = setTimeout(() => {
+        reject(new Error('Worker responsiveness test timeout'));
+      }, 3000); // Shorter timeout for health checks
+      
+      const testHandler = (event: MessageEvent) => {
+        if (event.data.type === 'ping-response') {
+          clearTimeout(timeout);
+          this.worker?.removeEventListener('message', testHandler);
+          resolve();
+        }
+      };
+      
+      if (this.worker) {
+        this.worker.addEventListener('message', testHandler);
+        this.worker.postMessage({ type: 'ping' });
+      } else {
+        clearTimeout(timeout);
+        reject(new Error('Worker not available'));
+      }
+    });
   }
 
   private handleWorkerMessage(event: MessageEvent) {
@@ -256,6 +342,18 @@ export class ImageWorkerManager {
     const task = this.pendingTasks.get(taskId);
     if (task) {
       this.pendingTasks.delete(taskId);
+      
+      // Clear timeout for successful task
+      const timeout = this.taskTimeouts.get(taskId);
+      if (timeout) {
+        clearTimeout(timeout);
+        this.taskTimeouts.delete(taskId);
+      }
+      
+      // Reset consecutive errors on success
+      this.consecutiveErrors = 0;
+      this.improveHealthScore(2); // Small health improvement
+      
       task.resolve(result);
     }
   }
@@ -264,8 +362,55 @@ export class ImageWorkerManager {
     const task = this.pendingTasks.get(taskId);
     if (task) {
       this.pendingTasks.delete(taskId);
+      
+      // Clear timeout for failed task
+      const timeout = this.taskTimeouts.get(taskId);
+      if (timeout) {
+        clearTimeout(timeout);
+        this.taskTimeouts.delete(taskId);
+      }
+      
+      // Track errors for health monitoring
+      this.consecutiveErrors++;
+      this.lastError = error;
+      this.degradeHealthScore(5); // Degrade health on error
+      
+      // If too many consecutive errors, try recovery
+      if (this.consecutiveErrors >= this.maxConsecutiveErrors) {
+        console.warn(`Too many consecutive errors (${this.consecutiveErrors}), attempting recovery`);
+        this.attemptRecovery();
+      }
+      
       task.reject(new Error(error));
     }
+  }
+  
+  // Health score management
+  private improveHealthScore(points: number) {
+    this.workerHealthScore = Math.min(100, this.workerHealthScore + points);
+  }
+  
+  private degradeHealthScore(points: number) {
+    this.workerHealthScore = Math.max(0, this.workerHealthScore - points);
+  }
+  
+  // Set up timeout for a task
+  private setTaskTimeout(taskId: string, timeoutMs: number = this.defaultTaskTimeout) {
+    const timeout = setTimeout(() => {
+      const task = this.pendingTasks.get(taskId);
+      if (task) {
+        this.pendingTasks.delete(taskId);
+        this.taskTimeouts.delete(taskId);
+        
+        this.consecutiveErrors++;
+        this.lastError = `Task timeout after ${timeoutMs}ms`;
+        this.degradeHealthScore(10); // Significant health degradation for timeouts
+        
+        task.reject(new Error(`Task timeout after ${timeoutMs}ms`));
+      }
+    }, timeoutMs);
+    
+    this.taskTimeouts.set(taskId, timeout);
   }
 
   private handleProgressUpdate(progress: number, completed: number, total: number) {
@@ -281,13 +426,51 @@ export class ImageWorkerManager {
     return `task_${++this.taskIdCounter}_${Date.now()}`;
   }
 
-  // Convert File/Blob to ArrayBuffer
+  // Convert File/Blob to ArrayBuffer with validation
   private async fileToArrayBuffer(file: File | Blob): Promise<ArrayBuffer> {
+    // Validate that the file is actually a File or Blob instance
+    if (!file || typeof file !== 'object') {
+      throw new Error('Invalid file: not a File or Blob object');
+    }
+    
+    // Check if it's a File or Blob instance
+    if (!(file instanceof File) && !(file instanceof Blob)) {
+      throw new Error('Invalid file: parameter is not of type File or Blob');
+    }
+    
+    // Check file size (prevent processing empty or corrupted files)
+    if (file.size === 0) {
+      throw new Error('Invalid file: file is empty (0 bytes)');
+    }
+    
+    // Check for reasonable file size limits (50MB max)
+    const MAX_FILE_SIZE = 50 * 1024 * 1024; // 50MB
+    if (file.size > MAX_FILE_SIZE) {
+      throw new Error(`File too large: ${(file.size / 1024 / 1024).toFixed(2)}MB exceeds 50MB limit`);
+    }
+    
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
-      reader.onload = () => resolve(reader.result as ArrayBuffer);
-      reader.onerror = reject;
-      reader.readAsArrayBuffer(file);
+      
+      reader.onload = () => {
+        const result = reader.result;
+        if (result instanceof ArrayBuffer) {
+          resolve(result);
+        } else {
+          reject(new Error('FileReader failed to produce ArrayBuffer'));
+        }
+      };
+      
+      reader.onerror = (event) => {
+        const error = reader.error || new Error('FileReader error occurred');
+        reject(new Error(`Failed to read file: ${error.message}`));
+      };
+      
+      try {
+        reader.readAsArrayBuffer(file);
+      } catch (error) {
+        reject(new Error(`Failed to start FileReader: ${error instanceof Error ? error.message : 'Unknown error'}`));
+      }
     });
   }
 
@@ -300,30 +483,53 @@ export class ImageWorkerManager {
     format: string = 'jpeg',
     options: ProcessingOptions = {}
   ): Promise<ProcessingResult> {
+    // Validate input parameters
+    if (!file || !(file instanceof File)) {
+      throw new Error('Invalid file parameter: must be a File object');
+    }
+    
+    if (!file.type || !file.type.startsWith('image/')) {
+      throw new Error(`Invalid file type: ${file.type || 'unknown'}. Only image files are supported.`);
+    }
+    
+    // Validate dimensions
+    if (!Number.isInteger(width) || width <= 0 || width > 32768) {
+      throw new Error(`Invalid width: ${width}. Must be between 1 and 32768 pixels.`);
+    }
+    
+    if (!Number.isInteger(height) || height <= 0 || height > 32768) {
+      throw new Error(`Invalid height: ${height}. Must be between 1 and 32768 pixels.`);
+    }
+    
     // Ensure worker is initialized before processing
     await this.ensureWorkerReady();
 
     const taskId = this.generateTaskId();
-    const imageData = await this.fileToArrayBuffer(file);
+    
+    try {
+      const imageData = await this.fileToArrayBuffer(file);
+    
+      return new Promise((resolve, reject) => {
+        const task: ProcessingTask = {
+          id: taskId,
+          type: 'process',
+          data: {
+            imageData,
+            width,
+            height,
+            quality,
+            format,
+            options
+          },
+          resolve,
+          reject
+        };
 
-    return new Promise((resolve, reject) => {
-      const task: ProcessingTask = {
-        id: taskId,
-        type: 'process',
-        data: {
-          imageData,
-          width,
-          height,
-          quality,
-          format,
-          options
-        },
-        resolve,
-        reject
-      };
-
-      this.queueTask(task);
-    });
+        this.queueTask(task);
+      });
+    } catch (error) {
+      throw new Error(`Failed to prepare image for processing: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
   }
 
   // Process multiple images in batch with enhanced performance
@@ -461,10 +667,25 @@ export class ImageWorkerManager {
         task.reject(new Error('Worker terminated'));
       });
       this.pendingTasks.clear();
+      
+      // Reject all queued tasks
+      this.taskQueue.forEach(task => {
+        task.reject(new Error('Worker terminated'));
+      });
+      this.taskQueue.length = 0;
+      
+      // Clear all timeouts
+      this.taskTimeouts.forEach(timeout => clearTimeout(timeout));
+      this.taskTimeouts.clear();
 
       this.worker.terminate();
       this.worker = null;
       this.isInitialized = false;
+      
+      // Reset error tracking state
+      this.consecutiveErrors = 0;
+      this.lastError = null;
+      this.workerHealthScore = 0;
     }
   }
 
@@ -645,6 +866,29 @@ export class ImageWorkerManager {
       maxRetryAttempts: this.maxRetryAttempts
     };
   }
+  
+  // Get comprehensive worker health status
+  getHealthStatus(): {
+    healthScore: number;
+    consecutiveErrors: number;
+    lastError: string | null;
+    uptime: number;
+    pendingTasks: number;
+    queuedTasks: number;
+    isHealthy: boolean;
+  } {
+    const uptime = this.workerStartTime ? Date.now() - this.workerStartTime : 0;
+    
+    return {
+      healthScore: this.workerHealthScore,
+      consecutiveErrors: this.consecutiveErrors,
+      lastError: this.lastError,
+      uptime,
+      pendingTasks: this.pendingTasks.size,
+      queuedTasks: this.taskQueue.length,
+      isHealthy: this.workerHealthScore > 20 && this.consecutiveErrors < this.maxConsecutiveErrors
+    };
+  }
 
   // Ensure worker is ready, initializing if necessary
   private async ensureWorkerReady(): Promise<void> {
@@ -657,31 +901,100 @@ export class ImageWorkerManager {
 
   // Queue task and process in order to avoid race conditions
   private queueTask(task: ProcessingTask) {
+    // Perform health check before adding task
+    if (!this.performHealthCheck()) {
+      task.reject(new Error('Worker health check failed - cannot queue task'));
+      return;
+    }
+    
     this.taskQueue.push(task);
     this.processTaskQueue();
   }
 
   private async processTaskQueue() {
     if (this.isProcessingQueue) return;
-    if (!this.isInitialized || !this.worker) return;
+    if (!this.isInitialized || !this.worker) {
+      // Try to initialize if not ready
+      try {
+        await this.ensureWorkerReady();
+      } catch (error) {
+        // Reject all queued tasks if initialization fails
+        const failedTasks = this.taskQueue.splice(0);
+        failedTasks.forEach(task => {
+          task.reject(new Error(`Worker initialization failed: ${error}`));
+        });
+        return;
+      }
+    }
 
     this.isProcessingQueue = true;
     try {
       while (this.taskQueue.length > 0) {
         const task = this.taskQueue.shift()!;
+        
+        // Check if we should continue processing
+        if (!this.isInitialized || !this.worker) {
+          console.warn('Worker became unavailable during queue processing');
+          // Re-queue the task for later
+          this.taskQueue.unshift(task);
+          break;
+        }
+        
         // Register as pending before sending
         this.pendingTasks.set(task.id, task);
         
+        // Set up timeout for this task
+        const timeoutMs = this.calculateTaskTimeout(task.type);
+        this.setTaskTimeout(task.id, timeoutMs);
+        
         // Store a reference to worker to ensure TypeScript understands it's not null
         const worker = this.worker;
-        if (!worker) break; // Extra safety check
+        if (!worker) {
+          // Clean up and re-queue task
+          this.pendingTasks.delete(task.id);
+          const timeout = this.taskTimeouts.get(task.id);
+          if (timeout) {
+            clearTimeout(timeout);
+            this.taskTimeouts.delete(task.id);
+          }
+          this.taskQueue.unshift(task);
+          break;
+        }
         
-        worker.postMessage({ type: task.type, id: task.id, data: task.data });
+        try {
+          worker.postMessage({ type: task.type, id: task.id, data: task.data });
+          console.log(`Queued task ${task.id} of type ${task.type}`);
+        } catch (error) {
+          console.error('Failed to send task to worker:', error);
+          // Clean up failed task
+          this.pendingTasks.delete(task.id);
+          const timeout = this.taskTimeouts.get(task.id);
+          if (timeout) {
+            clearTimeout(timeout);
+            this.taskTimeouts.delete(task.id);
+          }
+          task.reject(new Error(`Failed to send task: ${error}`));
+        }
+        
         // Yield to allow message loop to process responses
-        await new Promise(resolve => setTimeout(resolve, 0));
+        await new Promise(resolve => setTimeout(resolve, 10));
       }
     } finally {
       this.isProcessingQueue = false;
+    }
+  }
+  
+  // Calculate appropriate timeout based on task type
+  private calculateTaskTimeout(taskType: string): number {
+    switch (taskType) {
+      case 'thumbnail':
+        return 30000; // 30 seconds for thumbnails
+      case 'process':
+        return this.defaultTaskTimeout; // 60 seconds for single image
+      case 'batch':
+        return 300000; // 5 minutes for batch processing
+      default:
+        return this.defaultTaskTimeout;
     }
   }
 
@@ -693,7 +1006,7 @@ export class ImageWorkerManager {
   }
 
   // Check memory pressure to adjust processing strategy
-  private checkMemoryPressure(): { isHigh: boolean; usage: number; limit: number } {
+  protected checkMemoryPressure(): { isHigh: boolean; usage: number; limit: number } {
     if (typeof performance === 'undefined' || !(performance as any).memory) {
       // Fallback for browsers without memory API
       return { isHigh: false, usage: 0, limit: 0 };

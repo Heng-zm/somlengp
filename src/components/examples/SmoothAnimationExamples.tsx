@@ -15,8 +15,12 @@ export default function SmoothAnimationExamples() {
   const heroRef = useScrollAnimation<HTMLDivElement>({ delay: 200 });
   const cardRef = useScrollAnimation<HTMLDivElement>({ threshold: 0.3 });
   
-  // Staggered animations for list items
-  const listAnimations = useStaggeredScrollAnimation<HTMLDivElement>(4, 150);
+  // Individual animations for list items since we can't use hooks in loops
+  const listItem1 = useScrollAnimation<HTMLDivElement>({ delay: 0 });
+  const listItem2 = useScrollAnimation<HTMLDivElement>({ delay: 150 });
+  const listItem3 = useScrollAnimation<HTMLDivElement>({ delay: 300 });
+  const listItem4 = useScrollAnimation<HTMLDivElement>({ delay: 450 });
+  const listAnimations = [listItem1, listItem2, listItem3, listItem4];
 
   const handleButtonClick = () => {
     setIsLoading(true);

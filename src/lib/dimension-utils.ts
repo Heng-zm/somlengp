@@ -61,7 +61,7 @@ export function convertDimensionPair(pair: DimensionPair, targetUnit: DimensionU
  */
 export function formatDimension(dimension: Dimension, precision: number = 2): string {
   // Remove unnecessary trailing zeros for better display
-  let value = parseFloat(dimension.value.toFixed(precision));
+  const value = parseFloat(dimension.value.toFixed(precision));
   // For very small values or whole numbers, adjust display
   const formatted = value % 1 === 0 ? value.toString() : value.toFixed(precision).replace(/\.?0+$/, '');
   return `${formatted} ${getUnitSymbol(dimension.unit)}`;
