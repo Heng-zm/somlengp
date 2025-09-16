@@ -18,12 +18,12 @@ const ToastViewport = React.forwardRef<
   ToastViewportProps
 >(({ className, position = 'bottom-right', ...props }, ref) => {
   const positionStyles = {
-    'top-left': 'fixed top-4 left-4 z-[200] flex max-h-[calc(100vh-2rem)] w-full flex-col p-2 max-w-[90vw] sm:max-w-[420px] md:max-w-[480px] gap-3 pointer-events-none',
-    'top-right': 'fixed top-4 right-4 z-[200] flex max-h-[calc(100vh-2rem)] w-full flex-col p-2 max-w-[90vw] sm:max-w-[420px] md:max-w-[480px] gap-3 pointer-events-none',
-    'top-center': 'fixed top-4 left-1/2 -translate-x-1/2 z-[200] flex max-h-[calc(100vh-2rem)] w-full flex-col p-2 max-w-[90vw] sm:max-w-[420px] md:max-w-[480px] gap-3 pointer-events-none',
-    'bottom-left': 'fixed bottom-4 left-4 z-[200] flex max-h-[calc(100vh-2rem)] w-full flex-col-reverse p-2 max-w-[90vw] sm:max-w-[420px] md:max-w-[480px] gap-3 pointer-events-none',
-    'bottom-right': 'fixed bottom-4 right-4 z-[200] flex max-h-[calc(100vh-2rem)] w-full flex-col-reverse p-2 max-w-[90vw] sm:max-w-[420px] md:max-w-[480px] gap-3 pointer-events-none',
-    'bottom-center': 'fixed bottom-4 left-1/2 -translate-x-1/2 z-[200] flex max-h-[calc(100vh-2rem)] w-full flex-col-reverse p-2 max-w-[90vw] sm:max-w-[420px] md:max-w-[480px] gap-3 pointer-events-none',
+    'top-left': 'fixed top-4 left-4 z-[200] flex max-h-[calc(100vh-2rem)] w-full flex-col p-2 max-w-[85vw] sm:max-w-[320px] md:max-w-[360px] gap-2 pointer-events-none',
+    'top-right': 'fixed top-4 right-4 z-[200] flex max-h-[calc(100vh-2rem)] w-full flex-col p-2 max-w-[85vw] sm:max-w-[320px] md:max-w-[360px] gap-2 pointer-events-none',
+    'top-center': 'fixed top-4 left-1/2 -translate-x-1/2 z-[200] flex max-h-[calc(100vh-2rem)] w-full flex-col p-2 max-w-[85vw] sm:max-w-[320px] md:max-w-[360px] gap-2 pointer-events-none',
+    'bottom-left': 'fixed bottom-4 left-4 z-[200] flex max-h-[calc(100vh-2rem)] w-full flex-col-reverse p-2 max-w-[85vw] sm:max-w-[320px] md:max-w-[360px] gap-2 pointer-events-none',
+    'bottom-right': 'fixed bottom-4 right-4 z-[200] flex max-h-[calc(100vh-2rem)] w-full flex-col-reverse p-2 max-w-[85vw] sm:max-w-[320px] md:max-w-[360px] gap-2 pointer-events-none',
+    'bottom-center': 'fixed bottom-4 left-1/2 -translate-x-1/2 z-[200] flex max-h-[calc(100vh-2rem)] w-full flex-col-reverse p-2 max-w-[85vw] sm:max-w-[320px] md:max-w-[360px] gap-2 pointer-events-none',
   };
   
   return (
@@ -45,7 +45,7 @@ const ToastViewport = React.forwardRef<
 ToastViewport.displayName = ToastPrimitives.Viewport.displayName
 
 const toastVariants = cva(
-  "group pointer-events-auto relative flex w-full items-center justify-between space-x-4 overflow-hidden rounded-2xl border border-white/20 dark:border-gray-700/20 px-6 py-4 shadow-2xl backdrop-blur-xl transition-all duration-500 ease-out data-[swipe=cancel]:translate-x-0 data-[swipe=end]:translate-x-[var(--radix-toast-swipe-end-x)] data-[swipe=move]:translate-x-[var(--radix-toast-swipe-move-x)] data-[swipe=move]:transition-none data-[state=open]:animate-in data-[state=closed]:animate-out data-[swipe=end]:animate-out data-[state=closed]:fade-out-80 data-[state=closed]:slide-out-to-right-full data-[state=open]:slide-in-from-top-full data-[state=open]:sm:slide-in-from-bottom-full hover:scale-[1.03] hover:shadow-3xl active:scale-[0.97] transform-gpu before:absolute before:inset-0 before:rounded-2xl before:bg-gradient-to-br before:from-white/10 before:to-transparent before:backdrop-blur-sm",
+  "group pointer-events-auto relative flex w-full items-center justify-between space-x-3 overflow-hidden rounded-lg border border-white/20 dark:border-gray-700/20 px-4 py-3 shadow-lg backdrop-blur-md transition-all duration-300 ease-out data-[swipe=cancel]:translate-x-0 data-[swipe=end]:translate-x-[var(--radix-toast-swipe-end-x)] data-[swipe=move]:translate-x-[var(--radix-toast-swipe-move-x)] data-[swipe=move]:transition-none data-[state=open]:animate-in data-[state=closed]:animate-out data-[swipe=end]:animate-out data-[state=closed]:fade-out-80 data-[state=closed]:slide-out-to-right-full data-[state=open]:slide-in-from-top-full data-[state=open]:sm:slide-in-from-bottom-full hover:scale-[1.02] hover:shadow-lg active:scale-[0.98] transform-gpu before:absolute before:inset-0 before:rounded-lg before:bg-gradient-to-br before:from-white/5 before:to-transparent before:backdrop-blur-sm",
   {
     variants: {
       variant: {
@@ -66,11 +66,11 @@ const toastVariants = cva(
         rainbow: "bg-gradient-to-r from-pink-500 via-red-500 via-yellow-500 via-green-500 via-blue-500 via-indigo-500 to-purple-500 text-white shadow-2xl animate-pulse border-2 border-white/40",
       },
       size: {
-        xs: "px-3 py-2 text-xs max-w-xs min-h-[2.5rem]",
-        sm: "px-4 py-3 text-sm max-w-xs min-h-[3rem]",
-        default: "px-6 py-4 max-w-md min-h-[4rem]",
-        lg: "px-8 py-6 text-lg max-w-lg min-h-[5rem]",
-        xl: "px-10 py-8 text-xl max-w-xl min-h-[6rem]",
+        xs: "px-3 py-1.5 text-xs max-w-[280px] min-h-[2rem]",
+        sm: "px-3 py-2 text-sm max-w-[320px] min-h-[2.5rem]",
+        default: "px-4 py-3 max-w-md min-h-[3rem]",
+        lg: "px-6 py-4 text-lg max-w-lg min-h-[4rem]",
+        xl: "px-8 py-6 text-xl max-w-xl min-h-[5rem]",
       },
       priority: {
         low: "opacity-90",
@@ -89,7 +89,7 @@ const toastVariants = cva(
     },
     defaultVariants: {
       variant: "default",
-      size: "default",
+      size: "sm",
       priority: "medium",
       animation: "slide",
     },
@@ -118,7 +118,7 @@ const ToastAction = React.forwardRef<
   <ToastPrimitives.Action
     ref={ref}
     className={cn(
-      "inline-flex h-8 shrink-0 items-center justify-center rounded-md border bg-transparent px-3 text-sm font-medium ring-offset-background transition-colors hover:bg-secondary focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 group-[.destructive]:border-muted/40 group-[.destructive]:hover:border-destructive/30 group-[.destructive]:hover:bg-destructive group-[.destructive]:hover:text-destructive-foreground group-[.destructive]:focus:ring-destructive",
+      "inline-flex h-6 shrink-0 items-center justify-center rounded border bg-transparent px-2 text-xs font-medium ring-offset-background transition-colors hover:bg-secondary focus:outline-none focus:ring-1 focus:ring-ring focus:ring-offset-1 disabled:pointer-events-none disabled:opacity-50 group-[.destructive]:border-muted/40 group-[.destructive]:hover:border-destructive/30 group-[.destructive]:hover:bg-destructive group-[.destructive]:hover:text-destructive-foreground group-[.destructive]:focus:ring-destructive",
       className
     )}
     {...props}
@@ -133,13 +133,13 @@ const ToastClose = React.forwardRef<
   <ToastPrimitives.Close
     ref={ref}
     className={cn(
-      "absolute right-2 top-1/2 -translate-y-1/2 rounded-full p-1.5 text-white/80 opacity-0 transition-all hover:text-white hover:bg-white/20 focus:opacity-100 focus:outline-none focus:ring-2 focus:ring-white/40 group-hover:opacity-100 backdrop-blur-sm",
+      "absolute right-1.5 top-1/2 -translate-y-1/2 rounded-full p-1 text-white/80 opacity-0 transition-all hover:text-white hover:bg-white/20 focus:opacity-100 focus:outline-none focus:ring-1 focus:ring-white/40 group-hover:opacity-100 backdrop-blur-sm",
       className
     )}
     toast-close=""
     {...props}
   >
-    <X className="h-3 w-3" />
+    <X className="h-2.5 w-2.5" />
   </ToastPrimitives.Close>
 ))
 ToastClose.displayName = ToastPrimitives.Close.displayName
@@ -150,7 +150,7 @@ const ToastTitle = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <ToastPrimitives.Title
     ref={ref}
-    className={cn("text-sm font-semibold leading-none tracking-tight text-white drop-shadow-[0_1px_0_rgba(0,0,0,0.25)]", className)}
+    className={cn("text-xs font-semibold leading-tight tracking-tight text-white drop-shadow-[0_1px_0_rgba(0,0,0,0.25)]", className)}
     {...props}
   />
 ))
@@ -162,7 +162,7 @@ const ToastDescription = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <ToastPrimitives.Description
     ref={ref}
-    className={cn("text-sm opacity-90 leading-relaxed mt-1 text-white drop-shadow-[0_1px_0_rgba(0,0,0,0.25)]", className)}
+    className={cn("text-xs opacity-90 leading-snug mt-0.5 text-white drop-shadow-[0_1px_0_rgba(0,0,0,0.25)]", className)}
     {...props}
   />
 ))

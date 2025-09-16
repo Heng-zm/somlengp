@@ -9,6 +9,41 @@ service cloud.firestore {
       allow write: if false;
     }
     
+    // User profiles collection rules
+    match /userProfiles/{userId} {
+      // Users can read their own profile, and public profiles can be read by anyone
+      allow read: if request.auth != null && (
+                    request.auth.uid == userId  // Own profile
+                    || resource.data.isPublic == true  // Public profile
+                  );
+      
+      // Users can create their own profile with proper validation
+      allow create: if request.auth != null 
+                   && request.auth.uid == userId
+                   && isValidUserProfile(request.resource.data);
+      
+      // Users can update their own profile
+      allow update: if request.auth != null 
+                   && request.auth.uid == userId
+                   && isValidUserProfileUpdate(request.resource.data, resource.data);
+      
+      // Users can delete their own profile, or admin can delete any profile
+      allow delete: if request.auth != null && (
+                     request.auth.uid == userId  // Own profile
+                     || hasAdminRole(request.auth)  // Admin deletion
+                   );
+      
+      // User preferences subcollection
+      match /preferences/{preferenceId} {
+        allow read, write: if request.auth != null && request.auth.uid == userId;
+      }
+      
+      // User activity/analytics subcollection
+      match /activity/{activityId} {
+        allow read, write: if request.auth != null && request.auth.uid == userId;
+      }
+    }
+    
     // Comments collection rules with enhanced functionality
     match /comments/{commentId} {
       // Allow anyone to read comments for public access
@@ -148,6 +183,15 @@ service cloud.firestore {
       
       // Server-side access
       allow read, write: if request.auth == null;
+    }
+    
+    // Metadata collection for counters and app-level docs
+    match /metadata/{docId} {
+      // Allow authenticated clients to read and update only the userCounter doc
+      allow read: if request.auth != null && docId == 'userCounter';
+      allow create, update: if request.auth != null && docId == 'userCounter' && isValidUserCounterUpdate(request.resource.data, resource.data);
+      // Disallow deletes from clients
+      allow delete: if false;
     }
     
     // Helper functions
@@ -318,6 +362,62 @@ service cloud.firestore {
              && data.createdAt is timestamp
              // Optional fields
              && (!('updatedAt' in data) || data.updatedAt is timestamp);
+    }
+    
+    function isValidUserProfile(data) {
+      return data.keys().hasAll(['uid', 'email', 'displayName', 'createdAt', 'lastLoginAt', 'isPublic'])
+             && data.uid is string
+             && data.email is string
+             && data.displayName is string
+             && data.displayName.size() > 0
+             && data.displayName.size() <= 100  // Max 100 characters
+             && data.createdAt is timestamp
+             && data.lastLoginAt is timestamp
+             && data.isPublic is bool
+             // Optional fields validation
+             && (!('profilePicture' in data) || data.profilePicture is string)
+             && (!('bio' in data) || (data.bio is string && data.bio.size() <= 500))  // Max 500 characters
+             && (!('location' in data) || (data.location is string && data.location.size() <= 100))
+             && (!('website' in data) || (data.website is string && data.website.size() <= 200))
+             && (!('updatedAt' in data) || data.updatedAt is timestamp)
+             && (!('loginCount' in data) || data.loginCount is number)
+             && (!('isEmailVerified' in data) || data.isEmailVerified is bool)
+             && (!('provider' in data) || data.provider is string)
+             && (!('role' in data) || data.role in ['user', 'moderator', 'admin'])
+             && (!('status' in data) || data.status in ['active', 'inactive', 'suspended']);
+    }
+    
+    function isValidUserProfileUpdate(newData, oldData) {
+      return (
+        // Immutable fields that cannot be changed after creation
+        newData.uid == oldData.uid
+        && newData.email == oldData.email
+        && newData.createdAt == oldData.createdAt
+        // Updatable fields with validation
+        && newData.displayName is string
+        && newData.displayName.size() > 0
+        && newData.displayName.size() <= 100
+        && newData.isPublic is bool
+        && newData.lastLoginAt is timestamp
+        && newData.updatedAt is timestamp
+        // Optional fields validation
+        && (!('profilePicture' in newData) || newData.profilePicture is string)
+        && (!('bio' in newData) || (newData.bio is string && newData.bio.size() <= 500))
+        && (!('location' in newData) || (newData.location is string && newData.location.size() <= 100))
+        && (!('website' in newData) || (newData.website is string && newData.website.size() <= 200))
+        && (!('loginCount' in newData) || newData.loginCount is number)
+        && (!('isEmailVerified' in newData) || newData.isEmailVerified is bool)
+        && (!('provider' in newData) || newData.provider is string)
+        && (!('role' in newData) || newData.role in ['user', 'moderator', 'admin'])
+        && (!('status' in newData) || newData.status in ['active', 'inactive', 'suspended'])
+      );
+    }
+    function isValidUserCounterUpdate(newData, oldData) {
+      // Allow creating/updating a simple counter doc with lastUserId and updatedAt only
+      return newData.keys().hasOnly(['lastUserId', 'updatedAt'])
+             && newData.lastUserId is number
+             && newData.lastUserId >= (resource == null ? 0 : oldData.lastUserId)
+             && newData.updatedAt is timestamp;
     }
   }
 }

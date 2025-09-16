@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import { ENV_CONFIG, logEnvironmentStatus } from '@/lib/env-config';
+import { withAuth, AuthenticatedUser, checkRateLimit, validateRequest } from '@/lib/auth-middleware';
 
 // Initialize environment and log status
 logEnvironmentStatus();
@@ -39,27 +40,17 @@ function getModel(modelName: string = "gemini-1.5-flash"): ReturnType<GoogleGene
   }
 }
 
-export async function POST(request: NextRequest) {
-  
+async function handleAIAssistant(request: NextRequest, user: AuthenticatedUser): Promise<NextResponse> {
   try {
-
-    // Check if user is authenticated with proper Firebase token verification
-    const authHeader = request.headers.get('authorization');
-    
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    // Rate limiting per user
+    if (!checkRateLimit(user.uid, 50, 60000)) { // 50 requests per minute
       return NextResponse.json(
-        { error: 'Authentication required. Please provide a valid Bearer token.' },
-        { status: 401 }
-      );
-    }
-
-    // Extract the token from the Bearer header
-    const token = authHeader.substring(7); // Remove "Bearer " prefix
-    
-    if (!token || token.trim().length === 0) {
-      return NextResponse.json(
-        { error: 'Invalid or missing authentication token.' },
-        { status: 401 }
+        { 
+          error: 'Too many requests. Please wait a moment before trying again.',
+          code: 'RATE_LIMIT_EXCEEDED',
+          timestamp: new Date().toISOString()
+        },
+        { status: 429 }
       );
     }
 
@@ -75,11 +66,31 @@ export async function POST(request: NextRequest) {
     }
 
     const { messages, systemPrompt, model: requestedModel } = body;
-    // userId currently not used in implementation
+    
+    // Validate request data
+    const validation = validateRequest(body, ['messages']);
+    if (!validation.valid) {
+      return NextResponse.json(
+        { error: validation.error, code: 'VALIDATION_ERROR' },
+        { status: 400 }
+      );
+    }
 
     if (!messages || !Array.isArray(messages) || messages.length === 0) {
       return NextResponse.json(
         { error: 'Messages array is required' },
+        { status: 400 }
+      );
+    }
+    
+    // Additional validation for message content
+    const hasValidMessage = messages.some(msg => 
+      msg.content && typeof msg.content === 'string' && msg.content.trim().length > 0
+    );
+    
+    if (!hasValidMessage) {
+      return NextResponse.json(
+        { error: 'At least one message with valid content is required' },
         { status: 400 }
       );
     }
@@ -238,6 +249,7 @@ export async function POST(request: NextRequest) {
       success: true,
       response: text,
       model: modelName,
+      userId: user.uid,
       timestamp: new Date().toISOString(),
     });
 
@@ -301,6 +313,9 @@ export async function POST(request: NextRequest) {
     );
   }
 }
+
+// Export the protected POST handler
+export const POST = withAuth(handleAIAssistant);
 
 export async function GET() {
   return NextResponse.json({
