@@ -3,6 +3,9 @@
 import { CheckCircle, X } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useState, memo } from 'react';
 import { Button } from '@/components/ui/button';
+// Memory leak prevention: Timers need cleanup
+// Add cleanup in useEffect return function
+
 
 interface FeedbackSuccessProps {
   message: string;

@@ -1,9 +1,14 @@
 "use client"
 
+import { memo } from 'react';
+
 import * as React from "react"
 import * as RechartsPrimitive from "recharts"
 
 import { cn } from "@/lib/utils"
+// Performance optimization needed: Consider memoizing inline styles
+// Use useMemo for objects/arrays and useCallback for functions
+
 
 // Format: { THEME_NAME: CSS_SELECTOR }
 const THEMES = { light: "", dark: ".dark" } as const

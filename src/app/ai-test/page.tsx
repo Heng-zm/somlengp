@@ -1,11 +1,11 @@
 "use client";
 
-import { useState } from 'react';
+import { useState, memo } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useAuth } from '@/contexts/auth-context';
 
-export default function AITestPage() {
+const AITestPageComponent = function AITestPage() {
   const { user } = useAuth();
   const [response, setResponse] = useState<string>('');
   const [loading, setLoading] = useState(false);
@@ -76,3 +76,6 @@ export default function AITestPage() {
     </div>
   );
 }
+
+
+export default memo(AITestPageComponent);

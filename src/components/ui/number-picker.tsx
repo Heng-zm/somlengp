@@ -3,6 +3,9 @@
 
 import { cn } from "@/lib/utils";
 import React, { useEffect, useRef, useState } from "react";
+// Performance optimization needed: Consider memoizing inline event handlers
+// Use useMemo for objects/arrays and useCallback for functions
+
 
 interface NumberPickerProps {
   min?: number;

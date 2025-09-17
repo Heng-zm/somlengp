@@ -6,6 +6,12 @@
 
 import React, { useState } from 'react';
 import { useScrollAnimation, useStaggeredScrollAnimation, useSmoothScrollTo, animationUtils } from '@/hooks/useScrollAnimation';
+// Memory leak prevention: Timers need cleanup
+// Add cleanup in useEffect return function
+
+// Performance optimization needed: Consider memoizing inline event handlers, dynamic classNames
+// Use useMemo for objects/arrays and useCallback for functions
+
 
 export default function SmoothAnimationExamples() {
   const [isLoading, setIsLoading] = useState(false);

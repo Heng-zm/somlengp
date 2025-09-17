@@ -1,9 +1,14 @@
 "use client"
-
 import * as React from "react"
 import { Button } from "@/components/ui/button"
 import { useToast } from "@/hooks/use-toast"
 import { 
+// Memory leak prevention: Timers need cleanup
+// Add cleanup in useEffect return function
+
+// Performance optimization needed: Consider memoizing dynamic classNames
+// Use useMemo for objects/arrays and useCallback for functions
+
   FileUploadToast, 
   MultiStepToast, 
   NotificationToast, 
@@ -11,7 +16,6 @@ import {
   AchievementToast, 
   PaymentToast 
 } from "./toast-templates"
-
 // Advanced toast utility function - creates options object
 export function createAdvancedToastOptions(options: {
   variant?: 'modern' | 'cyberpunk' | 'organic' | 'sunset' | 'aurora' | 'cosmic' | 'ethereal' | 'holographic' | 'retro' | 'midnight' | 'glassmorphism' | 'neumorphism' | 'minimalist' | 'vibrant' | 'ocean' | 'forest' | 'desert' | 'arctic' | 'neon' | 'pastel' | 'spring' | 'summer' | 'autumn' | 'winter'
@@ -38,13 +42,11 @@ export function createAdvancedToastOptions(options: {
     duration: options.hideDelay || (options.autoHide === false ? Infinity : 5000),
   }
 }
-
 // Example component showing all toast features
 export function ToastExamples() {
   const { toast } = useToast()
   const [progress, setProgress] = React.useState(0)
   const [currentStep, setCurrentStep] = React.useState(0)
-
   // Simulate progress update
   React.useEffect(() => {
     const interval = setInterval(() => {
@@ -52,7 +54,6 @@ export function ToastExamples() {
     }, 1000)
     return () => clearInterval(interval)
   }, [])
-
   // Simulate step progress
   React.useEffect(() => {
     const interval = setInterval(() => {
@@ -60,7 +61,6 @@ export function ToastExamples() {
     }, 2000)
     return () => clearInterval(interval)
   }, [])
-
   const handleShowBasicToasts = () => {
     // Success toast
     toast({
@@ -68,7 +68,6 @@ export function ToastExamples() {
       description: "Your action was completed successfully.",
       variant: "default",
     })
-
     // Error toast
     setTimeout(() => {
       toast({
@@ -77,7 +76,6 @@ export function ToastExamples() {
         variant: "destructive",
       })
     }, 1000)
-
     // Warning toast
     setTimeout(() => {
       toast({
@@ -87,7 +85,6 @@ export function ToastExamples() {
       })
     }, 2000)
   }
-
   const handleShowAdvancedToasts = () => {
     // Using the advanced toast utility
     const options1 = createAdvancedToastOptions({
@@ -98,11 +95,10 @@ export function ToastExamples() {
       priority: 'attention',
       showTimestamp: true,
       autoHide: false,
-      onAction: () => console.log('Action clicked!'),
+      onAction: () => console.log('Action clicked'),
       actionLabel: 'View Details'
     })
     toast(options1)
-
     // Cyberpunk theme with glitch animation
     setTimeout(() => {
       const options2 = createAdvancedToastOptions({
@@ -116,7 +112,6 @@ export function ToastExamples() {
       })
       toast(options2)
     }, 1500)
-
     // Organic theme with particle animation
     setTimeout(() => {
       const options3 = createAdvancedToastOptions({
@@ -130,7 +125,6 @@ export function ToastExamples() {
       toast(options3)
     }, 3000)
   }
-
   const handleShowProgressToasts = () => {
     // Linear progress
     const options1 = createAdvancedToastOptions({
@@ -143,7 +137,6 @@ export function ToastExamples() {
       autoHide: false
     })
     toast(options1)
-
     // Circular progress
     setTimeout(() => {
       const options2 = createAdvancedToastOptions({
@@ -157,7 +150,6 @@ export function ToastExamples() {
       })
       toast(options2)
     }, 1000)
-
     // Step progress
     setTimeout(() => {
       const options3 = createAdvancedToastOptions({
@@ -173,10 +165,8 @@ export function ToastExamples() {
       toast(options3)
     }, 2000)
   }
-
   const handleShowSeasonalToasts = () => {
     const seasons = ['spring', 'summer', 'autumn', 'winter'] as const
-    
     seasons.forEach((season, index) => {
       setTimeout(() => {
         const options = createAdvancedToastOptions({
@@ -191,18 +181,15 @@ export function ToastExamples() {
       }, index * 1500)
     })
   }
-
   const handleShowTemplateToasts = () => {
     // Note: These would use the template components if properly integrated
     // For now, we'll show regular toasts as examples
-
     // File upload simulation
     toast({
       title: "📤 File Upload",
       description: "document.pdf is being uploaded...",
       variant: "default",
     })
-
     // Achievement notification
     setTimeout(() => {
       toast({
@@ -211,7 +198,6 @@ export function ToastExamples() {
         variant: "default",
       })
     }, 2000)
-
     // Payment notification
     setTimeout(() => {
       toast({
@@ -220,7 +206,6 @@ export function ToastExamples() {
         variant: "default",
       })
     }, 4000)
-
     // Status update
     setTimeout(() => {
       toast({
@@ -230,7 +215,6 @@ export function ToastExamples() {
       })
     }, 6000)
   }
-
   const handleShowAccessibleToasts = () => {
     // High priority accessible toast
     toast({
@@ -238,7 +222,6 @@ export function ToastExamples() {
       description: "Immediate attention required. Security breach detected.",
       variant: "destructive",
     })
-
     // Screen reader optimized toast
     setTimeout(() => {
       toast({
@@ -247,7 +230,6 @@ export function ToastExamples() {
         variant: "default",
       })
     }, 2000)
-
     // Keyboard navigation toast
     setTimeout(() => {
       toast({
@@ -257,7 +239,6 @@ export function ToastExamples() {
       })
     }, 4000)
   }
-
   return (
     <div className="p-6 space-y-4 max-w-4xl mx-auto">
       <div className="text-center space-y-2 mb-8">
@@ -267,7 +248,6 @@ export function ToastExamples() {
           progress indicators, templates, and accessibility features.
         </p>
       </div>
-
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         <div className="space-y-2">
           <h3 className="font-semibold text-lg">Basic Toasts</h3>
@@ -276,7 +256,6 @@ export function ToastExamples() {
             Show Basic Toasts
           </Button>
         </div>
-
         <div className="space-y-2">
           <h3 className="font-semibold text-lg">Advanced Variants</h3>
           <p className="text-sm text-gray-600">Holographic, cyberpunk, and other modern themes</p>
@@ -284,7 +263,6 @@ export function ToastExamples() {
             Show Advanced Toasts
           </Button>
         </div>
-
         <div className="space-y-2">
           <h3 className="font-semibold text-lg">Progress Indicators</h3>
           <p className="text-sm text-gray-600">Linear, circular, and step-based progress</p>
@@ -292,7 +270,6 @@ export function ToastExamples() {
             Show Progress Toasts
           </Button>
         </div>
-
         <div className="space-y-2">
           <h3 className="font-semibold text-lg">Seasonal Themes</h3>
           <p className="text-sm text-gray-600">Spring, summer, autumn, and winter variants</p>
@@ -300,7 +277,6 @@ export function ToastExamples() {
             Show Seasonal Toasts
           </Button>
         </div>
-
         <div className="space-y-2">
           <h3 className="font-semibold text-lg">Template Toasts</h3>
           <p className="text-sm text-gray-600">Pre-built templates for common use cases</p>
@@ -308,7 +284,6 @@ export function ToastExamples() {
             Show Template Toasts
           </Button>
         </div>
-
         <div className="space-y-2">
           <h3 className="font-semibold text-lg">Accessible Toasts</h3>
           <p className="text-sm text-gray-600">Enhanced accessibility and screen reader support</p>
@@ -317,7 +292,6 @@ export function ToastExamples() {
           </Button>
         </div>
       </div>
-
       <div className="mt-8 p-4 bg-gray-50 rounded-lg">
         <h3 className="font-semibold mb-2">Real-time Progress Demo</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
@@ -345,7 +319,6 @@ export function ToastExamples() {
           </div>
         </div>
       </div>
-
       <div className="mt-8 text-center text-sm text-gray-600">
         <p>
           This enhanced toast system includes 24 variants, 8 animation types, 

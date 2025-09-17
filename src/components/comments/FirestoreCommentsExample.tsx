@@ -3,6 +3,9 @@
 import React, { useState } from 'react';
 import { useComments } from '@/hooks/use-comments';
 import { Comment } from '@/types/comment-types';
+// Performance optimization needed: Consider memoizing inline event handlers, dynamic classNames
+// Use useMemo for objects/arrays and useCallback for functions
+
 
 interface CommentItemProps {
   comment: Comment;

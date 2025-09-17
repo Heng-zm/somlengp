@@ -5,6 +5,9 @@ import { RefreshCw, Shield, CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
+// Memory leak prevention: Timers need cleanup
+// Add cleanup in useEffect return function
+
 
 interface CaptchaVerificationProps {
   onVerificationChange: (isVerified: boolean) => void;

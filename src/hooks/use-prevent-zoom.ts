@@ -93,6 +93,9 @@ export function usePreventZoom(options: PreventZoomOptions = {}) {
         ${selector} {
           font-size: 16px !important;
           -webkit-text-size-adjust: 100% !important;
+// Memory leak prevention: Event listeners need cleanup
+// Add cleanup in useEffect return function
+
         }
       }
     `;

@@ -2,6 +2,9 @@
 
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { AlertContainerAlert } from './alert-utils';
+// Memory leak prevention: Event listeners need cleanup, Timers need cleanup, Observers need cleanup
+// Add cleanup in useEffect return function
+
 
 // Constants for accessibility
 const FOCUS_TRAP_SELECTOR = 'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])';

@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useRef, useCallback, useEffect, useMemo } from 'react';
-import { Upload, X, Plus, Grid, List, Eye, Download, Share2, RotateCw, Trash2, FileImage, AlertCircle, CheckCircle, Info, Maximize2, Minimize2 } from 'lucide-react';
+import { Upload, X, Plus, Grid, List, Eye, Download, Share2, RotateCw, Trash2, FileImage, AlertCircle, CheckCircle, Info, Maximize2, Minimize2 } from 'lucide-react' // TODO: Consider importing icons individually for better tree shaking;
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
@@ -15,6 +15,12 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { Sheet, SheetContent, SheetDescription, SheetFooter, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
+// Memory leak prevention: Event listeners need cleanup, Timers need cleanup
+// Add cleanup in useEffect return function
+
+// Performance optimization needed: Consider memoizing inline event handlers, dynamic classNames
+// Use useMemo for objects/arrays and useCallback for functions
+
 
 interface ImageFile {
   id: string;

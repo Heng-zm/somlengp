@@ -5,6 +5,9 @@ import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
 import { AlertTriangle, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { errorHandler, AppError, ErrorType, ErrorSeverity } from '@/lib/error-utils';
+// Memory leak prevention: Timers need cleanup
+// Add cleanup in useEffect return function
+
 
 interface Props {
   children: ReactNode;

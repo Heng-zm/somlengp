@@ -5,6 +5,9 @@ import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from '
 import { Button } from '@/components/ui/button';
 import { OptimizedQRScanner } from './optimized-qr-scanner';
 import { showSuccessToast, showErrorToast } from '@/lib/toast-utils';
+// Performance optimization needed: Consider memoizing inline event handlers
+// Use useMemo for objects/arrays and useCallback for functions
+
 
 interface QRScannerSheetProps {
   open: boolean;

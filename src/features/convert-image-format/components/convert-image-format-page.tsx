@@ -37,6 +37,9 @@ import JSZip from 'jszip';
 import { ThreeDotsLoader } from '@/components/shared/three-dots-loader';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { formatTotalFileSize } from '@/lib/format-file-size';
+// Performance optimization needed: Consider memoizing inline event handlers
+// Use useMemo for objects/arrays and useCallback for functions
+
 
 type TargetFormat = 'jpeg' | 'png' | 'webp' | 'bmp' | 'gif' | 'avif';
 
@@ -155,7 +158,7 @@ export function ConvertImageFormatPage() {
     // This effect will run when the component unmounts or when fileObjectURLs changes.
     // It's crucial for preventing memory leaks.
     return () => {
-        fileObjectURLs.forEach(url => URL.revokeObjectURL(url));
+        fileObjectURLs.forEach(url => URL.revokeObjectURL(url), []);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [fileObjectURLs]);

@@ -1,5 +1,4 @@
 'use client'
-
 import React, { useState } from 'react'
 import { StatusNotification } from './status-notification'
 import { useNotifications, notifications } from './notification-manager'
@@ -8,6 +7,12 @@ import { Card, CardContent, CardHeader, CardTitle } from './card'
 import { Badge } from './badge'
 import { Separator } from './separator'
 import { 
+// Memory leak prevention: Timers need cleanup
+// Add cleanup in useEffect return function
+
+// Performance optimization needed: Consider memoizing inline event handlers
+// Use useMemo for objects/arrays and useCallback for functions
+
   Bell, 
   Settings, 
   Play, 
@@ -30,7 +35,6 @@ import {
   Wifi,
   Battery
 } from 'lucide-react'
-
 interface TestScenario {
   id: string
   name: string
@@ -39,12 +43,10 @@ interface TestScenario {
   execute: () => void
   category: 'status' | 'system' | 'interactive' | 'realworld'
 }
-
 export function NotificationTestPanel() {
   const { addNotification, state, clearAll } = useNotifications()
   const [isRunningSequence, setIsRunningSequence] = useState(false)
   const [activeCategory, setActiveCategory] = useState<'all' | 'status' | 'system' | 'interactive' | 'realworld'>('all')
-
   // Status notification tests
   const statusTests = [
     {
@@ -126,7 +128,6 @@ export function NotificationTestPanel() {
       }
     }
   ]
-
   // System notification tests
   const systemTests = [
     {
@@ -143,12 +144,12 @@ export function NotificationTestPanel() {
             actions: [
               {
                 label: 'Update Now',
-                onClick: () => console.log('Updating...'),
+                onClick: () => console.log('Update clicked'),
                 variant: 'default'
               },
               {
                 label: 'Later',
-                onClick: () => console.log('Remind later'),
+                onClick: () => console.log('Later clicked'),
                 variant: 'outline'
               }
             ],
@@ -193,7 +194,6 @@ export function NotificationTestPanel() {
       }
     }
   ]
-
   // Interactive tests
   const interactiveTests = [
     {
@@ -218,7 +218,6 @@ export function NotificationTestPanel() {
           progress: 0,
           soundType: 'info'
         })
-
         // Simulate progress
         let progress = 0
         const interval = setInterval(() => {
@@ -247,7 +246,6 @@ export function NotificationTestPanel() {
       execute: () => runNotificationSequence()
     }
   ]
-
   // Real-world scenario tests
   const realWorldTests = [
     {
@@ -262,7 +260,6 @@ export function NotificationTestPanel() {
           'Order Placed',
           'Your order #12345 has been placed successfully'
         ))
-
         setTimeout(() => {
           addNotification(notifications.info(
             'Order Processing',
@@ -270,7 +267,6 @@ export function NotificationTestPanel() {
             { icon: Clock }
           ))
         }, 2000)
-
         setTimeout(() => {
           addNotification(notifications.success(
             'Order Shipped',
@@ -292,7 +288,6 @@ export function NotificationTestPanel() {
           'Please wait while we process your payment...',
           { persistent: true, icon: Clock }
         ))
-
         setTimeout(() => {
           if (Math.random() > 0.3) {
             addNotification(notifications.success(
@@ -323,12 +318,12 @@ export function NotificationTestPanel() {
             actions: [
               {
                 label: 'Reply',
-                onClick: () => console.log('Opening chat...'),
+                onClick: () => console.log('Reply clicked'),
                 variant: 'default'
               },
               {
                 label: 'Mark as Read',
-                onClick: () => console.log('Marked as read'),
+                onClick: () => console.log('Mark as read clicked'),
                 variant: 'outline'
               }
             ]
@@ -337,18 +332,13 @@ export function NotificationTestPanel() {
       }
     }
   ]
-
   const allTests = [...statusTests, ...systemTests, ...interactiveTests, ...realWorldTests]
-
   const filteredTests = activeCategory === 'all' 
     ? allTests 
     : allTests.filter(test => test.category === activeCategory)
-
   const runNotificationSequence = async () => {
     if (isRunningSequence) return
-    
     setIsRunningSequence(true)
-    
     const sequence = [
       () => addNotification(notifications.info('Process Started', 'Initializing workflow...', { icon: Play })),
       () => addNotification(notifications.info('Step 1 Complete', 'Data validation successful', { icon: CheckCircle2 })),
@@ -356,15 +346,12 @@ export function NotificationTestPanel() {
       () => addNotification(notifications.info('Step 3 Processing', 'Processing data...', { icon: Clock })),
       () => addNotification(notifications.success('Workflow Complete', 'All steps completed successfully!', { icon: Zap }))
     ]
-
     for (let i = 0; i < sequence.length; i++) {
       sequence[i]()
       await new Promise(resolve => setTimeout(resolve, 1500))
     }
-    
     setIsRunningSequence(false)
   }
-
   const categories = [
     { id: 'all', label: 'All Tests', icon: Bell },
     { id: 'status', label: 'Status', icon: AlertCircle },
@@ -372,7 +359,6 @@ export function NotificationTestPanel() {
     { id: 'interactive', label: 'Interactive', icon: Play },
     { id: 'realworld', label: 'Real World', icon: Rocket }
   ]
-
   return (
     <div className="w-full max-w-6xl mx-auto p-6 space-y-6">
       {/* Header */}
@@ -415,7 +401,6 @@ export function NotificationTestPanel() {
                 {isRunningSequence ? 'Running...' : 'Run Sequence'}
               </Button>
             </div>
-            
             <div className="flex items-center gap-2">
               <span className="text-sm text-muted-foreground">Unread:</span>
               <Badge variant="secondary">{state.unreadCount}</Badge>
@@ -423,7 +408,6 @@ export function NotificationTestPanel() {
           </div>
         </CardContent>
       </Card>
-
       {/* Status Notifications Preview */}
       <Card>
         <CardHeader>
@@ -442,7 +426,6 @@ export function NotificationTestPanel() {
           </div>
         </CardContent>
       </Card>
-
       {/* Category Filter */}
       <div className="flex flex-wrap gap-2">
         {categories.map(category => (
@@ -458,7 +441,6 @@ export function NotificationTestPanel() {
           </Button>
         ))}
       </div>
-
       {/* Test Scenarios Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {filteredTests.map((test) => (
@@ -495,7 +477,6 @@ export function NotificationTestPanel() {
           </Card>
         ))}
       </div>
-
       {/* Quick Actions */}
       <Card>
         <CardHeader>
@@ -527,7 +508,6 @@ export function NotificationTestPanel() {
           </div>
         </CardContent>
       </Card>
-
       {/* Current Notifications Count */}
       <div className="text-center text-sm text-muted-foreground">
         Current active notifications: {state.notifications.length} | 

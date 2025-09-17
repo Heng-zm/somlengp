@@ -28,6 +28,9 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { cn } from "@/lib/utils";
 import { Mail, Lock, Eye, EyeOff, LogIn, CheckCircle2 } from "lucide-react";
+// Performance optimization needed: Consider memoizing inline event handlers
+// Use useMemo for objects/arrays and useCallback for functions
+
 
 // Google Icon Component - memoized for performance
 const GoogleIcon = memo(() => (

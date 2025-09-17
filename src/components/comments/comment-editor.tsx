@@ -1,11 +1,14 @@
 'use client';
 
 import { useState, useRef, useCallback, memo } from 'react';
-import { Bold, Italic, Underline, Link, Paperclip, Smile, AtSign } from 'lucide-react';
+import { Bold, Italic, Underline, Link, Paperclip, Smile, AtSign } from 'lucide-react' // TODO: Consider importing icons individually for better tree shaking;
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { cn } from '@/lib/utils';
 import { CommentFormattingOption } from '@/types/comment-types';
+// Memory leak prevention: Timers need cleanup
+// Add cleanup in useEffect return function
+
 
 interface CommentEditorProps {
   placeholder?: string;

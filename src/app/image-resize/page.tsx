@@ -1,6 +1,7 @@
 "use client";
 
 import dynamic from 'next/dynamic';
+import { FeaturePageLayout } from '@/layouts/feature-page-layout';
 
 // Dynamically import the heavy image resize component to reduce initial bundle size
 const ImageResizeComponent = dynamic(() => import('@/components/ImageResizeComponent'), {
@@ -16,5 +17,9 @@ const ImageResizeComponent = dynamic(() => import('@/components/ImageResizeCompo
 });
 
 export default function ImageResizePage() {
-  return <ImageResizeComponent />;
+  return (
+    <FeaturePageLayout title="Image Resize">
+      <ImageResizeComponent />
+    </FeaturePageLayout>
+  );
 }

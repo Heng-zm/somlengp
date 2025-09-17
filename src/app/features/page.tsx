@@ -1,14 +1,17 @@
 'use client'
 
 import Link from 'next/link'
-import { useState } from 'react'
-import { ArrowRight, Check, Mic, FileText, Image as ImageIcon, Wand2, AudioLines, Sparkles, Play, Zap, Shield, Users, BarChart3, QrCode } from 'lucide-react'
+import { useState, memo } from 'react';
+import { ArrowRight, Check, Mic, FileText, Image as ImageIcon, Wand2, AudioLines, Sparkles, Play, Zap, Shield, Users, BarChart3, QrCode } from 'lucide-react' // TODO: Consider importing icons individually for better tree shaking
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+// Performance optimization needed: Consider memoizing inline event handlers, dynamic classNames
+// Use useMemo for objects/arrays and useCallback for functions
 
-export default function FeaturesPage() {
+
+const FeaturesPageComponent = function FeaturesPage() {
   const [activeFeature, setActiveFeature] = useState(0)
 
   const mainFeatures = [
@@ -405,3 +408,6 @@ export default function FeaturesPage() {
     </div>
   )
 }
+
+
+export default memo(FeaturesPageComponent);

@@ -1,9 +1,10 @@
 import * as React from "react"
 import { cva, type VariantProps } from "class-variance-authority"
 import { X, Volume2, VolumeX } from "lucide-react"
-
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
+// Memory leak prevention: Timers need cleanup
+// Add cleanup in useEffect return function
 
 const alertVariants = cva(
   "relative w-full rounded-xl border shadow-sm transition-all duration-300 ease-in-out [&>svg~*]:pl-7 [&>svg+div]:translate-y-[-3px] [&>svg]:absolute [&>svg]:left-4 [&>svg]:top-4 [&>svg]:text-current",
@@ -52,7 +53,6 @@ const alertVariants = cva(
     },
   }
 )
-
 interface AlertProps
   extends React.HTMLAttributes<HTMLDivElement>,
     VariantProps<typeof alertVariants> {
@@ -73,11 +73,9 @@ interface AlertProps
   showProgress?: boolean;
   icon?: React.ComponentType<{ className?: string }>;
 }
-
 // Sound utility functions
 const playAlertSound = (soundType: string) => {
   if (typeof window === 'undefined') return;
-  
   try {
     const soundMap: Record<string, string> = {
       success: '/sounds/success.mp3',
@@ -86,7 +84,6 @@ const playAlertSound = (soundType: string) => {
       info: '/sounds/info.mp3',
       notification: '/sounds/notification.mp3',
     };
-    
     const soundFile = soundMap[soundType];
     if (soundFile) {
       const audio = new Audio(soundFile);
@@ -94,10 +91,8 @@ const playAlertSound = (soundType: string) => {
       audio.play().catch(console.warn);
     }
   } catch (error) {
-    console.warn('Failed to play alert sound:', error);
   }
 };
-
 const Alert = React.forwardRef<HTMLDivElement, AlertProps>(
   ({ 
     className, 
@@ -124,14 +119,12 @@ const Alert = React.forwardRef<HTMLDivElement, AlertProps>(
     const timeoutRef = React.useRef<NodeJS.Timeout>();
     const progressRef = React.useRef<number>(progress || 0);
     const [currentProgress, setCurrentProgress] = React.useState(progress || 0);
-
     // Handle sound on mount
     React.useEffect(() => {
       if (playSound && soundEnabled && isVisible) {
         playAlertSound(soundType);
       }
     }, [playSound, soundEnabled, soundType, isVisible]);
-
     // Handle auto close
     React.useEffect(() => {
       if (autoClose && !persistent && isVisible && autoCloseDelay > 0) {
@@ -139,21 +132,18 @@ const Alert = React.forwardRef<HTMLDivElement, AlertProps>(
           handleDismiss();
         }, autoCloseDelay);
       }
-      
       return () => {
         if (timeoutRef.current) {
           clearTimeout(timeoutRef.current);
         }
       };
     }, [autoClose, persistent, isVisible, autoCloseDelay]);
-
     // Handle progress updates
     React.useEffect(() => {
       if (progress !== undefined && progress !== currentProgress) {
         setCurrentProgress(progress);
       }
     }, [progress]);
-
     const handleDismiss = () => {
       if (timeoutRef.current) {
         clearTimeout(timeoutRef.current);
@@ -161,20 +151,16 @@ const Alert = React.forwardRef<HTMLDivElement, AlertProps>(
       setIsVisible(false);
       onDismiss?.();
     };
-
     const toggleSound = () => {
       setSoundEnabled(!soundEnabled);
     };
-
     if (!isVisible) return null;
-
     const priorityStyles = {
       low: '',
       medium: '',
       high: 'ring-2 ring-yellow-400/50 dark:ring-yellow-500/50',
       critical: 'ring-2 ring-red-500/75 dark:ring-red-400/75 shadow-lg shadow-red-500/25',
     };
-
     return (
       <div
         ref={ref}
@@ -192,10 +178,8 @@ const Alert = React.forwardRef<HTMLDivElement, AlertProps>(
         {IconComponent && (
           <IconComponent className="h-4 w-4 absolute left-4 top-4" />
         )}
-        
         <div className="flex-1">
           {children}
-          
           {/* Progress Bar */}
           {showProgress && (
             <div className="mt-3 w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
@@ -205,7 +189,6 @@ const Alert = React.forwardRef<HTMLDivElement, AlertProps>(
               />
             </div>
           )}
-          
           {/* Action Buttons */}
           {actions && actions.length > 0 && (
             <div className="flex gap-2 mt-3">
@@ -223,7 +206,6 @@ const Alert = React.forwardRef<HTMLDivElement, AlertProps>(
             </div>
           )}
         </div>
-
         {/* Control buttons */}
         <div className="absolute right-2 top-2 flex gap-1">
           {/* Sound toggle */}
@@ -245,7 +227,6 @@ const Alert = React.forwardRef<HTMLDivElement, AlertProps>(
               </span>
             </Button>
           )}
-          
           {/* Dismiss button */}
           {(dismissible || (!persistent && !autoClose)) && (
             <Button
@@ -260,7 +241,6 @@ const Alert = React.forwardRef<HTMLDivElement, AlertProps>(
             </Button>
           )}
         </div>
-        
         {/* Auto-close indicator */}
         {autoClose && !persistent && autoCloseDelay > 0 && (
           <div 
@@ -280,7 +260,6 @@ const Alert = React.forwardRef<HTMLDivElement, AlertProps>(
   }
 );
 Alert.displayName = "Alert"
-
 const AlertTitle = React.forwardRef<
   HTMLParagraphElement,
   React.HTMLAttributes<HTMLHeadingElement>
@@ -296,7 +275,6 @@ const AlertTitle = React.forwardRef<
   />
 ))
 AlertTitle.displayName = "AlertTitle"
-
 const AlertDescription = React.forwardRef<
   HTMLParagraphElement,
   React.HTMLAttributes<HTMLParagraphElement>
@@ -311,5 +289,4 @@ const AlertDescription = React.forwardRef<
   />
 ))
 AlertDescription.displayName = "AlertDescription"
-
 export { Alert, AlertTitle, AlertDescription, type AlertProps }

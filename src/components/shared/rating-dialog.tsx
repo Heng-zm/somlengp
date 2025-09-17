@@ -16,6 +16,12 @@ import { Textarea } from '../ui/textarea';
 import { cn } from '@/lib/utils';
 import { FeedbackSuccess } from './feedback-success';
 import { ThreeDotsLoader } from './three-dots-loader';
+// Memory leak prevention: Timers need cleanup
+// Add cleanup in useEffect return function
+
+// Performance optimization needed: Consider memoizing inline event handlers
+// Use useMemo for objects/arrays and useCallback for functions
+
 
 interface RatingDialogProps {
   open: boolean;

@@ -1,8 +1,6 @@
 // Privacy-respecting user activity tracking and analytics
-
 import { doc, setDoc, updateDoc, getDoc, collection, query, where, orderBy, limit, getDocs, Timestamp } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
-
 // Activity event types
 export type ActivityType = 
   | 'login'
@@ -15,7 +13,6 @@ export type ActivityType =
   | 'settings_change'
   | 'file_upload'
   | 'error_encountered';
-
 // Activity event interface
 export interface ActivityEvent {
   id: string;
@@ -34,7 +31,6 @@ export interface ActivityEvent {
     // No city or precise location for privacy
   };
 }
-
 // User analytics summary
 export interface UserAnalytics {
   userId: string;
@@ -48,7 +44,6 @@ export interface UserAnalytics {
   monthlyActivityCount: number;
   updatedAt: Date;
 }
-
 // Privacy-safe activity logging
 export async function logActivity(
   userId: string,
@@ -58,13 +53,10 @@ export async function logActivity(
 ): Promise<void> {
   try {
     if (!db) {
-      console.warn('Firestore not initialized, skipping activity log');
       return;
     }
-
     const activityId = `${userId}_${type}_${Date.now()}`;
     const sessionId = getSessionId();
-    
     // Create privacy-safe activity event
     const activityEvent: Omit<ActivityEvent, 'id'> = {
       userId,
@@ -75,7 +67,6 @@ export async function logActivity(
       userAgent: sanitizeUserAgent(userAgent),
       // IP address and location would be added server-side if needed
     };
-
     // Store in Firestore with automatic cleanup
     const activityRef = doc(db, 'user_activities', activityId);
     await setDoc(activityRef, {
@@ -84,37 +75,28 @@ export async function logActivity(
       // Add TTL for automatic cleanup (30 days)
       expiresAt: Timestamp.fromDate(new Date(Date.now() + 30 * 24 * 60 * 60 * 1000))
     });
-
     // Update user analytics summary (async, don't block)
     updateUserAnalytics(userId, type).catch(error => {
-      console.warn('Failed to update user analytics:', error);
     });
-
   } catch (error) {
     console.error('Failed to log activity:', error);
     // Don't throw error - analytics shouldn't break user experience
   }
 }
-
 // Update aggregated user analytics
 async function updateUserAnalytics(userId: string, activityType: ActivityType): Promise<void> {
   try {
     if (!db) return;
-
     const analyticsRef = doc(db, 'user_analytics', userId);
     const analyticsDoc = await getDoc(analyticsRef);
-    
     const now = new Date();
     const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
     const monthAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
-
     if (analyticsDoc.exists()) {
       const current = analyticsDoc.data() as UserAnalytics;
-      
       // Count recent activities
       const recentActivities = await getRecentActivitiesCount(userId, weekAgo);
       const monthlyActivities = await getRecentActivitiesCount(userId, monthAgo);
-      
       await updateDoc(analyticsRef, {
         totalActivities: current.totalActivities + 1,
         lastActiveDate: Timestamp.fromDate(now),
@@ -136,7 +118,6 @@ async function updateUserAnalytics(userId: string, activityType: ActivityType): 
         monthlyActivityCount: 1,
         updatedAt: now
       };
-
       await setDoc(analyticsRef, {
         userId,
         ...analytics,
@@ -149,38 +130,30 @@ async function updateUserAnalytics(userId: string, activityType: ActivityType): 
     console.error('Failed to update user analytics:', error);
   }
 }
-
 // Get user's recent activities count
 async function getRecentActivitiesCount(userId: string, since: Date): Promise<number> {
   try {
     if (!db) return 0;
-
     const q = query(
       collection(db, 'user_activities'),
       where('userId', '==', userId),
       where('timestamp', '>=', Timestamp.fromDate(since))
     );
-    
     const snapshot = await getDocs(q);
     return snapshot.size;
   } catch (error) {
-    console.warn('Failed to get recent activities count:', error);
     return 0;
   }
 }
-
 // Get user analytics summary
 export async function getUserAnalytics(userId: string): Promise<UserAnalytics | null> {
   try {
     if (!db) return null;
-
     const analyticsRef = doc(db, 'user_analytics', userId);
     const analyticsDoc = await getDoc(analyticsRef);
-    
     if (!analyticsDoc.exists()) {
       return null;
     }
-
     const data = analyticsDoc.data();
     return {
       userId: data.userId,
@@ -199,7 +172,6 @@ export async function getUserAnalytics(userId: string): Promise<UserAnalytics | 
     return null;
   }
 }
-
 // Get user's recent activities (for dashboard)
 export async function getUserRecentActivities(
   userId: string, 
@@ -207,14 +179,12 @@ export async function getUserRecentActivities(
 ): Promise<ActivityEvent[]> {
   try {
     if (!db) return [];
-
     const q = query(
       collection(db, 'user_activities'),
       where('userId', '==', userId),
       orderBy('timestamp', 'desc'),
       limit(limitCount)
     );
-    
     const snapshot = await getDocs(q);
     return snapshot.docs.map(doc => ({
       id: doc.id,
@@ -226,7 +196,6 @@ export async function getUserRecentActivities(
     return [];
   }
 }
-
 // Helper functions
 function getSessionId(): string {
   // Try to get existing session ID from sessionStorage
@@ -237,41 +206,32 @@ function getSessionId(): string {
   }
   return sessionId;
 }
-
 function sanitizeMetadata(metadata: Record<string, any>): Record<string, any> {
   const sanitized: Record<string, any> = {};
-  
   // Only include safe, non-sensitive metadata
   const allowedKeys = [
     'feature', 'action', 'duration', 'success', 'error_type', 
     'file_type', 'export_format', 'model_used', 'message_count'
   ];
-  
   for (const [key, value] of Object.entries(metadata)) {
     if (allowedKeys.includes(key) && typeof value !== 'object') {
       sanitized[key] = value;
     }
   }
-  
   return sanitized;
 }
-
 function sanitizeUserAgent(userAgent?: string): string | undefined {
   if (!userAgent) return undefined;
-  
   // Extract only basic browser/OS info, remove detailed version numbers
   const simplified = userAgent
     .replace(/\d+\.\d+\.\d+/g, 'X.X.X') // Replace version numbers
     .replace(/\([^)]+\)/g, '') // Remove detailed system info
     .substring(0, 100); // Limit length
-  
   return simplified;
 }
-
 function updateFavoriteFeatures(current: string[], newActivity: ActivityType): string[] {
   const updated = [...current];
   const index = updated.indexOf(newActivity);
-  
   if (index > -1) {
     // Move to front if already exists
     updated.splice(index, 1);
@@ -280,11 +240,9 @@ function updateFavoriteFeatures(current: string[], newActivity: ActivityType): s
     // Add new activity to front
     updated.unshift(newActivity);
   }
-  
   // Keep only top 5 favorite features
   return updated.slice(0, 5);
 }
-
 // Utility functions for common activities
 export const ActivityLogger = {
   login: (userId: string) => logActivity(userId, 'login'),
@@ -303,7 +261,6 @@ export const ActivityLogger = {
   error: (userId: string, errorType: string) => 
     logActivity(userId, 'error_encountered', { error_type: errorType })
 };
-
 // Privacy utilities
 export function deleteUserAnalytics(userId: string): Promise<void> {
   // For GDPR compliance - delete all user analytics data
@@ -312,7 +269,6 @@ export function deleteUserAnalytics(userId: string): Promise<void> {
     db && doc(db, 'user_analytics', userId) ? 
       updateDoc(doc(db, 'user_analytics', userId), { deleted: true }) : 
       Promise.resolve(),
-    
     // Mark activities for deletion (they'll be auto-deleted by TTL)
     // In production, you might want to immediately delete them
   ]).then(() => undefined);

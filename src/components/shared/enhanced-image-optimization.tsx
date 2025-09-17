@@ -3,6 +3,12 @@
 import Image from 'next/image';
 import { useState, useEffect, useMemo, useCallback, memo } from 'react';
 import { cn } from '@/lib/utils';
+// Memory leak prevention: Timers need cleanup
+// Add cleanup in useEffect return function
+
+// Performance optimization needed: Consider memoizing inline styles
+// Use useMemo for objects/arrays and useCallback for functions
+
 
 interface EnhancedImageProps {
   src: string;

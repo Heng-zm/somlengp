@@ -11,6 +11,9 @@ import { useIntersectionObserver } from '@/lib/performance';
 
 // Lazy load the AI Assistant Widget
 const AIAssistantWidget = lazy(() => import('@/components/shared/ai-assistant-widget').then(mod => ({ default: mod.AIAssistantWidget })));
+// Memory leak prevention: Observers need cleanup
+// Add cleanup in useEffect return function
+
 
 interface FeatureCardData {
   href?: string;
@@ -176,7 +179,7 @@ const VirtualFeatureGrid = memo(function VirtualFeatureGrid({
         entries.forEach((entry) => {
           if (entry.isIntersecting) {
             // Load more items when we're near the end
-            const index = parseInt(entry.target.getAttribute('data-index') || '0');
+            const index = parseInt(entry.target.getAttribute('data-index') || '0', 10);
             if (index >= visibleRange.end - 2) {
               setVisibleRange(prev => ({
                 ...prev,
@@ -212,7 +215,7 @@ const VirtualFeatureGrid = memo(function VirtualFeatureGrid({
       {visibleFeatures.map((feature, index) => (
         <div 
           key={feature.href || feature.title} 
-          data-index={visibleRange.start + index}
+          data-index={String(visibleRange.start + index)}
         >
           <Suspense fallback={
             <Card className="w-full h-full p-5 flex items-center gap-5 animate-pulse">

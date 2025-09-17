@@ -7,11 +7,9 @@
  * - ImageToPdfInput - The input type for the function.
  * - ImageToPdfOutput - The return type for the function.
  */
-
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
 import {PDFDocument, PDFImage} from 'pdf-lib';
-
 const ImageToPdfInputSchema = z.object({
   imageDataUris: z
     .array(z.string())
@@ -20,20 +18,17 @@ const ImageToPdfInputSchema = z.object({
     ),
 });
 export type ImageToPdfInput = z.infer<typeof ImageToPdfInputSchema>;
-
 const ImageToPdfOutputSchema = z.object({
   pdfDataUri: z
     .string()
     .describe('The generated PDF file as a data URI.'),
 });
 export type ImageToPdfOutput = z.infer<typeof ImageToPdfOutputSchema>;
-
 export async function imageToPdf(
   input: ImageToPdfInput
 ): Promise<ImageToPdfOutput> {
   return imageToPdfFlow(input);
 }
-
 const imageToPdfFlow = ai.defineFlow(
   {
     name: 'imageToPdfFlow',
@@ -44,13 +39,10 @@ const imageToPdfFlow = ai.defineFlow(
     if (imageDataUris.length === 0) {
       throw new Error('No image files provided to convert.');
     }
-
     const pdfDoc = await PDFDocument.create();
-
     for (const dataUri of imageDataUris) {
         const imageBytes = Buffer.from(dataUri.split(',')[1], 'base64');
         let pdfImage: PDFImage;
-
         if (dataUri.startsWith('data:image/jpeg') || dataUri.startsWith('data:image/jpg')) {
             pdfImage = await pdfDoc.embedJpg(imageBytes);
         } else if (dataUri.startsWith('data:image/png')) {
@@ -58,10 +50,10 @@ const imageToPdfFlow = ai.defineFlow(
         } else {
             // Skip unsupported image formats for now. 
             // In a real app, you might want to handle this more gracefully.
-            console.warn(`Skipping unsupported image type for data URI: ${dataUri.substring(0, 30)}...`);
+            // Log or handle the unsupported format if necessary
+            console.warn(`Skipping unsupported image format: ${dataUri.substring(0, 50)}...`);
             continue;
         }
-
         const page = pdfDoc.addPage([pdfImage.width, pdfImage.height]);
         page.drawImage(pdfImage, {
             x: 0,
@@ -70,10 +62,8 @@ const imageToPdfFlow = ai.defineFlow(
             height: pdfImage.height,
         });
     }
-
     const pdfBytes = await pdfDoc.save();
     const pdfBase64 = Buffer.from(pdfBytes).toString('base64');
-
     return {
       pdfDataUri: `data:application/pdf;base64,${pdfBase64}`,
     };

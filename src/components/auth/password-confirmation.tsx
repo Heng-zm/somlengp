@@ -14,6 +14,9 @@ import {
 } from '@/components/ui/dialog';
 import { Eye, EyeOff, Lock, AlertTriangle } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+// Performance optimization needed: Consider memoizing inline event handlers, dynamic classNames
+// Use useMemo for objects/arrays and useCallback for functions
+
 
 interface PasswordConfirmationProps {
   isOpen: boolean;

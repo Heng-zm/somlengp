@@ -1,4 +1,7 @@
 import crypto from 'crypto';
+// Memory leak prevention: Timers need cleanup
+// Add cleanup in useEffect return function
+
 
 export interface OTPData {
   code: string;

@@ -25,6 +25,12 @@ import {
 import { cn } from '@/lib/utils';
 import { usePerformanceAlerting } from '@/lib/performance-alerts';
 import { 
+// Memory leak prevention: Timers need cleanup
+// Add cleanup in useEffect return function
+
+// Performance optimization needed: Consider memoizing inline styles, inline event handlers
+// Use useMemo for objects/arrays and useCallback for functions
+
   LineChart, 
   Line, 
   XAxis, 
@@ -650,3 +656,6 @@ export const EnhancedPerformanceDashboard = memo(function EnhancedPerformanceDas
     </div>
   );
 });
+
+// Default export for lazy loading
+export default EnhancedPerformanceDashboard;

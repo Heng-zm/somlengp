@@ -2,7 +2,6 @@
  * AI Image Upscaling Service
  * Handles AI-powered image enhancement and upscaling operations
  */
-
 import {
   UpscaleOptions,
   UpscaleRequest,
@@ -16,36 +15,32 @@ import {
 } from './ai-upscale-types';
 import { GeminiClient, GeminiUpscaleRequest } from './gemini-client';
 import { geminiConfig } from './gemini-config';
+// Memory leak prevention: Timers need cleanup
+// Add cleanup in useEffect return function
 
 class AIUpscaleService {
   private static instance: AIUpscaleService;
   private geminiClient: GeminiClient | null = null;
-
   public static getInstance(): AIUpscaleService {
     if (!AIUpscaleService.instance) {
       AIUpscaleService.instance = new AIUpscaleService();
     }
     return AIUpscaleService.instance;
   }
-
   /**
    * Initialize Gemini client with API key
    */
   public initializeGemini(apiKey?: string): boolean {
     try {
       const keyToUse = apiKey || geminiConfig.getApiKey();
-      
       if (!keyToUse) {
-        console.warn('No Gemini API key available');
         this.geminiClient = null;
         return false;
       }
-      
       // Set the API key in config if provided
       if (apiKey) {
         geminiConfig.setApiKey(apiKey);
       }
-      
       this.geminiClient = GeminiClient.initialize(keyToUse);
       return true;
     } catch (error) {
@@ -54,7 +49,6 @@ class AIUpscaleService {
       return false;
     }
   }
-
   /**
    * Check if Gemini is available and configured
    */
@@ -63,39 +57,32 @@ class AIUpscaleService {
     if (!geminiConfig.isConfigured()) {
       return false;
     }
-    
     // Initialize client if not already done
     if (!this.geminiClient) {
       this.initializeGemini();
     }
-    
     return this.geminiClient?.isConfigured() ?? false;
   }
-
   /**
    * Set Gemini API key
    */
   public setGeminiApiKey(apiKey: string): { success: boolean; message: string } {
     const validation = geminiConfig.validateApiKey(apiKey);
-    
     if (!validation.valid) {
       return { success: false, message: validation.message };
     }
-    
     const success = this.initializeGemini(apiKey);
     return {
       success,
       message: success ? 'Gemini API key configured successfully' : 'Failed to configure Gemini API key'
     };
   }
-
   /**
    * Get Gemini configuration status
    */
   public getGeminiStatus() {
     return geminiConfig.getStatus();
   }
-
   /**
    * Test Gemini API connection
    */
@@ -103,7 +90,6 @@ class AIUpscaleService {
     if (!geminiConfig.isConfigured()) {
       return { success: false, message: 'Gemini API key is not configured' };
     }
-    
     try {
       const result = await geminiConfig.testApiKey();
       return {
@@ -117,7 +103,6 @@ class AIUpscaleService {
       };
     }
   }
-
   /**
    * Check if AI upscaling is available
    */
@@ -125,7 +110,6 @@ class AIUpscaleService {
     // Check if any upscaling method is available
     return true; // Traditional methods are always available
   }
-
   /**
    * Check if a specific model is available
    */
@@ -136,35 +120,30 @@ class AIUpscaleService {
     // Other models are simulated and always available
     return true;
   }
-
   /**
    * Get available upscale models
    */
   public getModels(): UpscaleModel[] {
     return AI_UPSCALE_MODELS;
   }
-
   /**
    * Get available upscale presets
    */
   public getPresets(): UpscalePreset[] {
     return UPSCALE_PRESETS;
   }
-
   /**
    * Get a specific model by ID
    */
   public getModel(id: string): UpscaleModel | undefined {
     return AI_UPSCALE_MODELS.find(model => model.id === id);
   }
-
   /**
    * Get a specific preset by ID
    */
   public getPreset(id: string): UpscalePreset | undefined {
     return UPSCALE_PRESETS.find(preset => preset.id === id);
   }
-
   /**
    * Estimate processing time for an image
    */
@@ -175,31 +154,25 @@ class AIUpscaleService {
   ): number {
     const model = this.getModel(options.model);
     if (!model) return 15; // Default 15 seconds (reduced from 60)
-
     const megapixels = (imageWidth * imageHeight) / 1_000_000;
     const baseTime = megapixels * model.processingTimePerMP;
-    
     // Adjust for scale factor
     const scaleFactor = options.scaleFactor;
     const scaleMultiplier = scaleFactor === 8 ? 2.5 : scaleFactor === 4 ? 1.8 : 1.2;
-    
     // Adjust for additional features
     let featureMultiplier = 1;
     if (options.enhanceFaces) featureMultiplier += 0.5;
     if (options.noiseReduction && options.noiseReduction > 2) featureMultiplier += 0.3;
-    
     // Cap the estimated time to prevent excessive delays (max 45 seconds for simulation)
     const estimatedTime = Math.ceil(baseTime * scaleMultiplier * featureMultiplier);
     return Math.min(estimatedTime, 45); // Maximum 45 seconds for simulation
   }
-
   /**
    * Validate upscale options
    */
   public validateOptions(options: UpscaleOptions): { valid: boolean; errors: string[] } {
     const errors: string[] = [];
     const model = this.getModel(options.model);
-
     if (!model) {
       errors.push(`Invalid model: ${options.model}`);
     } else {
@@ -211,24 +184,19 @@ class AIUpscaleService {
           errors.push(`Model ${model.name} is not available`);
         }
       }
-
       if (!model.supportedScales.includes(options.scaleFactor)) {
         errors.push(`Scale factor ${options.scaleFactor}x not supported by ${model.name}`);
       }
-
       if (options.enhanceFaces && !model.supportsFaceEnhancement) {
         errors.push(`Face enhancement not supported by ${model.name}`);
       }
     }
-
     if (options.quality && (options.quality < 1 || options.quality > 100)) {
       errors.push('Quality must be between 1 and 100');
     }
-
     if (options.noiseReduction && (options.noiseReduction < 0 || options.noiseReduction > 3)) {
       errors.push('Noise reduction must be between 0 and 3');
     }
-
     // Validate Gemini-specific options
     if (options.model === 'gemini' && options.geminiOptions) {
       if (options.geminiOptions.temperature !== undefined && 
@@ -236,13 +204,11 @@ class AIUpscaleService {
         errors.push('Gemini temperature must be between 0 and 1');
       }
     }
-
     return {
       valid: errors.length === 0,
       errors
     };
   }
-
   /**
    * Convert File to base64 string
    */
@@ -257,7 +223,6 @@ class AIUpscaleService {
       reader.readAsDataURL(file);
     });
   }
-
   /**
    * Get image dimensions from file
    */
@@ -265,7 +230,6 @@ class AIUpscaleService {
     return new Promise((resolve, reject) => {
       const img = new Image();
       const url = URL.createObjectURL(file);
-      
       img.onload = () => {
         URL.revokeObjectURL(url);
         resolve({
@@ -273,16 +237,13 @@ class AIUpscaleService {
           height: img.naturalHeight
         });
       };
-      
       img.onerror = () => {
         URL.revokeObjectURL(url);
         reject(new Error('Failed to load image'));
       };
-      
       img.src = url;
     });
   }
-
   /**
    * Perform Gemini AI upscaling
    */
@@ -293,7 +254,6 @@ class AIUpscaleService {
     onProgress?: (progress: UpscaleProgress) => void
   ): Promise<UpscaleResult> {
     const startTime = Date.now();
-
     if (!this.geminiClient) {
       return {
         success: false,
@@ -303,7 +263,6 @@ class AIUpscaleService {
         processingTime: 0
       };
     }
-
     // Validate image data with Gemini client
     const validation = this.geminiClient.validateImageData(imageData);
     if (!validation.valid) {
@@ -315,7 +274,6 @@ class AIUpscaleService {
         processingTime: 0
       };
     }
-
     const geminiOptions = options.geminiOptions || {};
     const steps = [
       'Initializing Gemini AI...',
@@ -325,7 +283,6 @@ class AIUpscaleService {
       'Optimizing quality and details...',
       'Finalizing AI-enhanced output...'
     ];
-
     try {
       // Progress updates - optimized for faster processing
       for (let i = 0; i < steps.length - 1; i++) {
@@ -338,7 +295,6 @@ class AIUpscaleService {
         }
         await new Promise(resolve => setTimeout(resolve, 800)); // Reduced from 2000ms to 800ms
       }
-
       // Make Gemini API call
       const geminiRequest: GeminiUpscaleRequest = {
         imageData,
@@ -347,9 +303,7 @@ class AIUpscaleService {
         temperature: geminiOptions.temperature || 0.3,
         scaleFactor: options.scaleFactor
       };
-
       const result = await this.geminiClient.upscaleImage(geminiRequest);
-
       if (!result.success) {
         return {
           success: false,
@@ -359,7 +313,6 @@ class AIUpscaleService {
           processingTime: Date.now() - startTime
         };
       }
-
       // Final progress update
       if (onProgress) {
         onProgress({
@@ -368,12 +321,10 @@ class AIUpscaleService {
           estimatedTimeRemaining: 0
         });
       }
-
       const newDimensions = {
         width: originalDimensions.width * options.scaleFactor,
         height: originalDimensions.height * options.scaleFactor
       };
-
       return {
         success: true,
         image: result.upscaledImage || imageData,
@@ -389,7 +340,6 @@ class AIUpscaleService {
           }
         }
       };
-
     } catch (error) {
       return {
         success: false,
@@ -400,7 +350,6 @@ class AIUpscaleService {
       };
     }
   }
-
   /**
    * Simulate AI upscaling process
    * In a real implementation, this would call an AI service API
@@ -417,7 +366,6 @@ class AIUpscaleService {
       originalDimensions.height,
       options
     );
-
     const steps = [
       'Initializing AI model...',
       'Analyzing image content...',
@@ -426,15 +374,12 @@ class AIUpscaleService {
       'Applying noise reduction...',
       'Finalizing output...'
     ];
-
     // Simulate progressive processing with reasonable timeouts
     const maxSimulationTime = 30; // Max 30 seconds total simulation
     const actualEstimatedTime = Math.min(estimatedTime, maxSimulationTime);
-    
     for (let i = 0; i < steps.length; i++) {
       const progress = Math.round((i / steps.length) * 100);
       const remainingTime = Math.max(0, actualEstimatedTime - (Date.now() - startTime) / 1000);
-      
       if (onProgress) {
         onProgress({
           progress,
@@ -442,12 +387,10 @@ class AIUpscaleService {
           estimatedTimeRemaining: remainingTime
         });
       }
-
       // Simulate processing time with reasonable delays (max 5 seconds per step)
       const stepDelay = Math.min(5000, (actualEstimatedTime * 1000) / steps.length);
       await new Promise(resolve => setTimeout(resolve, stepDelay));
     }
-
     // Final progress update
     if (onProgress) {
       onProgress({
@@ -456,12 +399,10 @@ class AIUpscaleService {
         estimatedTimeRemaining: 0
       });
     }
-
     const newDimensions = {
       width: originalDimensions.width * options.scaleFactor,
       height: originalDimensions.height * options.scaleFactor
     };
-
     // For simulation, return the original image with metadata
     // In a real implementation, this would be the upscaled image
     return {
@@ -480,7 +421,6 @@ class AIUpscaleService {
       }
     };
   }
-
   /**
    * Upscale an image using AI
    */
@@ -497,10 +437,8 @@ class AIUpscaleService {
           processingTime: 0
         };
       }
-
       let imageData: string;
       let dimensions: { width: number; height: number };
-
       if (typeof request.image === 'string') {
         imageData = request.image;
         // For base64 strings, we'd need to decode and analyze
@@ -511,7 +449,6 @@ class AIUpscaleService {
         imageData = await this.fileToBase64(request.image);
         dimensions = await this.getImageDimensions(request.image);
       }
-
       // Check image size limits
       const maxDimension = 4096;
       if (dimensions.width > maxDimension || dimensions.height > maxDimension) {
@@ -523,7 +460,6 @@ class AIUpscaleService {
           processingTime: 0
         };
       }
-
       // Perform upscaling based on selected model
       if (request.options.model === 'gemini') {
         return await this.performGeminiUpscaling(
@@ -540,7 +476,6 @@ class AIUpscaleService {
           request.onProgress
         );
       }
-
     } catch (error) {
       return {
         success: false,
@@ -551,16 +486,13 @@ class AIUpscaleService {
       };
     }
   }
-
   /**
    * Cancel an ongoing upscale operation
    */
   public cancelUpscale(operationId: string): boolean {
     // In a real implementation, this would cancel the API request
-    console.log(`Cancelling upscale operation: ${operationId}`);
     return true;
   }
-
   /**
    * Get upscaling statistics
    */
@@ -577,16 +509,13 @@ class AIUpscaleService {
     };
   }
 }
-
 // Export singleton instance
 export const aiUpscaleService = AIUpscaleService.getInstance();
-
 // Export utilities
 export {
   AI_UPSCALE_MODELS,
   UPSCALE_PRESETS
 };
-
 // Export types for convenience
 export type {
   UpscaleOptions,

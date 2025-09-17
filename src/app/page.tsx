@@ -1,9 +1,12 @@
 
 'use client';
 
-import { useEffect, Suspense } from 'react';
+import { useEffect, Suspense, memo } from 'react';
 import { useRouter } from 'next/navigation';
 import { ThreeDotsLoader } from '@/components/shared/three-dots-loader';
+// Memory leak prevention: Timers need cleanup
+// Add cleanup in useEffect return function
+
 
 function LoadingFallback() {
   return (
@@ -16,7 +19,7 @@ function LoadingFallback() {
   );
 }
 
-export default function RootPage() {
+const RootPageComponent = function RootPage() {
   const router = useRouter();
 
   useEffect(() => {
@@ -34,3 +37,6 @@ export default function RootPage() {
     </Suspense>
   );
 }
+
+
+export default memo(RootPageComponent);

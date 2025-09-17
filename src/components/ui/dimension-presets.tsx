@@ -12,6 +12,9 @@ import {
   getCommonPresets 
 } from '@/lib/dimension-utils';
 import { 
+// Performance optimization needed: Consider memoizing inline event handlers, dynamic classNames
+// Use useMemo for objects/arrays and useCallback for functions
+
   Monitor, 
   Smartphone, 
   Instagram, 

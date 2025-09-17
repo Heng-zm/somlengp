@@ -1,7 +1,7 @@
 'use client';
 
-import { useState, useCallback, useEffect, useMemo } from 'react';
-import { Copy, RefreshCw, Shield, Check, Eye, EyeOff, History, Download, Trash2, Settings, Sparkles, Lock, Key, Zap, MoreHorizontal, ChevronDown } from 'lucide-react';
+import { useState, useCallback, useEffect, useMemo, memo } from 'react';
+import { Copy, RefreshCw, Shield, Check, Eye, EyeOff, History, Download, Trash2, Settings, Sparkles, Lock, Key, Zap, MoreHorizontal, ChevronDown } from 'lucide-react' // TODO: Consider importing icons individually for better tree shaking;
 import { FeaturePageLayout } from '@/layouts/feature-page-layout';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -19,6 +19,12 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Sheet, SheetTrigger, SheetContent, SheetHeader, SheetTitle, SheetDescription } from '@/components/ui/sheet';
 import { toast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
+// Memory leak prevention: Timers need cleanup
+// Add cleanup in useEffect return function
+
+// Performance optimization needed: Consider memoizing inline event handlers
+// Use useMemo for objects/arrays and useCallback for functions
+
 
 interface PasswordOptions {
   length: number;
@@ -50,7 +56,7 @@ const defaultOptions: PasswordOptions = {
   customChars: '',
 };
 
-export default function PasswordGeneratorPage() {
+const PasswordGeneratorPageComponent = function PasswordGeneratorPage() {
   const [password, setPassword] = useState('');
   const [options, setOptions] = useState<PasswordOptions>(defaultOptions);
   const [showPassword, setShowPassword] = useState(true);
@@ -805,3 +811,6 @@ export default function PasswordGeneratorPage() {
     </FeaturePageLayout>
   );
 }
+
+
+export default memo(PasswordGeneratorPageComponent);

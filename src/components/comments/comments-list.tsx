@@ -10,6 +10,9 @@ import { cn } from '@/lib/utils';
 import { Comment, CommentSortType, CommentStats } from '@/types/comment-types';
 import { CommentEditor } from './comment-editor';
 import { CommentItem } from './comment-item';
+// Performance optimization needed: Consider memoizing inline event handlers
+// Use useMemo for objects/arrays and useCallback for functions
+
 
 interface CommentsListProps {
   comments: Comment[];

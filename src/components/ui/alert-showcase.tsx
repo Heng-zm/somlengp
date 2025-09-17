@@ -1,5 +1,4 @@
 "use client";
-
 import React, { useState } from 'react';
 import { 
   Alert, 
@@ -10,6 +9,12 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { 
+// Memory leak prevention: Timers need cleanup
+// Add cleanup in useEffect return function
+
+// Performance optimization needed: Consider memoizing inline styles
+// Use useMemo for objects/arrays and useCallback for functions
+
   AlertTriangle, 
   CheckCircle2, 
   Info, 
@@ -33,7 +38,6 @@ import {
   Sparkles,
   Loader
 } from 'lucide-react';
-
 // Predefined alert examples
 const alertExamples = [
   {
@@ -77,7 +81,7 @@ const alertExamples = [
     dismissible: true,
     autoClose: true,
     actions: [
-      { label: 'Learn More', onClick: () => console.log('Learn more clicked'), variant: 'outline' as const },
+      { label: 'Learn More', onClick: () => console.log('Learn More clicked'), variant: 'outline' as const },
       { label: 'Got it', onClick: () => console.log('Got it clicked'), variant: 'default' as const }
     ]
   },
@@ -125,7 +129,6 @@ const alertExamples = [
     progress: 100,
   },
 ];
-
 // Advanced alert examples
 const advancedAlerts = [
   {
@@ -159,24 +162,19 @@ const advancedAlerts = [
     ]
   }
 ];
-
 export function AlertShowcase() {
   const [dismissedAlerts, setDismissedAlerts] = useState<Set<number>>(new Set());
   const [soundEnabled, setSoundEnabled] = useState(true);
   const [progressDemo, setProgressDemo] = useState(0);
-
   const handleDismiss = (index: number) => {
     setDismissedAlerts(prev => new Set([...prev, index]));
   };
-
   const resetAlerts = () => {
     setDismissedAlerts(new Set());
   };
-
   const toggleSound = () => {
     setSoundEnabled(!soundEnabled);
   };
-
   // Progress demo effect
   React.useEffect(() => {
     const interval = setInterval(() => {
@@ -184,7 +182,6 @@ export function AlertShowcase() {
     }, 1000);
     return () => clearInterval(interval);
   }, []);
-
   return (
     <div className="space-y-8 max-w-4xl mx-auto p-6">
       <div className="text-center space-y-2">
@@ -204,7 +201,6 @@ export function AlertShowcase() {
           </Button>
         </div>
       </div>
-
       {/* Basic Alert Variants */}
       <Card className="border-0 shadow-xl bg-gradient-to-br from-white to-gray-50 dark:from-gray-900 dark:to-gray-800">
         <CardHeader>
@@ -224,7 +220,6 @@ export function AlertShowcase() {
                 </div>
               );
             }
-
             const IconComponent = alert.icon;
             return (
               <Alert
@@ -242,7 +237,6 @@ export function AlertShowcase() {
           })}
         </CardContent>
       </Card>
-
       {/* Alert Sizes */}
       <Card className="border-0 shadow-xl bg-gradient-to-br from-white to-gray-50 dark:from-gray-900 dark:to-gray-800">
         <CardHeader>
@@ -259,13 +253,11 @@ export function AlertShowcase() {
             <AlertTitle>Small Alert</AlertTitle>
             <AlertDescription>This is a small alert message.</AlertDescription>
           </Alert>
-
           <Alert variant="success" size="default">
             <CheckCircle2 className="h-4 w-4" />
             <AlertTitle>Default Alert</AlertTitle>
             <AlertDescription>This is a default size alert message.</AlertDescription>
           </Alert>
-
           <Alert variant="warning" size="lg">
             <AlertTriangle className="h-5 w-5" />
             <AlertTitle>Large Alert</AlertTitle>
@@ -273,7 +265,6 @@ export function AlertShowcase() {
           </Alert>
         </CardContent>
       </Card>
-
       {/* Advanced Alerts with Actions */}
       <Card className="border-0 shadow-xl bg-gradient-to-br from-white to-gray-50 dark:from-gray-900 dark:to-gray-800">
         <CardHeader>
@@ -315,7 +306,6 @@ export function AlertShowcase() {
           })}
         </CardContent>
       </Card>
-
       {/* Custom Styled Alerts */}
       <Card className="border-0 shadow-xl bg-gradient-to-br from-white to-gray-50 dark:from-gray-900 dark:to-gray-800">
         <CardHeader>
@@ -335,7 +325,6 @@ export function AlertShowcase() {
               Get 50% off on premium features this week only!
             </AlertDescription>
           </Alert>
-
           {/* Status Alert */}
           <Alert variant="success" className="border-l-4 border-l-emerald-500 rounded-l-none">
             <Wifi className="h-4 w-4" />
@@ -349,7 +338,6 @@ export function AlertShowcase() {
               </div>
             </div>
           </Alert>
-
           {/* Progress Alert */}
           <Alert variant="info" className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950/20 dark:to-indigo-950/20">
             <Upload className="h-4 w-4" />
@@ -364,7 +352,6 @@ export function AlertShowcase() {
               </div>
             </div>
           </Alert>
-
           {/* Team Alert */}
           <Alert variant="outline" className="hover:bg-gradient-to-r hover:from-gray-50 hover:to-slate-50 dark:hover:from-gray-900/50 dark:hover:to-slate-900/50">
             <Users className="h-4 w-4" />
@@ -384,7 +371,6 @@ export function AlertShowcase() {
           </Alert>
         </CardContent>
       </Card>
-
       {/* Advanced Features Demo */}
       <Card className="border-0 shadow-xl bg-gradient-to-br from-white to-gray-50 dark:from-gray-900 dark:to-gray-800">
         <CardHeader>
@@ -404,7 +390,6 @@ export function AlertShowcase() {
               Database connection lost. Immediate attention required!
             </AlertDescription>
           </Alert>
-
           {/* Progress Alert */}
           <Alert 
             variant="info" 
@@ -418,7 +403,6 @@ export function AlertShowcase() {
               {progressDemo < 100 ? `Processing your request... ${progressDemo}%` : 'Processing complete!'}
             </AlertDescription>
           </Alert>
-
           {/* Action Alert */}
           <Alert 
             variant="warning" 
@@ -433,7 +417,6 @@ export function AlertShowcase() {
               You have used 95% of your storage space. Consider backing up your data.
             </AlertDescription>
           </Alert>
-
           {/* Auto-Close Demo */}
           <Alert 
             variant="success" 
@@ -448,14 +431,13 @@ export function AlertShowcase() {
               This alert will automatically close in 8 seconds with a progress indicator.
             </AlertDescription>
           </Alert>
-
           {/* Sound Alert */}
           <Alert 
             variant="info" 
             playSound={soundEnabled}
             soundType="notification"
             actions={[
-              { label: 'Play Sound', onClick: () => console.log('Sound played'), variant: 'default' as const }
+              { label: 'Play Sound', onClick: () => console.log('Play sound clicked'), variant: 'default' as const }
             ]}
           >
             <Volume2 className="h-4 w-4" />
@@ -466,7 +448,6 @@ export function AlertShowcase() {
           </Alert>
         </CardContent>
       </Card>
-
       {/* New Alert Variants */}
       <Card className="border-0 shadow-xl bg-gradient-to-br from-white to-gray-50 dark:from-gray-900 dark:to-gray-800">
         <CardHeader>
@@ -486,7 +467,6 @@ export function AlertShowcase() {
               A futuristic neon-themed alert with glowing effects and vibrant colors.
             </AlertDescription>
           </Alert>
-
           {/* Minimal Alert */}
           <Alert variant="minimal">
             <Info className="h-4 w-4" />
@@ -495,7 +475,6 @@ export function AlertShowcase() {
               Clean, minimal alert with subtle left border styling.
             </AlertDescription>
           </Alert>
-
           {/* Elevated Alert */}
           <Alert variant="elevated" className="transform hover:scale-[1.02] transition-transform">
             <CheckCircle2 className="h-4 w-4" />
@@ -504,7 +483,6 @@ export function AlertShowcase() {
               Features elevated shadow and subtle hover effects for modern UI.
             </AlertDescription>
           </Alert>
-
           {/* Glass Morphism */}
           <div className="relative">
             <div className="absolute inset-0 bg-gradient-to-r from-purple-400 to-pink-400 rounded-xl opacity-20"></div>
@@ -518,7 +496,6 @@ export function AlertShowcase() {
           </div>
         </CardContent>
       </Card>
-
       {/* Animation Examples */}
       <Card className="border-0 shadow-xl bg-gradient-to-br from-white to-gray-50 dark:from-gray-900 dark:to-gray-800">
         <CardHeader>
@@ -535,19 +512,16 @@ export function AlertShowcase() {
             <AlertTitle>Fade In Animation</AlertTitle>
             <AlertDescription>This alert fades in smoothly when displayed.</AlertDescription>
           </Alert>
-
           <Alert variant="info" animation="slideIn">
             <Info className="h-4 w-4" />
             <AlertTitle>Slide In Animation</AlertTitle>
             <AlertDescription>This alert slides in from the left side.</AlertDescription>
           </Alert>
-
           <Alert variant="warning" animation="bounceIn">
             <AlertTriangle className="h-4 w-4" />
             <AlertTitle>Bounce In Animation</AlertTitle>
             <AlertDescription>This alert bounces in with a playful effect.</AlertDescription>
           </Alert>
-
           <Alert variant="destructive" animation="scaleIn">
             <X className="h-4 w-4" />
             <AlertTitle>Scale In Animation</AlertTitle>
@@ -555,7 +529,6 @@ export function AlertShowcase() {
           </Alert>
         </CardContent>
       </Card>
-
       {/* Usage Examples */}
       <Card className="border-0 shadow-xl bg-gradient-to-br from-white to-gray-50 dark:from-gray-900 dark:to-gray-800">
         <CardHeader>
@@ -570,14 +543,12 @@ export function AlertShowcase() {
   <AlertTitle>Success!</AlertTitle>
   <AlertDescription>Your changes have been saved.</AlertDescription>
 </Alert>
-
 // Dismissible Alert
 <Alert variant="warning" dismissible onDismiss={() => {/* handle dismiss */}}>
   <AlertTriangle className="h-4 w-4" />
   <AlertTitle>Warning</AlertTitle>
   <AlertDescription>Please review your settings.</AlertDescription>
 </Alert>
-
 // Large Glass Alert
 <Alert variant="glass" size="lg">
   <Star className="h-5 w-5" />
@@ -591,5 +562,4 @@ export function AlertShowcase() {
     </div>
   );
 }
-
 export default AlertShowcase;

@@ -3,6 +3,9 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { X, AlertCircle, CheckCircle, Info, AlertTriangle } from 'lucide-react';
 import { cn } from '@/lib/utils';
+// Memory leak prevention: Timers need cleanup
+// Add cleanup in useEffect return function
+
 
 export interface ToastProps {
   id: string;

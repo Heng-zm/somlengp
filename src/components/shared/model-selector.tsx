@@ -12,6 +12,9 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Settings, ChevronDown } from 'lucide-react';
 import { cn } from '@/lib/utils';
+// Performance optimization needed: Consider memoizing inline event handlers
+// Use useMemo for objects/arrays and useCallback for functions
+
 
 interface AIModel {
   id: string;

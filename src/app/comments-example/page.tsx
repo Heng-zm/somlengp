@@ -1,11 +1,14 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, memo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { ChevronDown, ChevronUp, MessageCircle, ThumbsUp, ThumbsDown } from 'lucide-react';
 import { cn } from '@/lib/utils';
+// Performance optimization needed: Consider memoizing inline event handlers
+// Use useMemo for objects/arrays and useCallback for functions
+
 
 interface Comment {
   id: string;
@@ -178,7 +181,7 @@ function CommentItem({ comment, onVote, isReply = false }: CommentItemProps) {
   );
 }
 
-export default function CommentsExample() {
+const CommentsExampleComponent = function CommentsExample() {
   const [showAll, setShowAll] = useState(false);
   const [comments, setComments] = useState<Comment[]>(mockComments);
   const INITIAL_LIMIT = 3;
@@ -291,3 +294,6 @@ export default function CommentsExample() {
     </div>
   );
 }
+
+
+export default memo(CommentsExampleComponent);

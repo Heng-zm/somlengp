@@ -1,11 +1,15 @@
 "use client";
 
 import { memo } from 'react';
-import { motion } from 'framer-motion';
+import { motion } from 'framer-motion' // TODO: Consider lazy loading animations for better initial load;
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
-import { Bot, User, Copy, Image, File, FileText } from 'lucide-react';
+import { Bot, User, Copy, Image as ImageIcon, File, FileText } from 'lucide-react' // TODO: Consider importing icons individually for better tree shaking;
+import Image from 'next/image';
 import { cn } from '@/lib/utils';
+// Performance optimization needed: Consider memoizing inline event handlers
+// Use useMemo for objects/arrays and useCallback for functions
+
 
 interface FileAttachment {
   name: string;
@@ -31,7 +35,7 @@ interface MemoizedMessageProps {
 }
 
 const getFileIcon = (type: string) => {
-  if (type.startsWith('image/')) return <Image className="h-4 w-4" />;
+  if (type.startsWith('image/')) return <ImageIcon className="h-4 w-4" />;
   if (type === 'application/pdf') return <FileText className="h-4 w-4" />;
   return <File className="h-4 w-4" />;
 };
@@ -110,9 +114,11 @@ export const MemoizedMessage = memo<MemoizedMessageProps>(function MemoizedMessa
                       )}
                     >
                       {attachment.url && attachment.type.startsWith('image/') ? (
-                        <img 
+                        <Image 
                           src={attachment.url} 
                           alt={`Attachment: ${attachment.name}`}
+                          width={20}
+                          height={20}
                           className="w-5 h-5 rounded object-cover" 
                         />
                       ) : (

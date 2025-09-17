@@ -7,6 +7,9 @@ import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Loader2, Mail, Clock, RefreshCw } from 'lucide-react';
+// Memory leak prevention: Timers need cleanup
+// Add cleanup in useEffect return function
+
 
 interface OTPVerificationProps {
   onSuccess?: (email: string) => void;

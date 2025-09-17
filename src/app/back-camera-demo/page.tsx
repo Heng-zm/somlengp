@@ -2,9 +2,7 @@
  * Back Camera Demo Page
  * Showcases the back camera functionality
  */
-
 import { BackCameraExample, SimpleBackCameraExample } from '@/components/back-camera-example';
-
 export default function BackCameraDemoPage() {
   return (
     <div className="min-h-screen bg-gray-100">
@@ -30,12 +28,10 @@ export default function BackCameraDemoPage() {
           </div>
         </div>
       </div>
-
       {/* Main Content */}
       <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
         <div className="px-4 py-6 sm:px-0">
           <div className="space-y-8">
-            
             {/* Introduction */}
             <div className="bg-white overflow-hidden shadow rounded-lg">
               <div className="px-4 py-5 sm:p-6">
@@ -74,7 +70,6 @@ export default function BackCameraDemoPage() {
                 </div>
               </div>
             </div>
-
             {/* Full Featured Demo */}
             <div className="bg-white overflow-hidden shadow rounded-lg">
               <div className="px-4 py-5 sm:p-6">
@@ -84,7 +79,6 @@ export default function BackCameraDemoPage() {
                 <BackCameraExample />
               </div>
             </div>
-
             {/* Simple Demo */}
             <div className="bg-white overflow-hidden shadow rounded-lg">
               <div className="px-4 py-5 sm:p-6">
@@ -94,21 +88,18 @@ export default function BackCameraDemoPage() {
                 <SimpleBackCameraExample />
               </div>
             </div>
-
             {/* Code Examples */}
             <div className="bg-white overflow-hidden shadow rounded-lg">
               <div className="px-4 py-5 sm:p-6">
                 <h2 className="text-xl font-semibold text-gray-900 mb-6">
                   💻 Code Examples
                 </h2>
-                
                 <div className="space-y-6">
                   {/* Basic Usage */}
                   <div>
                     <h3 className="text-lg font-medium text-gray-900 mb-3">Basic Usage</h3>
                     <pre className="bg-gray-900 text-gray-100 p-4 rounded-lg overflow-x-auto text-sm">
 {`import { useBackCamera } from '@/hooks/use-camera-permission';
-
 function MyComponent() {
   const { 
     stream, 
@@ -117,7 +108,6 @@ function MyComponent() {
     isLoading, 
     error 
   } = useBackCamera();
-
   return (
     <div>
       <button onClick={() => requestBackCamera('high')}>
@@ -140,13 +130,11 @@ function MyComponent() {
 }`}
                     </pre>
                   </div>
-
                   {/* Advanced Usage */}
                   <div>
                     <h3 className="text-lg font-medium text-gray-900 mb-3">Advanced Usage with Device Switching</h3>
                     <pre className="bg-gray-900 text-gray-100 p-4 rounded-lg overflow-x-auto text-sm">
 {`import { useCameraPermission } from '@/hooks/use-camera-permission';
-
 function AdvancedCameraComponent() {
   const {
     stream,
@@ -158,7 +146,6 @@ function AdvancedCameraComponent() {
     switchFacingMode,
     requestWithDevice
   } = useCameraPermission();
-
   return (
     <div>
       {/* Back camera options */}
@@ -170,7 +157,6 @@ function AdvancedCameraComponent() {
           {camera.label}
         </button>
       ))}
-      
       {/* Switch between front/back */}
       <button onClick={() => switchFacingMode('high')}>
         Switch to {currentFacingMode === 'user' ? 'Back' : 'Front'} Camera
@@ -180,44 +166,39 @@ function AdvancedCameraComponent() {
 }`}
                     </pre>
                   </div>
-
                   {/* Direct API Usage */}
                   <div>
                     <h3 className="text-lg font-medium text-gray-900 mb-3">Direct API Usage</h3>
                     <pre className="bg-gray-900 text-gray-100 p-4 rounded-lg overflow-x-auto text-sm">
 {`import { 
+// Performance optimization needed: Consider memoizing inline event handlers
+// Use useMemo for objects/arrays and useCallback for functions
+
   requestBackCamera, 
   requestBackCameraWithFallback,
   getBackCameraDevices 
 } from '@/utils/camera-permissions';
-
 async function startBackCamera() {
   // Direct back camera access
   const result = await requestBackCamera('high');
-  
   if (result.success) {
-    console.log('Back camera started:', result.stream);
   } else {
     console.error('Failed:', result.error);
   }
 }
-
 async function startWithFallback() {
   // With fallback for better compatibility
   const result = await requestBackCameraWithFallback('medium');
   return result;
 }
-
 async function listBackCameras() {
   const devices = await getBackCameraDevices();
-  console.log('Back cameras found:', devices);
 }`}
                     </pre>
                   </div>
                 </div>
               </div>
             </div>
-
             {/* Browser Compatibility */}
             <div className="bg-white overflow-hidden shadow rounded-lg">
               <div className="px-4 py-5 sm:p-6">

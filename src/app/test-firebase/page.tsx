@@ -1,11 +1,14 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, memo } from 'react';
 import { auth, db } from '@/lib/firebase';
 import { onAuthStateChanged } from 'firebase/auth';
 import { doc, getDoc } from 'firebase/firestore';
+// Performance optimization needed: Consider memoizing dynamic classNames
+// Use useMemo for objects/arrays and useCallback for functions
 
-export default function TestFirebasePage() {
+
+const TestFirebasePageComponent = function TestFirebasePage() {
   const [status, setStatus] = useState({
     auth: 'checking...',
     firestore: 'checking...',
@@ -76,3 +79,5 @@ export default function TestFirebasePage() {
     </div>
   );
 }
+
+export default memo(TestFirebasePageComponent);

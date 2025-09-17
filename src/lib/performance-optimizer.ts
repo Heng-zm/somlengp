@@ -1,5 +1,5 @@
 'use client';
-
+import { memo } from 'react';
 interface OptimizationSuggestion {
   id: string;
   category: 'loading' | 'rendering' | 'caching' | 'bundling' | 'images' | 'fonts' | 'scripts';
@@ -20,7 +20,6 @@ interface OptimizationSuggestion {
   resources: string[];
   automated?: boolean; // Can this be automatically applied?
 }
-
 interface PerformanceAudit {
   id: string;
   timestamp: number;
@@ -37,7 +36,6 @@ interface PerformanceAudit {
   issues: OptimizationSuggestion[];
   score: number; // Overall performance score 0-100
 }
-
 interface BundleAnalysis {
   totalSize: number;
   chunks: Array<{
@@ -54,23 +52,19 @@ interface BundleAnalysis {
   }>;
   suggestions: OptimizationSuggestion[];
 }
-
 class PerformanceOptimizer {
   private suggestions: OptimizationSuggestion[] = [];
   private audits: PerformanceAudit[] = [];
   private maxAudits: number = 10; // Limit stored audits to prevent memory bloat
   private maxSuggestions: number = 20; // Limit suggestions
-
   constructor() {
     this.initializeSuggestions();
     this.loadAudits();
   }
-
   // Initialize common optimization suggestions with memory-conscious approach
   private initializeSuggestions() {
     // Use lazy initialization to reduce initial memory footprint
     if (this.suggestions.length > 0) return;
-    
     this.suggestions = [
       {
         id: 'opt_1',
@@ -93,10 +87,8 @@ class PerformanceOptimizer {
             'Configure next.config.js for external domains'
           ],
           codeExample: `import Image from 'next/image';
-
 // Before
 <img src="/hero.jpg" alt="Hero image" />
-
 // After
 <Image 
   src="/hero.jpg" 
@@ -133,12 +125,10 @@ class PerformanceOptimizer {
           ],
           codeExample: `// Component lazy loading
 const HeavyComponent = React.lazy(() => import('./HeavyComponent'));
-
 // Usage with Suspense
 <Suspense fallback={<div>Loading...</div>}>
   <HeavyComponent />
 </Suspense>
-
 // Image lazy loading
 <img src="image.jpg" loading="lazy" alt="Description" />`
         },
@@ -202,7 +192,6 @@ const analyzeBundle = async () => {
   const { BundleAnalyzerPlugin } = await import('webpack-bundle-analyzer');
   return BundleAnalyzerPlugin;
 };
-
 // Route-based splitting (automatic in Next.js)
 // pages/heavy-feature.js will be automatically code-split`
         },
@@ -232,7 +221,6 @@ const analyzeBundle = async () => {
             'Use system fonts as fallbacks'
           ],
           codeExample: `import { Inter } from 'next/font/google';
-
 const inter = Inter({
   subsets: ['latin'],
   display: 'swap',
@@ -269,11 +257,9 @@ const MyComponent = React.memo(({ data }) => {
   const expensiveValue = useMemo(() => 
     expensiveCalculation(data), [data]
   );
-  
   const handleClick = useCallback(() => {
     // handle click
   }, []);
-  
   return <div onClick={handleClick}>{expensiveValue}</div>;
 });`
         },
@@ -284,15 +270,12 @@ const MyComponent = React.memo(({ data }) => {
         automated: true
       }
     ];
-    
     // Limit suggestions to prevent memory bloat
     this.suggestions = this.suggestions.slice(0, this.maxSuggestions);
   }
-
   // Load stored audits
   private loadAudits() {
     if (typeof window === 'undefined') return;
-    
     try {
       const stored = localStorage.getItem('performance_audits');
       if (stored) {
@@ -306,15 +289,12 @@ const MyComponent = React.memo(({ data }) => {
         this.saveAudits();
       }
     } catch (error) {
-      console.warn('Failed to load performance audits:', error);
       this.audits = []; // Reset on error to prevent corruption
     }
   }
-
   // Save audits with memory optimization
   private saveAudits() {
     if (typeof window === 'undefined') return;
-    
     try {
       // Trim audits to max limit and sort by timestamp (newest first)
       const auditsToSave = this.audits
@@ -325,11 +305,9 @@ const MyComponent = React.memo(({ data }) => {
           // Remove heavy data to reduce memory usage
           issues: audit.issues.slice(0, 5) // Keep only top 5 issues
         }));
-      
       this.audits = auditsToSave;
       localStorage.setItem('performance_audits', JSON.stringify(auditsToSave));
     } catch (error) {
-      console.warn('Failed to save performance audits:', error);
       // If storage is full, clear some data and try again
       if (error instanceof Error && error.name === 'QuotaExceededError') {
         this.clearOldData();
@@ -349,20 +327,15 @@ const MyComponent = React.memo(({ data }) => {
       }
     }
   }
-
   // Run performance audit
   async runAudit(url?: string): Promise<PerformanceAudit> {
     const currentUrl = url || (typeof window !== 'undefined' ? window.location.href : '');
-    
     // Collect performance metrics
     const metrics = await this.collectMetrics();
-    
     // Analyze performance issues
     const issues = await this.analyzePerformanceIssues(metrics);
-    
     // Calculate overall score
     const score = this.calculatePerformanceScore(metrics);
-    
     const audit: PerformanceAudit = {
       id: `audit_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
       timestamp: Date.now(),
@@ -371,17 +344,14 @@ const MyComponent = React.memo(({ data }) => {
       issues,
       score
     };
-
     // Add audit and maintain size limit
     this.audits.unshift(audit); // Add to beginning
     if (this.audits.length > this.maxAudits) {
       this.audits = this.audits.slice(0, this.maxAudits); // Trim to max size
     }
     this.saveAudits();
-
     return audit;
   }
-
   // Collect performance metrics
   private async collectMetrics(): Promise<PerformanceAudit['metrics']> {
     if (typeof window === 'undefined') {
@@ -395,7 +365,6 @@ const MyComponent = React.memo(({ data }) => {
         cacheEfficiency: 50
       };
     }
-
     const metrics: PerformanceAudit['metrics'] = {
       LCP: 0,
       FID: 0,
@@ -405,7 +374,6 @@ const MyComponent = React.memo(({ data }) => {
       imageOptimization: 0,
       cacheEfficiency: 0
     };
-
     // Get navigation timing
     try {
       const navigation = performance.getEntriesByType('navigation')[0] as PerformanceNavigationTiming;
@@ -413,9 +381,7 @@ const MyComponent = React.memo(({ data }) => {
         metrics.TTFB = navigation.responseStart - navigation.requestStart;
       }
     } catch (error) {
-      console.warn('Failed to get navigation timing:', error);
     }
-
     // Estimate bundle size from loaded resources
     try {
       const resources = performance.getEntriesByType('resource');
@@ -423,69 +389,52 @@ const MyComponent = React.memo(({ data }) => {
         .filter(r => r.name.includes('.js'))
         .reduce((total, resource) => total + (resource as any).transferSize || 0, 0);
     } catch (error) {
-      console.warn('Failed to calculate bundle size:', error);
     }
-
     // Analyze image optimization
     metrics.imageOptimization = await this.analyzeImageOptimization();
-    
     // Analyze cache efficiency
     metrics.cacheEfficiency = await this.analyzeCacheEfficiency();
-
     return metrics;
   }
-
   // Analyze image optimization
   private async analyzeImageOptimization(): Promise<number> {
     if (typeof document === 'undefined') return 50;
-
     const images = document.querySelectorAll('img');
     if (images.length === 0) return 100;
-
     let score = 100;
     let issues = 0;
-
     images.forEach(img => {
       // Check if using Next.js Image component or native lazy loading
       const isOptimized = img.loading === 'lazy' || 
                          img.getAttribute('data-nimg') !== null ||
                          img.src.includes('_next/image');
-      
       if (!isOptimized) issues++;
-      
       // Check image format
       if (img.src.match(/\.(jpg|jpeg|png)$/i)) {
         issues += 0.5; // Modern formats are better
       }
     });
-
     score -= (issues / images.length) * 100;
     return Math.max(0, Math.min(100, score));
   }
-
   // Analyze cache efficiency
   private async analyzeCacheEfficiency(): Promise<number> {
     if (typeof window === 'undefined') return 50;
-
     try {
       const resources = performance.getEntriesByType('resource');
       const cachedResources = resources.filter((r: any) => {
         // Check if resource was served from cache
         return r.transferSize === 0 && r.decodedBodySize > 0;
       });
-
       const cacheHitRatio = cachedResources.length / resources.length;
       return Math.round(cacheHitRatio * 100);
     } catch (error) {
-      console.warn('Failed to analyze cache efficiency:', error);
       return 50;
     }
   }
-
   // Analyze performance issues and suggest optimizations
   private async analyzePerformanceIssues(metrics: PerformanceAudit['metrics']): Promise<OptimizationSuggestion[]> {
     const applicableSuggestions: OptimizationSuggestion[] = [];
-
     // Check each metric against thresholds
     if (metrics.LCP > 2500) {
       applicableSuggestions.push(
@@ -493,31 +442,26 @@ const MyComponent = React.memo(({ data }) => {
         this.suggestions.find(s => s.id === 'opt_2')!  // Lazy loading
       );
     }
-
     if (metrics.bundleSize > 1000000) { // 1MB
       applicableSuggestions.push(
         this.suggestions.find(s => s.id === 'opt_4')! // Code splitting
       );
     }
-
     if (metrics.CLS > 0.1) {
       applicableSuggestions.push(
         this.suggestions.find(s => s.id === 'opt_5')! // Font optimization
       );
     }
-
     if (metrics.imageOptimization < 80) {
       applicableSuggestions.push(
         this.suggestions.find(s => s.id === 'opt_1')! // Image optimization
       );
     }
-
     if (metrics.cacheEfficiency < 60) {
       applicableSuggestions.push(
         this.suggestions.find(s => s.id === 'opt_3')! // Service worker caching
       );
     }
-
     // Always suggest React optimizations for interactive apps
     if (typeof document !== 'undefined') {
       const hasReactComponents = document.querySelector('[data-reactroot]') || 
@@ -528,10 +472,8 @@ const MyComponent = React.memo(({ data }) => {
         );
       }
     }
-
     return applicableSuggestions.filter(Boolean);
   }
-
   // Calculate overall performance score
   private calculatePerformanceScore(metrics: PerformanceAudit['metrics']): number {
     const scores = {
@@ -543,7 +485,6 @@ const MyComponent = React.memo(({ data }) => {
       imageOptimization: metrics.imageOptimization,
       cacheEfficiency: metrics.cacheEfficiency * 0.5 // Weight cache less heavily
     };
-
     const weights = {
       LCP: 0.25,
       FID: 0.25,
@@ -553,14 +494,12 @@ const MyComponent = React.memo(({ data }) => {
       imageOptimization: 0.025,
       cacheEfficiency: 0.025
     };
-
     return Math.round(
       Object.entries(scores).reduce((total, [metric, score]) => {
         return total + (score * weights[metric as keyof typeof weights]);
       }, 0)
     );
   }
-
   // Analyze bundle composition
   async analyzeBundleComposition(): Promise<BundleAnalysis> {
     // This would typically integrate with webpack-bundle-analyzer or similar
@@ -619,9 +558,11 @@ const MyComponent = React.memo(({ data }) => {
             codeExample: `// Before
 import moment from 'moment';
 const formatted = moment().format('YYYY-MM-DD');
-
 // After
 import { format } from 'date-fns';
+// Memory leak prevention: Timers need cleanup
+// Add cleanup in useEffect return function
+
 const formatted = format(new Date(), 'yyyy-MM-dd');`
           },
           resources: [
@@ -631,32 +572,26 @@ const formatted = format(new Date(), 'yyyy-MM-dd');`
         }
       ]
     };
-
     return analysis;
   }
-
   // Get optimization suggestions by priority
   getSuggestionsByPriority(priority?: OptimizationSuggestion['priority']): OptimizationSuggestion[] {
     const suggestions = priority 
       ? this.suggestions.filter(s => s.priority === priority)
       : this.suggestions;
-    
     return suggestions.sort((a, b) => {
       const priorityOrder = { critical: 4, high: 3, medium: 2, low: 1 };
       return priorityOrder[b.priority] - priorityOrder[a.priority];
     });
   }
-
   // Get suggestions by category
   getSuggestionsByCategory(category: OptimizationSuggestion['category']): OptimizationSuggestion[] {
     return this.suggestions.filter(s => s.category === category);
   }
-
   // Get automated suggestions (can be automatically applied)
   getAutomatedSuggestions(): OptimizationSuggestion[] {
     return this.suggestions.filter(s => s.automated === true);
   }
-
   // Apply automated optimizations
   async applyAutomatedOptimizations(): Promise<{
     applied: string[];
@@ -667,16 +602,12 @@ const formatted = format(new Date(), 'yyyy-MM-dd');`
     const applied: string[] = [];
     const failed: string[] = [];
     const results: any[] = [];
-
     for (const suggestion of automatedSuggestions) {
       try {
         // This would contain the actual implementation
         // For now, just simulate the process
-        console.log(`Applying optimization: ${suggestion.title}`);
-        
         // Simulate automated optimization
         await new Promise(resolve => setTimeout(resolve, 1000));
-        
         applied.push(suggestion.id);
         results.push({
           id: suggestion.id,
@@ -692,17 +623,14 @@ const formatted = format(new Date(), 'yyyy-MM-dd');`
         });
       }
     }
-
     return { applied, failed, results };
   }
-
   // Get recent audits
   getRecentAudits(limit = 10): PerformanceAudit[] {
     return this.audits
       .sort((a, b) => b.timestamp - a.timestamp)
       .slice(0, limit);
   }
-
   // Get performance trends
   getPerformanceTrends(days = 7): {
     metric: string;
@@ -711,21 +639,15 @@ const formatted = format(new Date(), 'yyyy-MM-dd');`
   }[] {
     const cutoff = Date.now() - (days * 24 * 60 * 60 * 1000);
     const recentAudits = this.audits.filter(a => a.timestamp > cutoff);
-
     if (recentAudits.length < 2) return [];
-
     const oldest = recentAudits[recentAudits.length - 1];
     const newest = recentAudits[0];
-
     const metrics = ['LCP', 'FID', 'CLS', 'TTFB', 'score'] as const;
-    
     return metrics.map(metric => {
       const oldValue = metric === 'score' ? oldest.score : oldest.metrics[metric as keyof typeof oldest.metrics];
       const newValue = metric === 'score' ? newest.score : newest.metrics[metric as keyof typeof newest.metrics];
-      
       const change = ((newValue - oldValue) / oldValue) * 100;
       let trend: 'improving' | 'degrading' | 'stable' = 'stable';
-      
       if (Math.abs(change) > 5) {
         // For score, higher is better; for other metrics, lower is usually better
         if (metric === 'score') {
@@ -734,7 +656,6 @@ const formatted = format(new Date(), 'yyyy-MM-dd');`
           trend = change < 0 ? 'improving' : 'degrading';
         }
       }
-
       return {
         metric,
         trend,
@@ -742,23 +663,19 @@ const formatted = format(new Date(), 'yyyy-MM-dd');`
       };
     });
   }
-
   // Clear old data to free up storage space
   private clearOldData() {
     if (typeof window === 'undefined') return;
-    
     try {
       // Clear old performance data
       const cutoff = Date.now() - (3 * 24 * 60 * 60 * 1000); // 3 days ago
       this.audits = this.audits.filter(audit => audit.timestamp > cutoff);
-      
       // Also clear other related localStorage items if needed
       const keysToCheck = [
         'performance_reports',
         'performance_alerts',
         'web_vitals_data'
       ];
-      
       keysToCheck.forEach(key => {
         try {
           const stored = localStorage.getItem(key);
@@ -778,28 +695,21 @@ const formatted = format(new Date(), 'yyyy-MM-dd');`
           localStorage.removeItem(key);
         }
       });
-      
-      console.log('Old performance data cleared');
     } catch (error) {
-      console.warn('Failed to clear old data:', error);
     }
   }
 }
-
 // Singleton instance
 let optimizerInstance: PerformanceOptimizer | null = null;
-
 export function getPerformanceOptimizer(): PerformanceOptimizer {
   if (!optimizerInstance) {
     optimizerInstance = new PerformanceOptimizer();
   }
   return optimizerInstance;
 }
-
 // React hook for performance optimization
 export function usePerformanceOptimizer() {
   const optimizer = getPerformanceOptimizer();
-
   return {
     runAudit: () => optimizer.runAudit(),
     getSuggestions: (priority?: OptimizationSuggestion['priority']) => 
@@ -812,25 +722,21 @@ export function usePerformanceOptimizer() {
     analyzeBundleComposition: () => optimizer.analyzeBundleComposition()
   };
 }
-
 export type {
   OptimizationSuggestion,
   PerformanceAudit,
   BundleAnalysis
 };
-
 // Memory management utilities
 const clearPerformanceCache = () => {
   if (typeof window !== 'undefined') {
     try {
       localStorage.removeItem('performance_audits');
-      console.log('Performance cache cleared');
     } catch (error) {
       console.error('Failed to clear performance cache:', error);
     }
   }
 };
-
 const getPerformanceCacheSize = () => {
   if (typeof window !== 'undefined') {
     try {
@@ -842,5 +748,4 @@ const getPerformanceCacheSize = () => {
   }
   return 0;
 };
-
 export { PerformanceOptimizer, clearPerformanceCache, getPerformanceCacheSize };

@@ -1,5 +1,4 @@
 "use client"
-
 import * as React from "react"
 import { useState, useEffect } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "./card"
@@ -30,7 +29,6 @@ import {
 } from "lucide-react"
 import { Alert, AlertTitle, AlertDescription } from "./alert"
 import { showSuccessToast, showInfoToast, showWarningToast, showErrorToast } from "@/lib/toast-utils"
-
 interface NotificationPreferences {
   enabled: boolean
   soundEnabled: boolean
@@ -65,7 +63,6 @@ interface NotificationPreferences {
   mobileNotifications: boolean
   priorityFilter: 'all' | 'medium' | 'high' | 'critical'
 }
-
 const defaultPreferences: NotificationPreferences = {
   enabled: true,
   soundEnabled: true,
@@ -100,7 +97,6 @@ const defaultPreferences: NotificationPreferences = {
   mobileNotifications: true,
   priorityFilter: 'all'
 }
-
 const soundOptions = [
   { value: 'chime', label: 'Chime' },
   { value: 'bell', label: 'Bell' },
@@ -110,13 +106,11 @@ const soundOptions = [
   { value: 'system', label: 'System' },
   { value: 'none', label: 'None' }
 ]
-
 export function NotificationSettingsPage() {
   const [preferences, setPreferences] = useState<NotificationPreferences>(defaultPreferences)
   const [hasChanges, setHasChanges] = useState(false)
   const [isLoading, setSaving] = useState(false)
   const [testingSound, setTestingSound] = useState<string | null>(null)
-
   // Load preferences from localStorage
   useEffect(() => {
     try {
@@ -126,10 +120,8 @@ export function NotificationSettingsPage() {
         setPreferences({ ...defaultPreferences, ...parsed })
       }
     } catch (error) {
-      console.warn('Failed to load notification preferences:', error)
     }
   }, [])
-
   // Track changes
   useEffect(() => {
     const saved = localStorage.getItem('notification-preferences')
@@ -137,14 +129,12 @@ export function NotificationSettingsPage() {
     const savedSettings = saved || JSON.stringify(defaultPreferences)
     setHasChanges(currentSettings !== savedSettings)
   }, [preferences])
-
   const updatePreference = <K extends keyof NotificationPreferences>(
     key: K, 
     value: NotificationPreferences[K]
   ) => {
     setPreferences(prev => ({ ...prev, [key]: value }))
   }
-
   const updateNestedPreference = <T extends keyof NotificationPreferences>(
     parent: T,
     key: keyof NotificationPreferences[T],
@@ -158,7 +148,6 @@ export function NotificationSettingsPage() {
       }
     }))
   }
-
   const savePreferences = async () => {
     setSaving(true)
     try {
@@ -172,12 +161,10 @@ export function NotificationSettingsPage() {
       setSaving(false)
     }
   }
-
   const resetToDefaults = () => {
     setPreferences(defaultPreferences)
     showInfoToast('Settings Reset', 'Notification preferences have been reset to default values.')
   }
-
   const testSound = async (soundType: string) => {
     setTestingSound(soundType)
     try {
@@ -190,7 +177,6 @@ export function NotificationSettingsPage() {
       setTestingSound(null)
     }
   }
-
   const testNotification = (type: 'success' | 'error' | 'warning' | 'info') => {
     const testMessages = {
       success: { title: 'Test Success', description: 'This is a test success notification!' },
@@ -198,9 +184,7 @@ export function NotificationSettingsPage() {
       warning: { title: 'Test Warning', description: 'This is a test warning notification!' },
       info: { title: 'Test Info', description: 'This is a test info notification!' }
     }
-
     const message = testMessages[type]
-    
     switch (type) {
       case 'success':
         showSuccessToast(message.title, message.description)
@@ -216,24 +200,20 @@ export function NotificationSettingsPage() {
         break
     }
   }
-
   const isInQuietHours = () => {
     if (!preferences.quietHours.enabled) return false
-    
     const now = new Date()
     const currentTime = now.getHours() * 60 + now.getMinutes()
     const [startHour, startMin] = preferences.quietHours.start.split(':').map(Number)
     const [endHour, endMin] = preferences.quietHours.end.split(':').map(Number)
     const startTime = startHour * 60 + startMin
     const endTime = endHour * 60 + endMin
-
     if (startTime <= endTime) {
       return currentTime >= startTime && currentTime <= endTime
     } else {
       return currentTime >= startTime || currentTime <= endTime
     }
   }
-
   return (
     <div className="space-y-6 max-w-4xl mx-auto p-6">
       {/* Header */}
@@ -245,7 +225,6 @@ export function NotificationSettingsPage() {
           Customize how you receive notifications and alerts
         </p>
       </div>
-
       {/* Save/Reset Actions */}
       <div className="flex justify-between items-center">
         <div className="flex items-center gap-2">
@@ -280,7 +259,6 @@ export function NotificationSettingsPage() {
           </Button>
         </div>
       </div>
-
       {/* Global Settings */}
       <Card>
         <CardHeader>
@@ -301,7 +279,6 @@ export function NotificationSettingsPage() {
               onCheckedChange={(enabled) => updatePreference('enabled', enabled)}
             />
           </div>
-
           {/* Position */}
           <div>
             <label className="text-sm font-medium">Position</label>
@@ -322,7 +299,6 @@ export function NotificationSettingsPage() {
               </SelectContent>
             </Select>
           </div>
-
           {/* Max Notifications */}
           <div>
             <label className="text-sm font-medium">Maximum Visible Notifications</label>
@@ -338,7 +314,6 @@ export function NotificationSettingsPage() {
               Currently: {preferences.maxNotifications}
             </p>
           </div>
-
           {/* Priority Filter */}
           <div>
             <label className="text-sm font-medium">Priority Filter</label>
@@ -359,7 +334,6 @@ export function NotificationSettingsPage() {
           </div>
         </CardContent>
       </Card>
-
       {/* Sound Settings */}
       <Card>
         <CardHeader>
@@ -380,7 +354,6 @@ export function NotificationSettingsPage() {
               onCheckedChange={(soundEnabled) => updatePreference('soundEnabled', soundEnabled)}
             />
           </div>
-
           {preferences.soundEnabled && (
             <>
               {/* Volume */}
@@ -398,7 +371,6 @@ export function NotificationSettingsPage() {
                   step={1}
                 />
               </div>
-
               {/* Sound Types */}
               <div className="space-y-4">
                 <h4 className="text-sm font-medium">Sound Types</h4>
@@ -450,7 +422,6 @@ export function NotificationSettingsPage() {
           )}
         </CardContent>
       </Card>
-
       {/* Auto-Close Settings */}
       <Card>
         <CardHeader>
@@ -470,7 +441,6 @@ export function NotificationSettingsPage() {
               onCheckedChange={(autoClose) => updatePreference('autoClose', autoClose)}
             />
           </div>
-
           {preferences.autoClose && (
             <div>
               <div className="flex items-center justify-between mb-2">
@@ -490,7 +460,6 @@ export function NotificationSettingsPage() {
           )}
         </CardContent>
       </Card>
-
       {/* Quiet Hours */}
       <Card>
         <CardHeader>
@@ -512,7 +481,6 @@ export function NotificationSettingsPage() {
               }
             />
           </div>
-
           {preferences.quietHours.enabled && (
             <div className="grid grid-cols-2 gap-4">
               <div>
@@ -541,7 +509,6 @@ export function NotificationSettingsPage() {
           )}
         </CardContent>
       </Card>
-
       {/* Notification Types */}
       <Card>
         <CardHeader>
@@ -582,7 +549,6 @@ export function NotificationSettingsPage() {
           ))}
         </CardContent>
       </Card>
-
       {/* Platform Settings */}
       <Card>
         <CardHeader>
@@ -605,7 +571,6 @@ export function NotificationSettingsPage() {
               onCheckedChange={(value) => updatePreference('desktopNotifications', value)}
             />
           </div>
-
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <Smartphone className="h-4 w-4" />
@@ -619,7 +584,6 @@ export function NotificationSettingsPage() {
               onCheckedChange={(value) => updatePreference('mobileNotifications', value)}
             />
           </div>
-
           {preferences.mobileNotifications && (
             <div className="ml-6 flex items-center justify-between">
               <div>
@@ -634,7 +598,6 @@ export function NotificationSettingsPage() {
           )}
         </CardContent>
       </Card>
-
       {/* Test Area */}
       <Card>
         <CardHeader>
@@ -680,7 +643,6 @@ export function NotificationSettingsPage() {
           </div>
         </CardContent>
       </Card>
-
       {/* Current Status */}
       {preferences.enabled && (
         <Alert variant="success">
@@ -692,7 +654,6 @@ export function NotificationSettingsPage() {
           </AlertDescription>
         </Alert>
       )}
-
       {!preferences.enabled && (
         <Alert variant="warning">
           <AlertTriangle className="h-4 w-4" />
@@ -700,11 +661,14 @@ export function NotificationSettingsPage() {
           <AlertDescription>
             You won&apos;t receive any notifications while they are disabled.
             Enable notifications above to stay informed about important events.
+            {/* Memory leak prevention: Timers need cleanup */}
+            {/* Add cleanup in useEffect return function */}
+            {/* Performance optimization needed: Consider memoizing inline event handlers */}
+            {/* Use useMemo for objects/arrays and useCallback for functions */}
           </AlertDescription>
         </Alert>
       )}
     </div>
   )
 }
-
 export default NotificationSettingsPage

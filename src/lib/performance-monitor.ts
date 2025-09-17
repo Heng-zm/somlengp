@@ -1,6 +1,7 @@
 'use client';
-
 import { onCLS, onFCP, onINP, onLCP, onTTFB, Metric } from 'web-vitals';
+// Memory leak prevention: Event listeners need cleanup, Timers need cleanup
+// Add cleanup in useEffect return function
 
 // Types for performance monitoring
 interface PerformanceMetrics {
@@ -10,27 +11,23 @@ interface PerformanceMetrics {
   FID: number | null;
   LCP: number | null;
   TTFB: number | null;
-  
   // Additional metrics
   memory?: {
     usedJSHeapSize: number;
     totalJSHeapSize: number;
     jsHeapSizeLimit: number;
   };
-  
   // Custom metrics
   firstInteraction: number | null;
   domInteractive: number | null;
   domContentLoaded: number | null;
   bundleLoadTime: number | null;
-  
   // Timing
   timestamp: number;
   url: string;
   userAgent: string;
   connection?: string;
 }
-
 interface PerformanceConfig {
   enableReporting: boolean;
   reportingEndpoint?: string;
@@ -45,7 +42,6 @@ interface PerformanceConfig {
     TTFB: { good: number; poor: number };
   };
 }
-
 interface PerformanceReport {
   id: string;
   sessionId: string;
@@ -67,7 +63,6 @@ interface PerformanceReport {
     viewport: { width: number; height: number };
   };
 }
-
 const DEFAULT_CONFIG: PerformanceConfig = {
   enableReporting: true,
   sampleRate: 1.0, // Monitor 100% in development
@@ -81,7 +76,6 @@ const DEFAULT_CONFIG: PerformanceConfig = {
     TTFB: { good: 800, poor: 1800 },
   },
 };
-
 class PerformanceMonitor {
   private config: PerformanceConfig;
   private metrics: Partial<PerformanceMetrics> = {};
@@ -91,45 +85,35 @@ class PerformanceMonitor {
   private isInitialized = false;
   private reportQueue: PerformanceReport[] = [];
   private isReporting = false;
-
   constructor(config: Partial<PerformanceConfig> = {}) {
     this.config = { ...DEFAULT_CONFIG, ...config };
     this.sessionId = this.generateSessionId();
-    
     // Only initialize if we're in the browser and should sample this session
     if (typeof window !== 'undefined' && this.shouldSample()) {
       this.initialize();
     }
   }
-
   private generateSessionId(): string {
     return `perf_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
   }
-
   private shouldSample(): boolean {
     return Math.random() < this.config.sampleRate;
   }
-
   private initialize() {
     if (this.isInitialized) return;
-    
     try {
       this.collectWebVitals();
       this.collectCustomMetrics();
       this.setupMemoryMonitoring();
       this.setupNavigationTiming();
       this.loadStoredReports();
-      
       // Set up periodic reporting
       this.schedulePeriodicReporting();
-      
       this.isInitialized = true;
       this.log('Performance monitoring initialized');
     } catch (error) {
-      console.warn('Failed to initialize performance monitoring:', error);
     }
   }
-
   private collectWebVitals() {
     // Collect Core Web Vitals
     onCLS((metric) => this.handleMetric('CLS', metric));
@@ -138,42 +122,34 @@ class PerformanceMonitor {
     onLCP((metric) => this.handleMetric('LCP', metric));
     onTTFB((metric) => this.handleMetric('TTFB', metric));
   }
-
   private handleMetric(name: string, metric: Metric) {
     (this.metrics as any)[name] = metric.value;
-    
     this.log(`${name}: ${metric.value}`, {
       delta: metric.delta,
       rating: this.rateMetric(name, metric.value),
     });
-
     // Trigger report generation if we have enough metrics
     this.checkForCompleteReport();
   }
-
   private collectCustomMetrics() {
     // Collect additional performance metrics
     if (typeof window !== 'undefined') {
       const navigation = performance.getEntriesByType('navigation')[0] as PerformanceNavigationTiming;
-      
       if (navigation) {
         this.metrics.domInteractive = navigation.domInteractive;
         this.metrics.domContentLoaded = navigation.domContentLoadedEventEnd - navigation.domContentLoadedEventStart;
       }
-
       // Track first interaction
       const trackFirstInteraction = () => {
         if (this.metrics.firstInteraction === null) {
           this.metrics.firstInteraction = performance.now();
         }
       };
-
       ['click', 'keydown', 'scroll', 'touchstart'].forEach(event => {
         document.addEventListener(event, trackFirstInteraction, { once: true, passive: true });
       });
     }
   }
-
   private setupMemoryMonitoring() {
     if ('memory' in performance) {
       const memoryInfo = (performance as any).memory;
@@ -182,13 +158,11 @@ class PerformanceMonitor {
         totalJSHeapSize: memoryInfo.totalJSHeapSize,
         jsHeapSizeLimit: memoryInfo.jsHeapSizeLimit,
       };
-
       // Monitor memory usage periodically
       const memoryInterval = setInterval(() => {
         if (this.metrics.memory && memoryInfo) {
           this.metrics.memory.usedJSHeapSize = memoryInfo.usedJSHeapSize;
           this.metrics.memory.totalJSHeapSize = memoryInfo.totalJSHeapSize;
-          
           // Check for memory leaks
           const usageRatio = memoryInfo.usedJSHeapSize / memoryInfo.jsHeapSizeLimit;
           if (usageRatio > 0.8) {
@@ -196,24 +170,20 @@ class PerformanceMonitor {
           }
         }
       }, 30000); // Check every 30 seconds
-
       // Clean up interval after 10 minutes
       setTimeout(() => clearInterval(memoryInterval), 600000);
     }
   }
-
   private setupNavigationTiming() {
     if (typeof window !== 'undefined' && 'PerformanceObserver' in window) {
       try {
         // Monitor resource timing
         const resourceObserver = new PerformanceObserver((list) => {
           const entries = list.getEntries();
-          
           // Calculate bundle load time from script resources
           const scriptEntries = entries.filter(entry => 
             entry.name.includes('.js') && entry.name.includes('_next')
           );
-          
           if (scriptEntries.length > 0) {
             const totalLoadTime = scriptEntries.reduce((total, entry) => {
               const resourceEntry = entry as PerformanceResourceTiming;
@@ -223,10 +193,8 @@ class PerformanceMonitor {
             this.metrics.bundleLoadTime = totalLoadTime;
           }
         });
-
         resourceObserver.observe({ entryTypes: ['resource'] });
         this.observers.push(resourceObserver);
-
         // Monitor long tasks
         const longTaskObserver = new PerformanceObserver((list) => {
           const entries = list.getEntries();
@@ -236,34 +204,26 @@ class PerformanceMonitor {
             }
           });
         });
-
         longTaskObserver.observe({ entryTypes: ['longtask'] });
         this.observers.push(longTaskObserver);
-
       } catch (error) {
-        console.warn('Failed to setup performance observers:', error);
       }
     }
   }
-
   private rateMetric(name: string, value: number): 'good' | 'needs-improvement' | 'poor' {
     const thresholds = this.config.thresholds[name as keyof typeof this.config.thresholds];
     if (!thresholds) return 'good';
-
     if (value <= thresholds.good) return 'good';
     if (value <= thresholds.poor) return 'needs-improvement';
     return 'poor';
   }
-
   private checkForCompleteReport() {
     // Generate report if we have key metrics
     const hasKeyMetrics = this.metrics.LCP !== undefined || this.metrics.FID !== undefined;
-    
     if (hasKeyMetrics) {
       this.generateReport();
     }
   }
-
   private generateReport(): PerformanceReport {
     const currentMetrics: PerformanceMetrics = {
       CLS: this.metrics.CLS ?? null,
@@ -281,11 +241,9 @@ class PerformanceMonitor {
       userAgent: typeof navigator !== 'undefined' ? navigator.userAgent : '',
       connection: this.getConnectionInfo(),
     };
-
     const issues = this.analyzeIssues(currentMetrics);
     const score = this.calculateScore(currentMetrics);
     const grade = this.calculateGrade(score);
-
     const report: PerformanceReport = {
       id: `report_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
       sessionId: this.sessionId,
@@ -296,16 +254,12 @@ class PerformanceMonitor {
       issues,
       deviceInfo: this.getDeviceInfo(),
     };
-
     this.addReport(report);
-    
     if (this.config.enableReporting) {
       this.queueReport(report);
     }
-
     return report;
   }
-
   private analyzeIssues(metrics: PerformanceMetrics): Array<{
     metric: string;
     value: number;
@@ -320,7 +274,6 @@ class PerformanceMonitor {
       severity: 'warning' | 'error';
       suggestion: string;
     }> = [];
-
     Object.entries(this.config.thresholds).forEach(([metricName, thresholds]) => {
       const value = metrics[metricName as keyof PerformanceMetrics] as number;
       if (value !== null && typeof value === 'number') {
@@ -343,10 +296,8 @@ class PerformanceMonitor {
         }
       }
     });
-
     return issues;
   }
-
   private getSuggestion(metric: string, severity: 'warning' | 'error'): string {
     const suggestions = {
       LCP: {
@@ -370,37 +321,29 @@ class PerformanceMonitor {
         error: 'Critical: Investigate server performance and database query optimization.',
       },
     };
-
     return suggestions[metric as keyof typeof suggestions]?.[severity] || 'Consider optimizing this metric.';
   }
-
   private calculateScore(metrics: PerformanceMetrics): number {
     let totalScore = 0;
     let metricCount = 0;
-
     Object.entries(this.config.thresholds).forEach(([metricName, thresholds]) => {
       const value = metrics[metricName as keyof PerformanceMetrics] as number;
       if (value !== null && typeof value === 'number') {
         let score = 100;
-        
         if (value > thresholds.good) {
           const range = thresholds.poor - thresholds.good;
           const excess = Math.min(value - thresholds.good, range);
           score = Math.max(0, 100 - (excess / range) * 50);
         }
-        
         if (value > thresholds.poor) {
           score = Math.max(0, score - 50);
         }
-
         totalScore += score;
         metricCount++;
       }
     });
-
     return metricCount > 0 ? Math.round(totalScore / metricCount) : 0;
   }
-
   private calculateGrade(score: number): 'A' | 'B' | 'C' | 'D' | 'F' {
     if (score >= 90) return 'A';
     if (score >= 80) return 'B';
@@ -408,7 +351,6 @@ class PerformanceMonitor {
     if (score >= 60) return 'D';
     return 'F';
   }
-
   private getConnectionInfo(): string {
     if (typeof navigator !== 'undefined' && 'connection' in navigator) {
       const conn = (navigator as any).connection;
@@ -416,7 +358,6 @@ class PerformanceMonitor {
     }
     return '';
   }
-
   private getDeviceInfo() {
     return {
       deviceMemory: (navigator as any)?.deviceMemory,
@@ -428,29 +369,23 @@ class PerformanceMonitor {
       },
     };
   }
-
   private addReport(report: PerformanceReport) {
     this.reports.unshift(report);
-    
     // Keep only the most recent reports
     if (this.reports.length > this.config.maxReports) {
       this.reports = this.reports.slice(0, this.config.maxReports);
     }
-
     this.saveReports();
   }
-
   private saveReports() {
     if (typeof window !== 'undefined') {
       try {
         const reportsToSave = this.reports.slice(0, 10); // Save only 10 most recent
         localStorage.setItem('performance_reports', JSON.stringify(reportsToSave));
       } catch (error) {
-        console.warn('Failed to save performance reports:', error);
       }
     }
   }
-
   private loadStoredReports() {
     if (typeof window !== 'undefined') {
       try {
@@ -459,39 +394,30 @@ class PerformanceMonitor {
           this.reports = JSON.parse(stored);
         }
       } catch (error) {
-        console.warn('Failed to load stored reports:', error);
       }
     }
   }
-
   private queueReport(report: PerformanceReport) {
     this.reportQueue.push(report);
     this.processReportQueue();
   }
-
   private async processReportQueue() {
     if (this.isReporting || this.reportQueue.length === 0) return;
-
     this.isReporting = true;
-
     try {
       while (this.reportQueue.length > 0) {
         const report = this.reportQueue.shift()!;
         await this.sendReport(report);
-        
         // Add small delay between reports
         await new Promise(resolve => setTimeout(resolve, 100));
       }
     } catch (error) {
-      console.warn('Failed to process report queue:', error);
     } finally {
       this.isReporting = false;
     }
   }
-
   private async sendReport(report: PerformanceReport) {
     if (!this.config.reportingEndpoint) return;
-
     try {
       await fetch(this.config.reportingEndpoint, {
         method: 'POST',
@@ -499,15 +425,12 @@ class PerformanceMonitor {
         body: JSON.stringify(report),
         keepalive: true,
       });
-
       this.log('Report sent successfully', { reportId: report.id });
     } catch (error) {
-      console.warn('Failed to send performance report:', error);
       // Re-queue the report for retry
       this.reportQueue.unshift(report);
     }
   }
-
   private schedulePeriodicReporting() {
     // Generate reports periodically
     setInterval(() => {
@@ -515,81 +438,64 @@ class PerformanceMonitor {
         this.generateReport();
       }
     }, 60000); // Every minute
-
     // Clean up old data periodically
     setInterval(() => {
       this.cleanupOldData();
     }, 300000); // Every 5 minutes
   }
-
   private cleanupOldData() {
     const cutoff = Date.now() - (24 * 60 * 60 * 1000); // 24 hours ago
     this.reports = this.reports.filter(report => report.timestamp > cutoff);
     this.saveReports();
   }
-
   private log(message: string, data?: any) {
     if (this.config.enableConsoleLogging) {
-      console.log(`[PerformanceMonitor] ${message}`, data || '');
     }
   }
-
   // Public methods
   public getReports(): PerformanceReport[] {
     return [...this.reports];
   }
-
   public getLatestReport(): PerformanceReport | null {
     return this.reports[0] || null;
   }
-
   public getCurrentMetrics(): Partial<PerformanceMetrics> {
     return { ...this.metrics };
   }
-
   public forceReport(): PerformanceReport {
     return this.generateReport();
   }
-
   public updateConfig(newConfig: Partial<PerformanceConfig>) {
     this.config = { ...this.config, ...newConfig };
   }
-
   public trackCustomMetric(name: string, value: number) {
     (this.metrics as any)[name] = value;
     this.log(`Custom metric ${name}: ${value}`);
   }
-
   public cleanup() {
     // Clean up observers
     this.observers.forEach(observer => {
       try {
         observer.disconnect();
       } catch (error) {
-        console.warn('Failed to disconnect observer:', error);
       }
     });
     this.observers = [];
-
     // Process any remaining reports
     this.processReportQueue();
   }
 }
-
 // Singleton instance
 let performanceMonitor: PerformanceMonitor | null = null;
-
 export function getPerformanceMonitor(config?: Partial<PerformanceConfig>): PerformanceMonitor | null {
   if (!performanceMonitor && typeof window !== 'undefined') {
     performanceMonitor = new PerformanceMonitor(config);
   }
   return performanceMonitor;
 }
-
 // React hook for performance monitoring
 export function usePerformanceMonitor() {
   const monitor = getPerformanceMonitor();
-
   return {
     getReports: () => monitor?.getReports() || [],
     getLatestReport: () => monitor?.getLatestReport(),
@@ -598,7 +504,6 @@ export function usePerformanceMonitor() {
     updateConfig: (config: Partial<PerformanceConfig>) => monitor?.updateConfig(config),
   };
 }
-
 // Utility functions
 export function trackCustomMetric(name: string, value: number) {
   const monitor = getPerformanceMonitor();
@@ -606,9 +511,7 @@ export function trackCustomMetric(name: string, value: number) {
     (monitor as any).metrics[name] = value;
   }
 }
-
 export function markFeatureUsage(featureName: string) {
   trackCustomMetric(`feature_${featureName}_time`, performance.now());
 }
-
 export { PerformanceMonitor, type PerformanceMetrics, type PerformanceReport, type PerformanceConfig };

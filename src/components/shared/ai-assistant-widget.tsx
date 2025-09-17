@@ -30,7 +30,13 @@ import {
 } from '@/lib/toast-utils';
 import { cn } from '@/lib/utils';
 import { generateMessageId } from '@/lib/id-utils';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion' // TODO: Consider lazy loading animations for better initial load;
+// Memory leak prevention: Timers need cleanup
+// Add cleanup in useEffect return function
+
+// Performance optimization needed: Consider memoizing inline event handlers
+// Use useMemo for objects/arrays and useCallback for functions
+
 
 interface Message {
   id: string;

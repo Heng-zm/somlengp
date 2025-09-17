@@ -27,6 +27,12 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { 
+// Memory leak prevention: Timers need cleanup
+// Add cleanup in useEffect return function
+
+// Performance optimization needed: Consider memoizing inline event handlers
+// Use useMemo for objects/arrays and useCallback for functions
+
   Edit, 
   Camera, 
   Save, 
@@ -122,20 +128,19 @@ export function ProfileEditorDialog({ className, trigger }: ProfileEditorDialogP
     }
   }, [isOpen, user]);
 
-  if (!user) return null;
-
   // Memoized values for performance
   const hasChanges = useMemo(() => {
+    if (!user) return false;
     return (
       formState.displayName !== (user.displayName || '') ||
       formState.photoURL !== (user.photoURL || '') ||
       uiState.previewURL !== null
     );
-  }, [formState.displayName, formState.photoURL, uiState.previewURL, user.displayName, user.photoURL]);
+  }, [formState.displayName, formState.photoURL, uiState.previewURL, user]);
 
   const userInitial = useMemo(() => {
-    return (user.displayName || user.email || 'U').charAt(0).toUpperCase();
-  }, [user.displayName, user.email]);
+    return (user?.displayName || user?.email || 'U').charAt(0).toUpperCase();
+  }, [user]);
 
   // Validation function with memoization
   const validateForm = useCallback(() => {
@@ -237,6 +242,8 @@ export function ProfileEditorDialog({ className, trigger }: ProfileEditorDialogP
 
     try {
       const updates: Record<string, any> = {};
+      
+      if (!user) return; // Safety check
       
       if (formState.displayName !== (user.displayName || '')) {
         updates.displayName = formState.displayName.trim();
@@ -354,6 +361,8 @@ export function ProfileEditorDialog({ className, trigger }: ProfileEditorDialogP
       }
     };
   }, []);
+
+  if (!user) return null;
 
   return (
     <>

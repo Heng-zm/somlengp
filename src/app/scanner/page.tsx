@@ -1,22 +1,22 @@
 'use client';
-
+import { memo } from 'react';
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { QRScanner } from '@/components/qr-scanner';
 import { OptimizedQRScanner } from '@/components/optimized-qr-scanner';
 import { SimpleQRScanner } from '@/components/simple-qr-scanner';
 import { QRScannerSheet } from '@/components/qr-scanner-sheet';
+// Performance optimization needed: Consider memoizing inline event handlers
+// Use useMemo for objects/arrays and useCallback for functions
 
-export default function ScannerTestPage() {
+const ScannerTestPageComponent = function ScannerTestPage() {
   const [showBasicScanner, setShowBasicScanner] = useState(false);
   const [showOptimizedScanner, setShowOptimizedScanner] = useState(false);
   const [showSimpleScanner, setShowSimpleScanner] = useState(false);
   const [showScannerSheet, setShowScannerSheet] = useState(false);
   const [lastScanResult, setLastScanResult] = useState<string>('');
   const [scanError, setScanError] = useState<string>('');
-
   const handleScanSuccess = (data: string) => {
-    console.log('QR Code scanned:', data);
     setLastScanResult(data);
     setScanError('');
     // Auto-close scanners
@@ -24,19 +24,16 @@ export default function ScannerTestPage() {
     setShowOptimizedScanner(false);
     setShowSimpleScanner(false);
   };
-
   const handleScanError = (error: string) => {
     console.error('QR Scan error:', error);
     setScanError(error);
   };
-
   const handleClose = () => {
     setShowBasicScanner(false);
     setShowOptimizedScanner(false);
     setShowSimpleScanner(false);
     setShowScannerSheet(false);
   };
-
   return (
     <div className="min-h-screen bg-gray-100 p-4">
       <div className="max-w-4xl mx-auto">
@@ -45,7 +42,6 @@ export default function ScannerTestPage() {
           <p className="text-gray-600 mb-6">
             Test different QR scanner implementations to debug camera and scanning issues.
           </p>
-
           {/* Scanner Controls */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
             <Button 
@@ -55,7 +51,6 @@ export default function ScannerTestPage() {
             >
               {showBasicScanner ? "🔴 Close" : "📱"} Basic Scanner
             </Button>
-
             <Button 
               onClick={() => setShowOptimizedScanner(true)}
               className="h-16 text-lg"
@@ -63,7 +58,6 @@ export default function ScannerTestPage() {
             >
               {showOptimizedScanner ? "🔴 Close" : "⚡"} Optimized Scanner
             </Button>
-
             <Button 
               onClick={() => setShowSimpleScanner(true)}
               className="h-16 text-lg"
@@ -71,7 +65,6 @@ export default function ScannerTestPage() {
             >
               {showSimpleScanner ? "🔴 Close" : "🔍"} Simple Scanner
             </Button>
-
             <Button 
               onClick={() => setShowScannerSheet(true)}
               className="h-16 text-lg"
@@ -80,7 +73,6 @@ export default function ScannerTestPage() {
               📄 Scanner Sheet
             </Button>
           </div>
-
           {/* Results Display */}
           {lastScanResult && (
             <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-4">
@@ -96,7 +88,6 @@ export default function ScannerTestPage() {
               </Button>
             </div>
           )}
-
           {/* Error Display */}
           {scanError && (
             <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-4">
@@ -104,7 +95,6 @@ export default function ScannerTestPage() {
               <p className="text-sm text-red-700">{scanError}</p>
             </div>
           )}
-
           {/* Debug Info */}
           <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
             <h3 className="font-semibold text-blue-800 mb-2">🔍 Debug Information:</h3>
@@ -117,7 +107,6 @@ export default function ScannerTestPage() {
             </div>
           </div>
         </div>
-
         {/* Scanner Components */}
         {showBasicScanner && (
           <div className="bg-white rounded-lg shadow-lg p-6 mb-6">
@@ -130,7 +119,6 @@ export default function ScannerTestPage() {
             />
           </div>
         )}
-
         {showOptimizedScanner && (
           <div className="bg-white rounded-lg shadow-lg p-6 mb-6">
             <h2 className="text-xl font-semibold mb-4">Optimized QR Scanner</h2>
@@ -146,7 +134,6 @@ export default function ScannerTestPage() {
             />
           </div>
         )}
-
         {showSimpleScanner && (
           <div className="bg-white rounded-lg shadow-lg p-6 mb-6">
             <h2 className="text-xl font-semibold mb-4">Simple QR Scanner (Fallback)</h2>
@@ -161,7 +148,6 @@ export default function ScannerTestPage() {
             />
           </div>
         )}
-
         {/* Scanner Sheet */}
         <QRScannerSheet
           open={showScannerSheet}
@@ -173,3 +159,6 @@ export default function ScannerTestPage() {
     </div>
   );
 }
+
+
+export default memo(ScannerTestPageComponent);

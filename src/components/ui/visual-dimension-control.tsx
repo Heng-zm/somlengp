@@ -21,6 +21,9 @@ import {
   HelpCircle
 } from 'lucide-react';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+// Performance optimization needed: Consider memoizing inline styles, inline event handlers, dynamic classNames
+// Use useMemo for objects/arrays and useCallback for functions
+
 
 interface VisualDimensionControlProps {
   width: number;

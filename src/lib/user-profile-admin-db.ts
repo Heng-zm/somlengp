@@ -4,16 +4,13 @@ import {
   Timestamp 
 } from 'firebase-admin/firestore';
 import { getApps, initializeApp, cert } from 'firebase-admin/app';
-
 // Initialize Firebase Admin SDK if not already initialized
 if (!getApps().length) {
   try {
     const projectId = process.env.FIREBASE_PROJECT_ID || process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID;
-    
     // Check if we have service account credentials
     const clientEmail = process.env.FIREBASE_CLIENT_EMAIL;
     const privateKey = process.env.FIREBASE_PRIVATE_KEY;
-    
     if (clientEmail && privateKey) {
       // Initialize with service account credentials (production/local with service account)
       initializeApp({
@@ -24,11 +21,7 @@ if (!getApps().length) {
           privateKey: privateKey.replace(/\\n/g, '\n'),
         }),
       });
-      console.log('🔥 Firebase Admin SDK initialized with service account for project:', projectId);
     } else {
-      console.warn('⚠️  Firebase service account credentials not found.');
-      console.warn('   Please set FIREBASE_CLIENT_EMAIL and FIREBASE_PRIVATE_KEY environment variables.');
-      console.warn('   Get these from Firebase Console > Project Settings > Service accounts > Generate new private key');
       throw new Error('Firebase Admin SDK requires service account credentials');
     }
   } catch (error) {
@@ -36,9 +29,7 @@ if (!getApps().length) {
     throw error;
   }
 }
-
 const adminDb = getFirestore();
-
 export interface AdminUserProfile {
   uid: string;
   userId?: number;
@@ -50,7 +41,6 @@ export interface AdminUserProfile {
   profileCreatedAt?: Date;
   profileUpdatedAt?: Date;
 }
-
 /**
  * Gets a user profile from Firestore using Firebase Admin SDK
  */
@@ -58,13 +48,10 @@ export async function getUserProfileAdmin(uid: string): Promise<AdminUserProfile
   try {
     const userRef = adminDb.collection('userProfiles').doc(uid);
     const userDoc = await userRef.get();
-    
     if (!userDoc.exists) {
       return null;
     }
-    
     const data = userDoc.data()!;
-    
     // Convert Firestore timestamps to Date objects
     return {
       uid: data.uid,
@@ -82,7 +69,6 @@ export async function getUserProfileAdmin(uid: string): Promise<AdminUserProfile
     throw error;
   }
 }
-
 /**
  * Creates a new user profile in Firestore using Firebase Admin SDK
  */
@@ -96,7 +82,6 @@ export async function createUserProfileAdmin(userData: {
   try {
     const now = new Date();
     const timestamp = Timestamp.fromDate(now);
-    
     const userProfile = {
       uid: userData.uid,
       email: userData.email || '',
@@ -112,12 +97,9 @@ export async function createUserProfileAdmin(userData: {
       status: 'active',
       loginCount: 1
     };
-    
     const userRef = adminDb.collection('userProfiles').doc(userData.uid);
-    
     // Create the user profile using Admin SDK (bypasses security rules)
     await userRef.set(userProfile);
-    
     return {
       uid: userData.uid,
       userId: 0,
@@ -134,7 +116,6 @@ export async function createUserProfileAdmin(userData: {
     throw error;
   }
 }
-
 /**
  * Updates user profile information using Firebase Admin SDK
  */
@@ -144,27 +125,21 @@ export async function updateUserProfileAdmin(
 ): Promise<void> {
   try {
     const userRef = adminDb.collection('userProfiles').doc(uid);
-    
     // Map field names to Firestore field names
     const mappedUpdates: any = {};
     if (updates.displayName !== undefined) mappedUpdates.displayName = updates.displayName;
     if (updates.email !== undefined) mappedUpdates.email = updates.email;
     if (updates.photoURL !== undefined) mappedUpdates.profilePicture = updates.photoURL;
-    
     // Always update the timestamp
     mappedUpdates.updatedAt = FieldValue.serverTimestamp();
     mappedUpdates.lastLoginAt = FieldValue.serverTimestamp();
-    
     // Update the document using Admin SDK (bypasses security rules)
     await userRef.update(mappedUpdates);
-    
-    console.log('✅ User profile updated successfully with Admin SDK for uid:', uid);
   } catch (error) {
     console.error('Error updating user profile with Admin SDK:', error);
     throw error;
   }
 }
-
 /**
  * Updates the last sign-in time for a user using Firebase Admin SDK
  */
@@ -180,7 +155,6 @@ export async function updateLastSignInTimeAdmin(uid: string): Promise<void> {
     throw error;
   }
 }
-
 /**
  * Deletes a user profile from Firestore using Firebase Admin SDK
  */
@@ -193,7 +167,6 @@ export async function deleteUserProfileAdmin(uid: string): Promise<void> {
     throw error;
   }
 }
-
 /**
  * Gets the next available user ID by incrementing a counter using Firebase Admin SDK
  */
@@ -201,20 +174,16 @@ export async function getNextUserIdAdmin(): Promise<number> {
   return await adminDb.runTransaction(async (transaction) => {
     const counterRef = adminDb.collection('metadata').doc('userCounter');
     const counterDoc = await transaction.get(counterRef);
-    
     let nextUserId = 1;
-    
     if (counterDoc.exists) {
       const counterData = counterDoc.data()!;
       nextUserId = (counterData.lastUserId || 0) + 1;
     }
-    
     // Update the counter
     transaction.set(counterRef, {
       lastUserId: nextUserId,
       updatedAt: FieldValue.serverTimestamp()
     }, { merge: true });
-    
     return nextUserId;
   });
 }

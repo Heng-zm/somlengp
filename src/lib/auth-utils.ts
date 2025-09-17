@@ -6,6 +6,8 @@ import {
 } from 'firebase/auth';
 import { googleProvider } from './firebase';
 import { errorHandler, AuthError, NetworkError, ValidationError, validateInput, commonValidations, handleNetworkRequest, createRetryFunction } from './error-utils';
+// Memory leak prevention: Timers need cleanup
+// Add cleanup in useEffect return function
 
 /**
  * Determines if the user signed in with email/password
@@ -15,12 +17,9 @@ export function isEmailPasswordUser(user: User): boolean {
     if (!user || typeof user !== 'object') {
       throw new ValidationError('Invalid user object provided');
     }
-    
     if (!Array.isArray(user.providerData)) {
-      console.warn('User providerData is not an array, assuming false');
       return false;
     }
-    
     return user.providerData.some(provider => 
       provider && provider.providerId === 'password'
     );
@@ -29,7 +28,6 @@ export function isEmailPasswordUser(user: User): boolean {
     return false;
   }
 }
-
 /**
  * Determines if the user signed in with Google
  */
@@ -38,12 +36,9 @@ export function isGoogleUser(user: User): boolean {
     if (!user || typeof user !== 'object') {
       throw new ValidationError('Invalid user object provided');
     }
-    
     if (!Array.isArray(user.providerData)) {
-      console.warn('User providerData is not an array, assuming false');
       return false;
     }
-    
     return user.providerData.some(provider => 
       provider && provider.providerId === 'google.com'
     );
@@ -52,7 +47,6 @@ export function isGoogleUser(user: User): boolean {
     return false;
   }
 }
-
 /**
  * Gets the primary authentication provider for the user
  */
@@ -61,23 +55,18 @@ export function getPrimaryAuthProvider(user: User): string {
     if (!user || typeof user !== 'object') {
       throw new ValidationError('Invalid user object provided');
     }
-    
     if (!Array.isArray(user.providerData)) {
-      console.warn('User providerData is not an array, returning unknown');
       return 'unknown';
     }
-    
     if (user.providerData.length > 0 && user.providerData[0]?.providerId) {
       return user.providerData[0].providerId;
     }
-    
     return 'unknown';
   } catch (error) {
     errorHandler.handle(error, { function: 'getPrimaryAuthProvider', userId: user?.uid });
     return 'unknown';
   }
 }
-
 /**
  * Reauthenticates a user with their email and password
  */
@@ -93,7 +82,6 @@ export async function reauthenticateWithPassword(user: User, password: string): 
         userMessage: 'Authentication failed due to invalid user data'
       }
     ], { function: 'reauthenticateWithPassword' });
-    
     validateInput(password, [
       commonValidations.required('Password is required for reauthentication'),
       commonValidations.string('Password must be a string'),
@@ -103,26 +91,21 @@ export async function reauthenticateWithPassword(user: User, password: string): 
         userMessage: 'Password must be at least 6 characters'
       }
     ], { function: 'reauthenticateWithPassword' });
-    
     if (!user.email || typeof user.email !== 'string') {
       throw new AuthError('User email is required for password reauthentication', {
         userId: user.uid,
         hasEmail: !!user.email
       });
     }
-    
     // Create credential with timeout
     const credential = EmailAuthProvider.credential(user.email, password);
-    
     // Execute with retry and timeout
     const reauthenticateWithRetry = createRetryFunction(
       async () => {
         const timeoutPromise = new Promise((_, reject) => 
           setTimeout(() => reject(new Error('Reauthentication timeout')), 30000)
         );
-        
         const authPromise = reauthenticateWithCredential(user, credential);
-        
         return Promise.race([authPromise, timeoutPromise]);
       },
       {
@@ -130,7 +113,6 @@ export async function reauthenticateWithPassword(user: User, password: string): 
         baseDelay: 1000
       }
     );
-    
     await handleNetworkRequest(reauthenticateWithRetry, { 
       operation: 'reauthenticateWithPassword',
       userId: user.uid 
@@ -149,7 +131,6 @@ export async function reauthenticateWithPassword(user: User, password: string): 
     throw authError;
   }
 }
-
 /**
  * Reauthenticates a user with Google
  */
@@ -165,7 +146,6 @@ export async function reauthenticateWithGoogle(user: User): Promise<void> {
         userMessage: 'Authentication failed due to invalid user data'
       }
     ], { function: 'reauthenticateWithGoogle' });
-    
     // Check if Google provider is available
     if (!googleProvider) {
       throw new AuthError(
@@ -174,7 +154,6 @@ export async function reauthenticateWithGoogle(user: User): Promise<void> {
         'Google authentication is not properly configured. Please contact support.'
       );
     }
-    
     // Check if popups are supported/allowed
     if (typeof window !== 'undefined' && !window.open) {
       throw new AuthError(
@@ -183,16 +162,13 @@ export async function reauthenticateWithGoogle(user: User): Promise<void> {
         'Your browser does not support popup authentication. Please try a different browser.'
       );
     }
-    
     // Execute with timeout and retry
     const reauthenticateWithRetry = createRetryFunction(
       async () => {
         const timeoutPromise = new Promise((_, reject) => 
           setTimeout(() => reject(new Error('Google reauthentication timeout')), 60000)
         );
-        
         const authPromise = reauthenticateWithPopup(user, googleProvider!);
-        
         return Promise.race([authPromise, timeoutPromise]);
       },
       {
@@ -200,7 +176,6 @@ export async function reauthenticateWithGoogle(user: User): Promise<void> {
         baseDelay: 2000
       }
     );
-    
     await handleNetworkRequest(reauthenticateWithRetry, { 
       operation: 'reauthenticateWithGoogle',
       userId: user.uid 
@@ -209,7 +184,6 @@ export async function reauthenticateWithGoogle(user: User): Promise<void> {
     // Enhanced error handling for Google auth
     const firebaseError = error as { code?: string; message?: string };
     let userMessage: string;
-    
     switch (firebaseError.code) {
       case 'auth/popup-blocked':
         userMessage = 'Popup was blocked by your browser. Please allow popups for this site and try again.';
@@ -229,7 +203,6 @@ export async function reauthenticateWithGoogle(user: User): Promise<void> {
       default:
         userMessage = 'Google authentication failed. Please try again or contact support.';
     }
-    
     const authError = new AuthError(
       'Failed to reauthenticate with Google',
       {
@@ -240,12 +213,10 @@ export async function reauthenticateWithGoogle(user: User): Promise<void> {
       },
       userMessage
     );
-    
     errorHandler.handle(authError);
     throw authError;
   }
 }
-
 /**
  * Reauthenticates a user based on their authentication provider
  */
@@ -261,9 +232,7 @@ export async function reauthenticateUser(user: User, password?: string): Promise
         userMessage: 'Authentication failed due to invalid user data'
       }
     ], { function: 'reauthenticateUser' });
-    
     const primaryProvider = getPrimaryAuthProvider(user);
-    
     if (isEmailPasswordUser(user)) {
       if (!password || typeof password !== 'string') {
         throw new AuthError(
@@ -287,7 +256,6 @@ export async function reauthenticateUser(user: User, password?: string): Promise
     if (error instanceof AuthError) {
       throw error;
     }
-    
     const authError = new AuthError(
       'Failed to reauthenticate user',
       {
@@ -297,12 +265,10 @@ export async function reauthenticateUser(user: User, password?: string): Promise
       },
       'Authentication failed. Please try again or contact support if the problem persists.'
     );
-    
     errorHandler.handle(authError);
     throw authError;
   }
 }
-
 /**
  * Checks if a user needs recent authentication for sensitive operations
  * Firebase requires recent authentication for operations like account deletion
@@ -311,12 +277,9 @@ export function needsRecentAuth(user?: User, operationType?: string): boolean {
   try {
     // Firebase typically requires authentication within the last 5 minutes for sensitive operations
     // For extra safety, we always require reauthentication for sensitive operations
-    
     // Log for monitoring purposes
     if (user && operationType) {
-      console.log(`Auth check for operation: ${operationType}, user: ${user.uid}`);
     }
-    
     // Always require recent authentication for safety
     return true;
   } catch (error) {
@@ -325,12 +288,10 @@ export function needsRecentAuth(user?: User, operationType?: string): boolean {
       userId: user?.uid,
       operationType 
     });
-    
     // Default to requiring authentication on error
     return true;
   }
 }
-
 /**
  * Gets user-friendly error messages for authentication errors
  */
@@ -339,9 +300,7 @@ export function getAuthErrorMessage(error: unknown): string {
     if (!error) {
       return 'An unknown authentication error occurred.';
     }
-    
     const firebaseError = error as { code?: string; message?: string };
-    
     // Handle common Firebase Auth error codes with enhanced messages
     switch (firebaseError.code) {
       case 'auth/wrong-password':
@@ -390,7 +349,6 @@ export function getAuthErrorMessage(error: unknown): string {
       default:
         // Try to extract meaningful message from the error
         const message = firebaseError.message || (error instanceof Error ? error.message : '');
-        
         if (message.toLowerCase().includes('network')) {
           return 'Network connection error. Please check your internet connection and try again.';
         }
@@ -400,7 +358,6 @@ export function getAuthErrorMessage(error: unknown): string {
         if (message.toLowerCase().includes('permission')) {
           return 'Permission denied. Please check your account permissions.';
         }
-        
         return message || 'Authentication failed. Please try again or contact support if the problem persists.';
     }
   } catch (processingError) {
@@ -408,7 +365,6 @@ export function getAuthErrorMessage(error: unknown): string {
       function: 'getAuthErrorMessage',
       originalError: error 
     });
-    
     return 'An error occurred while processing the authentication error. Please try again.';
   }
 }

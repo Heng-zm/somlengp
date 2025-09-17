@@ -1,5 +1,4 @@
 'use client';
-
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { Comment, CommentSortType, CommentStats, CommentSystemState, CommentUser, AnonymousCommentOptions, PublicCommentOptions } from '@/types/comment-types';
 import { 
@@ -11,7 +10,6 @@ import {
   deleteComment
 } from '@/lib/firestore-comments';
 import { commentCache, commentPerformanceMonitor } from '@/lib/comment-cache';
-
 // Anonymous user utility functions
 const generateAnonymousUser = (): CommentUser => {
   const anonymousNames = [
@@ -22,7 +20,6 @@ const generateAnonymousUser = (): CommentUser => {
     'Curious Mind',
     'Learning Explorer'
   ];
-  
   return {
     id: `anon_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
     name: anonymousNames[Math.floor(Math.random() * anonymousNames.length)],
@@ -30,7 +27,6 @@ const generateAnonymousUser = (): CommentUser => {
     isVerified: false
   };
 };
-
 // Generate guest user (public user without login)
 const generateGuestUser = (customName?: string): CommentUser => {
   const guestNames = [
@@ -41,7 +37,6 @@ const generateGuestUser = (customName?: string): CommentUser => {
     'Community Member',
     'Learning Enthusiast'
   ];
-  
   return {
     id: `guest_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
     name: customName || guestNames[Math.floor(Math.random() * guestNames.length)],
@@ -49,7 +44,6 @@ const generateGuestUser = (customName?: string): CommentUser => {
     isVerified: false
   };
 };
-
 const createLocalAnonymousComment = (content: string, parentId?: string): Comment => {
   return {
     id: Date.now().toString(),
@@ -62,14 +56,12 @@ const createLocalAnonymousComment = (content: string, parentId?: string): Commen
     parentId
   };
 };
-
 interface UseCommentsProps {
   pageId?: string;
   userId?: string;
   initialComments?: Comment[];
   anonymousOptions?: AnonymousCommentOptions;
 }
-
 interface UseCommentsReturn {
   state: CommentSystemState;
   stats: CommentStats;
@@ -86,7 +78,6 @@ interface UseCommentsReturn {
   hasMore: boolean;
   anonymousOptions: AnonymousCommentOptions;
 }
-
 // Mock data for development/demo purposes
 const generateMockComments = (): Comment[] => [
   {
@@ -266,7 +257,6 @@ const generateMockComments = (): Comment[] => [
     replies: []
   }
 ];
-
 export function useComments({ pageId = 'default-page', userId, initialComments, anonymousOptions }: UseCommentsProps = {}): UseCommentsReturn {
   // Memoize default anonymous options to prevent unnecessary re-renders
   const defaultAnonymousOptions: AnonymousCommentOptions = useMemo(() => ({
@@ -275,7 +265,6 @@ export function useComments({ pageId = 'default-page', userId, initialComments, 
     requireModeration: false,
     ...anonymousOptions
   }), [anonymousOptions]);
-
   const [state, setState] = useState<CommentSystemState>({
     comments: initialComments || [],
     loading: false,
@@ -283,16 +272,13 @@ export function useComments({ pageId = 'default-page', userId, initialComments, 
     submitting: false,
     sortBy: 'recent'
   });
-
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(false);
   const [lastDoc, setLastDoc] = useState<any>(undefined);
   const [isInitialized, setIsInitialized] = useState(false);
-  
   // Use refs to track previous values for optimization
   const previousPageId = useRef<string>(pageId);
   const previousUserId = useRef<string | undefined>(userId);
-
   // Optimized stats calculation with better memoization
   const stats = useMemo((): CommentStats => {
     const calculateReplies = (comments: Comment[]): number => {
@@ -300,13 +286,11 @@ export function useComments({ pageId = 'default-page', userId, initialComments, 
         return total + (comment.replies?.length || 0) + calculateReplies(comment.replies || []);
       }, 0);
     };
-
     return {
       totalComments: state.comments.length,
       totalReplies: calculateReplies(state.comments)
     };
   }, [state.comments.length, state.comments]);
-
   // Sort comments
   const sortedComments = useMemo(() => {
     const sortComments = (comments: Comment[]): Comment[] => {
@@ -322,23 +306,18 @@ export function useComments({ pageId = 'default-page', userId, initialComments, 
             return 0;
         }
       });
-
       // Sort replies recursively
       return sorted.map(comment => ({
         ...comment,
         replies: comment.replies ? sortComments(comment.replies) : []
       }));
     };
-
     return sortComments(state.comments);
   }, [state.comments, state.sortBy]);
-
   // Load comments from Firestore with caching support
   const loadComments = useCallback(async (refresh = false) => {
     if (!pageId) return;
-    
     const endTiming = commentPerformanceMonitor.startTiming('loadComments');
-    
     // Check cache first for initial load (not refresh)
     if (!refresh && !lastDoc) {
       const cachedComments = commentCache.get(pageId, state.sortBy);
@@ -354,9 +333,7 @@ export function useComments({ pageId = 'default-page', userId, initialComments, 
         return;
       }
     }
-    
     setState(prev => ({ ...prev, loading: true, error: null }));
-    
     try {
       const result = await getComments(
         pageId,
@@ -364,27 +341,21 @@ export function useComments({ pageId = 'default-page', userId, initialComments, 
         50,
         refresh ? undefined : lastDoc
       );
-      
       const newComments = refresh ? result.comments : [...state.comments, ...result.comments];
-      
       setState(prev => ({
         ...prev,
         comments: newComments,
         loading: false
       }));
-      
       // Cache the comments if this is a fresh load
       if (refresh || !lastDoc) {
         commentCache.set(pageId, state.sortBy, result.comments);
       }
-      
       setHasMore(result.hasMore);
       setLastDoc(result.lastDoc);
       setIsInitialized(true);
-      
     } catch (error) {
       console.error('Error loading comments:', error);
-      
       // Enhanced error handling with specific error types
       const errorMessage = error instanceof Error 
         ? error.message.includes('network') 
@@ -393,13 +364,11 @@ export function useComments({ pageId = 'default-page', userId, initialComments, 
           ? 'Permission denied. You may not have access to view these comments.'
           : 'Failed to load comments. Please try again.'
         : 'An unexpected error occurred while loading comments.';
-      
       setState(prev => ({
         ...prev,
         error: errorMessage,
         loading: false
       }));
-      
       // Fallback to mock data if Firestore fails and not initialized
       if (!isInitialized) {
         const mockComments = generateMockComments();
@@ -413,17 +382,14 @@ export function useComments({ pageId = 'default-page', userId, initialComments, 
         setIsInitialized(true);
       }
     }
-    
     endTiming();
   }, [pageId, state.sortBy, lastDoc, isInitialized, state.comments]);
-
   // Load comments on mount and when pageId or sortBy changes
   useEffect(() => {
     if (pageId && !isInitialized) {
       loadComments(true);
     }
   }, [pageId, loadComments, isInitialized]);
-
   // Reload when sort changes
   useEffect(() => {
     if (isInitialized && pageId) {
@@ -431,7 +397,6 @@ export function useComments({ pageId = 'default-page', userId, initialComments, 
       loadComments(true);
     }
   }, [state.sortBy]);
-
   // Submit new comment with cache invalidation and optimistic updates
   const submitComment = useCallback(async (content: string, parentId?: string, isAnonymous = false) => {
     if (!content.trim() || !pageId) return;
@@ -442,7 +407,6 @@ export function useComments({ pageId = 'default-page', userId, initialComments, 
       }));
       return;
     }
-
     // Content validation
     if (content.length > 2000) {
       setState(prev => ({
@@ -451,13 +415,10 @@ export function useComments({ pageId = 'default-page', userId, initialComments, 
       }));
       return;
     }
-
     const endTiming = commentPerformanceMonitor.startTiming('submitComment');
     setState(prev => ({ ...prev, submitting: true, error: null }));
-
     try {
       let newComment: Comment;
-      
       if (isAnonymous || !userId) {
         // Create anonymous or guest comment
         newComment = await createAnonymousComment(
@@ -473,7 +434,6 @@ export function useComments({ pageId = 'default-page', userId, initialComments, 
           name: 'Current User', // This should come from your auth system
           isVerified: false
         };
-        
         newComment = await createComment(
           content,
           pageId,
@@ -481,17 +441,13 @@ export function useComments({ pageId = 'default-page', userId, initialComments, 
           parentId
         );
       }
-
       // Invalidate cache for this page since we added a new comment
       commentCache.invalidate(pageId);
-      
       // Refresh comments to get the latest data
       await loadComments(true);
-      
       setState(prev => ({ ...prev, submitting: false }));
     } catch (error) {
       console.error('Error submitting comment:', error);
-      
       const errorMessage = error instanceof Error 
         ? error.message.includes('quota') 
           ? 'Comment submission limit reached. Please try again later.'
@@ -499,27 +455,22 @@ export function useComments({ pageId = 'default-page', userId, initialComments, 
           ? 'Comment contains inappropriate content. Please modify and try again.'
           : 'Failed to submit comment. Please try again.'
         : 'An unexpected error occurred while submitting your comment.';
-      
       setState(prev => ({
         ...prev,
         error: errorMessage,
         submitting: false
       }));
     }
-    
     endTiming();
   }, [pageId, userId, defaultAnonymousOptions.allowAnonymous, loadComments]);
-
   // Submit anonymous comment (convenience function)
   const submitAnonymousComment = useCallback(async (content: string, parentId?: string) => {
     return submitComment(content, parentId, true);
   }, [submitComment]);
-
   // Vote on comment
   const handleVoteComment = useCallback(async (commentId: string, voteType: 'upvote' | 'downvote') => {
     // Clear any existing errors first
     setState(prev => ({ ...prev, error: null }));
-    
     if (!userId) {
       setState(prev => ({
         ...prev,
@@ -527,7 +478,6 @@ export function useComments({ pageId = 'default-page', userId, initialComments, 
       }));
       return;
     }
-
     // Check Firebase initialization
     if (!pageId) {
       setState(prev => ({
@@ -536,19 +486,11 @@ export function useComments({ pageId = 'default-page', userId, initialComments, 
       }));
       return;
     }
-
     try {
-      console.log('Attempting to vote on comment:', { commentId, voteType, userId });
-      
       // Try to vote on the comment
       await voteComment(commentId, userId, voteType);
-      
-      console.log('Vote successful, refreshing comments...');
-      
       // Refresh comments to get updated vote counts
       await loadComments(true);
-      
-      console.log('Comments refreshed successfully');
     } catch (error: any) {
       console.error('Error voting on comment:', {
         error,
@@ -558,10 +500,8 @@ export function useComments({ pageId = 'default-page', userId, initialComments, 
         errorMessage: error?.message,
         errorCode: error?.code
       });
-      
       // Provide more specific error messages
       let errorMessage = 'Failed to vote on comment';
-      
       if (error?.message?.includes('Firestore not initialized')) {
         errorMessage = 'Database connection failed. Please refresh the page and try again.';
       } else if (error?.message?.includes('Comment not found')) {
@@ -580,14 +520,12 @@ export function useComments({ pageId = 'default-page', userId, initialComments, 
       } else if (error?.code === 'unauthenticated') {
         errorMessage = 'Authentication expired. Please sign in again.';
       }
-      
       setState(prev => ({
         ...prev,
         error: errorMessage
       }));
     }
   }, [userId, loadComments, pageId]);
-
   // Edit comment
   const editComment = useCallback(async (commentId: string, content: string) => {
     if (!userId) {
@@ -597,10 +535,8 @@ export function useComments({ pageId = 'default-page', userId, initialComments, 
       }));
       return;
     }
-
     try {
       await updateComment(commentId, content, userId);
-      
       // Refresh comments to get updated content
       await loadComments(true);
     } catch (error) {
@@ -611,7 +547,6 @@ export function useComments({ pageId = 'default-page', userId, initialComments, 
       }));
     }
   }, [userId, loadComments]);
-
   // Delete comment
   const handleDeleteComment = useCallback(async (commentId: string) => {
     if (!userId) {
@@ -621,10 +556,8 @@ export function useComments({ pageId = 'default-page', userId, initialComments, 
       }));
       return;
     }
-
     try {
       await deleteComment(commentId, userId);
-      
       // Refresh comments to remove deleted comment
       await loadComments(true);
     } catch (error) {
@@ -635,28 +568,22 @@ export function useComments({ pageId = 'default-page', userId, initialComments, 
       }));
     }
   }, [userId, loadComments]);
-
   // Set sort by
   const setSortBy = useCallback((sortType: CommentSortType) => {
     setState(prev => ({ ...prev, sortBy: sortType }));
     setLastDoc(undefined); // Reset pagination when changing sort
   }, []);
-
   // Load more comments
   const loadMore = useCallback(async () => {
     if (!hasMore || !pageId) return;
-    
     await loadComments(false);
   }, [hasMore, pageId, loadComments]);
-
   // Refresh comments
   const refresh = useCallback(async () => {
     if (!pageId) return;
-    
     setLastDoc(undefined);
     await loadComments(true);
   }, [pageId, loadComments]);
-
   return {
     state: {
       ...state,

@@ -1,5 +1,7 @@
 "use client"
 
+import { memo } from 'react';
+
 import * as React from "react"
 import useEmblaCarousel, {
   type UseEmblaCarouselType,

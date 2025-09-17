@@ -1,5 +1,4 @@
 "use client";
-
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { User, onAuthStateChanged, signInWithPopup, signInWithRedirect, getRedirectResult, signOut, deleteUser, signInWithEmailAndPassword, createUserWithEmailAndPassword, sendPasswordResetEmail, reauthenticateWithCredential, EmailAuthProvider, reauthenticateWithPopup } from 'firebase/auth';
 import { auth, googleProvider } from '@/lib/firebase';
@@ -11,6 +10,8 @@ import {
 import { createUserProfile, getUserProfile, updateLastSignInTime, deleteUserProfile } from '@/lib/user-profile-db';
 import { isEmailPasswordUser, isGoogleUser } from '@/lib/auth-utils';
 import { UserProfile } from '@/lib/types';
+// Memory leak prevention: Timers need cleanup
+// Add cleanup in useEffect return function
 
 interface AuthContextType {
   user: User | null;
@@ -23,14 +24,11 @@ interface AuthContextType {
   logout: () => Promise<void>;
   deleteAccount: (password?: string) => Promise<void>;
 }
-
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
-
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
-  
   // Add a timeout to prevent infinite loading
   useEffect(() => {
     const timeout = setTimeout(() => {
@@ -38,10 +36,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setLoading(false);
       }
     }, 10000); // 10 second timeout
-    
     return () => clearTimeout(timeout);
   }, [loading]);
-
   useEffect(() => {
     // Check if Firebase auth is initialized
     if (!auth) {
@@ -49,15 +45,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setLoading(false);
       return;
     }
-    
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       setUser(user);
-      
       if (user) {
         try {
           // Check if user profile exists
           let profile = await getUserProfile(user.uid);
-          
           if (!profile) {
             // Create new user profile
             profile = await createUserProfile(user);
@@ -65,7 +58,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             // Update last sign-in time
             await updateLastSignInTime(user.uid);
           }
-          
           setUserProfile(profile);
         } catch (error) {
           console.error('Error managing user profile:', error);
@@ -75,18 +67,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       } else {
         setUserProfile(null);
       }
-      
       setLoading(false);
     }, (error) => {
       console.error('Auth state change error:', error);
       setLoading(false);
     });
-    
     // Fallback in case auth state never changes
     const fallbackTimeout = setTimeout(() => {
       setLoading(false);
     }, 5000);
-
     // Handle redirect result
     getRedirectResult(auth)
       .then((result) => {
@@ -106,22 +95,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         // Ensure loading is set to false even if redirect result fails
         setTimeout(() => setLoading(false), 1000);
       });
-
     return () => {
       clearTimeout(fallbackTimeout);
       unsubscribe();
     };
   }, []);
-
   const signInWithGoogle = async (useRedirect = false) => {
     if (!auth || !googleProvider) {
       showAuthErrorToast("Firebase authentication is not properly initialized.");
       return;
     }
-    
     try {
       setLoading(true);
-      
       if (useRedirect) {
         // Use redirect method as fallback
         await signInWithRedirect(auth, googleProvider);
@@ -136,10 +121,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       console.error('Error signing in with Google:', error);
       console.error('Error code:', authError.code);
       console.error('Error message:', authError.message);
-      
       let errorMessage = "Failed to sign in with Google. Please try again.";
       let suggestRedirect = false;
-      
       // Enhanced error handling for production issues
       if (authError.code === 'auth/popup-blocked') {
         errorMessage = "Popup blocked. Trying redirect method...";
@@ -173,9 +156,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       } else if (authError.message && authError.message.includes('invalid')) {
         errorMessage = "OAuth configuration error. Please check Google Cloud Console settings.";
       }
-      
       showAuthErrorToast(errorMessage);
-      
       // Auto-retry with redirect if popup was blocked
       if (suggestRedirect && !useRedirect) {
         setTimeout(() => signInWithGoogle(true), 2000);
@@ -187,13 +168,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
     }
   };
-
   const signInWithEmail = async (email: string, password: string) => {
     if (!auth) {
       showAuthErrorToast("Firebase authentication is not properly initialized.");
       throw new Error("Firebase auth not initialized");
     }
-    
     try {
       setLoading(true);
       await signInWithEmailAndPassword(auth, email, password);
@@ -201,9 +180,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     } catch (error: unknown) {
       const authError = error as { code?: string; message?: string };
       console.error('Error signing in with email:', error);
-      
       let errorMessage = "Failed to sign in. Please check your credentials.";
-      
       if (authError.code === 'auth/user-not-found') {
         errorMessage = "No account found with this email address.";
       } else if (authError.code === 'auth/wrong-password') {
@@ -217,26 +194,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       } else if (authError.code === 'auth/network-request-failed') {
         errorMessage = "Network error. Please check your connection.";
       }
-      
       showAuthErrorToast(errorMessage);
-      
       throw error; // Re-throw for form handling
     } finally {
       setLoading(false);
     }
   };
-
   const signUpWithEmail = async (email: string, password: string) => {
     if (!auth) {
       showAuthErrorToast("Firebase authentication is not properly initialized.");
       throw new Error("Firebase auth not initialized");
     }
-    
     try {
       setLoading(true);
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       const newUser = userCredential.user;
-      
       // Create user profile immediately after account creation
       try {
         await createUserProfile(newUser);
@@ -244,14 +216,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         console.error('Error creating user profile during signup:', profileError);
         // Don't fail signup if profile creation fails, but log it
       }
-      
       showAuthSuccessToast("account created successfully");
     } catch (error: unknown) {
       const authError = error as { code?: string; message?: string };
       console.error('Error signing up with email:', error);
-      
       let errorMessage = "Failed to create account. Please try again.";
-      
       if (authError.code === 'auth/email-already-in-use') {
         errorMessage = "An account with this email address already exists.";
       } else if (authError.code === 'auth/invalid-email') {
@@ -265,30 +234,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       } else if (authError.code === 'auth/too-many-requests') {
         errorMessage = "Too many attempts. Please try again later.";
       }
-      
       showAuthErrorToast(errorMessage);
-      
       throw error; // Re-throw for form handling
     } finally {
       setLoading(false);
     }
   };
-
   const resetPassword = async (email: string) => {
     if (!auth) {
       showAuthErrorToast("Firebase authentication is not properly initialized.");
       throw new Error("Firebase auth not initialized");
     }
-    
     try {
       await sendPasswordResetEmail(auth, email);
       showSuccessToast("Password Reset Sent", "Check your email for password reset instructions.");
     } catch (error: unknown) {
       const authError = error as { code?: string; message?: string };
       console.error('Error sending password reset email:', error);
-      
       let errorMessage = "Failed to send password reset email.";
-      
       if (authError.code === 'auth/user-not-found') {
         errorMessage = "No account found with this email address.";
       } else if (authError.code === 'auth/invalid-email') {
@@ -296,19 +259,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       } else if (authError.code === 'auth/too-many-requests') {
         errorMessage = "Too many requests. Please try again later.";
       }
-      
       showAuthErrorToast(errorMessage);
-      
       throw error; // Re-throw for form handling
     }
   };
-
   const logout = async () => {
     if (!auth) {
       showAuthErrorToast("Firebase authentication is not properly initialized.");
       return;
     }
-    
     try {
       setLoading(true);
       await signOut(auth);
@@ -320,21 +279,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setLoading(false);
     }
   };
-
   const deleteAccount = async (password?: string) => {
     if (!user) {
       showAuthErrorToast("No user is currently signed in.");
       return;
     }
-
     try {
       setLoading(true);
-      
       // If user is an email/password user, require password for reauthentication
       if (isEmailPasswordUser(user) && !password) {
         throw new Error("Password is required to delete your account.");
       }
-      
       // Reauthenticate the user before deleting account
       try {
         if (isEmailPasswordUser(user)) {
@@ -354,11 +309,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           await reauthenticateWithPopup(user, googleProvider);
         } else {
           // For other providers, still attempt basic reauthentication
-          console.warn('Unsupported provider for reauthentication:', user.providerData[0]?.providerId);
         }
       } catch (reAuthError: unknown) {
         console.error('Reauthentication failed:', reAuthError);
-        
         // Provide better error messages for different auth errors
         const authError = reAuthError as { code?: string; message?: string };
         if (authError.code === 'auth/popup-blocked') {
@@ -368,10 +321,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         } else if (authError.code === 'auth/wrong-password') {
           throw new Error('Incorrect password. Please try again.');
         }
-        
         throw reAuthError; // Throw to be caught in outer catch block
       }
-      
       // First delete the user profile from Firestore
       try {
         await deleteUserProfile(user.uid);
@@ -379,17 +330,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         console.error('Error deleting user profile from Firestore:', firestoreError);
         // Continue with auth deletion even if Firestore deletion fails
       }
-      
       // Then delete the user from Firebase Auth
       await deleteUser(user);
-      
       showSuccessToast("Account Deleted", "Your account has been permanently deleted.");
     } catch (error: unknown) {
       const authError = error as { code?: string; message?: string };
       console.error('Error deleting account:', error);
-      
       let errorMessage = "Failed to delete account. Please try again.";
-      
       if (authError.code === 'auth/requires-recent-login') {
         errorMessage = "For security reasons, please provide your password again to delete your account.";
       } else if (authError.code === 'auth/user-not-found') {
@@ -399,14 +346,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       } else if (authError.message) {
         errorMessage = authError.message;
       }
-      
       showAuthErrorToast(errorMessage);
       throw error; // Re-throw to handle in the component
     } finally {
       setLoading(false);
     }
   };
-
   const value = {
     user,
     userProfile,
@@ -418,14 +363,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     logout,
     deleteAccount
   };
-
   return (
     <AuthContext.Provider value={value}>
       {children}
     </AuthContext.Provider>
   );
 }
-
 export function useAuth() {
   const context = useContext(AuthContext);
   if (context === undefined) {

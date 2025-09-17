@@ -1,5 +1,4 @@
 'use client';
-
 import { useState, useEffect, useRef, memo } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -7,6 +6,11 @@ import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Activity, Zap, Timer, Eye, Wifi } from 'lucide-react';
 import { cn } from '@/lib/utils';
+// Memory leak prevention: Event listeners need cleanup, Timers need cleanup
+// Add cleanup in useEffect return function
+
+// Performance optimization needed: Consider memoizing inline event handlers
+// Use useMemo for objects/arrays and useCallback for functions
 
 interface PerformanceMetrics {
   fcp?: number;
@@ -21,12 +25,10 @@ interface PerformanceMetrics {
   renderCount?: number;
   bundleSize?: number;
 }
-
 interface PerformanceThresholds {
   good: number;
   needs_improvement: number;
 }
-
 const METRIC_THRESHOLDS: Record<string, PerformanceThresholds> = {
   fcp: { good: 1800, needs_improvement: 3000 },
   lcp: { good: 2500, needs_improvement: 4000 },
@@ -36,16 +38,13 @@ const METRIC_THRESHOLDS: Record<string, PerformanceThresholds> = {
   domContentLoaded: { good: 1500, needs_improvement: 3000 },
   fullyLoaded: { good: 3000, needs_improvement: 5000 }
 };
-
 const getPerformanceRating = (value: number, metric: keyof typeof METRIC_THRESHOLDS): 'good' | 'needs-improvement' | 'poor' => {
   const thresholds = METRIC_THRESHOLDS[metric];
   if (!thresholds) return 'good';
-  
   if (value <= thresholds.good) return 'good';
   if (value <= thresholds.needs_improvement) return 'needs-improvement';
   return 'poor';
 };
-
 const getRatingColor = (rating: string): string => {
   switch (rating) {
     case 'good': return 'text-green-600 bg-green-50 border-green-200';
@@ -54,26 +53,22 @@ const getRatingColor = (rating: string): string => {
     default: return 'text-gray-600 bg-gray-50 border-gray-200';
   }
 };
-
 const formatMetricValue = (value: number, metric: string): string => {
   if (metric === 'cls') return value.toFixed(3);
   if (metric === 'memoryUsage') return `${Math.round(value / 1024 / 1024)}MB`;
   return `${Math.round(value)}ms`;
 };
-
 // Real-time performance monitor
 class RealTimePerformanceMonitor {
   private metrics: PerformanceMetrics = {};
   private observers: PerformanceObserver[] = [];
   private callbacks: Array<(metrics: PerformanceMetrics) => void> = [];
-
   constructor() {
     if (typeof window !== 'undefined') {
       this.initializeObservers();
       this.startMemoryMonitoring();
     }
   }
-
   private initializeObservers() {
     // Observe paint metrics (FCP, LCP)
     try {
@@ -87,9 +82,7 @@ class RealTimePerformanceMonitor {
       paintObserver.observe({ entryTypes: ['paint'] });
       this.observers.push(paintObserver);
     } catch (error) {
-      console.warn('Paint observer not supported:', error);
     }
-
     // Observe LCP
     try {
       const lcpObserver = new PerformanceObserver((list) => {
@@ -100,9 +93,7 @@ class RealTimePerformanceMonitor {
       lcpObserver.observe({ entryTypes: ['largest-contentful-paint'] });
       this.observers.push(lcpObserver);
     } catch (error) {
-      console.warn('LCP observer not supported:', error);
     }
-
     // Observe FID
     try {
       const fidObserver = new PerformanceObserver((list) => {
@@ -114,9 +105,7 @@ class RealTimePerformanceMonitor {
       fidObserver.observe({ entryTypes: ['first-input'] });
       this.observers.push(fidObserver);
     } catch (error) {
-      console.warn('FID observer not supported:', error);
     }
-
     // Observe CLS
     try {
       let clsValue = 0;
@@ -132,13 +121,10 @@ class RealTimePerformanceMonitor {
       clsObserver.observe({ entryTypes: ['layout-shift'] });
       this.observers.push(clsObserver);
     } catch (error) {
-      console.warn('CLS observer not supported:', error);
     }
-
     // Observe navigation timing
     this.observeNavigationTiming();
   }
-
   private observeNavigationTiming() {
     if ('performance' in window && 'getEntriesByType' in performance) {
       const updateNavigationMetrics = () => {
@@ -149,7 +135,6 @@ class RealTimePerformanceMonitor {
           this.updateMetric('fullyLoaded', entry.loadEventEnd - entry.fetchStart);
         }
       };
-
       if (document.readyState === 'complete') {
         updateNavigationMetrics();
       } else {
@@ -157,9 +142,7 @@ class RealTimePerformanceMonitor {
       }
     }
   }
-
   private memoryCheckInterval?: NodeJS.Timeout;
-  
   private startMemoryMonitoring() {
     const checkMemory = () => {
       try {
@@ -170,34 +153,27 @@ class RealTimePerformanceMonitor {
           }
         }
       } catch (error) {
-        console.warn('Memory monitoring not supported:', error);
       }
     };
-
     checkMemory();
     this.memoryCheckInterval = setInterval(checkMemory, 5000); // Check every 5 seconds
   }
-
   private updateMetric(key: Exclude<keyof PerformanceMetrics, 'connectionType'>, value: number) {
     // Type assertion is safe here since we've excluded non-numeric properties
     (this.metrics as Record<string, number>)[key] = value;
     this.notifyCallbacks();
   }
-
   private notifyCallbacks() {
     this.callbacks.forEach(callback => callback({ ...this.metrics }));
   }
-
   public subscribe(callback: (metrics: PerformanceMetrics) => void) {
     this.callbacks.push(callback);
     // Immediately call with current metrics
     callback({ ...this.metrics });
-    
     return () => {
       this.callbacks = this.callbacks.filter(cb => cb !== callback);
     };
   }
-
   public getConnectionType(): string {
     const nav = navigator as unknown as { connection?: { effectiveType?: string } };
     if (nav.connection) {
@@ -205,7 +181,6 @@ class RealTimePerformanceMonitor {
     }
     return 'unknown';
   }
-
   public destroy() {
     this.observers.forEach(observer => observer.disconnect());
     this.observers = [];
@@ -216,7 +191,6 @@ class RealTimePerformanceMonitor {
     }
   }
 }
-
 // Metric card component
 const MetricCard = memo(function MetricCard({ 
   title, 
@@ -245,11 +219,9 @@ const MetricCard = memo(function MetricCard({
       </Card>
     );
   }
-
   const rating = getPerformanceRating(value, metric as keyof typeof METRIC_THRESHOLDS);
   const colorClass = getRatingColor(rating);
   const formattedValue = formatMetricValue(value, metric);
-
   return (
     <Card className="p-4 space-y-3">
       <div className="flex items-center gap-2">
@@ -265,7 +237,6 @@ const MetricCard = memo(function MetricCard({
     </Card>
   );
 });
-
 // Performance score calculator
 const calculatePerformanceScore = (metrics: PerformanceMetrics): number => {
   const weights = {
@@ -276,10 +247,8 @@ const calculatePerformanceScore = (metrics: PerformanceMetrics): number => {
     ttfb: 0.1,
     domContentLoaded: 0.1
   };
-
   let totalScore = 0;
   let totalWeight = 0;
-
   Object.entries(weights).forEach(([metric, weight]) => {
     const value = metrics[metric as keyof PerformanceMetrics];
     if (typeof value === 'number') {
@@ -289,16 +258,13 @@ const calculatePerformanceScore = (metrics: PerformanceMetrics): number => {
       totalWeight += weight;
     }
   });
-
   return totalWeight > 0 ? Math.round(totalScore / totalWeight) : 0;
 };
-
 interface PerformanceDashboardProps {
   className?: string;
   compact?: boolean;
   autoRefresh?: boolean;
 }
-
 export const PerformanceDashboard = memo(function PerformanceDashboard({ 
   className, 
   compact = false, 
@@ -307,22 +273,18 @@ export const PerformanceDashboard = memo(function PerformanceDashboard({
   const [metrics, setMetrics] = useState<PerformanceMetrics>({});
   const [isVisible, setIsVisible] = useState(false);
   const monitorRef = useRef<RealTimePerformanceMonitor>();
-
   useEffect(() => {
     if (autoRefresh && typeof window !== 'undefined') {
       monitorRef.current = new RealTimePerformanceMonitor();
       const unsubscribe = monitorRef.current.subscribe(setMetrics);
-      
       return () => {
         unsubscribe();
         monitorRef.current?.destroy();
       };
     }
   }, [autoRefresh]);
-
   const performanceScore = calculatePerformanceScore(metrics);
   const scoreColor = performanceScore >= 80 ? 'text-green-600' : performanceScore >= 50 ? 'text-orange-600' : 'text-red-600';
-
   if (compact) {
     return (
       <Card className={cn("p-3", className)}>
@@ -341,7 +303,6 @@ export const PerformanceDashboard = memo(function PerformanceDashboard({
       </Card>
     );
   }
-
   return (
     <div className={cn("space-y-4", className)}>
       <Card className="p-6">
@@ -358,7 +319,6 @@ export const PerformanceDashboard = memo(function PerformanceDashboard({
             {isVisible ? 'Hide' : 'Show'} Details
           </Button>
         </div>
-        
         <div className="space-y-4">
           <div className="flex items-center gap-4">
             <div className="text-center">
@@ -374,7 +334,6 @@ export const PerformanceDashboard = memo(function PerformanceDashboard({
               </div>
             </div>
           </div>
-          
           {monitorRef.current && (
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
               <Wifi className="w-4 h-4" />
@@ -383,7 +342,6 @@ export const PerformanceDashboard = memo(function PerformanceDashboard({
           )}
         </div>
       </Card>
-
       {isVisible && (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           <MetricCard
@@ -433,26 +391,21 @@ export const PerformanceDashboard = memo(function PerformanceDashboard({
     </div>
   );
 });
-
 // Development-only performance overlay
 export const PerformanceOverlay = memo(function PerformanceOverlay() {
   const [isVisible, setIsVisible] = useState(false);
-
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.ctrlKey && e.shiftKey && e.key === 'P') {
         setIsVisible(!isVisible);
       }
     };
-
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [isVisible]);
-
   if (process.env.NODE_ENV !== 'development' || !isVisible) {
     return null;
   }
-
   return (
     <div className="fixed bottom-4 right-4 z-[9999] max-w-sm">
       <PerformanceDashboard compact />
@@ -462,3 +415,6 @@ export const PerformanceOverlay = memo(function PerformanceOverlay() {
     </div>
   );
 });
+
+// Default export for lazy loading
+export default PerformanceDashboard;

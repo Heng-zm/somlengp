@@ -3,6 +3,9 @@
  * Provides intersection observer based animations for enhanced user experience
  */
 import { useEffect, useRef, useCallback, useMemo } from 'react';
+// Memory leak prevention: Event listeners need cleanup, Timers need cleanup, Observers need cleanup
+// Add cleanup in useEffect return function
+
 
 interface ScrollAnimationOptions {
   threshold?: number;

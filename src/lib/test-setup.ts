@@ -1,4 +1,7 @@
 import '@testing-library/jest-dom';
+// Memory leak prevention: Event listeners need cleanup, Timers need cleanup, Observers need cleanup
+// Add cleanup in useEffect return function
+
 
 // Mock Next.js router
 jest.mock('next/router', () => ({

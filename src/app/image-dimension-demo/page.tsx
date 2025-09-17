@@ -1,19 +1,19 @@
 'use client';
-
+import { memo } from 'react';
 import React, { useState, useRef } from 'react';
 import ImageDimensionPanel from '@/components/ImageDimensionPanel';
 import CompactImageDimensionPanel from '@/components/CompactImageDimensionPanel';
+// Performance optimization needed: Consider memoizing inline event handlers
+// Use useMemo for objects/arrays and useCallback for functions
 
-export default function ImageDimensionDemo() {
+const ImageDimensionDemoComponent = function ImageDimensionDemo() {
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
-
   const handleImageSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
       setSelectedImage(file);
-      
       // Create preview
       const reader = new FileReader();
       reader.onload = (e) => {
@@ -22,11 +22,8 @@ export default function ImageDimensionDemo() {
       reader.readAsDataURL(file);
     }
   };
-
   const handleDimensionsChange = (dimensions: any) => {
-    console.log('Dimensions changed:', dimensions);
   };
-
   return (
     <div className="min-h-screen bg-gray-900 text-white">
       {/* Header */}
@@ -38,18 +35,14 @@ export default function ImageDimensionDemo() {
           </p>
         </div>
       </div>
-
       {/* Main Content */}
       <div className="max-w-6xl mx-auto px-6 py-8">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          
           {/* Image Upload & Preview */}
           <div className="lg:col-span-2 space-y-6">
-            
             {/* Upload Section */}
             <div className="bg-gray-800 rounded-lg p-6 border border-gray-700">
               <h2 className="text-lg font-semibold mb-4">Upload Image</h2>
-              
               <div className="space-y-4">
                 <div 
                   className="border-2 border-dashed border-gray-600 rounded-lg p-8 text-center hover:border-gray-500 transition-colors cursor-pointer"
@@ -78,7 +71,6 @@ export default function ImageDimensionDemo() {
                     </div>
                   )}
                 </div>
-                
                 <input
                   ref={fileInputRef}
                   type="file"
@@ -86,7 +78,6 @@ export default function ImageDimensionDemo() {
                   onChange={handleImageSelect}
                   className="hidden"
                 />
-                
                 <button
                   onClick={() => fileInputRef.current?.click()}
                   className="w-full px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
@@ -95,7 +86,6 @@ export default function ImageDimensionDemo() {
                 </button>
               </div>
             </div>
-
             {/* Image Info */}
             {selectedImage && (
               <div className="bg-gray-800 rounded-lg p-6 border border-gray-700">
@@ -120,9 +110,7 @@ export default function ImageDimensionDemo() {
                 </div>
               </div>
             )}
-            
           </div>
-
           {/* Dimension Panel */}
           <div className="space-y-6">
             <div className="bg-gray-800 rounded-lg p-6 border border-gray-700">
@@ -133,7 +121,6 @@ export default function ImageDimensionDemo() {
                 className="bg-gray-700"
               />
             </div>
-
             {/* Additional Controls */}
             <div className="bg-gray-800 rounded-lg p-6 border border-gray-700">
               <h3 className="text-lg font-semibold mb-4">Export Options</h3>
@@ -149,7 +136,6 @@ export default function ImageDimensionDemo() {
                     <option value="bmp">BMP</option>
                   </select>
                 </div>
-                
                 <div>
                   <label className="block text-sm font-medium text-gray-300 mb-2">
                     Quality ({85}%)
@@ -162,7 +148,6 @@ export default function ImageDimensionDemo() {
                     className="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer"
                   />
                 </div>
-                
                 <button 
                   className="w-full px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                   disabled={!selectedImage}
@@ -173,7 +158,6 @@ export default function ImageDimensionDemo() {
             </div>
           </div>
         </div>
-
         {/* Compact Version Showcase */}
         <div className="mt-12 bg-gray-800 rounded-lg p-6 border border-gray-700">
           <h2 className="text-lg font-semibold mb-4">Compact Version (Photoshop Style)</h2>
@@ -201,7 +185,6 @@ export default function ImageDimensionDemo() {
             </p>
           </div>
         </div>
-
         {/* Features List */}
         <div className="mt-12 bg-gray-800 rounded-lg p-6 border border-gray-700">
           <h2 className="text-lg font-semibold mb-4">Features</h2>
@@ -254,3 +237,6 @@ export default function ImageDimensionDemo() {
     </div>
   );
 }
+
+
+export default memo(ImageDimensionDemoComponent);

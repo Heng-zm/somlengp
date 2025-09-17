@@ -19,6 +19,12 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { 
+// Memory leak prevention: Timers need cleanup
+// Add cleanup in useEffect return function
+
+// Performance optimization needed: Consider memoizing inline event handlers, dynamic classNames
+// Use useMemo for objects/arrays and useCallback for functions
+
   Edit, 
   Camera, 
   Save, 
@@ -93,20 +99,19 @@ export function EnhancedProfileEditor({ className }: ProfileEditorProps) {
   const debouncedDisplayName = useDebounce(formState.displayName, 300);
   const debouncedPhotoURL = useDebounce(formState.photoURL, 500);
 
-  if (!user) return null;
-
   // Memoized values for performance
   const hasChanges = useMemo(() => {
+    if (!user) return false;
     return (
       formState.displayName !== (user.displayName || '') ||
       formState.photoURL !== (user.photoURL || '') ||
       uiState.previewURL !== null
     );
-  }, [formState.displayName, formState.photoURL, uiState.previewURL, user.displayName, user.photoURL]);
+  }, [formState.displayName, formState.photoURL, uiState.previewURL, user]);
 
   const userInitial = useMemo(() => {
-    return (user.displayName || user.email || 'U').charAt(0).toUpperCase();
-  }, [user.displayName, user.email]);
+    return (user?.displayName || user?.email || 'U').charAt(0).toUpperCase();
+  }, [user]);
 
   // Validation function with memoization
   const validateForm = useCallback(() => {
@@ -207,6 +212,8 @@ export function EnhancedProfileEditor({ className }: ProfileEditorProps) {
 
     try {
       const updates: Record<string, any> = {};
+      
+      if (!user) return; // Safety check
       
       if (formState.displayName !== (user.displayName || '')) {
         updates.displayName = formState.displayName.trim();
@@ -313,6 +320,8 @@ export function EnhancedProfileEditor({ className }: ProfileEditorProps) {
       abortControllerRef.current.abort();
     }
     
+    if (!user) return; // Safety check
+    
     setFormState({
       isEditing: false,
       isLoading: false,
@@ -326,7 +335,7 @@ export function EnhancedProfileEditor({ className }: ProfileEditorProps) {
       showUnsavedWarning: false,
       lastSaveAttempt: null
     });
-  }, [user.displayName, user.photoURL]);
+  }, [user]);
 
   const confirmCancel = useCallback(() => {
     cancelEdit();
@@ -340,12 +349,14 @@ export function EnhancedProfileEditor({ className }: ProfileEditorProps) {
       }
       
       // Cleanup preview URL
-      if (uiState.previewURL && uiState.previewURL.startsWith('data:')) {
+      if (uiState.previewURL && uiState.previewURL.startsWith('data:'), []) {
         // For data URLs, no cleanup needed, but we can clear the state
         setUiState(prev => ({ ...prev, previewURL: null }));
       }
     };
   }, [uiState.previewURL]);
+
+  if (!user) return null;
 
   return (
     <>

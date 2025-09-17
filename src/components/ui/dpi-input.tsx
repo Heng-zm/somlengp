@@ -10,6 +10,9 @@ import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Monitor, Smartphone, Printer, Settings } from 'lucide-react';
 import { DPIPreset, DPI_PRESETS, getDPIPresetsByCategory } from '@/lib/physical-to-pixel-converter';
+// Performance optimization needed: Consider memoizing inline event handlers, dynamic classNames
+// Use useMemo for objects/arrays and useCallback for functions
+
 
 interface DPIInputProps {
   value: number;

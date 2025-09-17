@@ -30,8 +30,11 @@ import {
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { Shield, Lock, CheckCircle, Mail, Eye, EyeOff, LogIn, CheckCircle2 } from 'lucide-react';
+import { Shield, Lock, CheckCircle, Mail, Eye, EyeOff, LogIn, CheckCircle2 } from 'lucide-react' // TODO: Consider importing icons individually for better tree shaking;
 import { cn } from '@/lib/utils';
+// Performance optimization needed: Consider memoizing inline event handlers
+// Use useMemo for objects/arrays and useCallback for functions
+
 
 // Form validation schema
 const loginSchema = z.object({

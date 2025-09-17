@@ -5,6 +5,9 @@ import React, { useState, useCallback, useMemo, memo } from 'react';
 import { useComments } from '@/hooks/use-comments';
 import { Comment } from '@/types/comment-types';
 import { commentUtils } from '@/lib/comment-cache';
+// Performance optimization needed: Consider memoizing inline styles, inline event handlers, dynamic classNames
+// Use useMemo for objects/arrays and useCallback for functions
+
 
 // Note: CommentEditor is available in ./comment-editor but not used in this component
 

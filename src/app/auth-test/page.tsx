@@ -1,13 +1,13 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, memo } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { useAuth } from '@/contexts/auth-context';
 import { auth, googleProvider } from '@/lib/firebase';
 import { signInWithPopup, signInWithRedirect } from 'firebase/auth';
 
-export default function AuthTestPage() {
+const AuthTestPageComponent = function AuthTestPage() {
   const { user, loading, signInWithGoogle, logout } = useAuth();
   const [testResults, setTestResults] = useState<string[]>([]);
   const [isTestingDirect, setIsTestingDirect] = useState(false);
@@ -183,3 +183,6 @@ export default function AuthTestPage() {
     </div>
   );
 }
+
+
+export default memo(AuthTestPageComponent);

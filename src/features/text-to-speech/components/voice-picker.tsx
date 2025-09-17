@@ -10,6 +10,9 @@ import { useState, useRef, useEffect, memo, useCallback, useMemo } from "react";
 import { textToSpeech } from "@/ai/flows/text-to-speech-flow";
 import { showVoicePreviewErrorToast } from '@/lib/toast-utils';
 import { Button } from "@/components/ui/button";
+// Performance optimization needed: Consider memoizing inline event handlers
+// Use useMemo for objects/arrays and useCallback for functions
+
 
 const VOICE_PREVIEW_CACHE_KEY = 'voicePreviewCache';
 

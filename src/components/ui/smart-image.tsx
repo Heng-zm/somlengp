@@ -1,5 +1,4 @@
 'use client';
-
 import { 
   useState, 
   useRef, 
@@ -13,6 +12,11 @@ import {
 import Image from 'next/image';
 import { cn } from '@/lib/utils';
 import { getPerformanceMonitor } from '@/lib/performance-monitor';
+// Memory leak prevention: Observers need cleanup
+// Add cleanup in useEffect return function
+
+// Performance optimization needed: Consider memoizing inline styles
+// Use useMemo for objects/arrays and useCallback for functions
 
 interface ResponsiveBreakpoint {
   breakpoint: number; // px
@@ -20,7 +24,6 @@ interface ResponsiveBreakpoint {
   height?: number;
   quality?: number;
 }
-
 interface ImageOptimizationOptions {
   quality?: number;
   format?: 'auto' | 'webp' | 'avif' | 'jpeg' | 'png';
@@ -36,7 +39,6 @@ interface ImageOptimizationOptions {
   onOptimizationComplete?: (metrics: ImageLoadMetrics) => void;
   onError?: (error: Error) => void;
 }
-
 interface ImageLoadMetrics {
   loadTime: number;
   fileSize?: number;
@@ -48,7 +50,6 @@ interface ImageLoadMetrics {
   retryCount: number;
   timestamp: number;
 }
-
 interface SmartImageProps extends Omit<ImgHTMLAttributes<HTMLImageElement>, 'src' | 'onLoad' | 'onError'> {
   src: string;
   alt: string;
@@ -60,28 +61,22 @@ interface SmartImageProps extends Omit<ImgHTMLAttributes<HTMLImageElement>, 'src
   style?: CSSProperties;
   onLoadComplete?: (metrics: ImageLoadMetrics) => void;
 }
-
 // Utility to detect optimal image format support
 function detectOptimalFormat(): 'avif' | 'webp' | 'jpeg' {
   if (typeof window === 'undefined') return 'jpeg';
-  
   // Check AVIF support
   const canvas = document.createElement('canvas');
   canvas.width = 1;
   canvas.height = 1;
-  
   if (canvas.toDataURL('image/avif').indexOf('data:image/avif') === 0) {
     return 'avif';
   }
-  
   // Check WebP support
   if (canvas.toDataURL('image/webp').indexOf('data:image/webp') === 0) {
     return 'webp';
   }
-  
   return 'jpeg';
 }
-
 // Generate optimized image URL
 function generateOptimizedUrl(
   src: string, 
@@ -90,43 +85,35 @@ function generateOptimizedUrl(
 ): string {
   const url = new URL(src, window.location.origin);
   const params = new URLSearchParams();
-  
   // Determine optimal format
   let format = options.format || 'auto';
   if (format === 'auto') {
     format = detectOptimalFormat();
   }
-  
   // Set optimization parameters
   params.set('format', format);
   params.set('quality', (options.quality || breakpoint?.quality || 80).toString());
-  
   if (breakpoint) {
     params.set('w', breakpoint.width.toString());
     if (breakpoint.height) {
       params.set('h', breakpoint.height.toString());
     }
   }
-  
   // Add optimization flags
   params.set('auto', 'compress,format');
-  
   // Return optimized URL (this would integrate with your image optimization service)
   return `${url.pathname}?${params.toString()}`;
 }
-
 // Generate responsive image sources
 function generateResponsiveSources(
   src: string,
   options: ImageOptimizationOptions
 ): string {
   if (!options.responsive) return '';
-  
   return options.responsive
     .map(bp => `${generateOptimizedUrl(src, options, bp)} ${bp.breakpoint}w`)
     .join(', ');
 }
-
 // Create placeholder shimmer effect
 function createShimmerPlaceholder(width: number, height: number): string {
   const shimmerSvg = `
@@ -142,10 +129,8 @@ function createShimmerPlaceholder(width: number, height: number): string {
       <rect width="100%" height="100%" fill="url(#shimmer)" />
     </svg>
   `;
-  
   return `data:image/svg+xml;base64,${btoa(shimmerSvg)}`;
 }
-
 // Intersection Observer hook for lazy loading
 function useIntersectionObserver(
   ref: React.RefObject<HTMLElement>,
@@ -153,26 +138,20 @@ function useIntersectionObserver(
 ) {
   const [isIntersecting, setIsIntersecting] = useState(false);
   const [hasIntersected, setHasIntersected] = useState(false);
-  
   useEffect(() => {
     const element = ref.current;
     if (!element) return;
-    
     const observer = new IntersectionObserver(([entry]) => {
       setIsIntersecting(entry.isIntersecting);
       if (entry.isIntersecting && !hasIntersected) {
         setHasIntersected(true);
       }
     }, options);
-    
     observer.observe(element);
-    
     return () => observer.disconnect();
   }, [ref, options, hasIntersected]);
-  
   return { isIntersecting, hasIntersected };
 }
-
 const SmartImage = memo(function SmartImage({
   src,
   alt,
@@ -190,12 +169,10 @@ const SmartImage = memo(function SmartImage({
   const [loadMetrics, setLoadMetrics] = useState<ImageLoadMetrics | null>(null);
   const [retryCount, setRetryCount] = useState(0);
   const [cachedUrl, setCachedUrl] = useState<string | null>(null);
-  
   const containerRef = useRef<HTMLDivElement>(null);
   const imageRef = useRef<HTMLImageElement>(null);
   const loadStartTime = useRef<number>(0);
   const performanceMonitor = getPerformanceMonitor();
-  
   // Intersection observer for lazy loading
   const { hasIntersected } = useIntersectionObserver(
     containerRef,
@@ -204,7 +181,6 @@ const SmartImage = memo(function SmartImage({
       rootMargin: '50px' // Start loading 50px before entering viewport
     }
   );
-  
   const {
     quality = 80,
     format = 'auto',
@@ -218,25 +194,20 @@ const SmartImage = memo(function SmartImage({
     onOptimizationComplete,
     onError
   } = optimization;
-  
   // Generate optimized image URL
   const optimizedSrc = useCallback(() => {
     if (cachedUrl) return cachedUrl;
-    
     const optimizedUrl = generateOptimizedUrl(src, optimization);
     setCachedUrl(optimizedUrl);
     return optimizedUrl;
   }, [src, optimization, cachedUrl]);
-  
   // Handle image load success
   const handleLoad = useCallback((event: React.SyntheticEvent<HTMLImageElement>) => {
     const loadEndTime = performance.now();
     const loadTime = loadEndTime - loadStartTime.current;
-    
     const img = event.currentTarget;
     const naturalWidth = img.naturalWidth;
     const naturalHeight = img.naturalHeight;
-    
     // Calculate metrics
     const metrics: ImageLoadMetrics = {
       loadTime,
@@ -247,65 +218,47 @@ const SmartImage = memo(function SmartImage({
       retryCount,
       timestamp: Date.now()
     };
-    
     setLoadMetrics(metrics);
     setIsLoading(false);
-    
     // Report to performance monitor
     if (performanceMonitor) {
       (performanceMonitor as any).trackCustomMetric?.('image_load_time', loadTime);
       (performanceMonitor as any).trackCustomMetric?.('image_optimization_success', 1);
     }
-    
     // Call callbacks
     onOptimizationComplete?.(metrics);
     onLoadComplete?.(metrics);
-    
     // Log performance data
-    console.debug('Image optimization complete:', {
-      src,
-      metrics,
-      optimized: true
-    });
   }, [src, format, retryCount, performanceMonitor, onOptimizationComplete, onLoadComplete]);
-  
   // Handle image load error
   const handleError = useCallback((event: React.SyntheticEvent<HTMLImageElement>) => {
     const error = new Error(`Failed to load image: ${src}`);
-    
     if (retryCount < retryAttempts) {
-      console.warn(`Image load failed, retrying... (${retryCount + 1}/${retryAttempts})`);
+      console.warn(`Retrying image load for ${src}, attempt ${retryCount + 1}`);
       setRetryCount(prev => prev + 1);
       setCachedUrl(null); // Clear cache to force retry
       return;
     }
-    
     setHasError(true);
     setIsLoading(false);
-    
     // Report to performance monitor
     if (performanceMonitor) {
       (performanceMonitor as any).trackCustomMetric?.('image_optimization_error', 1);
     }
-    
     // Call error callback
     onError?.(error);
-    
     console.error('Image optimization failed:', { src, error, retryCount });
   }, [src, retryCount, retryAttempts, performanceMonitor, onError]);
-  
   // Start load timer when component mounts or retry occurs
   useEffect(() => {
     if ((!lazy || hasIntersected) && !hasError) {
       loadStartTime.current = performance.now();
     }
   }, [lazy, hasIntersected, hasError, retryCount]);
-  
   // Generate responsive sizes string
   const responsiveSizes = optimization.responsive
     ? generateResponsiveSources(src, optimization)
     : optimization.sizes || '100vw';
-  
   // Generate placeholder
   const placeholderSrc = useMemo(() => {
     if (placeholder === 'shimmer' && width && height) {
@@ -316,7 +269,6 @@ const SmartImage = memo(function SmartImage({
     }
     return undefined;
   }, [placeholder, width, height]);
-  
   // Don't render anything if lazy loading and not intersected
   if (lazy && !hasIntersected) {
     return (
@@ -336,7 +288,6 @@ const SmartImage = memo(function SmartImage({
       </div>
     );
   }
-  
   // Show error fallback
   if (hasError) {
     if (fallback) {
@@ -355,7 +306,6 @@ const SmartImage = memo(function SmartImage({
         </div>
       );
     }
-    
     return (
       <div
         ref={containerRef}
@@ -374,7 +324,6 @@ const SmartImage = memo(function SmartImage({
       </div>
     );
   }
-  
   return (
     <div
       ref={containerRef}
@@ -394,7 +343,6 @@ const SmartImage = memo(function SmartImage({
           aria-hidden="true"
         />
       )}
-      
       {/* Main optimized image */}
       <Image
         ref={imageRef}
@@ -414,14 +362,12 @@ const SmartImage = memo(function SmartImage({
         onError={handleError}
         {...props}
       />
-      
       {/* Loading indicator */}
       {isLoading && (
         <div className="absolute inset-0 flex items-center justify-center">
           <div className="w-6 h-6 border-2 border-gray-300 border-t-blue-500 rounded-full animate-spin" />
         </div>
       )}
-      
       {/* Development info overlay */}
       {process.env.NODE_ENV === 'development' && loadMetrics && (
         <div className="absolute bottom-0 left-0 bg-black/50 text-white text-xs p-1">
@@ -431,5 +377,4 @@ const SmartImage = memo(function SmartImage({
     </div>
   );
 });
-
 export { SmartImage, type SmartImageProps, type ImageOptimizationOptions, type ImageLoadMetrics };

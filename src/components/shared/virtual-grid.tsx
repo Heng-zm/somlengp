@@ -1,6 +1,12 @@
 'use client';
 
 import { useMemo, useRef, useEffect, useState, useCallback } from 'react';
+// Memory leak prevention: Event listeners need cleanup
+// Add cleanup in useEffect return function
+
+// Performance optimization needed: Consider memoizing inline styles, dynamic classNames
+// Use useMemo for objects/arrays and useCallback for functions
+
 
 interface VirtualGridProps<T> {
   items: T[];

@@ -1,11 +1,15 @@
 'use client';
-
 import React, { Component, ReactNode, ErrorInfo, useState, useEffect, useCallback } from 'react';
 import { ErrorHandler, AppError, ErrorType, ErrorSeverity } from '@/lib/error-utils';
 import { useAccessibility } from '@/lib/accessibility-manager';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { AlertTriangle, RefreshCw, Home, ChevronDown, ChevronUp } from 'lucide-react';
+// Memory leak prevention: Timers need cleanup
+// Add cleanup in useEffect return function
+
+// Performance optimization needed: Consider memoizing inline event handlers, dynamic classNames
+// Use useMemo for objects/arrays and useCallback for functions
 
 // Types
 interface ErrorBoundaryState {
@@ -16,7 +20,6 @@ interface ErrorBoundaryState {
   isRecovering: boolean;
   showDetails: boolean;
 }
-
 interface ErrorBoundaryProps {
   children: ReactNode;
   fallback?: ReactNode;
@@ -27,7 +30,6 @@ interface ErrorBoundaryProps {
   level: 'page' | 'feature' | 'component';
   context?: Record<string, unknown>;
 }
-
 interface ErrorRecoveryOptions {
   canRetry: boolean;
   canNavigateHome: boolean;
@@ -38,7 +40,6 @@ interface ErrorRecoveryOptions {
     primary?: boolean;
   }>;
 }
-
 const ERROR_MESSAGES = {
   [ErrorType.NETWORK]: {
     title: 'Connection Problem',
@@ -81,12 +82,10 @@ const ERROR_MESSAGES = {
     instructions: 'Please try again or refresh the page.'
   }
 };
-
 // Main Error Boundary Class
 export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
   private errorHandler = ErrorHandler.getInstance();
   private retryTimeout: NodeJS.Timeout | null = null;
-
   constructor(props: ErrorBoundaryProps) {
     super(props);
     this.state = {
@@ -98,14 +97,12 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
       showDetails: false
     };
   }
-
   static getDerivedStateFromError(error: Error): Partial<ErrorBoundaryState> {
     return {
       hasError: true,
       showDetails: false
     };
   }
-
   componentDidCatch(error: Error, errorInfo: ErrorInfo) {
     const appError = this.errorHandler.handle(error, {
       ...this.props.context,
@@ -113,17 +110,13 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
       level: this.props.level,
       retryCount: this.state.retryCount
     });
-
     const errorId = `error_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-
     this.setState({
       error: appError,
       errorId: errorId
     });
-
     // Call custom error handler
     this.props.onError?.(appError, errorInfo);
-
     // Log to console in development
     if (process.env.NODE_ENV === 'development') {
       console.group(`🚨 Error Boundary (${this.props.level})`);
@@ -133,39 +126,30 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
       console.groupEnd();
     }
   }
-
   private getRecoveryOptions(): ErrorRecoveryOptions {
     const { error, retryCount } = this.state;
     const { maxRetries = 3, level } = this.props;
-
     if (!error) return { canRetry: false, canNavigateHome: false, canReportError: false };
-
     const canRetry = error.recoverable && retryCount < maxRetries;
     const canNavigateHome = level === 'page' || level === 'feature';
     const canReportError = error.severity !== ErrorSeverity.LOW;
-
     return {
       canRetry,
       canNavigateHome,
       canReportError
     };
   }
-
   private handleRetry = async () => {
     const { error, retryCount } = this.state;
     const { maxRetries = 3 } = this.props;
-
     if (!error || retryCount >= maxRetries) return;
-
     this.setState({ isRecovering: true, retryCount: retryCount + 1 });
-
     try {
       // Add exponential backoff
       const delay = Math.min(1000 * Math.pow(2, retryCount), 5000);
       await new Promise(resolve => {
         this.retryTimeout = setTimeout(resolve, delay);
       });
-
       // Reset error state to retry
       this.setState({
         hasError: false,
@@ -173,58 +157,44 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
         errorId: null,
         isRecovering: false
       });
-
       // Log recovery attempt
-      console.info(`Error boundary retry attempt ${retryCount + 1}/${maxRetries}`);
-
     } catch (retryError) {
       console.error('Recovery failed:', retryError);
       this.setState({ isRecovering: false });
     }
   };
-
   private handleNavigateHome = () => {
     if (typeof window !== 'undefined') {
       window.location.href = '/';
     }
   };
-
   private handleReportError = () => {
     const { error, errorId } = this.state;
     if (!error || !errorId) return;
-
     // This would integrate with your error reporting service
-    console.info('Error reported:', { errorId, error: error.toJSON() });
-    
+    console.log('Reporting error:', { error, errorId });
     // Could integrate with services like Sentry, LogRocket, etc.
     // Example: Sentry.captureException(error, { extra: { errorId } });
   };
-
   private toggleDetails = () => {
     this.setState(prev => ({ showDetails: !prev.showDetails }));
   };
-
   componentWillUnmount() {
     if (this.retryTimeout) {
       clearTimeout(this.retryTimeout);
     }
   }
-
   render() {
     const { hasError, error, errorId, isRecovering, showDetails } = this.state;
     const { children, fallback, level, enableRecovery = true } = this.props;
-
     if (!hasError) {
       return children;
     }
-
     if (fallback) {
       return fallback;
     }
-
     const errorMessage = error ? ERROR_MESSAGES[error.type] || ERROR_MESSAGES[ErrorType.UNKNOWN] : ERROR_MESSAGES[ErrorType.UNKNOWN];
     const recoveryOptions = this.getRecoveryOptions();
-
     return (
       <ErrorBoundaryUI
         error={error}
@@ -243,7 +213,6 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
     );
   }
 }
-
 // UI Component with Accessibility Features
 interface ErrorBoundaryUIProps {
   error: AppError | null;
@@ -259,7 +228,6 @@ interface ErrorBoundaryUIProps {
   onReportError: () => void;
   onToggleDetails: () => void;
 }
-
 function ErrorBoundaryUI({
   error,
   errorId,
@@ -276,7 +244,6 @@ function ErrorBoundaryUI({
 }: ErrorBoundaryUIProps) {
   const { announce } = useAccessibility();
   const [hasAnnounced, setHasAnnounced] = useState(false);
-
   // Announce error to screen readers
   useEffect(() => {
     if (!hasAnnounced && error) {
@@ -284,7 +251,6 @@ function ErrorBoundaryUI({
       setHasAnnounced(true);
     }
   }, [error, errorMessage, announce, hasAnnounced]);
-
   // Focus management
   useEffect(() => {
     const errorContainer = document.getElementById(`error-boundary-${errorId}`);
@@ -293,7 +259,6 @@ function ErrorBoundaryUI({
       errorContainer.focus();
     }
   }, [errorId]);
-
   const handleKeyDown = useCallback((event: React.KeyboardEvent) => {
     switch (event.key) {
       case 'r':
@@ -318,7 +283,6 @@ function ErrorBoundaryUI({
         break;
     }
   }, [recoveryOptions, isRecovering, onRetry, onNavigateHome, announce]);
-
   return (
     <div
       id={`error-boundary-${errorId}`}
@@ -346,7 +310,6 @@ function ErrorBoundaryUI({
             </span>
           </AlertDescription>
         </Alert>
-
         {enableRecovery && (
           <div className="mt-4 space-y-3">
             <div 
@@ -370,7 +333,6 @@ function ErrorBoundaryUI({
                   {isRecovering ? 'Retrying...' : 'Try Again'}
                 </Button>
               )}
-
               {recoveryOptions.canNavigateHome && (
                 <Button
                   onClick={onNavigateHome}
@@ -383,7 +345,6 @@ function ErrorBoundaryUI({
                   Go Home
                 </Button>
               )}
-
               {recoveryOptions.canReportError && (
                 <Button
                   onClick={onReportError}
@@ -395,7 +356,6 @@ function ErrorBoundaryUI({
                 </Button>
               )}
             </div>
-
             {/* Keyboard shortcuts help */}
             <div className="text-sm text-gray-600 dark:text-gray-400" aria-label="Keyboard shortcuts">
               <p>
@@ -404,7 +364,6 @@ function ErrorBoundaryUI({
                 {recoveryOptions.canNavigateHome && ' Ctrl+H for home'}
               </p>
             </div>
-
             {/* Hidden help text for screen readers */}
             {recoveryOptions.canRetry && (
               <div id={`retry-help-${errorId}`} className="sr-only">
@@ -423,7 +382,6 @@ function ErrorBoundaryUI({
             )}
           </div>
         )}
-
         {/* Error Details Section */}
         {error && process.env.NODE_ENV === 'development' && (
           <div className="mt-4">
@@ -442,7 +400,6 @@ function ErrorBoundaryUI({
               )}
               {showDetails ? 'Hide' : 'Show'} Technical Details
             </Button>
-
             {showDetails && (
               <div 
                 id={`error-details-${errorId}`}
@@ -491,42 +448,33 @@ function ErrorBoundaryUI({
     </div>
   );
 }
-
 // Specific Error Boundary Types
 export function PageErrorBoundary(props: Omit<ErrorBoundaryProps, 'level'>) {
   return <ErrorBoundary {...props} level="page" />;
 }
-
 export function FeatureErrorBoundary(props: Omit<ErrorBoundaryProps, 'level'>) {
   return <ErrorBoundary {...props} level="feature" />;
 }
-
 export function ComponentErrorBoundary(props: Omit<ErrorBoundaryProps, 'level'>) {
   return <ErrorBoundary {...props} level="component" enableRecovery={false} />;
 }
-
 // Async Error Boundary Hook for handling async errors in components
 export function useAsyncErrorBoundary() {
   const [error, setError] = useState<AppError | null>(null);
   const { announce } = useAccessibility();
-
   const captureAsyncError = useCallback((error: unknown, context: Record<string, unknown> = {}) => {
     const appError = ErrorHandler.getInstance().handle(error, {
       ...context,
       source: 'async-hook',
       timestamp: Date.now()
     });
-
     setError(appError);
     announce(`Error: ${appError.userMessage}`, 'assertive');
-
     return appError;
   }, [announce]);
-
   const clearError = useCallback(() => {
     setError(null);
   }, []);
-
   const retryOperation = useCallback(async (
     operation: () => Promise<unknown>,
     context: Record<string, unknown> = {}
@@ -539,7 +487,6 @@ export function useAsyncErrorBoundary() {
       return captureAsyncError(error, { ...context, isRetry: true });
     }
   }, [clearError, captureAsyncError, announce]);
-
   return {
     error,
     captureAsyncError,
@@ -548,7 +495,6 @@ export function useAsyncErrorBoundary() {
     hasError: !!error
   };
 }
-
 // Higher-Order Component for Error Boundary
 export function withErrorBoundary<T extends Record<string, unknown>>(
   WrappedComponent: React.ComponentType<T>,
@@ -561,13 +507,10 @@ export function withErrorBoundary<T extends Record<string, unknown>>(
       </ErrorBoundary>
     );
   };
-
   WithErrorBoundaryComponent.displayName = 
     `withErrorBoundary(${WrappedComponent.displayName || WrappedComponent.name || 'Component'})`;
-
   return WithErrorBoundaryComponent;
 }
-
 // Error Context Provider
 interface ErrorContextState {
   globalError: AppError | null;
@@ -575,36 +518,28 @@ interface ErrorContextState {
   reportError: (error: unknown, context?: Record<string, unknown>) => AppError;
   clearGlobalError: () => void;
 }
-
 const ErrorContext = React.createContext<ErrorContextState | null>(null);
-
 export function ErrorProvider({ children }: { children: ReactNode }) {
   const [globalError, setGlobalError] = useState<AppError | null>(null);
   const { announce } = useAccessibility();
-
   const reportError = useCallback((error: unknown, context: Record<string, unknown> = {}) => {
     const appError = ErrorHandler.getInstance().handle(error, {
       ...context,
       source: 'global-context'
     });
-
     setGlobalError(appError);
     announce(`Global error: ${appError.userMessage}`, 'assertive');
-
     return appError;
   }, [announce]);
-
   const clearGlobalError = useCallback(() => {
     setGlobalError(null);
   }, []);
-
   const contextValue: ErrorContextState = {
     globalError,
     setGlobalError,
     reportError,
     clearGlobalError
   };
-
   return (
     <ErrorContext.Provider value={contextValue}>
       {children}
@@ -649,7 +584,6 @@ export function ErrorProvider({ children }: { children: ReactNode }) {
     </ErrorContext.Provider>
   );
 }
-
 export function useErrorContext() {
   const context = React.useContext(ErrorContext);
   if (!context) {
@@ -657,7 +591,6 @@ export function useErrorContext() {
   }
   return context;
 }
-
 // Utility Components
 export function ErrorFallback({ 
   error, 
@@ -669,11 +602,9 @@ export function ErrorFallback({
   level?: string;
 }) {
   const { announce } = useAccessibility();
-
   useEffect(() => {
     announce(`Component error: ${error.message}`, 'assertive');
   }, [error, announce]);
-
   return (
     <div 
       className="p-4 border border-red-200 bg-red-50 rounded-lg"
@@ -700,7 +631,6 @@ export function ErrorFallback({
     </div>
   );
 }
-
 // Export types
 export type {
   ErrorBoundaryProps,

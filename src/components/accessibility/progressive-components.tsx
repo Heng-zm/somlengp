@@ -1,11 +1,9 @@
 'use client';
-
 import React, { useEffect, useRef, useState, useCallback, forwardRef } from 'react';
 import { useEnhancedProgressiveAccessibility } from '@/lib/progressive-enhancement-core';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Info, AlertTriangle, ChevronDown } from 'lucide-react';
-
 // Enhanced Skip Navigation Component
 export interface SkipNavigationProps {
   links: Array<{
@@ -15,11 +13,9 @@ export interface SkipNavigationProps {
   }>;
   className?: string;
 }
-
 const ProgressiveSkipNavigation = forwardRef<HTMLElement, SkipNavigationProps>(
   ({ links, className }, ref) => {
     const {} = useEnhancedProgressiveAccessibility();
-    
     return (
       <nav 
         ref={ref}
@@ -42,7 +38,6 @@ const ProgressiveSkipNavigation = forwardRef<HTMLElement, SkipNavigationProps>(
             </a>
           ))}
         </div>
-        
         <style jsx>{`
           .skip-navigation {
             position: absolute;
@@ -53,7 +48,6 @@ const ProgressiveSkipNavigation = forwardRef<HTMLElement, SkipNavigationProps>(
             overflow: hidden;
             z-index: 10000;
           }
-          
           .skip-navigation:focus-within {
             position: fixed;
             top: 0;
@@ -67,14 +61,12 @@ const ProgressiveSkipNavigation = forwardRef<HTMLElement, SkipNavigationProps>(
             border-bottom: 2px solid #fff;
             box-shadow: 0 2px 8px rgba(0,0,0,0.8);
           }
-          
           .skip-links-container {
             display: flex;
             flex-wrap: wrap;
             gap: 8px;
             justify-content: center;
           }
-          
           .skip-link {
             display: block;
             padding: 8px 12px;
@@ -85,18 +77,15 @@ const ProgressiveSkipNavigation = forwardRef<HTMLElement, SkipNavigationProps>(
             border: 1px solid rgba(255,255,255,0.3);
             transition: all 0.2s ease;
           }
-          
           .skip-link:focus {
             outline: 2px solid #fff;
             outline-offset: 2px;
             background: rgba(255,255,255,0.2);
             transform: scale(1.05);
           }
-          
           .skip-link:hover {
             background: rgba(255,255,255,0.2);
           }
-          
           /* High contrast mode support */
           @media (prefers-contrast: high) {
             .skip-navigation:focus-within {
@@ -104,20 +93,17 @@ const ProgressiveSkipNavigation = forwardRef<HTMLElement, SkipNavigationProps>(
               color: ButtonText;
               border-color: ButtonText;
             }
-            
             .skip-link {
               background: ButtonFace;
               color: ButtonText;
               border-color: ButtonText;
             }
-            
             .skip-link:focus {
               outline-color: Highlight;
               background: Highlight;
               color: HighlightText;
             }
           }
-          
           /* No-script fallback */
           .no-js .skip-navigation {
             position: static;
@@ -128,14 +114,12 @@ const ProgressiveSkipNavigation = forwardRef<HTMLElement, SkipNavigationProps>(
             padding: 8px;
             margin-bottom: 16px;
           }
-          
           .no-js .skip-link {
             color: #0066cc;
             background: transparent;
             border-color: #0066cc;
           }
         `}</style>
-        
         {/* No-script alternative */}
         <noscript>
           <div className="no-js-skip-navigation">
@@ -153,9 +137,7 @@ const ProgressiveSkipNavigation = forwardRef<HTMLElement, SkipNavigationProps>(
     );
   }
 );
-
 ProgressiveSkipNavigation.displayName = 'ProgressiveSkipNavigation';
-
 // Progressive Focus Management Component
 export interface FocusManagementProps {
   children: React.ReactNode;
@@ -165,17 +147,14 @@ export interface FocusManagementProps {
   onFocusEnter?: () => void;
   onFocusLeave?: () => void;
 }
-
 const ProgressiveFocusManager = forwardRef<HTMLDivElement, FocusManagementProps>(
   ({ children, trapFocus = false, restoreFocus = true, className, onFocusEnter, onFocusLeave }, ref) => {
     const containerRef = useRef<HTMLDivElement>(null);
     const lastFocusedElement = useRef<HTMLElement | null>(null);
     const [isActive, setIsActive] = useState(false);
     const { baseline } = useEnhancedProgressiveAccessibility();
-
     const getFocusableElements = useCallback(() => {
       if (!containerRef.current) return [];
-      
       const selector = `
         button:not([disabled]),
         [href]:not([disabled]),
@@ -185,36 +164,28 @@ const ProgressiveFocusManager = forwardRef<HTMLDivElement, FocusManagementProps>
         [tabindex]:not([tabindex="-1"]):not([disabled]),
         [contenteditable="true"]:not([disabled])
       `;
-      
       return Array.from(containerRef.current.querySelectorAll(selector)) as HTMLElement[];
     }, []);
-
     const handleFocusLeave = useCallback(() => {
       setIsActive(false);
       onFocusLeave?.();
-      
       // Restore previous focus if enabled and available
       if (restoreFocus && lastFocusedElement.current) {
         try {
           lastFocusedElement.current.focus();
         } catch (error) {
-          console.warn('Could not restore focus:', error);
         }
         lastFocusedElement.current = null;
       }
     }, [restoreFocus, onFocusLeave]);
-
     const handleKeyDown = useCallback((event: KeyboardEvent) => {
       if (!trapFocus || !isActive) return;
-
       if (event.key === 'Tab') {
         const focusableElements = getFocusableElements();
         if (focusableElements.length === 0) return;
-
         const firstElement = focusableElements[0];
         const lastElement = focusableElements[focusableElements.length - 1];
         const currentElement = document.activeElement as HTMLElement;
-
         if (event.shiftKey) {
           if (currentElement === firstElement) {
             event.preventDefault();
@@ -227,20 +198,17 @@ const ProgressiveFocusManager = forwardRef<HTMLDivElement, FocusManagementProps>
           }
         }
       }
-
       if (event.key === 'Escape' && trapFocus) {
         event.preventDefault();
         handleFocusLeave();
       }
     }, [trapFocus, isActive, getFocusableElements, handleFocusLeave]);
-
     const handleFocusEnter = useCallback(() => {
       if (restoreFocus) {
         lastFocusedElement.current = document.activeElement as HTMLElement;
       }
       setIsActive(true);
       onFocusEnter?.();
-      
       // Auto-focus first element if baseline supports it
       if (baseline?.supportsAria) {
         const focusableElements = getFocusableElements();
@@ -249,14 +217,12 @@ const ProgressiveFocusManager = forwardRef<HTMLDivElement, FocusManagementProps>
         }
       }
     }, [restoreFocus, onFocusEnter, getFocusableElements, baseline]);
-
     useEffect(() => {
       if (trapFocus) {
         document.addEventListener('keydown', handleKeyDown);
         return () => document.removeEventListener('keydown', handleKeyDown);
       }
     }, [trapFocus, handleKeyDown]);
-
     return (
       <div
         ref={containerRef}
@@ -274,7 +240,6 @@ const ProgressiveFocusManager = forwardRef<HTMLDivElement, FocusManagementProps>
         }}
       >
         {children}
-        
         {/* Screen reader instructions */}
         <div className="sr-only" role="note">
           {trapFocus && "Use Tab to navigate within this section, Escape to exit."}
@@ -283,9 +248,7 @@ const ProgressiveFocusManager = forwardRef<HTMLDivElement, FocusManagementProps>
     );
   }
 );
-
 ProgressiveFocusManager.displayName = 'ProgressiveFocusManager';
-
 // Progressive Announcement Component
 export interface ProgressiveAnnouncementProps {
   message: string;
@@ -294,7 +257,6 @@ export interface ProgressiveAnnouncementProps {
   timeout?: number;
   fallback?: string;
 }
-
 const ProgressiveAnnouncement: React.FC<ProgressiveAnnouncementProps> = ({
   message,
   priority = 'polite',
@@ -305,26 +267,20 @@ const ProgressiveAnnouncement: React.FC<ProgressiveAnnouncementProps> = ({
   const { baseline } = useEnhancedProgressiveAccessibility();
   const [currentMessage, setCurrentMessage] = useState(message);
   const [isVisible, setIsVisible] = useState(false);
-
   useEffect(() => {
     setCurrentMessage(message);
     setIsVisible(true);
-    
     if (temporary) {
       const timer = setTimeout(() => {
         setIsVisible(false);
         setCurrentMessage('');
       }, timeout);
-      
       return () => clearTimeout(timer);
     }
   }, [message, temporary, timeout]);
-
   // Use fallback for non-ARIA environments
   const displayMessage = baseline?.supportsAria ? currentMessage : (fallback || currentMessage);
-
   if (!isVisible || !displayMessage) return null;
-
   return (
     <>
       {/* ARIA Live Region */}
@@ -338,7 +294,6 @@ const ProgressiveAnnouncement: React.FC<ProgressiveAnnouncementProps> = ({
           {displayMessage}
         </div>
       )}
-      
       {/* Fallback for non-ARIA environments */}
       {!baseline?.supportsAria && fallback && (
         <div 
@@ -351,7 +306,6 @@ const ProgressiveAnnouncement: React.FC<ProgressiveAnnouncementProps> = ({
           </div>
         </div>
       )}
-      
       <style jsx>{`
         .accessibility-announcement-fallback {
           position: fixed;
@@ -365,7 +319,6 @@ const ProgressiveAnnouncement: React.FC<ProgressiveAnnouncementProps> = ({
           z-index: 10000;
           max-width: 300px;
         }
-        
         .announcement-content {
           display: flex;
           align-items: center;
@@ -375,7 +328,6 @@ const ProgressiveAnnouncement: React.FC<ProgressiveAnnouncementProps> = ({
     </>
   );
 };
-
 // Progressive Adaptive Button Component
 export interface ProgressiveButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   children: React.ReactNode;
@@ -385,7 +337,6 @@ export interface ProgressiveButtonProps extends React.ButtonHTMLAttributes<HTMLB
   adaptiveMode?: boolean;
   touchOptimized?: boolean;
 }
-
 const ProgressiveButton = forwardRef<HTMLButtonElement, ProgressiveButtonProps>(
   ({ 
     children, 
@@ -399,21 +350,16 @@ const ProgressiveButton = forwardRef<HTMLButtonElement, ProgressiveButtonProps>(
   }, ref) => {
     const { baseline, adaptiveSettings } = useEnhancedProgressiveAccessibility();
     const [focusVisible, setFocusVisible] = useState(false);
-
     const shouldUseTouchOptimization = touchOptimized ?? 
       (adaptiveMode && baseline?.touchDevice);
-
     const shouldReduceMotion = adaptiveMode && 
       (baseline?.reducedMotion || !adaptiveSettings?.animations);
-
     const handleFocus = useCallback(() => {
       setFocusVisible(true);
     }, []);
-
     const handleBlur = useCallback(() => {
       setFocusVisible(false);
     }, []);
-
     return (
       <Button
         ref={ref}
@@ -440,37 +386,31 @@ const ProgressiveButton = forwardRef<HTMLButtonElement, ProgressiveButtonProps>(
           </span>
         )}
         {children}
-        
         <style jsx>{`
           :global(.touch-optimized) {
             min-width: 44px !important;
             min-height: 44px !important;
             padding: 12px 16px !important;
           }
-          
           :global(.reduced-motion) {
             transition: none !important;
             animation: none !important;
           }
-          
           :global(.focus-visible-enhanced) {
             outline: 3px solid #0066cc !important;
             outline-offset: 2px !important;
             box-shadow: 0 0 0 5px rgba(0, 102, 204, 0.3) !important;
           }
-          
           :global(.loading) {
             opacity: 0.7;
             cursor: not-allowed;
           }
-          
           @media (prefers-contrast: high) {
             :global(.high-contrast) {
               border: 2px solid ButtonText !important;
               background: ButtonFace !important;
               color: ButtonText !important;
             }
-            
             :global(.high-contrast:focus) {
               background: Highlight !important;
               color: HighlightText !important;
@@ -481,9 +421,7 @@ const ProgressiveButton = forwardRef<HTMLButtonElement, ProgressiveButtonProps>(
     );
   }
 );
-
 ProgressiveButton.displayName = 'ProgressiveButton';
-
 // Progressive Collapsible Component with Enhanced Keyboard Navigation
 export interface ProgressiveCollapsibleProps {
   title: string;
@@ -494,7 +432,6 @@ export interface ProgressiveCollapsibleProps {
   className?: string;
   onToggle?: (open: boolean) => void;
 }
-
 const ProgressiveCollapsible: React.FC<ProgressiveCollapsibleProps> = ({
   title,
   children,
@@ -509,17 +446,13 @@ const ProgressiveCollapsible: React.FC<ProgressiveCollapsibleProps> = ({
   const contentRef = useRef<HTMLDivElement>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);
   const { baseline, adaptiveSettings } = useEnhancedProgressiveAccessibility();
-
   const handleToggle = useCallback(() => {
     if (disabled) return;
-    
     const newState = !isOpen;
     setIsOpen(newState);
     onToggle?.(newState);
-    
     // Announce state change
     const message = `${title} ${newState ? 'expanded' : 'collapsed'}`;
-    
     // Use different announcement methods based on baseline
     if (baseline?.supportsAria) {
       // Create temporary announcement
@@ -528,14 +461,11 @@ const ProgressiveCollapsible: React.FC<ProgressiveCollapsibleProps> = ({
       announcer.className = 'sr-only';
       announcer.textContent = message;
       document.body.appendChild(announcer);
-      
       setTimeout(() => announcer.remove(), 1000);
     }
   }, [disabled, isOpen, title, onToggle, baseline]);
-
   const handleKeyDown = useCallback((event: KeyboardEvent) => {
     if (!focused) return;
-
     switch (event.key) {
       case 'ArrowDown':
         if (isOpen && contentRef.current) {
@@ -546,12 +476,10 @@ const ProgressiveCollapsible: React.FC<ProgressiveCollapsibleProps> = ({
           event.preventDefault();
         }
         break;
-      
       case 'ArrowUp':
         buttonRef.current?.focus();
         event.preventDefault();
         break;
-        
       case 'Home':
       case 'End':
         // Navigate to first/last collapsible in a group
@@ -565,12 +493,10 @@ const ProgressiveCollapsible: React.FC<ProgressiveCollapsibleProps> = ({
         break;
     }
   }, [focused, isOpen]);
-
   useEffect(() => {
     document.addEventListener('keydown', handleKeyDown);
     return () => document.removeEventListener('keydown', handleKeyDown);
   }, [handleKeyDown]);
-
   return (
     <div className={cn('progressive-collapsible', className)}>
       <button
@@ -594,7 +520,6 @@ const ProgressiveCollapsible: React.FC<ProgressiveCollapsibleProps> = ({
           {icon && <span className="collapsible-icon">{icon}</span>}
           {title}
         </span>
-        
         <span 
           className={cn(
             'collapsible-chevron transition-transform',
@@ -606,7 +531,6 @@ const ProgressiveCollapsible: React.FC<ProgressiveCollapsibleProps> = ({
           <ChevronDown className="w-4 h-4" />
         </span>
       </button>
-
       <div
         ref={contentRef}
         id={`collapsible-content-${title.replace(/\s+/g, '-').toLowerCase()}`}
@@ -628,7 +552,6 @@ const ProgressiveCollapsible: React.FC<ProgressiveCollapsibleProps> = ({
           {children}
         </div>
       </div>
-
       {/* No-script fallback */}
       <noscript>
         <div className="no-js-collapsible">
@@ -636,7 +559,6 @@ const ProgressiveCollapsible: React.FC<ProgressiveCollapsibleProps> = ({
           <div>{children}</div>
         </div>
       </noscript>
-
       <style jsx>{`
         .no-js-collapsible {
           border: 1px solid #ccc;
@@ -644,17 +566,14 @@ const ProgressiveCollapsible: React.FC<ProgressiveCollapsibleProps> = ({
           margin-bottom: 16px;
           padding: 16px;
         }
-        
         .no-js-collapsible h3 {
           margin: 0 0 12px 0;
           padding: 0;
         }
-        
         .touch-optimized {
           min-height: 48px !important;
           padding: 16px !important;
         }
-        
         .no-transition,
         .no-transition * {
           transition: none !important;
@@ -664,7 +583,6 @@ const ProgressiveCollapsible: React.FC<ProgressiveCollapsibleProps> = ({
     </div>
   );
 };
-
 // Progressive Navigation Component
 export interface ProgressiveNavigationProps {
   items: Array<{
@@ -677,7 +595,6 @@ export interface ProgressiveNavigationProps {
   className?: string;
   onNavigate?: (href: string, label: string) => void;
 }
-
 const ProgressiveNavigation: React.FC<ProgressiveNavigationProps> = ({
   items,
   orientation = 'horizontal',
@@ -688,67 +605,55 @@ const ProgressiveNavigation: React.FC<ProgressiveNavigationProps> = ({
   const [expandedSubmenu, setExpandedSubmenu] = useState<number | null>(null);
   const navRef = useRef<HTMLElement>(null);
   const { baseline, adaptiveSettings } = useEnhancedProgressiveAccessibility();
-
   const handleKeyDown = useCallback((event: KeyboardEvent) => {
     if (!navRef.current?.contains(document.activeElement)) return;
-
     const isHorizontal = orientation === 'horizontal';
     const nextKey = isHorizontal ? 'ArrowRight' : 'ArrowDown';
     const prevKey = isHorizontal ? 'ArrowLeft' : 'ArrowUp';
     const expandKey = isHorizontal ? 'ArrowDown' : 'ArrowRight';
     const collapseKey = isHorizontal ? 'ArrowUp' : 'ArrowLeft';
-
     switch (event.key) {
       case nextKey:
         event.preventDefault();
         setFocusedIndex(prev => (prev + 1) % items.length);
         break;
-        
       case prevKey:
         event.preventDefault();
         setFocusedIndex(prev => (prev - 1 + items.length) % items.length);
         break;
-        
       case expandKey:
         event.preventDefault();
         if (items[focusedIndex].children) {
           setExpandedSubmenu(focusedIndex);
         }
         break;
-        
       case collapseKey:
         event.preventDefault();
         setExpandedSubmenu(null);
         break;
-        
       case 'Home':
         event.preventDefault();
         setFocusedIndex(0);
         break;
-        
       case 'End':
         event.preventDefault();
         setFocusedIndex(items.length - 1);
         break;
-        
       case 'Escape':
         event.preventDefault();
         setExpandedSubmenu(null);
         break;
     }
   }, [orientation, items, focusedIndex]);
-
   useEffect(() => {
     document.addEventListener('keydown', handleKeyDown);
     return () => document.removeEventListener('keydown', handleKeyDown);
   }, [handleKeyDown]);
-
   // Focus management
   useEffect(() => {
     const activeLink = navRef.current?.querySelector(`[data-index="${focusedIndex}"]`) as HTMLElement;
     activeLink?.focus();
   }, [focusedIndex]);
-
   return (
     <nav
       ref={navRef}
@@ -823,7 +728,6 @@ const ProgressiveNavigation: React.FC<ProgressiveNavigationProps> = ({
                 )}
               </button>
             )}
-
             {/* Submenu */}
             {item.children && expandedSubmenu === index && (
               <ul
@@ -851,7 +755,6 @@ const ProgressiveNavigation: React.FC<ProgressiveNavigationProps> = ({
           </li>
         ))}
       </ul>
-
       {/* Keyboard shortcuts help */}
       <div className="sr-only">
         <h3>Navigation Keyboard Shortcuts</h3>
@@ -862,7 +765,6 @@ const ProgressiveNavigation: React.FC<ProgressiveNavigationProps> = ({
           <li>Escape: Close submenu</li>
         </ul>
       </div>
-
       <style jsx>{`
         .navigation-link,
         .navigation-button,
@@ -877,13 +779,11 @@ const ProgressiveNavigation: React.FC<ProgressiveNavigationProps> = ({
           border-radius: 4px;
           transition: background-color 0.2s ease;
         }
-        
         .navigation-link:hover,
         .navigation-button:hover,
         .submenu-link:hover {
           background: rgba(0, 0, 0, 0.05);
         }
-        
         .navigation-link:focus,
         .navigation-button:focus,
         .submenu-link:focus {
@@ -891,13 +791,11 @@ const ProgressiveNavigation: React.FC<ProgressiveNavigationProps> = ({
           outline-offset: 2px;
           background: rgba(0, 102, 204, 0.1);
         }
-        
         .current-page {
           background: #0066cc;
           color: white;
           font-weight: bold;
         }
-        
         .submenu {
           position: absolute;
           background: white;
@@ -908,18 +806,15 @@ const ProgressiveNavigation: React.FC<ProgressiveNavigationProps> = ({
           min-width: 200px;
           padding: 4px 0;
         }
-        
         .touch-optimized .navigation-link,
         .touch-optimized .navigation-button {
           padding: 12px 20px;
           min-height: 44px;
         }
-        
         /* No-script fallback */
         .no-js .navigation-list {
           flex-direction: column;
         }
-        
         .no-js .submenu {
           position: static;
           display: block;
@@ -932,7 +827,6 @@ const ProgressiveNavigation: React.FC<ProgressiveNavigationProps> = ({
     </nav>
   );
 };
-
 // Progressive Form Field Component
 export interface ProgressiveFormFieldProps {
   label: string;
@@ -942,7 +836,6 @@ export interface ProgressiveFormFieldProps {
   required?: boolean;
   className?: string;
 }
-
 const ProgressiveFormField: React.FC<ProgressiveFormFieldProps> = ({
   label,
   children,
@@ -955,7 +848,6 @@ const ProgressiveFormField: React.FC<ProgressiveFormFieldProps> = ({
   const errorId = error ? `${fieldId}-error` : undefined;
   const hintId = hint ? `${fieldId}-hint` : undefined;
   const { baseline } = useEnhancedProgressiveAccessibility();
-
   return (
     <div className={cn('progressive-form-field', className)}>
       <label 
@@ -974,7 +866,6 @@ const ProgressiveFormField: React.FC<ProgressiveFormFieldProps> = ({
           </span>
         )}
       </label>
-
       <div className="form-control-wrapper">
         {React.cloneElement(children as React.ReactElement, {
           id: fieldId,
@@ -988,7 +879,6 @@ const ProgressiveFormField: React.FC<ProgressiveFormFieldProps> = ({
           )
         })}
       </div>
-
       {hint && (
         <div 
           id={hintId}
@@ -998,7 +888,6 @@ const ProgressiveFormField: React.FC<ProgressiveFormFieldProps> = ({
           {hint}
         </div>
       )}
-
       {error && (
         <div 
           id={errorId}
@@ -1010,29 +899,24 @@ const ProgressiveFormField: React.FC<ProgressiveFormFieldProps> = ({
           {error}
         </div>
       )}
-
       <style jsx>{`
         .form-label.required::after {
           content: ' *';
           color: #ef4444;
         }
-        
         .form-control-wrapper :global(.error) {
           border-color: #ef4444 !important;
           box-shadow: 0 0 0 1px #ef4444 !important;
         }
-        
         .form-control-wrapper :global(.touch-optimized) {
           min-height: 44px !important;
           padding: 12px !important;
         }
-        
         @media (prefers-contrast: high) {
           .form-label.high-contrast {
             color: ButtonText;
             font-weight: bold;
           }
-          
           .form-control-wrapper :global(*) {
             border: 2px solid ButtonText !important;
             background: ButtonFace !important;
@@ -1043,7 +927,6 @@ const ProgressiveFormField: React.FC<ProgressiveFormFieldProps> = ({
     </div>
   );
 };
-
 // Progressive Alert Component with Adaptive Behavior
 export interface ProgressiveAlertProps {
   children: React.ReactNode;
@@ -1053,7 +936,6 @@ export interface ProgressiveAlertProps {
   className?: string;
   onDismiss?: () => void;
 }
-
 const ProgressiveAlert: React.FC<ProgressiveAlertProps> = ({
   children,
   variant = 'default',
@@ -1065,32 +947,26 @@ const ProgressiveAlert: React.FC<ProgressiveAlertProps> = ({
   const alertRef = useRef<HTMLDivElement>(null);
   const { baseline } = useEnhancedProgressiveAccessibility();
   const [announced, setAnnounced] = useState(false);
-
   useEffect(() => {
     if (autoFocus && alertRef.current && baseline?.supportsAria) {
       alertRef.current.focus();
     }
-    
     // Announce alert for screen readers
     if (!announced && baseline?.supportsAria) {
       const severity = variant === 'destructive' ? 'Error' : 
                      variant === 'warning' ? 'Warning' :
                      variant === 'success' ? 'Success' : 'Notice';
-      
       const announcer = document.createElement('div');
       announcer.setAttribute('aria-live', variant === 'destructive' ? 'assertive' : 'polite');
       announcer.className = 'sr-only';
       announcer.textContent = `${severity}: ${alertRef.current?.textContent}`;
       document.body.appendChild(announcer);
-      
       setTimeout(() => announcer.remove(), 2000);
       setAnnounced(true);
     }
   }, [autoFocus, baseline, variant, announced]);
-
   const handleDismiss = useCallback(() => {
     onDismiss?.();
-    
     // Announce dismissal
     if (baseline?.supportsAria) {
       const announcer = document.createElement('div');
@@ -1098,13 +974,10 @@ const ProgressiveAlert: React.FC<ProgressiveAlertProps> = ({
       announcer.className = 'sr-only';
       announcer.textContent = 'Alert dismissed';
       document.body.appendChild(announcer);
-      
       setTimeout(() => announcer.remove(), 1000);
     }
   }, [onDismiss, baseline]);
-
   const alertRole = variant === 'destructive' ? 'alert' : 'status';
-
   return (
     <div
       ref={alertRef}
@@ -1124,7 +997,6 @@ const ProgressiveAlert: React.FC<ProgressiveAlertProps> = ({
         <div className="alert-message flex-1">
           {children}
         </div>
-        
         {dismissible && (
           <Button
             variant="ghost"
@@ -1140,43 +1012,36 @@ const ProgressiveAlert: React.FC<ProgressiveAlertProps> = ({
           </Button>
         )}
       </div>
-
       <style jsx>{`
         .progressive-alert {
           --alert-border: #e2e8f0;
           --alert-bg: #f8fafc;
           --alert-text: #334155;
         }
-        
         .alert-destructive {
           --alert-border: #fecaca;
           --alert-bg: #fef2f2;
           --alert-text: #991b1b;
         }
-        
         .alert-warning {
           --alert-border: #fde68a;
           --alert-bg: #fefbf2;
           --alert-text: #92400e;
         }
-        
         .alert-success {
           --alert-border: #bbf7d0;
           --alert-bg: #f0fdf4;
           --alert-text: #166534;
         }
-        
         .progressive-alert {
           border-color: var(--alert-border);
           background-color: var(--alert-bg);
           color: var(--alert-text);
         }
-        
         .touch-optimized .alert-dismiss {
           min-width: 44px !important;
           min-height: 44px !important;
         }
-        
         @media (prefers-contrast: high) {
           .high-contrast {
             border: 2px solid ButtonText !important;
@@ -1188,7 +1053,6 @@ const ProgressiveAlert: React.FC<ProgressiveAlertProps> = ({
     </div>
   );
 };
-
 // Progressive Modal Component
 export interface ProgressiveModalProps {
   isOpen: boolean;
@@ -1200,7 +1064,6 @@ export interface ProgressiveModalProps {
   closeOnOverlayClick?: boolean;
   autoFocus?: boolean;
 }
-
 const ProgressiveModal: React.FC<ProgressiveModalProps> = ({
   isOpen,
   onClose,
@@ -1214,20 +1077,16 @@ const ProgressiveModal: React.FC<ProgressiveModalProps> = ({
   const modalRef = useRef<HTMLDivElement>(null);
   const previousFocus = useRef<HTMLElement | null>(null);
   const { baseline } = useEnhancedProgressiveAccessibility();
-
   useEffect(() => {
     if (isOpen) {
       // Store previous focus
       previousFocus.current = document.activeElement as HTMLElement;
-      
       // Prevent body scroll
       document.body.style.overflow = 'hidden';
-      
       // Focus modal if auto-focus is enabled
       if (autoFocus && modalRef.current) {
         modalRef.current.focus();
       }
-      
       // Announce modal opening
       if (baseline?.supportsAria) {
         const announcer = document.createElement('div');
@@ -1235,40 +1094,32 @@ const ProgressiveModal: React.FC<ProgressiveModalProps> = ({
         announcer.className = 'sr-only';
         announcer.textContent = `${title} dialog opened`;
         document.body.appendChild(announcer);
-        
         setTimeout(() => announcer.remove(), 1000);
       }
     } else {
       // Restore body scroll
       document.body.style.overflow = '';
-      
       // Restore focus
       if (previousFocus.current) {
         previousFocus.current.focus();
       }
     }
-
     return () => {
       document.body.style.overflow = '';
     };
   }, [isOpen, title, autoFocus, baseline]);
-
   const handleKeyDown = useCallback((event: KeyboardEvent) => {
     if (!isOpen) return;
-
     if (event.key === 'Escape' && closeOnEscape) {
       event.preventDefault();
       onClose();
     }
   }, [isOpen, closeOnEscape, onClose]);
-
   useEffect(() => {
     document.addEventListener('keydown', handleKeyDown);
     return () => document.removeEventListener('keydown', handleKeyDown);
   }, [handleKeyDown]);
-
   if (!isOpen) return null;
-
   return (
     <div
       className="progressive-modal-overlay"
@@ -1307,13 +1158,11 @@ const ProgressiveModal: React.FC<ProgressiveModalProps> = ({
               <span aria-hidden="true">×</span>
             </Button>
           </header>
-          
           <div className="modal-content">
             {children}
           </div>
         </div>
       </ProgressiveFocusManager>
-
       <style jsx>{`
         .progressive-modal-overlay {
           position: fixed;
@@ -1325,7 +1174,6 @@ const ProgressiveModal: React.FC<ProgressiveModalProps> = ({
           z-index: 9999;
           padding: 16px;
         }
-        
         .progressive-modal {
           background: white;
           border-radius: 8px;
@@ -1336,7 +1184,6 @@ const ProgressiveModal: React.FC<ProgressiveModalProps> = ({
           display: flex;
           flex-direction: column;
         }
-        
         .modal-header {
           display: flex;
           align-items: center;
@@ -1344,52 +1191,50 @@ const ProgressiveModal: React.FC<ProgressiveModalProps> = ({
           padding: 16px 20px;
           border-bottom: 1px solid #e2e8f0;
         }
-        
         .modal-header h2 {
           flex: 1;
           margin: 0;
           font-size: 1.25rem;
           font-weight: 600;
         }
-        
         .modal-content {
           padding: 20px;
           overflow: auto;
           flex: 1;
         }
-        
         .touch-optimized .modal-close {
           min-width: 44px !important;
           min-height: 44px !important;
         }
-        
         @media (prefers-contrast: high) {
           .high-contrast {
             border: 2px solid ButtonText !important;
             background: ButtonFace !important;
             color: ButtonText !important;
           }
-          
           .high-contrast .modal-header {
             border-bottom-color: ButtonText !important;
           }
         }
-        
         @media (prefers-reduced-motion: reduce) {
           .progressive-modal-overlay {
             animation: none !important;
           }
-          
           .progressive-modal {
             animation: none !important;
             transform: none !important;
+// Memory leak prevention: Event listeners need cleanup, Timers need cleanup
+// Add cleanup in useEffect return function
+
+// Performance optimization needed: Consider memoizing inline styles, inline event handlers
+// Use useMemo for objects/arrays and useCallback for functions
+
           }
         }
       `}</style>
     </div>
   );
 };
-
 // Export all components
 export {
   ProgressiveSkipNavigation,
@@ -1402,7 +1247,6 @@ export {
   ProgressiveAlert,
   ProgressiveModal
 };
-
 // Utility function for creating no-script alternatives
 export const createNoScriptFallback = (content: string, description: string) => {
   return (
@@ -1418,7 +1262,6 @@ export const createNoScriptFallback = (content: string, description: string) => 
     </noscript>
   );
 };
-
 // Default export
 export default {
   ProgressiveSkipNavigation,

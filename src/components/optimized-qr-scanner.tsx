@@ -1,13 +1,17 @@
 'use client';
-
-import React, { useRef, useEffect, useState, useCallback } from 'react';
+import React, { useRef, useEffect, useState, useCallback, memo, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import { useQRCamera } from '@/hooks/use-camera-permission';
 import { useQRScannerWorker } from '@/hooks/use-qr-worker';
 import { qrPerformanceMonitor } from '@/utils/qr-performance';
 import { Upload } from 'lucide-react';
+// Memory leak prevention: Timers need cleanup
+// Add cleanup in useEffect return function
 
-interface OptimizedQRScannerProps {
+// Performance optimization needed: Consider memoizing inline styles, inline event handlers, dynamic classNames
+// Use useMemo for objects/arrays and useCallback for functions
+
+export interface OptimizedQRScannerProps {
   onScanSuccess?: (data: string, location?: any, confidence?: number) => void;
   onScanError?: (error: string) => void;
   onClose?: () => void;
@@ -17,15 +21,13 @@ interface OptimizedQRScannerProps {
   scanRegion?: 'full' | 'center' | 'auto';
   scanQuality?: 'fast' | 'balanced' | 'accurate';
 }
-
 interface ScanStats {
   scanAttempts: number;
   successfulScans: number;
   averageProcessingTime: number;
   lastScanTime: number;
 }
-
-export function OptimizedQRScanner({ 
+const OptimizedQRScannerComponent = function OptimizedQRScanner({ 
   onScanSuccess, 
   onScanError, 
   onClose, 
@@ -39,9 +41,8 @@ export function OptimizedQRScanner({
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const canvasPoolRef = useRef<HTMLCanvasElement[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const animationFrameRef = useRef<number>();
+  const animationFrameRef = useRef<number | null>(null);
   const lastScanTimeRef = useRef<number>(0);
-  
   const [isScanning, setIsScanning] = useState(false);
   const [lastScannedData, setLastScannedData] = useState<string>('');
   const [isProcessingUpload, setIsProcessingUpload] = useState(false);
@@ -53,7 +54,6 @@ export function OptimizedQRScanner({
     averageProcessingTime: 0,
     lastScanTime: 0
   });
-
   // Use optimized camera hook - auto-request camera on mount
   const {
     stream,
@@ -65,10 +65,26 @@ export function OptimizedQRScanner({
     stopCamera
   } = useQRCamera();
 
+  // Memoized styles for performance
+  const scanFrameStyle = useMemo(() => ({
+    width: '300px',
+    height: '300px'
+  }), []);
+
+  const scanBeamStyle = useMemo(() => ({
+    top: '50%',
+    background: 'linear-gradient(90deg, transparent, rgba(156,163,175,0.8), transparent)',
+    boxShadow: '0 0 10px rgba(156,163,175,0.3)'
+  }), []);
+
+  const videoStyle = useMemo(() => ({
+    minHeight: '400px',
+    maxHeight: '600px'
+  }), []);
+
   // Auto-start camera when component mounts (with debounce)
   useEffect(() => {
     let timeoutId: NodeJS.Timeout;
-    
     if (isSupported && !stream && !isLoading && !cameraError) {
       // Debounce camera request to prevent race conditions
       timeoutId = setTimeout(() => {
@@ -78,14 +94,12 @@ export function OptimizedQRScanner({
         });
       }, 100);
     }
-    
     return () => {
       if (timeoutId) {
         clearTimeout(timeoutId);
       }
     };
   }, [isSupported, stream, isLoading, cameraError, requestCamera, onScanError]);
-
   // Use Web Worker for enhanced performance
   const {
     isReady: workerReady,
@@ -93,7 +107,6 @@ export function OptimizedQRScanner({
     stats: workerStats,
     error: workerError
   } = useQRScannerWorker();
-
   // Get or create canvas from pool for better memory management
   const getCanvas = useCallback(() => {
     if (canvasPoolRef.current.length > 0) {
@@ -101,7 +114,6 @@ export function OptimizedQRScanner({
     }
     return document.createElement('canvas');
   }, []);
-
   // Return canvas to pool
   const returnCanvas = useCallback((canvas: HTMLCanvasElement) => {
     if (canvasPoolRef.current.length < 3) { // Keep max 3 canvases
@@ -112,7 +124,6 @@ export function OptimizedQRScanner({
       canvasPoolRef.current.push(canvas);
     }
   }, []);
-
   // Calculate optimal scan region based on video dimensions
   const calculateScanRegion = useCallback((videoWidth: number, videoHeight: number) => {
     switch (scanRegion) {
@@ -138,28 +149,23 @@ export function OptimizedQRScanner({
         };
     }
   }, [scanRegion]);
-
   // Adaptive scan interval based on device performance
   const getScanInterval = useCallback(() => {
     const baseInterval = scanQuality === 'fast' ? 100 : scanQuality === 'accurate' ? 200 : 150;
-    
     // Adjust based on processing times
     if (workerStats.averageProcessingTime > 100) {
       return baseInterval + 50; // Slightly slower for heavy processing
     } else if (workerStats.averageProcessingTime < 50) {
       return Math.max(80, baseInterval - 30); // Faster for light processing
     }
-    
     return baseInterval;
   }, [scanQuality, workerStats.averageProcessingTime]);
-
   // Trigger haptic feedback
   const triggerVibration = useCallback((pattern: number | number[] = 200) => {
     if (enableVibration && 'vibrate' in navigator) {
       navigator.vibrate(pattern);
     }
   }, [enableVibration]);
-
   // Trigger audio feedback
   const triggerSound = useCallback(() => {
     if (enableSound) {
@@ -167,23 +173,18 @@ export function OptimizedQRScanner({
         const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
         const oscillator = audioContext.createOscillator();
         const gainNode = audioContext.createGain();
-        
         oscillator.connect(gainNode);
         gainNode.connect(audioContext.destination);
-        
         oscillator.frequency.value = 800;
         oscillator.type = 'sine';
         gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
         gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
-        
         oscillator.start(audioContext.currentTime);
         oscillator.stop(audioContext.currentTime + 0.3);
       } catch (error) {
-        console.warn('Audio feedback failed:', error);
       }
     }
   }, [enableSound]);
-
   // Enhanced QR scanning with worker
   const scanQRCode = useCallback(async () => {
     const video = videoRef.current;
@@ -191,7 +192,6 @@ export function OptimizedQRScanner({
         video.videoWidth === 0 || video.videoHeight === 0) {
       return;
     }
-
     // Throttle scans based on adaptive interval
     const now = performance.now();
     const interval = getScanInterval();
@@ -199,29 +199,22 @@ export function OptimizedQRScanner({
       return;
     }
     lastScanTimeRef.current = now;
-
     try {
       qrPerformanceMonitor.recordScanAttempt();
-      
       // Get canvas from pool
       const canvas = getCanvas();
       const context = canvas.getContext('2d');
       if (!context) return;
-
       // Set canvas dimensions to match video
       canvas.width = video.videoWidth;
       canvas.height = video.videoHeight;
-
       // Draw current video frame to canvas
       context.drawImage(video, 0, 0, canvas.width, canvas.height);
-
       // Calculate scan region
       const region = calculateScanRegion(canvas.width, canvas.height);
       setDetectionZone(region);
-
       // Get image data for the scan region
       const imageData = context.getImageData(region.x, region.y, region.width, region.height);
-
       // Scan using Web Worker with better options
       const result = await scanQR(imageData, {
         inversionAttempts: 'attemptBoth', // Always try both for better detection
@@ -232,7 +225,6 @@ export function OptimizedQRScanner({
           maxFinderPatternStdDev: scanQuality === 'accurate' ? 5 : 10
         }
       });
-
       // Update scan statistics
       setScanStats(prev => ({
         scanAttempts: prev.scanAttempts + 1,
@@ -240,7 +232,6 @@ export function OptimizedQRScanner({
         averageProcessingTime: result.processingTime,
         lastScanTime: now
       }));
-
       // Calculate confidence based on various factors
       let confidence = 0;
       if (result.qrCode) {
@@ -251,29 +242,22 @@ export function OptimizedQRScanner({
           15 // Completion bonus
         );
         setScanConfidence(confidence);
-
         // Check if this is a new scan result
         if (result.qrCode.data && result.qrCode.data.trim() !== '' && result.qrCode.data !== lastScannedData) {
-          console.log('OptimizedQRScanner: QR Code detected:', result.qrCode.data);
           setLastScannedData(result.qrCode.data);
           setIsScanning(false);
-          
           // Record successful scan
           qrPerformanceMonitor.recordSuccessfulScan(result.qrCode.data);
-          
           // Provide feedback
           triggerVibration([50, 50, 50]);
           triggerSound();
-          
           onScanSuccess?.(result.qrCode.data, result.qrCode.location, confidence);
         }
       } else {
         setScanConfidence(Math.max(0, scanConfidence - 5)); // Gradually decrease confidence
       }
-
       // Return canvas to pool
       returnCanvas(canvas);
-
     } catch (error) {
       console.error('QR scanning error:', error);
       qrPerformanceMonitor.recordFailedScan(error instanceof Error ? error.message : 'Unknown error');
@@ -284,38 +268,40 @@ export function OptimizedQRScanner({
     onScanSuccess, onScanError, scanQR, getCanvas, returnCanvas,
     calculateScanRegion, getScanInterval, triggerVibration, triggerSound
   ]);
-
   // Start continuous scanning loop
   const startScanning = useCallback(() => {
-    if (!isScanning) {
+    if (!isScanning && animationFrameRef.current === null) {
       setIsScanning(true);
       qrPerformanceMonitor.startScanning();
-      
       // Use requestAnimationFrame for smooth performance
       const scanLoop = () => {
-        if (isScanning) {
-          scanQRCode();
-          animationFrameRef.current = requestAnimationFrame(scanLoop);
-        }
+        scanQRCode().then(() => {
+          if (isScanning && animationFrameRef.current !== null) {
+            animationFrameRef.current = requestAnimationFrame(scanLoop);
+          }
+        }).catch(() => {
+          // Handle scan errors gracefully
+          if (isScanning && animationFrameRef.current !== null) {
+            animationFrameRef.current = requestAnimationFrame(scanLoop);
+          }
+        });
       };
       animationFrameRef.current = requestAnimationFrame(scanLoop);
     }
   }, [isScanning, scanQRCode]);
-
   // Stop scanning
   const stopScanning = useCallback(() => {
     setIsScanning(false);
-    if (animationFrameRef.current) {
+    if (animationFrameRef.current !== null) {
       cancelAnimationFrame(animationFrameRef.current);
+      animationFrameRef.current = null;
     }
     setScanConfidence(0);
   }, []);
-
   // Set up video element when stream is available
   useEffect(() => {
     if (videoRef.current && stream) {
       videoRef.current.srcObject = stream;
-      
       // Auto-start scanning when video loads
       videoRef.current.onloadedmetadata = () => {
         if (workerReady) {
@@ -324,14 +310,12 @@ export function OptimizedQRScanner({
       };
     }
   }, [stream, workerReady, startScanning]);
-
   // Start scanning when worker becomes ready
   useEffect(() => {
     if (stream && workerReady && !isScanning) {
       startScanning();
     }
   }, [stream, workerReady, isScanning, startScanning]);
-
   // Cleanup on unmount
   useEffect(() => {
     return () => {
@@ -343,7 +327,6 @@ export function OptimizedQRScanner({
       canvasPoolRef.current = [];
     };
   }, [stopScanning, stopCamera]);
-
   // Initialize camera
   const handleInitialize = useCallback(async () => {
     try {
@@ -353,29 +336,28 @@ export function OptimizedQRScanner({
       onScanError?.('Failed to initialize camera');
     }
   }, [requestCamera, onScanError]);
-
-  // Handle stop scanning
-  const handleStopScanning = () => {
+  // Handle stop scanning - memoized for performance
+  const handleStopScanning = useCallback(() => {
     stopScanning();
     stopCamera();
     onClose?.();
-  };
+  }, [stopScanning, stopCamera, onClose]);
 
+  // Handle upload click - memoized for performance
+  const handleUploadClick = useCallback(() => {
+    fileInputRef.current?.click();
+  }, []);
   // File upload handling
   const handleFileUpload = useCallback(async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file || !workerReady) return;
-
     if (!file.type.startsWith('image/')) {
       onScanError?.('Please select a valid image file');
       return;
     }
-
     setIsProcessingUpload(true);
-
     try {
       const img = new Image();
-      
       img.onload = async () => {
         try {
           const canvas = getCanvas();
@@ -384,13 +366,10 @@ export function OptimizedQRScanner({
             onScanError?.('Canvas not available for image processing');
             return;
           }
-
           canvas.width = img.width;
           canvas.height = img.height;
           context.drawImage(img, 0, 0);
-
           const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
-          
           const result = await scanQR(imageData, { 
             inversionAttempts: 'attemptBoth',
             locateOptions: {
@@ -399,7 +378,6 @@ export function OptimizedQRScanner({
               centerROI: false
             }
           });
-
           if (result.qrCode) {
             setLastScannedData(result.qrCode.data);
             triggerVibration();
@@ -408,7 +386,6 @@ export function OptimizedQRScanner({
           } else {
             onScanError?.('No QR code found in the uploaded image');
           }
-
           returnCanvas(canvas);
         } catch (error) {
           console.error('QR code processing error:', error);
@@ -417,12 +394,10 @@ export function OptimizedQRScanner({
           setIsProcessingUpload(false);
         }
       };
-
       img.onerror = () => {
         onScanError?.('Failed to load the uploaded image');
         setIsProcessingUpload(false);
       };
-
       const reader = new FileReader();
       reader.onload = (e) => {
         if (e.target?.result) {
@@ -435,12 +410,10 @@ export function OptimizedQRScanner({
       onScanError?.('Failed to process the uploaded file');
       setIsProcessingUpload(false);
     }
-
     if (event.target) {
       event.target.value = '';
     }
   }, [workerReady, onScanSuccess, onScanError, scanQR, getCanvas, returnCanvas, triggerVibration, triggerSound]);
-
   if (!isSupported) {
     return (
       <div className={`flex flex-col items-center justify-center p-8 bg-gray-100 rounded-lg border border-gray-300 ${className}`}>
@@ -450,7 +423,7 @@ export function OptimizedQRScanner({
         </p>
         <div className="flex gap-3">
           <Button
-            onClick={() => fileInputRef.current?.click()}
+            onClick={handleUploadClick}
             disabled={isProcessingUpload || !workerReady}
             className="bg-transparent hover:bg-white/20 text-white p-3 rounded-xl shadow-lg border border-white/30 backdrop-blur-sm"
             size="icon"
@@ -463,7 +436,6 @@ export function OptimizedQRScanner({
           </Button>
           <Button onClick={onClose} variant="outline">Close</Button>
         </div>
-        
         <input
           ref={fileInputRef}
           type="file"
@@ -475,7 +447,6 @@ export function OptimizedQRScanner({
       </div>
     );
   }
-
   return (
     <div className={`relative bg-black rounded-2xl overflow-hidden ${className}`}>
       {/* Video Preview */}
@@ -486,29 +457,23 @@ export function OptimizedQRScanner({
           playsInline
           muted
           className="w-full h-full object-cover"
-          style={{ minHeight: '400px', maxHeight: '600px' }}
+          style={videoStyle}
         />
-        
         {/* Enhanced Scanning Overlay */}
         <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
           <div className="relative">
             {/* Transparent scanning frame */}
             <div 
               className="relative transition-all duration-500 ease-in-out"
-              style={{
-                width: '300px',
-                height: '300px',
-              }}
+              style={scanFrameStyle}
             >
               {/* Subtle background overlay */}
               <div className="absolute inset-0 border border-white/20 rounded-3xl"></div>
-              
               {/* Corner brackets - transparent with white borders */}
               <div className="absolute -top-2 -left-2 w-12 h-12 border-l-2 border-t-2 border-gray-300 rounded-tl-3xl transition-all duration-500"></div>
               <div className="absolute -top-2 -right-2 w-12 h-12 border-r-2 border-t-2 border-gray-300 rounded-tr-3xl transition-all duration-500"></div>
               <div className="absolute -bottom-2 -left-2 w-12 h-12 border-l-2 border-b-2 border-gray-300 rounded-bl-3xl transition-all duration-500"></div>
               <div className="absolute -bottom-2 -right-2 w-12 h-12 border-r-2 border-b-2 border-gray-300 rounded-br-3xl transition-all duration-500"></div>
-              
               {/* Confidence indicator - transparent background */}
               {scanConfidence > 0 && (
                 <div className="absolute -top-12 left-1/2 transform -translate-x-1/2">
@@ -520,24 +485,18 @@ export function OptimizedQRScanner({
                   </div>
                 </div>
               )}
-              
               {/* Scanning beam - transparent */}
               {isScanning && (
                 <div className="absolute inset-4">
                   <div className="relative w-full h-full rounded-2xl overflow-hidden">
                     <div 
                       className="absolute left-0 right-0 h-0.5 opacity-60 animate-bounce"
-                      style={{ 
-                        top: '50%',
-                        background: 'linear-gradient(90deg, transparent, rgba(156,163,175,0.8), transparent)',
-                        boxShadow: '0 0 10px rgba(156,163,175,0.3)'
-                      }}
+                      style={scanBeamStyle}
                     ></div>
                   </div>
                 </div>
               )}
             </div>
-            
             {/* Status and statistics */}
             <div className="mt-4 text-center space-y-1">
               <p className="text-white text-sm font-medium">
@@ -552,14 +511,13 @@ export function OptimizedQRScanner({
             </div>
           </div>
         </div>
-
         {/* Control buttons overlay - Only show when camera stream is available */}
         {stream && (
           <>
             {/* Upload button - bottom right */}
             <div className="absolute bottom-4 right-4">
               <Button
-                onClick={() => fileInputRef.current?.click()}
+                onClick={handleUploadClick}
                 disabled={isProcessingUpload || !workerReady}
                 className="bg-transparent hover:bg-white/20 text-white p-3 rounded-xl shadow-lg border border-white/30 backdrop-blur-sm"
                 size="icon"
@@ -571,7 +529,6 @@ export function OptimizedQRScanner({
                 )}
               </Button>
             </div>
-            
             {/* Close button - top right */}
             <div className="absolute top-4 right-4">
               <Button
@@ -587,7 +544,6 @@ export function OptimizedQRScanner({
           </>
         )}
       </div>
-
       {/* Error Display */}
       {(cameraError || workerError) && (
         <div className="absolute top-4 left-4 right-4 bg-black/80 text-white p-3 rounded-lg">
@@ -595,7 +551,6 @@ export function OptimizedQRScanner({
           <p className="text-xs">{cameraError?.message || workerError}</p>
         </div>
       )}
-
       {/* Loading State */}
       {(isLoading || !workerReady || isProcessingUpload) && (
         <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
@@ -609,10 +564,8 @@ export function OptimizedQRScanner({
           </div>
         </div>
       )}
-
       {/* Hidden canvas for image processing */}
       <canvas ref={canvasRef} className="hidden" />
-      
       {/* Hidden file input for upload */}
       <input
         ref={fileInputRef}
@@ -624,4 +577,8 @@ export function OptimizedQRScanner({
       />
     </div>
   );
-}
+};
+
+// Export memoized component for performance optimization
+export const OptimizedQRScanner = memo(OptimizedQRScannerComponent);
+export default OptimizedQRScanner;

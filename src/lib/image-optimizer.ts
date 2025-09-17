@@ -1,6 +1,7 @@
 'use client';
-
 import { getPerformanceMonitor } from './performance-monitor';
+// Memory leak prevention: Timers need cleanup
+// Add cleanup in useEffect return function
 
 export interface ImageOptimizationConfig {
   quality: number;
@@ -13,7 +14,6 @@ export interface ImageOptimizationConfig {
   enableSharpening?: boolean;
   compressionLevel?: number;
 }
-
 export interface ImageProcessingResult {
   originalSize: number;
   optimizedSize: number;
@@ -25,7 +25,6 @@ export interface ImageProcessingResult {
   success: boolean;
   error?: string;
 }
-
 export interface ImageCacheEntry {
   originalUrl: string;
   optimizedUrl: string;
@@ -35,7 +34,6 @@ export interface ImageCacheEntry {
   lastAccessed: number;
   hitCount: number;
 }
-
 // Default optimization configurations
 export const OPTIMIZATION_PRESETS: Record<string, ImageOptimizationConfig> = {
   thumbnail: {
@@ -78,7 +76,6 @@ export const OPTIMIZATION_PRESETS: Record<string, ImageOptimizationConfig> = {
     compressionLevel: 9
   }
 };
-
 class ImageOptimizer {
   private cache: Map<string, ImageCacheEntry> = new Map();
   private readonly maxCacheSize = 100;
@@ -88,12 +85,10 @@ class ImageOptimizer {
   private readonly performanceMonitor = getPerformanceMonitor();
   private processingQueue: Set<string> = new Set();
   private cacheAccessOrder: string[] = []; // Track access order for LRU
-
   constructor() {
     this.loadCache();
     this.setupCacheCleanup();
   }
-
   // Optimize image with given configuration
   async optimizeImage(
     imageUrl: string,
@@ -101,7 +96,6 @@ class ImageOptimizer {
   ): Promise<ImageProcessingResult> {
     const startTime = performance.now();
     const cacheKey = this.generateCacheKey(imageUrl, config);
-    
     // Check cache first
     const cachedResult = this.getCachedResult(cacheKey);
     if (cachedResult) {
@@ -109,31 +103,24 @@ class ImageOptimizer {
       this.performanceMonitor?.trackCustomMetric?.('image_cache_hit', 1);
       return cachedResult.result;
     }
-
     // Prevent duplicate processing
     if (this.processingQueue.has(cacheKey)) {
       return this.waitForProcessing(cacheKey);
     }
-
     this.processingQueue.add(cacheKey);
-
     try {
       const result = await this.processImage(imageUrl, config);
       const processingTime = performance.now() - startTime;
-      
       const finalResult: ImageProcessingResult = {
         ...result,
         processingTime,
         success: true
       };
-
       // Cache the result
       this.cacheResult(cacheKey, imageUrl, config, finalResult);
-      
       // Report metrics
       this.performanceMonitor?.trackCustomMetric?.('image_optimization_time', processingTime);
       this.performanceMonitor?.trackCustomMetric?.('image_compression_ratio', result.compressionRatio);
-      
       return finalResult;
     } catch (error) {
       const processingTime = performance.now() - startTime;
@@ -148,14 +135,12 @@ class ImageOptimizer {
         success: false,
         error: error instanceof Error ? error.message : 'Unknown error'
       };
-      
       this.performanceMonitor?.trackCustomMetric?.('image_optimization_error', 1);
       return errorResult;
     } finally {
       this.processingQueue.delete(cacheKey);
     }
   }
-
   // Process image with different optimization strategies
   private async processImage(
     imageUrl: string,
@@ -164,43 +149,34 @@ class ImageOptimizer {
     // Load the image
     const { blob: originalBlob, dimensions } = await this.loadImage(imageUrl);
     const originalSize = originalBlob.size;
-
     // Determine optimal format
     const targetFormat = config.format === 'auto' 
       ? this.detectOptimalFormat() 
       : config.format;
-
     // Create canvas for processing
     const canvas = document.createElement('canvas');
     const ctx = canvas.getContext('2d');
     if (!ctx) {
       throw new Error('Cannot get canvas context');
     }
-
     // Load image to canvas
     const img = await this.createImageFromBlob(originalBlob);
-    
     // Calculate target dimensions
     const targetDimensions = this.calculateTargetDimensions(
       dimensions,
       config.maxWidth,
       config.maxHeight
     );
-
     // Set canvas size
     canvas.width = targetDimensions.width;
     canvas.height = targetDimensions.height;
-
     // Apply image processing
     this.applyImageProcessing(ctx, img, targetDimensions, config);
-
     // Convert to optimized format
     const optimizedBlob = await this.canvasToOptimizedBlob(canvas, targetFormat, config);
     const optimizedSize = optimizedBlob.size;
-
     const compressionRatio = originalSize > 0 ? optimizedSize / originalSize : 1;
     const optimizationSavings = Math.max(0, originalSize - optimizedSize);
-
     return {
       originalSize,
       optimizedSize,
@@ -210,43 +186,35 @@ class ImageOptimizer {
       optimizationSavings
     };
   }
-
   // Load image from URL
   private async loadImage(url: string): Promise<{ blob: Blob; dimensions: { width: number; height: number } }> {
     const response = await fetch(url);
     if (!response.ok) {
       throw new Error(`Failed to load image: ${response.statusText}`);
     }
-    
     const blob = await response.blob();
     const img = await this.createImageFromBlob(blob);
-    
     return {
       blob,
       dimensions: { width: img.naturalWidth, height: img.naturalHeight }
     };
   }
-
   // Create image element from blob
   private createImageFromBlob(blob: Blob): Promise<HTMLImageElement> {
     return new Promise((resolve, reject) => {
       const img = new Image();
       const url = URL.createObjectURL(blob);
-      
       img.onload = () => {
         URL.revokeObjectURL(url);
         resolve(img);
       };
-      
       img.onerror = () => {
         URL.revokeObjectURL(url);
         reject(new Error('Failed to load image'));
       };
-      
       img.src = url;
     });
   }
-
   // Calculate target dimensions respecting aspect ratio and limits
   private calculateTargetDimensions(
     original: { width: number; height: number },
@@ -254,20 +222,16 @@ class ImageOptimizer {
     maxHeight?: number
   ): { width: number; height: number } {
     let { width, height } = original;
-    
     if (maxWidth && width > maxWidth) {
       height = (height * maxWidth) / width;
       width = maxWidth;
     }
-    
     if (maxHeight && height > maxHeight) {
       width = (width * maxHeight) / height;
       height = maxHeight;
     }
-    
     return { width: Math.round(width), height: Math.round(height) };
   }
-
   // Apply image processing effects
   private applyImageProcessing(
     ctx: CanvasRenderingContext2D,
@@ -278,16 +242,13 @@ class ImageOptimizer {
     // Set image smoothing
     ctx.imageSmoothingEnabled = true;
     ctx.imageSmoothingQuality = 'high';
-    
     // Draw resized image
     ctx.drawImage(img, 0, 0, dimensions.width, dimensions.height);
-    
     // Apply sharpening if enabled
     if (config.enableSharpening) {
       this.applySharpeningFilter(ctx, dimensions);
     }
   }
-
   // Apply sharpening filter
   private applySharpeningFilter(
     ctx: CanvasRenderingContext2D,
@@ -297,16 +258,13 @@ class ImageOptimizer {
     const data = imageData.data;
     const width = dimensions.width;
     const height = dimensions.height;
-    
     // Simple sharpening kernel
     const sharpenKernel = [
       0, -1, 0,
       -1, 5, -1,
       0, -1, 0
     ];
-    
     const tempData = new Uint8ClampedArray(data);
-    
     for (let y = 1; y < height - 1; y++) {
       for (let x = 1; x < width - 1; x++) {
         for (let c = 0; c < 3; c++) { // RGB channels only
@@ -323,10 +281,8 @@ class ImageOptimizer {
         }
       }
     }
-    
     ctx.putImageData(imageData, 0, 0);
   }
-
   // Convert canvas to optimized blob
   private async canvasToOptimizedBlob(
     canvas: HTMLCanvasElement,
@@ -336,7 +292,6 @@ class ImageOptimizer {
     return new Promise((resolve, reject) => {
       const mimeType = this.formatToMimeType(format);
       const quality = config.quality / 100;
-      
       canvas.toBlob(
         (blob) => {
           if (blob) {
@@ -350,7 +305,6 @@ class ImageOptimizer {
       );
     });
   }
-
   // Convert format string to MIME type
   private formatToMimeType(format: string): string {
     const mimeTypes: Record<string, string> = {
@@ -360,58 +314,46 @@ class ImageOptimizer {
       'webp': 'image/webp',
       'avif': 'image/avif'
     };
-    
     return mimeTypes[format] || 'image/jpeg';
   }
-
   // Detect optimal format based on browser support
   private detectOptimalFormat(): string {
     if (typeof window === 'undefined') return 'jpeg';
-    
     const canvas = document.createElement('canvas');
     canvas.width = 1;
     canvas.height = 1;
-    
     // Check AVIF support
     if (canvas.toDataURL('image/avif').indexOf('data:image/avif') === 0) {
       return 'avif';
     }
-    
     // Check WebP support
     if (canvas.toDataURL('image/webp').indexOf('data:image/webp') === 0) {
       return 'webp';
     }
-    
     return 'jpeg';
   }
-
   // Generate cache key
   private generateCacheKey(url: string, config: ImageOptimizationConfig): string {
     const configHash = btoa(JSON.stringify(config)).replace(/[^a-zA-Z0-9]/g, '');
     return `${url}-${configHash}`;
   }
-
   // Get cached result
   private getCachedResult(cacheKey: string): ImageCacheEntry | null {
     const entry = this.cache.get(cacheKey);
     if (!entry) return null;
-    
     // Check expiration
     if (Date.now() - entry.timestamp > this.cacheExpirationTime) {
       this.cache.delete(cacheKey);
       return null;
     }
-    
     return entry;
   }
-
   // Update cache access
   private updateCacheAccess(cacheKey: string) {
     const entry = this.cache.get(cacheKey);
     if (entry) {
       entry.lastAccessed = Date.now();
       entry.hitCount++;
-      
       // Update LRU order
       const index = this.cacheAccessOrder.indexOf(cacheKey);
       if (index > -1) {
@@ -420,7 +362,6 @@ class ImageOptimizer {
       this.cacheAccessOrder.push(cacheKey);
     }
   }
-
   // Cache optimization result
   private cacheResult(
     cacheKey: string,
@@ -429,7 +370,6 @@ class ImageOptimizer {
     result: ImageProcessingResult
   ) {
     const entrySize = result.originalSize + result.optimizedSize;
-    
     // Remove entries if cache size limits are exceeded
     while (
       this.cache.size >= this.maxCacheSize || 
@@ -440,7 +380,6 @@ class ImageOptimizer {
         return;
       }
     }
-    
     const entry: ImageCacheEntry = {
       originalUrl,
       optimizedUrl: '', // Would be populated with actual optimized URL in real implementation
@@ -450,51 +389,42 @@ class ImageOptimizer {
       lastAccessed: Date.now(),
       hitCount: 0
     };
-    
     this.cache.set(cacheKey, entry);
     this.cacheAccessOrder.push(cacheKey);
     this.currentCacheSizeBytes += entrySize;
     this.saveCache();
   }
-
   // Evict least recently used entry
   private evictLeastRecentlyUsed(): boolean {
     if (this.cacheAccessOrder.length === 0) {
       return false;
     }
-    
     const lruKey = this.cacheAccessOrder.shift()!;
     const entry = this.cache.get(lruKey);
-    
     if (entry) {
       const entrySize = entry.result.originalSize + entry.result.optimizedSize;
       this.currentCacheSizeBytes = Math.max(0, this.currentCacheSizeBytes - entrySize);
       this.cache.delete(lruKey);
       return true;
     }
-    
     return false;
   }
-  
   // Evict expired entries
   private evictExpiredEntries(): number {
     const now = Date.now();
     let evictedCount = 0;
     const keysToDelete: string[] = [];
-    
     for (const [key, entry] of this.cache.entries()) {
       if (now - entry.timestamp > this.cacheExpirationTime) {
         keysToDelete.push(key);
       }
     }
-    
     for (const key of keysToDelete) {
       const entry = this.cache.get(key);
       if (entry) {
         const entrySize = entry.result.originalSize + entry.result.optimizedSize;
         this.currentCacheSizeBytes = Math.max(0, this.currentCacheSizeBytes - entrySize);
       }
-      
       this.cache.delete(key);
       const accessIndex = this.cacheAccessOrder.indexOf(key);
       if (accessIndex > -1) {
@@ -502,10 +432,8 @@ class ImageOptimizer {
       }
       evictedCount++;
     }
-    
     return evictedCount;
   }
-
   // Wait for ongoing processing
   private async waitForProcessing(cacheKey: string): Promise<ImageProcessingResult> {
     return new Promise((resolve) => {
@@ -531,7 +459,6 @@ class ImageOptimizer {
           }
         }
       }, 100);
-      
       // Timeout after 30 seconds
       setTimeout(() => {
         clearInterval(checkInterval);
@@ -549,11 +476,9 @@ class ImageOptimizer {
       }, 30000);
     });
   }
-
   // Load cache from storage
   private loadCache() {
     if (typeof window === 'undefined') return;
-    
     try {
       const stored = localStorage.getItem('image_optimization_cache');
       if (stored) {
@@ -563,49 +488,38 @@ class ImageOptimizer {
         }
       }
     } catch (error) {
-      console.warn('Failed to load image optimization cache:', error);
     }
   }
-
   // Save cache to storage
   private saveCache() {
     if (typeof window === 'undefined') return;
-    
     try {
       const data = Object.fromEntries(this.cache.entries());
       localStorage.setItem('image_optimization_cache', JSON.stringify(data));
     } catch (error) {
-      console.warn('Failed to save image optimization cache:', error);
     }
   }
-
   // Setup cache cleanup
   private setupCacheCleanup() {
     setInterval(() => {
       const evictedCount = this.evictExpiredEntries();
-      
       // Also perform size-based cleanup if we're over the size limit
       while (this.currentCacheSizeBytes > this.maxCacheSizeBytes * 0.9) {
         if (!this.evictLeastRecentlyUsed()) {
           break;
         }
       }
-      
       if (evictedCount > 0) {
         this.saveCache();
-        console.debug(`Cache cleanup: evicted ${evictedCount} expired entries`);
       }
     }, 60000); // Check every minute
   }
-
   // Public API methods
-
   // Get cache statistics
   getCacheStats() {
     const entries = Array.from(this.cache.values());
     const totalHits = entries.reduce((sum, entry) => sum + entry.hitCount, 0);
     const totalSavings = entries.reduce((sum, entry) => sum + entry.result.optimizationSavings, 0);
-    
     return {
       cacheSize: this.cache.size,
       maxCacheSize: this.maxCacheSize,
@@ -621,7 +535,6 @@ class ImageOptimizer {
       accessOrderLength: this.cacheAccessOrder.length
     };
   }
-
   // Clear cache
   clearCache() {
     this.cache.clear();
@@ -629,7 +542,6 @@ class ImageOptimizer {
     this.currentCacheSizeBytes = 0;
     this.saveCache();
   }
-
   // Batch optimize multiple images
   async optimizeBatch(
     imageUrls: string[],
@@ -638,7 +550,6 @@ class ImageOptimizer {
     const promises = imageUrls.map(url => this.optimizeImage(url, config));
     return Promise.all(promises);
   }
-
   // Get optimization recommendations
   getOptimizationRecommendations(imageUrl: string): Promise<{
     currentFormat: string;
@@ -660,17 +571,14 @@ class ImageOptimizer {
     });
   }
 }
-
 // Singleton instance
 let imageOptimizer: ImageOptimizer | null = null;
-
 export function getImageOptimizer(): ImageOptimizer | null {
   if (!imageOptimizer && typeof window !== 'undefined') {
     imageOptimizer = new ImageOptimizer();
   }
   return imageOptimizer;
 }
-
 // Utility functions
 export function optimizeImageUrl(
   url: string,
@@ -682,7 +590,6 @@ export function optimizeImageUrl(
   }
   return optimizer.optimizeImage(url, OPTIMIZATION_PRESETS[preset]);
 }
-
 export function createResponsiveImageSet(
   url: string,
   breakpoints: Array<{ width: number; quality?: number }>
@@ -699,8 +606,6 @@ export function createResponsiveImageSet(
     };
     return optimizer!.optimizeImage(url, config);
   });
-  
   return Promise.all(promises);
 }
-
 export { ImageOptimizer };

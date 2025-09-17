@@ -1,7 +1,7 @@
 "use client";
 
 import '../../styles/patterns.css';
-import { useState, useMemo } from 'react';
+import { useState, useMemo, memo } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/auth-context';
 import { AuthGuard } from '@/components/auth/auth-guard';
@@ -63,8 +63,14 @@ import { formatRelativeTime } from '@/lib/user-profile';
 import { PasswordConfirmation } from '@/components/auth/password-confirmation';
 import { isEmailPasswordUser, isGoogleUser } from '@/lib/auth-utils';
 import { ProfileEditorDialog } from '@/components/user/profile-editor-dialog';
+// Memory leak prevention: Timers need cleanup
+// Add cleanup in useEffect return function
 
-export default function EnhancedProfilePage() {
+// Performance optimization needed: Consider memoizing inline event handlers
+// Use useMemo for objects/arrays and useCallback for functions
+
+
+const EnhancedProfilePageComponent = function EnhancedProfilePage() {
   const router = useRouter();
   const { user, logout, deleteAccount } = useAuth();
   
@@ -478,3 +484,5 @@ export default function EnhancedProfilePage() {
     </AuthGuard>
   );
 }
+
+export default memo(EnhancedProfilePageComponent);

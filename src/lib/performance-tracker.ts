@@ -1,5 +1,4 @@
 'use client';
-
 // Extend the Navigator interface to include connection
 declare global {
   interface Navigator {
@@ -8,17 +7,14 @@ declare global {
     };
   }
 }
-
 // Extend PerformanceEntry for specific entry types
 interface LayoutShiftEntry extends PerformanceEntry {
   value: number;
   hadRecentInput: boolean;
 }
-
 interface FirstInputEntry extends PerformanceEntry {
   processingStart: number;
 }
-
 interface WebVital {
   name: string;
   value: number;
@@ -26,7 +22,6 @@ interface WebVital {
   entries: PerformanceEntry[];
   id: string;
 }
-
 interface PerformanceData {
   url: string;
   timestamp: number;
@@ -34,18 +29,15 @@ interface PerformanceData {
   connection?: string;
   vitals: WebVital[];
 }
-
 interface IPerformanceTracker {
   getPerformanceData(): PerformanceData;
   disable(): void;
   enable(): void;
   checkBudget(budgets: Record<string, number>): { passed: boolean; violations: string[] };
 }
-
 class PerformanceTracker implements IPerformanceTracker {
   private data: PerformanceData;
   private isEnabled: boolean = true;
-
   constructor() {
     this.data = {
       url: typeof window !== 'undefined' ? window.location.href : '',
@@ -54,20 +46,17 @@ class PerformanceTracker implements IPerformanceTracker {
       connection: this.getConnectionType(),
       vitals: []
     };
-
     if (typeof window !== 'undefined') {
       this.setupWebVitalsTracking();
       this.trackPageLoadMetrics();
     }
   }
-
   private getConnectionType(): string {
     if (typeof navigator !== 'undefined' && navigator.connection) {
       return navigator.connection.effectiveType || 'unknown';
     }
     return 'unknown';
   }
-
   private setupWebVitalsTracking() {
     // Track Core Web Vitals
     if ('web-vital' in window) {
@@ -78,7 +67,6 @@ class PerformanceTracker implements IPerformanceTracker {
       this.trackCLS();
     }
   }
-
   private trackLCP() {
     // Largest Contentful Paint
     if ('PerformanceObserver' in window) {
@@ -86,7 +74,6 @@ class PerformanceTracker implements IPerformanceTracker {
         const observer = new PerformanceObserver((list) => {
           const entries = list.getEntries();
           const lastEntry = entries[entries.length - 1];
-          
           this.addVital({
             name: 'LCP',
             value: lastEntry.startTime,
@@ -95,14 +82,11 @@ class PerformanceTracker implements IPerformanceTracker {
             id: `lcp-${Date.now()}`
           });
         });
-
         observer.observe({ entryTypes: ['largest-contentful-paint'] });
       } catch (error) {
-        console.warn('LCP tracking failed:', error);
       }
     }
   }
-
   private trackFID() {
     // First Input Delay
     if ('PerformanceObserver' in window) {
@@ -119,14 +103,11 @@ class PerformanceTracker implements IPerformanceTracker {
             });
           });
         });
-
         observer.observe({ entryTypes: ['first-input'] });
       } catch (error) {
-        console.warn('FID tracking failed:', error);
       }
     }
   }
-
   private trackCLS() {
     // Cumulative Layout Shift
     if ('PerformanceObserver' in window) {
@@ -137,7 +118,6 @@ class PerformanceTracker implements IPerformanceTracker {
             const clsEntry = entry as LayoutShiftEntry;
             if (!clsEntry.hadRecentInput) {
               clsValue += clsEntry.value;
-
               this.addVital({
                 name: 'CLS',
                 value: clsValue,
@@ -148,20 +128,16 @@ class PerformanceTracker implements IPerformanceTracker {
             }
           });
         });
-
         observer.observe({ entryTypes: ['layout-shift'] });
       } catch (error) {
-        console.warn('CLS tracking failed:', error);
       }
     }
   }
-
   private trackPageLoadMetrics() {
     if (typeof window !== 'undefined' && window.performance) {
       window.addEventListener('load', () => {
         setTimeout(() => {
           const navigation = window.performance.getEntriesByType('navigation')[0] as PerformanceNavigationTiming;
-          
           if (navigation) {
             // DNS Lookup Time
             const dnsTime = navigation.domainLookupEnd - navigation.domainLookupStart;
@@ -172,7 +148,6 @@ class PerformanceTracker implements IPerformanceTracker {
               entries: [navigation],
               id: `dns-${Date.now()}`
             });
-
             // Time to First Byte
             const ttfb = navigation.responseStart - navigation.requestStart;
             this.addVital({
@@ -182,7 +157,6 @@ class PerformanceTracker implements IPerformanceTracker {
               entries: [navigation],
               id: `ttfb-${Date.now()}`
             });
-
             // DOM Content Loaded
             const dcl = navigation.domContentLoadedEventEnd - navigation.fetchStart;
             this.addVital({
@@ -192,7 +166,6 @@ class PerformanceTracker implements IPerformanceTracker {
               entries: [navigation],
               id: `dcl-${Date.now()}`
             });
-
             // Full Page Load
             const load = navigation.loadEventEnd - navigation.fetchStart;
             this.addVital({
@@ -207,19 +180,15 @@ class PerformanceTracker implements IPerformanceTracker {
       });
     }
   }
-
   private addVital(vital: WebVital) {
     if (!this.isEnabled) return;
-    
     this.data.vitals.push(vital);
     this.logVital(vital);
-    
     // Send to analytics if needed
     if (this.shouldSendAnalytics(vital)) {
       this.sendToAnalytics(vital);
     }
   }
-
   private logVital(vital: WebVital) {
     // Performance logging removed for production
     // Metrics are still tracked and available via getPerformanceData()
@@ -231,7 +200,6 @@ class PerformanceTracker implements IPerformanceTracker {
       );
     }
   }
-
   private getVitalColor(vital: WebVital): string {
     const thresholds = {
       LCP: { good: 2500, poor: 4000 },
@@ -242,21 +210,17 @@ class PerformanceTracker implements IPerformanceTracker {
       DCL: { good: 1500, poor: 3000 },
       LOAD: { good: 2000, poor: 4000 }
     };
-
     const threshold = thresholds[vital.name as keyof typeof thresholds];
     if (!threshold) return '#666';
-
     if (vital.value <= threshold.good) return '#0f5132'; // Good - green
     if (vital.value <= threshold.poor) return '#664d03'; // Needs improvement - yellow
     return '#842029'; // Poor - red
   }
-
   private shouldSendAnalytics(vital: WebVital): boolean {
     // Only send final values for some metrics
     const finalMetrics = ['LCP', 'LOAD', 'DCL'];
     return finalMetrics.includes(vital.name) || Math.random() < 0.1; // Sample 10%
   }
-
   private async sendToAnalytics(vital: WebVital) {
     try {
       // This would typically send to your analytics service
@@ -280,37 +244,30 @@ class PerformanceTracker implements IPerformanceTracker {
       // Fail silently for analytics
     }
   }
-
   public getPerformanceData(): PerformanceData {
     return { ...this.data };
   }
-
   public disable() {
     this.isEnabled = false;
   }
-
   public enable() {
     this.isEnabled = true;
   }
-
   // Performance budget checking
   public checkBudget(budgets: Record<string, number>): { passed: boolean; violations: string[] } {
     const violations: string[] = [];
-    
     this.data.vitals.forEach(vital => {
       const budget = budgets[vital.name];
       if (budget && vital.value > budget) {
         violations.push(`${vital.name}: ${Math.round(vital.value)}ms > ${budget}ms budget`);
       }
     });
-
     return {
       passed: violations.length === 0,
       violations
     };
   }
 }
-
 // Performance budgets (in milliseconds)
 export const DEFAULT_BUDGETS = {
   LCP: 2500,
@@ -321,10 +278,8 @@ export const DEFAULT_BUDGETS = {
   DCL: 1500,
   LOAD: 3000
 };
-
 // Singleton instance
 let performanceTracker: PerformanceTracker | null = null;
-
 export function getPerformanceTracker(): IPerformanceTracker {
   if (typeof window === 'undefined') {
     // Return a no-op tracker for SSR
@@ -335,12 +290,9 @@ export function getPerformanceTracker(): IPerformanceTracker {
       checkBudget: () => ({ passed: true, violations: [] })
     };
   }
-  
   if (!performanceTracker) {
     performanceTracker = new PerformanceTracker();
   }
-  
   return performanceTracker;
 }
-
 export { PerformanceTracker };

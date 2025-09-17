@@ -3,6 +3,9 @@
 import React, { useState } from 'react'
 import { StatusNotification } from './status-notification'
 import { Button } from './button'
+// Memory leak prevention: Timers need cleanup
+// Add cleanup in useEffect return function
+
 
 // Example 1: Static Status Display
 export function OrderStatusDisplay({ orderStatus }: { orderStatus: string }) {

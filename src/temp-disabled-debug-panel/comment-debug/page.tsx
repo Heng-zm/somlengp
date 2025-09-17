@@ -1,12 +1,18 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, memo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { AlertCircle, CheckCircle2, XCircle, User, MessageCircle } from 'lucide-react';
+// Memory leak prevention: Timers need cleanup
+// Add cleanup in useEffect return function
 
-export default function CommentDebugPage() {
+// Performance optimization needed: Consider memoizing inline event handlers
+// Use useMemo for objects/arrays and useCallback for functions
+
+
+const CommentDebugPageComponent = function CommentDebugPage() {
   const [testResults, setTestResults] = useState<Record<string, 'pending' | 'success' | 'error'>>({});
   const [errorMessages, setErrorMessages] = useState<Record<string, string>>({});
   
@@ -245,3 +251,6 @@ export default function CommentDebugPage() {
     </div>
   );
 }
+
+
+export default memo(CommentDebugPageComponent);

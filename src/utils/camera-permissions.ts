@@ -2,7 +2,6 @@
  * Camera Permission Utilities
  * Comprehensive functions for requesting and managing camera permissions
  */
-
 export interface CameraPermissionResult {
   success: boolean;
   stream?: MediaStream;
@@ -15,19 +14,16 @@ export interface CameraPermissionResult {
     camera: PermissionState;
   };
 }
-
 export interface CameraConstraints {
   video?: MediaTrackConstraints | boolean;
   audio?: boolean;
 }
-
 export interface CameraDeviceInfo {
   deviceId: string;
   label: string;
   kind: MediaDeviceKind;
   groupId: string;
 }
-
 /**
  * Check if the browser supports camera access
  */
@@ -36,14 +32,12 @@ export function isCameraSupported(): boolean {
   if (typeof window === 'undefined' || typeof navigator === 'undefined') {
     return false;
   }
-  
   return !!(
     navigator.mediaDevices &&
     typeof navigator.mediaDevices.getUserMedia === 'function' &&
     window.isSecureContext
   );
 }
-
 /**
  * Check current camera permission status
  */
@@ -53,15 +47,12 @@ export async function getCameraPermissionStatus(): Promise<PermissionState | nul
     if (typeof window === 'undefined' || typeof navigator === 'undefined' || !('permissions' in navigator)) {
       return null;
     }
-    
     const permission = await navigator.permissions.query({ name: 'camera' as PermissionName });
     return permission.state;
   } catch (error) {
-    console.warn('Could not query camera permission:', error);
     return null;
   }
 }
-
 /**
  * Get list of available camera devices
  */
@@ -71,7 +62,6 @@ export async function getCameraDevices(): Promise<CameraDeviceInfo[]> {
     if (typeof window === 'undefined' || typeof navigator === 'undefined' || !navigator.mediaDevices?.enumerateDevices) {
       return [];
     }
-
     const devices = await navigator.mediaDevices.enumerateDevices();
     return devices
       .filter(device => device.kind === 'videoinput')
@@ -86,7 +76,6 @@ export async function getCameraDevices(): Promise<CameraDeviceInfo[]> {
     return [];
   }
 }
-
 /**
  * Request camera permission and return stream
  */
@@ -104,14 +93,11 @@ export async function requestCameraPermission(
       }
     };
   }
-
   try {
     // Get current permission status
     const permissionStatus = await getCameraPermissionStatus();
-    
     // Request camera access
     const stream = await navigator.mediaDevices.getUserMedia(constraints);
-    
     return {
       success: true,
       stream,
@@ -121,7 +107,6 @@ export async function requestCameraPermission(
     };
   } catch (error) {
     const err = error as DOMException;
-    
     // Map specific error types to user-friendly messages
     const errorMap: Record<string, { message: string; code: string }> = {
       'NotAllowedError': {
@@ -149,12 +134,10 @@ export async function requestCameraPermission(
         code: 'SECURITY_ERROR'
       }
     };
-
     const errorInfo = errorMap[err.name] || {
       message: `Camera access failed: ${err.message}`,
       code: 'UNKNOWN_ERROR'
     };
-
     return {
       success: false,
       error: {
@@ -165,7 +148,6 @@ export async function requestCameraPermission(
     };
   }
 }
-
 /**
  * Request camera with specific device ID
  */
@@ -178,13 +160,11 @@ export async function requestCameraWithDevice(
     width: { ideal: 1280, min: 320 },
     height: { ideal: 720, min: 240 }
   };
-
   return requestCameraPermission({
     ...constraints,
     video: videoConstraints
   });
 }
-
 /**
  * Request camera with quality preferences
  */
@@ -199,32 +179,26 @@ export async function requestCameraWithQuality(
     high: { width: 1280, height: 720 },
     ultra: { width: 1920, height: 1080 }
   };
-
   const { width, height } = qualityMap[quality];
-  
   const videoConstraints: MediaTrackConstraints = {
     width: { ideal: width, min: 320 },
     height: { ideal: height, min: 240 },
     facingMode // Use provided facing mode (user for front, environment for back)
   };
-
   return requestCameraPermission({
     ...constraints,
     video: videoConstraints
   });
 }
-
 /**
  * Stop camera stream and release resources
  */
 export function stopCameraStream(stream: MediaStream | null): void {
   if (!stream) return;
-  
   stream.getTracks().forEach(track => {
     track.stop();
   });
 }
-
 /**
  * Get detailed camera capabilities
  */
@@ -234,24 +208,19 @@ export async function getCameraCapabilities(deviceId: string): Promise<MediaTrac
     if (typeof window === 'undefined' || typeof navigator === 'undefined' || !navigator.mediaDevices?.getUserMedia) {
       return null;
     }
-    
     const stream = await navigator.mediaDevices.getUserMedia({
       video: { deviceId: { exact: deviceId } }
     });
-    
     const videoTrack = stream.getVideoTracks()[0];
     const capabilities = videoTrack.getCapabilities();
-    
     // Clean up
     stopCameraStream(stream);
-    
     return capabilities;
   } catch (error) {
     console.error('Error getting camera capabilities:', error);
     return null;
   }
 }
-
 /**
  * Check if camera permission is permanently denied
  */
@@ -259,7 +228,6 @@ export async function isCameraPermissionDenied(): Promise<boolean> {
   const status = await getCameraPermissionStatus();
   return status === 'denied';
 }
-
 /**
  * Comprehensive camera permission check with detailed info
  */
@@ -274,14 +242,11 @@ export async function checkCameraPermissionDetails() {
     userAgent: typeof navigator !== 'undefined' ? navigator.userAgent : 'SSR',
     location: typeof window !== 'undefined' ? window.location.href : 'SSR'
   };
-
   if (result.supported) {
     result.devices = await getCameraDevices();
   }
-
   return result;
 }
-
 /**
  * Request back camera (rear-facing) specifically
  */
@@ -291,7 +256,6 @@ export async function requestBackCamera(
 ): Promise<CameraPermissionResult> {
   return requestCameraWithQuality(quality, constraints, 'environment');
 }
-
 /**
  * Request front camera (user-facing) specifically
  */
@@ -301,7 +265,6 @@ export async function requestFrontCamera(
 ): Promise<CameraPermissionResult> {
   return requestCameraWithQuality(quality, constraints, 'user');
 }
-
 /**
  * Get back camera devices
  * Note: Device labels may not be available without permission
@@ -320,7 +283,6 @@ export async function getBackCameraDevices(): Promise<CameraDeviceInfo[]> {
     );
   });
 }
-
 /**
  * Get front camera devices
  * Note: Device labels may not be available without permission
@@ -340,7 +302,6 @@ export async function getFrontCameraDevices(): Promise<CameraDeviceInfo[]> {
     );
   });
 }
-
 /**
  * Request back camera with fallback to any available camera
  */
@@ -354,9 +315,7 @@ export async function requestBackCameraWithFallback(
       return result;
     }
   } catch (error) {
-    console.warn('Back camera request failed, trying device enumeration');
   }
-
   // If facingMode fails, try to find back camera devices
   const backCameras = await getBackCameraDevices();
   for (const camera of backCameras) {
@@ -369,11 +328,9 @@ export async function requestBackCameraWithFallback(
       continue;
     }
   }
-
   // If no back camera found, try any available camera
   return requestCameraWithFallback();
 }
-
 /**
  * Request camera with fallback options
  */
@@ -392,7 +349,6 @@ export async function requestCameraWithFallback(
     // Last resort - basic constraints
     { video: { width: 320, height: 240 } }
   ];
-
   for (const constraints of fallbackConstraints) {
     try {
       const result = await requestCameraPermission(constraints);
@@ -404,11 +360,9 @@ export async function requestCameraWithFallback(
       continue;
     }
   }
-
   // If all fallbacks fail, return the last error
   return requestCameraPermission({ video: true });
 }
-
 /**
  * Switch between front and back cameras
  */
@@ -420,7 +374,6 @@ export async function switchCameraFacing(
   if (currentStream) {
     stopCameraStream(currentStream);
   }
-
   // Detect current facing mode from stream settings
   let currentFacingMode: 'user' | 'environment' = 'user';
   if (currentStream) {
@@ -430,14 +383,11 @@ export async function switchCameraFacing(
       currentFacingMode = (settings.facingMode as 'user' | 'environment') || 'user';
     }
   }
-
   // Switch to opposite facing mode
   const newFacingMode = currentFacingMode === 'user' ? 'environment' : 'user';
-  
   // Request camera with new facing mode
   return requestCameraWithQuality(quality, {}, newFacingMode);
 }
-
 /**
  * Request camera optimized for QR code scanning
  * Uses high resolution, back camera, and optimized constraints
@@ -481,13 +431,11 @@ export async function requestOptimizedCameraForQR(): Promise<CameraPermissionRes
       }
     }
   ];
-
   // Try QR-optimized constraints in order of preference
   for (const constraints of qrOptimizedConstraints) {
     try {
       const result = await requestCameraPermission(constraints);
       if (result.success) {
-        console.log('🎯 QR-optimized camera activated with constraints:', constraints.video);
         return result;
       }
     } catch (error) {
@@ -495,8 +443,6 @@ export async function requestOptimizedCameraForQR(): Promise<CameraPermissionRes
       continue;
     }
   }
-
   // Final fallback - any available camera
-  console.warn('⚠️ QR-optimized camera failed, falling back to standard back camera');
   return requestBackCameraWithFallback('high');
 }

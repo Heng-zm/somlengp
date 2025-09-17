@@ -1,6 +1,7 @@
 'use client';
 
-import React, { useState, useRef, useContext, useCallback } from 'react';
+import { memo } from 'react';
+import React, { useState, useRef, useContext, useCallback, useMemo, useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { Download, Copy, QrCode, Share2, Camera } from 'lucide-react';
@@ -16,8 +17,14 @@ import { FeaturePageLayout } from '@/layouts/feature-page-layout';
 import { QRScannerFAB } from '@/components/floating-action-button';
 import { QRScannerSheet } from '@/components/qr-scanner-sheet';
 import QRCodeLib from 'qrcode';
+// Memory leak prevention: Timers need cleanup
+// Add cleanup in useEffect return function
 
-export default function GenerateQRCodePage() {
+// Performance optimization needed: Consider memoizing inline styles, inline event handlers, dynamic classNames
+// Use useMemo for objects/arrays and useCallback for functions
+
+
+const GenerateQRCodePageComponent = function GenerateQRCodePage() {
   const [inputText, setInputText] = useState('');
   const [qrCodeUrl, setQrCodeUrl] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
@@ -34,6 +41,32 @@ export default function GenerateQRCodePage() {
   if (!langContext) {
     throw new Error('GenerateQRCodePage must be used within a LanguageProvider');
   }
+
+  // Memoized QR generation options
+  const qrOptions = useMemo(() => ({
+    errorCorrectionLevel: errorCorrectionLevel as 'L' | 'M' | 'Q' | 'H',
+    type: 'image/png' as const,
+    quality: 0.92,
+    margin: 1,
+    color: {
+      dark: foregroundColor,
+      light: backgroundColor,
+    },
+    width: size,
+  }), [errorCorrectionLevel, foregroundColor, backgroundColor, size]);
+
+  // Cleanup canvas on unmount
+  useEffect(() => {
+    return () => {
+      // Clean up canvas context
+      if (canvasRef.current) {
+        const ctx = canvasRef.current.getContext('2d');
+        if (ctx) {
+          ctx.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
+        }
+      }
+    };
+  }, []);
   
 
   const generateQRCode = useCallback(async () => {
@@ -45,24 +78,12 @@ export default function GenerateQRCodePage() {
     setIsGenerating(true);
     
     try {
-      const options = {
-        errorCorrectionLevel: errorCorrectionLevel as 'L' | 'M' | 'Q' | 'H',
-        type: 'image/png' as const,
-        quality: 0.92,
-        margin: 1,
-        color: {
-          dark: foregroundColor,
-          light: backgroundColor,
-        },
-        width: size,
-      };
-
-      const url = await QRCodeLib.toDataURL(inputText, options);
+      const url = await QRCodeLib.toDataURL(inputText, qrOptions);
       setQrCodeUrl(url);
       
       // Also generate on canvas for download
       if (canvasRef.current) {
-        await QRCodeLib.toCanvas(canvasRef.current, inputText, options);
+        await QRCodeLib.toCanvas(canvasRef.current, inputText, qrOptions);
       }
       
       // Open the sheet modal to show the QR code
@@ -75,9 +96,9 @@ export default function GenerateQRCodePage() {
     } finally {
       setIsGenerating(false);
     }
-  }, [inputText, errorCorrectionLevel, size, foregroundColor, backgroundColor]);
+  }, [inputText, qrOptions]);
 
-  const downloadQRCode = () => {
+  const downloadQRCode = useCallback(() => {
     if (!qrCodeUrl) return;
     
     const link = document.createElement('a');
@@ -88,9 +109,9 @@ export default function GenerateQRCodePage() {
     document.body.removeChild(link);
     
     showSuccessToast("Download Complete!");
-  };
+  }, [qrCodeUrl]);
 
-  const copyToClipboard = async () => {
+  const copyToClipboard = useCallback(async () => {
     if (!qrCodeUrl) return;
     
     try {
@@ -105,9 +126,9 @@ export default function GenerateQRCodePage() {
       console.error('Failed to copy QR code:', error);
       showErrorToast("Copy Failed");
     }
-  };
+  }, [qrCodeUrl]);
 
-  const shareQRCode = async () => {
+  const shareQRCode = useCallback(async () => {
     if (!qrCodeUrl || !navigator.share) {
       showWarningToast("Share Unavailable");
       return;
@@ -127,15 +148,35 @@ export default function GenerateQRCodePage() {
       console.error('Error sharing QR code:', error);
       showErrorToast("Share Failed");
     }
-  };
+  }, [qrCodeUrl, inputText]);
 
-  const handleScanSuccess = (data: string) => {
+  const handleScanSuccess = useCallback((data: string) => {
     setInputText(data);
     setIsScannerOpen(false);
     setTimeout(() => {
       generateQRCode();
     }, 500);
-  };
+  }, [generateQRCode]);
+
+  // Memoized color reset function
+  const resetColors = useCallback(() => {
+    setForegroundColor('#000000');
+    setBackgroundColor('#ffffff');
+  }, []);
+
+  // Memoized foreground color setter functions
+  const setForegroundColorFunctions = useMemo(() => 
+    ['#000000', '#1f2937', '#374151', '#4b5563', '#6b7280', '#9ca3af'].map(color => 
+      () => setForegroundColor(color)
+    ), []
+  );
+
+  // Memoized background color setter functions  
+  const setBackgroundColorFunctions = useMemo(() => 
+    ['#ffffff', '#f8fafc', '#f3f4f6', '#e5e7eb', '#d1d5db', '#9ca3af'].map(color => 
+      () => setBackgroundColor(color)
+    ), []
+  );
 
   return (
     <FeaturePageLayout title="QR Code Generator">
@@ -233,11 +274,11 @@ export default function GenerateQRCodePage() {
                         />
                       </div>
                       <div className="flex gap-2 justify-center">
-                        {['#000000', '#1f2937', '#374151', '#4b5563', '#6b7280', '#9ca3af'].map((color) => (
+                        {['#000000', '#1f2937', '#374151', '#4b5563', '#6b7280', '#9ca3af'].map((color, index) => (
                           <button
                             key={color}
                             type="button"
-                            onClick={() => setForegroundColor(color)}
+                            onClick={setForegroundColorFunctions[index]}
                             className={`w-8 h-8 rounded-full border-2 transition-all duration-200 hover:scale-110 ${
                               foregroundColor === color ? 'border-gray-800 shadow-lg scale-110' : 'border-gray-300'
                             }`}
@@ -264,11 +305,11 @@ export default function GenerateQRCodePage() {
                         />
                       </div>
                       <div className="flex gap-2 justify-center">
-                        {['#ffffff', '#f8fafc', '#f3f4f6', '#e5e7eb', '#d1d5db', '#9ca3af'].map((color) => (
+                        {['#ffffff', '#f8fafc', '#f3f4f6', '#e5e7eb', '#d1d5db', '#9ca3af'].map((color, index) => (
                           <button
                             key={color}
                             type="button"
-                            onClick={() => setBackgroundColor(color)}
+                            onClick={setBackgroundColorFunctions[index]}
                             className={`w-8 h-8 rounded-full border-2 transition-all duration-200 hover:scale-110 ${
                               backgroundColor === color ? 'border-gray-800 shadow-lg scale-110' : 'border-gray-300'
                             }`}
@@ -301,10 +342,7 @@ export default function GenerateQRCodePage() {
                       </div>
                       <button
                         type="button"
-                        onClick={() => {
-                          setForegroundColor('#000000');
-                          setBackgroundColor('#ffffff');
-                        }}
+                        onClick={resetColors}
                         className="text-xs text-gray-600 hover:text-gray-800 font-medium px-3 py-1 rounded-lg hover:bg-gray-50 transition-colors duration-200"
                       >
                         Reset
@@ -611,3 +649,6 @@ export default function GenerateQRCodePage() {
     </FeaturePageLayout>
   );
 }
+
+
+export default memo(GenerateQRCodePageComponent);

@@ -1,15 +1,18 @@
 'use client'
 
 import Link from 'next/link'
-import { useState } from 'react'
-import { Mail, Phone, MapPin, Clock, Send, CheckCircle } from 'lucide-react'
+import { useState, memo } from 'react';
+import { Mail, Phone, MapPin, Clock, Send, CheckCircle } from 'lucide-react' // TODO: Consider importing icons individually for better tree shaking
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Label } from '@/components/ui/label'
+// Memory leak prevention: Timers need cleanup
+// Add cleanup in useEffect return function
 
-export default function ContactPage() {
+
+const ContactPageComponent = function ContactPage() {
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -341,3 +344,6 @@ export default function ContactPage() {
     </div>
   )
 }
+
+
+export default memo(ContactPageComponent);

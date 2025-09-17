@@ -160,6 +160,9 @@ export function PdfTranscriptPage() {
     }
     // Lazy load for performance
     const { exportTranscript: exportFn } = await import('@/lib/client-export');
+// Performance optimization needed: Consider memoizing inline event handlers
+// Use useMemo for objects/arrays and useCallback for functions
+
     exportFn(transcribedText, exportFormat as 'docx' | 'txt', [], toast);
     setIsExportSheetOpen(false);
   };

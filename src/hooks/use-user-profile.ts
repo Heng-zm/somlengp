@@ -1,6 +1,9 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/auth-context';
 import { 
+// Memory leak prevention: Timers need cleanup
+// Add cleanup in useEffect return function
+
   formatDate, 
   formatRelativeTime
 } from '@/lib/user-profile';

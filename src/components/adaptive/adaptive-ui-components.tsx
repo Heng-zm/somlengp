@@ -5,7 +5,7 @@ import { useEnhancedProgressiveAccessibility } from '@/lib/progressive-enhanceme
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import { ChevronDown, Sun, Moon, Type, Contrast, Zap, Smartphone, Wifi, WifiOff } from 'lucide-react';
+import { ChevronDown, Sun, Moon, Type, Contrast, Zap, Smartphone, Wifi, WifiOff } from 'lucide-react' // TODO: Consider importing icons individually for better tree shaking;
 
 // Adaptive Container Component
 export interface AdaptiveContainerProps {
@@ -333,7 +333,7 @@ const AdaptiveAnimation: React.FC<AdaptiveAnimationProps> = ({
 
     const canAnimate = !!(adaptiveSettings?.animations && 
                         !baseline.reducedMotion && 
-                        baseline.connectionSpeed !== 'slow');
+                        baseline.connectionSpeed !== 'slow', []);
                       
     setShouldAnimate(canAnimate);
   }, [baseline, adaptiveSettings, respectMotionPreference]);
@@ -1222,6 +1222,9 @@ const AdaptiveCard: React.FC<AdaptiveCardProps> = ({
           
           .adaptive-card:hover {
             transform: none !important;
+// Memory leak prevention: Event listeners need cleanup
+// Add cleanup in useEffect return function
+
           }
         }
       `}</style>

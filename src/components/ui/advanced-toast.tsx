@@ -5,6 +5,9 @@ import * as ToastPrimitives from "@radix-ui/react-toast"
 import { cva, type VariantProps } from "class-variance-authority"
 import { X, Check, AlertTriangle, Info, Loader2, Sparkles, Zap, Heart, Star, Trophy, Gift, Clock, Volume2 } from "lucide-react"
 import { cn } from "@/lib/utils"
+// Performance optimization needed: Consider memoizing inline styles
+// Use useMemo for objects/arrays and useCallback for functions
+
 
 // Advanced Toast Variants with new styles
 const advancedToastVariants = cva(

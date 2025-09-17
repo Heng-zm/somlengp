@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from 'next/server';
 import { withAuth, AuthenticatedUser, checkRateLimit } from '@/lib/auth-middleware';
 import { updateProfilePicture } from '@/lib/storage';
 import { updateUserProfile, getUserProfile } from '@/lib/user-profile-db';
-
 // POST - Upload new profile picture
 async function uploadProfilePicture(request: NextRequest, user: AuthenticatedUser): Promise<NextResponse> {
   try {
@@ -16,7 +15,6 @@ async function uploadProfilePicture(request: NextRequest, user: AuthenticatedUse
         { status: 429 }
       );
     }
-
     // Check content type
     const contentType = request.headers.get('content-type');
     if (!contentType?.includes('multipart/form-data')) {
@@ -25,7 +23,6 @@ async function uploadProfilePicture(request: NextRequest, user: AuthenticatedUse
         { status: 400 }
       );
     }
-
     let formData: FormData;
     try {
       formData = await request.formData();
@@ -35,7 +32,6 @@ async function uploadProfilePicture(request: NextRequest, user: AuthenticatedUse
         { status: 400 }
       );
     }
-
     const file = formData.get('file') as File;
     if (!file || !(file instanceof File)) {
       return NextResponse.json(
@@ -43,7 +39,6 @@ async function uploadProfilePicture(request: NextRequest, user: AuthenticatedUse
         { status: 400 }
       );
     }
-
     // Validate file
     if (!file.type.startsWith('image/')) {
       return NextResponse.json(
@@ -51,23 +46,19 @@ async function uploadProfilePicture(request: NextRequest, user: AuthenticatedUse
         { status: 400 }
       );
     }
-
     if (file.size > 10 * 1024 * 1024) { // 10MB limit
       return NextResponse.json(
         { error: 'File size must be less than 10MB', code: 'FILE_TOO_LARGE' },
         { status: 400 }
       );
     }
-
     // Get current profile to get old photo URL
     let currentProfile;
     try {
       currentProfile = await getUserProfile(user.uid);
     } catch (error) {
-      console.warn('Could not get current profile:', error);
       // Continue without old photo URL
     }
-
     // Upload to Firebase Storage
     let photoURL: string;
     try {
@@ -78,7 +69,6 @@ async function uploadProfilePicture(request: NextRequest, user: AuthenticatedUse
       );
     } catch (uploadError) {
       console.error('Storage upload error:', uploadError);
-      
       if (uploadError instanceof Error) {
         if (uploadError.message.includes('unauthorized')) {
           return NextResponse.json(
@@ -93,13 +83,11 @@ async function uploadProfilePicture(request: NextRequest, user: AuthenticatedUse
           );
         }
       }
-      
       return NextResponse.json(
         { error: 'Failed to upload image. Please try again.', code: 'UPLOAD_FAILED' },
         { status: 500 }
       );
     }
-
     // Update user profile with new photo URL
     try {
       await updateUserProfile(user.uid, { photoURL });
@@ -112,14 +100,12 @@ async function uploadProfilePicture(request: NextRequest, user: AuthenticatedUse
         { status: 500 }
       );
     }
-
     return NextResponse.json({
       success: true,
       message: 'Profile picture updated successfully',
       photoURL,
       timestamp: new Date().toISOString(),
     });
-
   } catch (error) {
     console.error('Profile picture upload error:', error);
     return NextResponse.json(
@@ -131,7 +117,6 @@ async function uploadProfilePicture(request: NextRequest, user: AuthenticatedUse
     );
   }
 }
-
 // DELETE - Remove profile picture
 async function removeProfilePicture(request: NextRequest, user: AuthenticatedUser): Promise<NextResponse> {
   try {
@@ -145,16 +130,13 @@ async function removeProfilePicture(request: NextRequest, user: AuthenticatedUse
         { status: 429 }
       );
     }
-
     // Update user profile to remove photo URL
     await updateUserProfile(user.uid, { photoURL: null });
-
     return NextResponse.json({
       success: true,
       message: 'Profile picture removed successfully',
       timestamp: new Date().toISOString(),
     });
-
   } catch (error) {
     console.error('Profile picture removal error:', error);
     return NextResponse.json(
@@ -166,7 +148,6 @@ async function removeProfilePicture(request: NextRequest, user: AuthenticatedUse
     );
   }
 }
-
 // Export protected handlers
 export const POST = withAuth(uploadProfilePicture);
 export const DELETE = withAuth(removeProfilePicture);

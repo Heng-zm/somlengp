@@ -40,6 +40,9 @@ import {
 } from "lucide-react";
 import { BackToSignInIconButton } from "@/components/ui/back-to-signin-button";
 import { CaptchaVerification } from "@/components/ui/captcha-verification";
+// Performance optimization needed: Consider memoizing inline styles, inline event handlers
+// Use useMemo for objects/arrays and useCallback for functions
+
 
 // Google Icon Component
 const GoogleIcon = () => (

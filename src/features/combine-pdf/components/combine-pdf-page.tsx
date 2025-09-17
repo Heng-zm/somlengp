@@ -14,6 +14,9 @@ import { MAX_FILE_SIZE_MB } from '@/config';
 import { ThreeDotsLoader } from '@/components/shared/three-dots-loader';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { formatFileSize, formatTotalFileSize } from '@/lib/format-file-size';
+// Performance optimization needed: Consider memoizing inline event handlers
+// Use useMemo for objects/arrays and useCallback for functions
+
 
 const blobToBase64 = (blob: Blob): Promise<string> => {
     return new Promise((resolve, reject) => {

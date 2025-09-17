@@ -1,11 +1,11 @@
 'use client';
 
 import { OTPVerification } from '@/components/otp/otp-verification';
-import { useState } from 'react';
+import { useState, memo } from 'react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 
-export default function OTPTestPage() {
+const OTPTestPageComponent = function OTPTestPage() {
   const [verifiedEmail, setVerifiedEmail] = useState<string | null>(null);
   const [lastError, setLastError] = useState<string | null>(null);
 
@@ -95,3 +95,6 @@ export default function OTPTestPage() {
     </div>
   );
 }
+
+
+export default memo(OTPTestPageComponent);

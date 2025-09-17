@@ -3,6 +3,12 @@
 import React, { useState, useEffect } from 'react'
 import { StatusNotification } from './status-notification'
 import { Button } from './button'
+// Memory leak prevention: Timers need cleanup
+// Add cleanup in useEffect return function
+
+// Performance optimization needed: Consider memoizing inline event handlers
+// Use useMemo for objects/arrays and useCallback for functions
+
 
 // Demo 1: All Status Types Display
 export function AllStatusDisplay() {

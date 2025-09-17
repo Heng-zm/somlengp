@@ -1,7 +1,8 @@
-
 "use client";
 
-import { useMemo, useState, useCallback } from 'react';
+import { useMemo, useState, useCallback, useContext, memo } from 'react';
+
+
 import Link from 'next/link';
 import { 
     History as HistoryIcon, 
@@ -28,7 +29,7 @@ import { useHistory } from '@/hooks/use-history';
 import { FeaturePageLayout } from '@/layouts/feature-page-layout';
 import { allTranslations } from '@/lib/translations';
 import { LanguageContext } from '@/contexts/language-context';
-import { useContext } from 'react';
+
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useToast } from '@/hooks/use-toast';
 
@@ -41,7 +42,7 @@ const iconMap: { [key: string]: React.ElementType } = {
     '/convert-image-format': Wand2,
 };
 
-export default function HistoryPage() {
+const HistoryPageComponent = function HistoryPage() {
     const { 
         history, 
         isLoaded, 
@@ -374,6 +375,9 @@ export default function HistoryPage() {
                         {/* Hidden file input */}
                         <input
                             id="import-file"
+// Performance optimization needed: Consider memoizing inline event handlers, dynamic classNames
+// Use useMemo for objects/arrays and useCallback for functions
+
                             type="file"
                             accept=".json"
                             onChange={handleImportHistory}
@@ -481,3 +485,6 @@ export default function HistoryPage() {
         </FeaturePageLayout>
     );
 }
+
+
+export default memo(HistoryPageComponent);

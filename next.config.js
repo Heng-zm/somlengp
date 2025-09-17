@@ -126,8 +126,10 @@ const nextConfig = {
     
     // Fix CSS loading issues in development
     if (dev && !isServer) {
-      // Ensure proper CSS handling in development mode
-      config.cache = false;
+      // Ensure proper CSS handling in development mode  
+      config.cache = {
+        type: 'memory'
+      };
     }
     
     // Ignore handlebars warnings for require.extensions
@@ -158,7 +160,7 @@ const nextConfig = {
             name: 'vendors',
             priority: -10,
             chunks: 'all',
-            maxSize: 400000, // Reduced from 500000
+            maxSize: 300000, // Further reduced to break large chunks
             enforce: true, // Force creation even if minSize is not met
           },
           // Separate React and React-DOM
@@ -185,12 +187,31 @@ const nextConfig = {
             chunks: 'all',
             enforce: true,
           },
-          // AI and Firebase libraries
+          // Firebase Core
+          firebase: {
+            test: /[\\/]node_modules[\\/]firebase[\\/]/,
+            name: 'firebase',
+            priority: 15,
+            chunks: 'all',
+            maxSize: 250000,
+            enforce: true,
+          },
+          // Firebase Firestore (separate chunk)
+          firestore: {
+            test: /[\\/]node_modules[\\/]firebase[\\/]firestore/,
+            name: 'firestore',
+            priority: 20,
+            chunks: 'all',
+            maxSize: 200000,
+            enforce: true,
+          },
+          // AI libraries
           ai: {
-            test: /[\\/]node_modules[\\/](@genkit-ai|firebase)[\\/]/,
+            test: /[\\/]node_modules[\\/](@genkit-ai|@google)[\\/]/,
             name: 'ai',
             priority: 5,
             chunks: 'all',
+            maxSize: 200000,
             enforce: true,
           },
         },

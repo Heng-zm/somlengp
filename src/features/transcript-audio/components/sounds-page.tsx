@@ -2,7 +2,7 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback, useMemo, useContext } from 'react';
-import { Download, FileUp, Sparkles, X as XIcon, Copy, FileText } from 'lucide-react';
+import { Download, FileUp, Sparkles, X as XIcon, Copy, FileText } from 'lucide-react' // TODO: Consider importing icons individually for better tree shaking;
 import { Button } from '@/components/ui/button';
 import {
   Sheet,
@@ -208,6 +208,9 @@ export function SoundsPage() {
   
   const handleExport = useCallback(async () => {
     const { exportTranscript } = await import('@/lib/client-export');
+// Performance optimization needed: Consider memoizing inline event handlers
+// Use useMemo for objects/arrays and useCallback for functions
+
     exportTranscript(editedTranscript, exportFormat as 'srt' | 'vtt' | 'txt' | 'json' | 'csv' | 'docx', structuredTranscript, toast, wordsPerSecond);
     setIsExportSheetOpen(false);
     if (!hasRated.current) {

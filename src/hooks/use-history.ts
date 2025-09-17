@@ -1,11 +1,8 @@
 
 "use client";
-
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
-
 const HISTORY_STORAGE_KEY = 'voiceScribeFeatureHistory';
 const MAX_HISTORY_ITEMS = 100; // Limit to prevent storage bloat
-
 export interface HistoryItem {
   id: string;
   href: string;
@@ -17,7 +14,6 @@ export interface HistoryItem {
   category?: string;
   notes?: string;
 }
-
 export interface HistoryStats {
   totalVisits: number;
   uniquePages: number;
@@ -26,7 +22,6 @@ export interface HistoryStats {
   recentVisits: HistoryItem[];
   categories: Record<string, number>;
 }
-
 export interface HistoryActions {
   addHistoryItem: (newItem: Omit<HistoryItem, 'id' | 'count' | 'lastVisited'>) => void;
   deleteHistoryItem: (id: string) => boolean;
@@ -39,7 +34,6 @@ export interface HistoryActions {
   exportHistory: () => string;
   importHistory: (jsonData: string) => { success: boolean; imported: number; errors: string[] };
 }
-
 export function useHistory(): {
   history: HistoryItem[];
   isLoaded: boolean;
@@ -50,11 +44,9 @@ export function useHistory(): {
   const [isLoaded, setIsLoaded] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  
   // Cache for performance
   const historyCache = useRef<HistoryItem[]>([]);
   const saveTimeout = useRef<NodeJS.Timeout | null>(null);
-
   // Utility function to validate history item
   const validateHistoryItem = useCallback((item: any): item is HistoryItem => {
     return (
@@ -74,20 +66,17 @@ export function useHistory(): {
       item.lastVisited > 0
     );
   }, []);
-
   // Generate unique ID
   const generateId = useCallback((): string => {
     const timestamp = Date.now();
     const random = Math.random().toString(36).substr(2, 9);
     return `hist_${timestamp}_${random}`;
   }, []);
-
   // Debounced save function
   const debouncedSave = useCallback((historyToSave: HistoryItem[]) => {
     if (saveTimeout.current) {
       clearTimeout(saveTimeout.current);
     }
-    
     saveTimeout.current = setTimeout(() => {
       try {
         // Validate and clean history before saving
@@ -95,7 +84,6 @@ export function useHistory(): {
           .filter(validateHistoryItem)
           .slice(0, MAX_HISTORY_ITEMS)
           .sort((a, b) => b.lastVisited - a.lastVisited);
-        
         localStorage.setItem(HISTORY_STORAGE_KEY, JSON.stringify(validHistory));
         historyCache.current = validHistory;
         setError(null);
@@ -105,32 +93,25 @@ export function useHistory(): {
       }
     }, 300); // 300ms debounce
   }, [validateHistoryItem]);
-
   // Load history with proper error handling
   const loadHistory = useCallback(async () => {
     if (typeof window === 'undefined') {
       setIsLoaded(true);
       return;
     }
-
     setIsLoading(true);
     setError(null);
-    
     try {
       const storedHistory = localStorage.getItem(HISTORY_STORAGE_KEY);
-      
       if (!storedHistory) {
         setHistory([]);
         historyCache.current = [];
         return;
       }
-
       const parsedHistory = JSON.parse(storedHistory);
-      
       if (!Array.isArray(parsedHistory)) {
         throw new Error('Invalid history format: not an array');
       }
-
       // Migrate and validate history items
       const migratedHistory = parsedHistory
         .map((item: any) => {
@@ -147,19 +128,15 @@ export function useHistory(): {
               category: item.category || 'General',
               notes: item.notes || ''
             };
-            
             return validateHistoryItem(migrated) ? migrated : null;
           } catch (itemError) {
-            console.warn('Invalid history item:', itemError);
             return null;
           }
         })
         .filter((item: HistoryItem | null): item is HistoryItem => item !== null)
         .sort((a, b) => b.lastVisited - a.lastVisited);
-
       setHistory(migratedHistory);
       historyCache.current = migratedHistory;
-      
       // Save cleaned data if any items were filtered out
       if (migratedHistory.length !== parsedHistory.length) {
         debouncedSave(migratedHistory);
@@ -174,12 +151,10 @@ export function useHistory(): {
       setIsLoaded(true);
     }
   }, [validateHistoryItem, generateId, debouncedSave]);
-
   // Load history on mount
   useEffect(() => {
     loadHistory();
   }, [loadHistory]);
-
   // Cleanup timeouts on unmount
   useEffect(() => {
     return () => {
@@ -188,7 +163,6 @@ export function useHistory(): {
       }
     };
   }, []);
-
   // Add history item with improved logic
   const addHistoryItem = useCallback((newItem: Omit<HistoryItem, 'id' | 'count' | 'lastVisited'>) => {
     try {
@@ -196,12 +170,10 @@ export function useHistory(): {
       if (!newItem.href || !newItem.label || !newItem.timestamp) {
         throw new Error('Invalid history item: missing required fields');
       }
-      
       setHistory(prevHistory => {
         const now = Date.now();
         const existingIndex = prevHistory.findIndex(item => item.href === newItem.href);
         let newHistory: HistoryItem[];
-
         if (existingIndex !== -1) {
           // Update existing item
           newHistory = prevHistory.map((item, index) =>
@@ -215,7 +187,6 @@ export function useHistory(): {
                 }
               : item
           );
-          
           // Move updated item to the front
           const updatedItem = newHistory[existingIndex];
           newHistory.splice(existingIndex, 1);
@@ -233,45 +204,37 @@ export function useHistory(): {
             category: newItem.category || 'General',
             notes: newItem.notes || ''
           };
-          
           newHistory = [historyItem, ...prevHistory];
         }
-        
         // Trim to max items
         if (newHistory.length > MAX_HISTORY_ITEMS) {
           newHistory = newHistory.slice(0, MAX_HISTORY_ITEMS);
         }
-        
         debouncedSave(newHistory);
         return newHistory;
       });
-      
       setError(null);
     } catch (error) {
       console.error('Failed to add history item:', error);
       setError('Failed to add history item');
     }
   }, [generateId, debouncedSave]);
-
   // Delete history item
   const deleteHistoryItem = useCallback((id: string): boolean => {
     try {
       if (!id || typeof id !== 'string') {
         throw new Error('Invalid item ID');
       }
-      
       // Check if item exists first
       const itemExists = history.some(item => item.id === id);
       if (!itemExists) {
         return false;
       }
-      
       setHistory(prevHistory => {
         const newHistory = prevHistory.filter(item => item.id !== id);
         debouncedSave(newHistory);
         return newHistory;
       });
-      
       setError(null);
       return true;
     } catch (error) {
@@ -280,20 +243,17 @@ export function useHistory(): {
       return false;
     }
   }, [history, debouncedSave]);
-
   // Update history item
   const updateHistoryItem = useCallback((id: string, updates: Partial<HistoryItem>): boolean => {
     try {
       if (!id || typeof id !== 'string') {
         throw new Error('Invalid item ID');
       }
-      
       // Check if item exists first
       const itemExists = history.some(item => item.id === id);
       if (!itemExists) {
         return false;
       }
-      
       setHistory(prevHistory => {
         const newHistory = prevHistory.map(item => {
           if (item.id === id) {
@@ -301,11 +261,9 @@ export function useHistory(): {
           }
           return item;
         });
-        
         debouncedSave(newHistory);
         return newHistory;
       });
-      
       setError(null);
       return true;
     } catch (error) {
@@ -314,7 +272,6 @@ export function useHistory(): {
       return false;
     }
   }, [history, debouncedSave]);
-
   // Clear all history
   const clearHistory = useCallback(() => {
     try {
@@ -327,7 +284,6 @@ export function useHistory(): {
       setError('Failed to clear history');
     }
   }, []);
-
   // Toggle favorite status
   const toggleFavorite = useCallback((id: string): boolean => {
     try {
@@ -335,9 +291,7 @@ export function useHistory(): {
       if (!item) {
         throw new Error('History item not found');
       }
-      
       const newFavoriteState = !item.favorite;
-      
       setHistory(prevHistory => {
         const newHistory = prevHistory.map(historyItem => {
           if (historyItem.id === id) {
@@ -345,11 +299,9 @@ export function useHistory(): {
           }
           return historyItem;
         });
-        
         debouncedSave(newHistory);
         return newHistory;
       });
-      
       setError(null);
       return newFavoriteState;
     } catch (error) {
@@ -358,16 +310,13 @@ export function useHistory(): {
       return false;
     }
   }, [history, debouncedSave]);
-
   // Search history
   const searchHistory = useCallback((query: string): HistoryItem[] => {
     try {
       if (!query || typeof query !== 'string' || query.trim() === '') {
         return history;
       }
-      
       const lowerQuery = query.toLowerCase().trim();
-      
       return history.filter(item => {
         return (
           item.label.toLowerCase().includes(lowerQuery) ||
@@ -382,28 +331,23 @@ export function useHistory(): {
       return [];
     }
   }, [history]);
-
   // Get history statistics
   const getHistoryStats = useCallback((): HistoryStats => {
     try {
       const totalVisits = history.reduce((sum, item) => sum + item.count, 0);
       const uniquePages = history.length;
       const favoritePages = history.filter(item => item.favorite).length;
-      
       const mostVisited = [...history]
         .sort((a, b) => b.count - a.count)
         .slice(0, 10);
-      
       const recentVisits = [...history]
         .sort((a, b) => b.lastVisited - a.lastVisited)
         .slice(0, 10);
-      
       const categories: Record<string, number> = {};
       history.forEach(item => {
         const category = item.category || 'General';
         categories[category] = (categories[category] || 0) + item.count;
       });
-      
       return {
         totalVisits,
         uniquePages,
@@ -424,14 +368,12 @@ export function useHistory(): {
       };
     }
   }, [history]);
-
   // Get history by category
   const getHistoryByCategory = useCallback((category: string): HistoryItem[] => {
     try {
       if (!category || typeof category !== 'string') {
         return history;
       }
-      
       const normalizedCategory = category.toLowerCase().trim();
       return history.filter(item => 
         item.category?.toLowerCase() === normalizedCategory
@@ -441,7 +383,6 @@ export function useHistory(): {
       return [];
     }
   }, [history]);
-
   // Export history
   const exportHistory = useCallback((): string => {
     try {
@@ -451,28 +392,22 @@ export function useHistory(): {
         appName: 'SomlengP Voice Features',
         history: history
       };
-      
       return JSON.stringify(exportData, null, 2);
     } catch (error) {
       console.error('Failed to export history:', error);
       throw new Error('Failed to export history');
     }
   }, [history]);
-
   // Import history
   const importHistory = useCallback((jsonData: string): { success: boolean; imported: number; errors: string[] } => {
     const errors: string[] = [];
     let imported = 0;
-    
     try {
       const data = JSON.parse(jsonData);
-      
       if (!data.history || !Array.isArray(data.history)) {
         throw new Error('Invalid export format: missing history array');
       }
-      
       const importedItems: HistoryItem[] = [];
-      
       data.history.forEach((item: any, index: number) => {
         try {
           const historyItem: HistoryItem = {
@@ -486,7 +421,6 @@ export function useHistory(): {
             category: item.category || 'General',
             notes: item.notes || ''
           };
-          
           if (validateHistoryItem(historyItem)) {
             // Check if item already exists
             const exists = history.some(h => h.href === historyItem.href);
@@ -501,18 +435,15 @@ export function useHistory(): {
           errors.push(`Item ${index + 1}: ${itemError}`);
         }
       });
-      
       if (importedItems.length > 0) {
         setHistory(prevHistory => {
           const newHistory = [...importedItems, ...prevHistory]
             .sort((a, b) => b.lastVisited - a.lastVisited)
             .slice(0, MAX_HISTORY_ITEMS);
-          
           debouncedSave(newHistory);
           return newHistory;
         });
       }
-      
       return { success: true, imported, errors };
     } catch (error) {
       return { 
@@ -522,10 +453,8 @@ export function useHistory(): {
       };
     }
   }, [history, validateHistoryItem, generateId, debouncedSave]);
-
   // Memoized values for performance
   const memoizedHistory = useMemo(() => history, [history]);
-  
   return {
     history: memoizedHistory,
     isLoaded,
@@ -541,5 +470,8 @@ export function useHistory(): {
     getHistoryByCategory,
     exportHistory,
     importHistory
+// Memory leak prevention: Timers need cleanup
+// Add cleanup in useEffect return function
+
   };
 }

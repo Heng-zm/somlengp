@@ -2,6 +2,9 @@
 
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
+// Performance optimization needed: Consider memoizing inline event handlers
+// Use useMemo for objects/arrays and useCallback for functions
+
 
 export default function NotFound() {
   return (

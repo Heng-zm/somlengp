@@ -5,6 +5,9 @@ import { Button } from '@/components/ui/button';
 import { useCameraPermission } from '@/hooks/use-camera-permission';
 import { checkCameraPermissionDetails, requestCameraPermission } from '@/utils/camera-permissions';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+// Performance optimization needed: Consider memoizing inline event handlers, dynamic classNames
+// Use useMemo for objects/arrays and useCallback for functions
+
 
 export function CameraDebug() {
   const [debugInfo, setDebugInfo] = useState('');

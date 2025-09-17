@@ -1,16 +1,13 @@
 "use client";
-
-import { useState } from 'react';
+import { useState, memo } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-
 // Gmail Components
 import { GmailComponents } from '@/components/gmail/gmail-user-components';
 import { GmailUserProfiles } from '@/components/gmail/gmail-user-profiles';
 import { GmailNavigation } from '@/components/gmail/gmail-navigation';
 import { GmailTemplateGenerator, GmailEmailTemplate } from '@/components/gmail/gmail-template-generator';
-
 // Sample Data
 const sampleUsers = [
   {
@@ -37,7 +34,6 @@ const sampleUsers = [
     online: true
   }
 ];
-
 const sampleEmails = [
   {
     id: '1',
@@ -74,7 +70,6 @@ const sampleEmails = [
     labels: ['Personal', 'Review']
   }
 ];
-
 const sampleProfile = {
   id: '1',
   name: 'John Doe',
@@ -101,7 +96,6 @@ const sampleProfile = {
     linkedin: 'https://linkedin.com/in/johndoe'
   }
 };
-
 const sampleTemplate: GmailEmailTemplate = {
   type: 'welcome',
   subject: 'Welcome to SomlengP!',
@@ -119,12 +113,10 @@ const sampleTemplate: GmailEmailTemplate = {
     footerText: 'Thanks for joining us!'
   }
 };
-
-export default function GmailDemoPage() {
+const GmailDemoPageComponent = function GmailDemoPage() {
   const [selectedEmails, setSelectedEmails] = useState<string[]>([]);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [emailTemplate, setEmailTemplate] = useState<GmailEmailTemplate>(sampleTemplate);
-
   const handleEmailSelect = (emailId: string) => {
     setSelectedEmails(prev => 
       prev.includes(emailId) 
@@ -132,23 +124,18 @@ export default function GmailDemoPage() {
         : [...prev, emailId]
     );
   };
-
   const handleEmailStar = (emailId: string) => {
     console.log('Star email:', emailId);
   };
-
   const handleEmailArchive = (emailId: string) => {
     console.log('Archive email:', emailId);
   };
-
   const handleEmailDelete = (emailId: string) => {
     console.log('Delete email:', emailId);
   };
-
   const handleCompose = () => {
     console.log('Compose new email');
   };
-
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       <div className="container mx-auto p-6">
@@ -160,7 +147,6 @@ export default function GmailDemoPage() {
             Modern Gmail-inspired user interface components built with Tailwind CSS
           </p>
         </div>
-
         <Tabs defaultValue="layout" className="w-full">
           <TabsList className="grid w-full grid-cols-6">
             <TabsTrigger value="layout">Full Layout</TabsTrigger>
@@ -170,7 +156,6 @@ export default function GmailDemoPage() {
             <TabsTrigger value="inbox">Inbox</TabsTrigger>
             <TabsTrigger value="cards">User Cards</TabsTrigger>
           </TabsList>
-
           {/* Full Layout Demo */}
           <TabsContent value="layout" className="mt-6">
             <Card className="border-0 shadow-xl overflow-hidden">
@@ -190,9 +175,9 @@ export default function GmailDemoPage() {
                     <div className="flex flex-col h-full">
                       <GmailNavigation.GmailToolbar
                         selectedCount={selectedEmails.length}
-                        onRefresh={() => console.log('Refresh')}
-                        onArchive={() => console.log('Archive')}
-                        onDelete={() => console.log('Delete')}
+                        onRefresh={() => {}}
+                        onArchive={() => {}}
+                        onDelete={() => {}}
                       />
                       <div className="flex-1 overflow-auto">
                         <GmailComponents.GmailInboxLayout
@@ -210,7 +195,6 @@ export default function GmailDemoPage() {
               </CardContent>
             </Card>
           </TabsContent>
-
           {/* Individual Components Demo */}
           <TabsContent value="components" className="mt-6">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -228,7 +212,6 @@ export default function GmailDemoPage() {
                   </div>
                 </CardContent>
               </Card>
-
               {/* Top Navigation */}
               <Card>
                 <CardHeader>
@@ -248,7 +231,6 @@ export default function GmailDemoPage() {
               </Card>
             </div>
           </TabsContent>
-
           {/* User Profiles Demo */}
           <TabsContent value="profiles" className="mt-6">
             <div className="space-y-8">
@@ -266,7 +248,6 @@ export default function GmailDemoPage() {
                   />
                 </CardContent>
               </Card>
-
               {/* Profile Stats */}
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 <GmailUserProfiles.GmailProfileStats
@@ -276,12 +257,11 @@ export default function GmailDemoPage() {
                   profile={sampleProfile}
                   variant="detailed"
                   showStats={true}
-                  onClick={() => console.log('View profile')}
+                  onClick={() => console.log('Profile clicked')}
                 />
               </div>
             </div>
           </TabsContent>
-
           {/* Email Templates Demo */}
           <TabsContent value="templates" className="mt-6">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -297,7 +277,6 @@ export default function GmailDemoPage() {
                   />
                 </CardContent>
               </Card>
-
               {/* Template Preview */}
               <Card>
                 <CardHeader>
@@ -312,7 +291,6 @@ export default function GmailDemoPage() {
               </Card>
             </div>
           </TabsContent>
-
           {/* Inbox Demo */}
           <TabsContent value="inbox" className="mt-6">
             <Card>
@@ -331,7 +309,6 @@ export default function GmailDemoPage() {
               </CardContent>
             </Card>
           </TabsContent>
-
           {/* User Cards Demo */}
           <TabsContent value="cards" className="mt-6">
             <div className="space-y-8">
@@ -348,7 +325,6 @@ export default function GmailDemoPage() {
                   ))}
                 </div>
               </div>
-
               <div>
                 <h3 className="text-lg font-semibold mb-4">User Cards - Detailed</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -358,12 +334,11 @@ export default function GmailDemoPage() {
                       user={user}
                       variant="detailed"
                       showActions={true}
-                      onClick={() => console.log('View user:', user.name)}
+                      onClick={() => console.log('User card clicked')}
                     />
                   ))}
                 </div>
               </div>
-
               <div>
                 <h3 className="text-lg font-semibold mb-4">User Cards - Compact</h3>
                 <div className="space-y-2 max-w-md">
@@ -372,37 +347,35 @@ export default function GmailDemoPage() {
                       key={user.id}
                       user={user}
                       variant="compact"
-                      onClick={() => console.log('View user:', user.name)}
+                      onClick={() => console.log('Compact user clicked')}
                     />
                   ))}
                 </div>
               </div>
-
               <div>
                 <h3 className="text-lg font-semibold mb-4">Profile Cards</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                   <GmailUserProfiles.GmailProfileCard
                     profile={sampleProfile}
                     variant="minimal"
-                    onClick={() => console.log('View profile')}
+                    onClick={() => console.log('Minimal profile clicked')}
                   />
                   <GmailUserProfiles.GmailProfileCard
                     profile={sampleProfile}
                     variant="compact"
-                    onClick={() => console.log('View profile')}
+                    onClick={() => console.log('Compact profile clicked')}
                   />
                   <GmailUserProfiles.GmailProfileCard
                     profile={sampleProfile}
                     variant="detailed"
                     showStats={true}
-                    onClick={() => console.log('View profile')}
+                    onClick={() => console.log('Detailed profile clicked')}
                   />
                 </div>
               </div>
             </div>
           </TabsContent>
         </Tabs>
-
         {/* Documentation */}
         <Card className="mt-8">
           <CardHeader>
@@ -434,7 +407,6 @@ export default function GmailDemoPage() {
                 </ul>
               </div>
             </div>
-            
             <div className="mt-6 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
               <p className="text-sm text-blue-800 dark:text-blue-200">
                 <strong>Usage:</strong> Import components from their respective modules and customize with Tailwind CSS classes.
@@ -447,3 +419,6 @@ export default function GmailDemoPage() {
     </div>
   );
 }
+
+
+export default memo(GmailDemoPageComponent);

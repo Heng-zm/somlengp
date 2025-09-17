@@ -2,7 +2,6 @@
  * Centralized error handling utilities
  * Provides consistent error management across the application
  */
-
 // Custom error types
 export enum ErrorType {
   NETWORK = 'NETWORK',
@@ -14,14 +13,12 @@ export enum ErrorType {
   PARSER = 'PARSER',
   UNKNOWN = 'UNKNOWN'
 }
-
 export enum ErrorSeverity {
   LOW = 'LOW',
   MEDIUM = 'MEDIUM',
   HIGH = 'HIGH',
   CRITICAL = 'CRITICAL'
 }
-
 // Base error class with additional context
 export class AppError extends Error {
   public readonly type: ErrorType;
@@ -30,7 +27,6 @@ export class AppError extends Error {
   public readonly timestamp: number;
   public readonly userMessage: string;
   public readonly recoverable: boolean;
-
   constructor(
     message: string,
     type: ErrorType = ErrorType.UNKNOWN,
@@ -48,7 +44,6 @@ export class AppError extends Error {
     this.userMessage = userMessage || this.getDefaultUserMessage();
     this.recoverable = recoverable;
   }
-
   private getDefaultUserMessage(): string {
     switch (this.type) {
       case ErrorType.NETWORK:
@@ -69,7 +64,6 @@ export class AppError extends Error {
         return 'An unexpected error occurred. Please try again.';
     }
   }
-
   toJSON() {
     return {
       name: this.name,
@@ -84,7 +78,6 @@ export class AppError extends Error {
     };
   }
 }
-
 // Specific error classes
 export class NetworkError extends AppError {
   constructor(message: string, context: Record<string, unknown> = {}, userMessage?: string) {
@@ -92,79 +85,66 @@ export class NetworkError extends AppError {
     this.name = 'NetworkError';
   }
 }
-
 export class ValidationError extends AppError {
   constructor(message: string, context: Record<string, unknown> = {}, userMessage?: string) {
     super(message, ErrorType.VALIDATION, ErrorSeverity.MEDIUM, context, userMessage);
     this.name = 'ValidationError';
   }
 }
-
 export class AuthError extends AppError {
   constructor(message: string, context: Record<string, unknown> = {}, userMessage?: string) {
     super(message, ErrorType.AUTH, ErrorSeverity.HIGH, context, userMessage);
     this.name = 'AuthError';
   }
 }
-
 export class StorageError extends AppError {
   constructor(message: string, context: Record<string, unknown> = {}, userMessage?: string) {
     super(message, ErrorType.STORAGE, ErrorSeverity.MEDIUM, context, userMessage);
     this.name = 'StorageError';
   }
 }
-
 export class ClipboardError extends AppError {
   constructor(message: string, context: Record<string, unknown> = {}, userMessage?: string) {
     super(message, ErrorType.CLIPBOARD, ErrorSeverity.LOW, context, userMessage);
     this.name = 'ClipboardError';
   }
 }
-
 export class MediaError extends AppError {
   constructor(message: string, context: Record<string, unknown> = {}, userMessage?: string) {
     super(message, ErrorType.MEDIA, ErrorSeverity.HIGH, context, userMessage);
     this.name = 'MediaError';
   }
 }
-
 export class ParserError extends AppError {
   constructor(message: string, context: Record<string, unknown> = {}, userMessage?: string) {
     super(message, ErrorType.PARSER, ErrorSeverity.MEDIUM, context, userMessage);
     this.name = 'ParserError';
   }
 }
-
 // Error handling utilities
 export class ErrorHandler {
   private static instance: ErrorHandler;
   private errorLog: AppError[] = [];
   private maxLogSize: number = 100;
-
   private constructor() {}
-
   static getInstance(): ErrorHandler {
     if (!ErrorHandler.instance) {
       ErrorHandler.instance = new ErrorHandler();
     }
     return ErrorHandler.instance;
   }
-
   /**
    * Handles an error with logging and optional recovery
    */
   handle(error: unknown, context: Record<string, unknown> = {}): AppError {
     const appError = this.normalizeError(error, context);
     this.logError(appError);
-    
     // Report to external services in production
     if (process.env.NODE_ENV === 'production') {
       this.reportError(appError);
     }
-
     return appError;
   }
-
   /**
    * Converts any error to AppError
    */
@@ -172,7 +152,6 @@ export class ErrorHandler {
     if (error instanceof AppError) {
       return error;
     }
-
     if (error instanceof Error) {
       return new AppError(error.message, ErrorType.UNKNOWN, ErrorSeverity.MEDIUM, {
         ...context,
@@ -180,11 +159,9 @@ export class ErrorHandler {
         stack: error.stack
       });
     }
-
     if (typeof error === 'string') {
       return new AppError(error, ErrorType.UNKNOWN, ErrorSeverity.MEDIUM, context);
     }
-
     return new AppError(
       'Unknown error occurred',
       ErrorType.UNKNOWN,
@@ -192,24 +169,20 @@ export class ErrorHandler {
       { ...context, originalError: error }
     );
   }
-
   /**
    * Logs error to internal log
    */
   private logError(error: AppError): void {
     this.errorLog.unshift(error);
-    
     // Maintain log size
     if (this.errorLog.length > this.maxLogSize) {
       this.errorLog = this.errorLog.slice(0, this.maxLogSize);
     }
-
     // Console log in development
     if (process.env.NODE_ENV === 'development') {
       console.error(`[${error.type}] ${error.message}`, error.context);
     }
   }
-
   /**
    * Reports error to external services
    */
@@ -227,21 +200,18 @@ export class ErrorHandler {
       console.error('Failed to report error:', reportingError);
     }
   }
-
   /**
    * Gets recent errors
    */
   getRecentErrors(count: number = 10): AppError[] {
     return this.errorLog.slice(0, count);
   }
-
   /**
    * Gets errors by type
    */
   getErrorsByType(type: ErrorType): AppError[] {
     return this.errorLog.filter(error => error.type === type);
   }
-
   /**
    * Clears error log
    */
@@ -249,9 +219,7 @@ export class ErrorHandler {
     this.errorLog = [];
   }
 }
-
 // Utility functions for common error scenarios
-
 /**
  * Safely executes an async function with error handling
  */
@@ -271,7 +239,6 @@ export async function safeAsync<T>(
     return { data: fallback || null, error: appError };
   }
 }
-
 /**
  * Safely executes a sync function with error handling
  */
@@ -291,7 +258,6 @@ export function safeSync<T>(
     return { data: fallback || null, error: appError };
   }
 }
-
 /**
  * Creates a retry function with exponential backoff and user feedback
  */
@@ -318,10 +284,8 @@ export function createRetryFunction<T>(
     shouldRetry,
     abortSignal
   } = options;
-
   return async (): Promise<T> => {
     let lastError: AppError;
-    
     for (let attempt = 1; attempt <= maxAttempts; attempt++) {
       // Check if operation was aborted
       if (abortSignal?.aborted) {
@@ -333,7 +297,6 @@ export function createRetryFunction<T>(
           'Operation was cancelled'
         );
       }
-
       try {
         return await fn();
       } catch (error) {
@@ -343,38 +306,30 @@ export function createRetryFunction<T>(
           function: fn.name || 'anonymous',
           retryable: true
         });
-
         // Check if we should retry this specific error
         if (shouldRetry && !shouldRetry(lastError)) {
           throw lastError;
         }
-
         // Don't retry certain error types
         if ([ErrorType.AUTH, ErrorType.VALIDATION].includes(lastError.type)) {
           throw lastError;
         }
-
         if (attempt === maxAttempts) {
           throw lastError;
         }
-
         // Call retry callback for user feedback
         onRetry?.(attempt, lastError);
-
         // Calculate delay with exponential backoff and optional jitter
         let delay = Math.min(baseDelay * Math.pow(backoffFactor, attempt - 1), maxDelay);
         if (jitter) {
           delay += Math.random() * Math.min(1000, delay * 0.1);
         }
-
         await new Promise(resolve => setTimeout(resolve, delay));
       }
     }
-
     throw lastError!;
   };
 }
-
 /**
  * Validates input and throws ValidationError if invalid
  */
@@ -393,7 +348,6 @@ export function validateInput(
     }
   }
 }
-
 /**
  * Handles network requests with proper error categorization
  */
@@ -410,7 +364,6 @@ export async function handleNetworkRequest<T>(
       status?: number;
     }
     const errorObj = error as NetworkErrorObj;
-    
     // Network-specific error handling
     if (!navigator.onLine) {
       throw new NetworkError(
@@ -419,21 +372,18 @@ export async function handleNetworkRequest<T>(
         'You appear to be offline. Please check your internet connection.'
       );
     }
-
     if (errorObj.code === 'NETWORK_ERROR' || errorObj.message?.includes('fetch')) {
       throw new NetworkError(
         'Network request failed',
         { ...context, originalError: errorObj.message }
       );
     }
-
     if (errorObj.status != null && errorObj.status >= 400 && errorObj.status < 500) {
       throw new ValidationError(
         'Client error',
         { ...context, status: errorObj.status }
       );
     }
-
     if (errorObj.status != null && errorObj.status >= 500) {
       throw new NetworkError(
         'Server error',
@@ -441,11 +391,9 @@ export async function handleNetworkRequest<T>(
         'Server is currently unavailable. Please try again later.'
       );
     }
-
     throw ErrorHandler.getInstance().handle(error, context);
   }
 }
-
 /**
  * Safely accesses localStorage with error handling
  */
@@ -457,46 +405,34 @@ export function safeLocalStorage() {
         null,
         { operation: 'getItem', key }
       );
-      
       if (error) {
-        console.warn(`Failed to get item from localStorage: ${key}`, error);
       }
-      
       return data;
     },
-
     setItem: (key: string, value: string): boolean => {
       const { error } = safeSync(
         () => localStorage.setItem(key, value),
         undefined,
         { operation: 'setItem', key, valueLength: value.length }
       );
-      
       if (error) {
-        console.warn(`Failed to set item in localStorage: ${key}`, error);
         return false;
       }
-      
       return true;
     },
-
     removeItem: (key: string): boolean => {
       const { error } = safeSync(
         () => localStorage.removeItem(key),
         undefined,
         { operation: 'removeItem', key }
       );
-      
       if (error) {
-        console.warn(`Failed to remove item from localStorage: ${key}`, error);
         return false;
       }
-      
       return true;
     }
   };
 }
-
 /**
  * Safely accesses clipboard with error handling
  */
@@ -521,15 +457,11 @@ export function safeClipboard() {
         undefined,
         { operation: 'writeText', textLength: text.length }
       );
-
       if (error) {
-        console.warn('Failed to write to clipboard:', error);
         return false;
       }
-
       return true;
     },
-
     readText: async (): Promise<string | null> => {
       const { data, error } = await safeAsync(
         async () => {
@@ -541,19 +473,14 @@ export function safeClipboard() {
         null,
         { operation: 'readText' }
       );
-
       if (error) {
-        console.warn('Failed to read from clipboard:', error);
       }
-
       return data;
     }
   };
 }
-
 // Export error handler instance
 export const errorHandler = ErrorHandler.getInstance();
-
 // Export common validations
 export const commonValidations = {
   required: (message: string = 'This field is required') => ({
@@ -561,25 +488,21 @@ export const commonValidations = {
     message,
     userMessage: message
   }),
-  
   string: (message: string = 'Must be a string') => ({
     condition: (value: unknown) => typeof value === 'string',
     message,
     userMessage: message
   }),
-  
   minLength: (min: number, message?: string) => ({
     condition: (value: string) => typeof value === 'string' && value.length >= min,
     message: message || `Must be at least ${min} characters`,
     userMessage: message || `Must be at least ${min} characters`
   }),
-  
   maxLength: (max: number, message?: string) => ({
     condition: (value: string) => typeof value === 'string' && value.length <= max,
     message: message || `Must be no more than ${max} characters`,
     userMessage: message || `Must be no more than ${max} characters`
   }),
-  
   email: (message: string = 'Must be a valid email address') => ({
     condition: (value: string) => {
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -588,7 +511,6 @@ export const commonValidations = {
     message,
     userMessage: message
   }),
-  
   url: (message: string = 'Must be a valid URL') => ({
     condition: (value: string) => {
       try {
@@ -602,9 +524,7 @@ export const commonValidations = {
     userMessage: message
   })
 };
-
 // Advanced async error handling utilities
-
 /**
  * Circuit breaker pattern implementation for preventing cascading failures
  */
@@ -613,13 +533,11 @@ export class CircuitBreaker {
   private successCount = 0;
   private nextAttempt = Date.now();
   private state: 'CLOSED' | 'OPEN' | 'HALF_OPEN' = 'CLOSED';
-
   constructor(
     private threshold: number = 5,
     private resetTimeout: number = 60000,
     private monitoringPeriod: number = 60000
   ) {}
-
   async execute<T>(operation: () => Promise<T>): Promise<T> {
     if (this.state === 'OPEN') {
       if (Date.now() < this.nextAttempt) {
@@ -636,7 +554,6 @@ export class CircuitBreaker {
       }
       this.state = 'HALF_OPEN';
     }
-
     try {
       const result = await operation();
       this.onSuccess();
@@ -646,7 +563,6 @@ export class CircuitBreaker {
       throw error;
     }
   }
-
   private onSuccess() {
     this.successCount++;
     if (this.state === 'HALF_OPEN') {
@@ -654,7 +570,6 @@ export class CircuitBreaker {
       this.state = 'CLOSED';
     }
   }
-
   private onFailure() {
     this.failureCount++;
     if (this.failureCount >= this.threshold) {
@@ -662,7 +577,6 @@ export class CircuitBreaker {
       this.nextAttempt = Date.now() + this.resetTimeout;
     }
   }
-
   getStats() {
     return {
       state: this.state,
@@ -671,7 +585,6 @@ export class CircuitBreaker {
       nextAttempt: this.nextAttempt
     };
   }
-
   reset() {
     this.failureCount = 0;
     this.successCount = 0;
@@ -679,7 +592,6 @@ export class CircuitBreaker {
     this.nextAttempt = Date.now();
   }
 }
-
 /**
  * Advanced async operation with timeout, cancellation, and progress tracking
  */
@@ -701,10 +613,8 @@ export async function executeWithOptions<T>({
   // Create combined abort controller
   const combinedController = new AbortController();
   const timeoutId = setTimeout(() => combinedController.abort(), timeout);
-
   // Listen for external cancellation
   signal?.addEventListener('abort', () => combinedController.abort());
-
   try {
     // Progress tracking
     let progressValue = 0;
@@ -714,12 +624,9 @@ export async function executeWithOptions<T>({
         onProgress?.(Math.min(progressValue, 90));
       }
     }, 500);
-
     const result = await operation(combinedController.signal);
-    
     clearInterval(progressInterval);
     onProgress?.(100);
-    
     return result;
   } catch (error) {
     if (combinedController.signal.aborted) {
@@ -741,7 +648,6 @@ export async function executeWithOptions<T>({
         );
       }
     }
-
     // Retry logic if specified
     if (retries > 0) {
       return executeWithOptions({
@@ -753,13 +659,11 @@ export async function executeWithOptions<T>({
         context: { ...context, attempt: ((context.attempt as number) || 0) + 1 }
       });
     }
-
     throw error;
   } finally {
     clearTimeout(timeoutId);
   }
 }
-
 /**
  * Batch operation handler with error recovery
  */
@@ -787,13 +691,11 @@ export async function executeBatch<T, R>({
   const results: (R | null)[] = new Array(items.length).fill(null);
   const errors: Array<{ index: number; item: T; error: AppError }> = [];
   let completed = 0;
-
   // Process items in batches
   for (let i = 0; i < items.length; i += batchSize) {
     const batch = items.slice(i, i + batchSize);
     const batchPromises = batch.map(async (item, batchIndex) => {
       const globalIndex = i + batchIndex;
-      
       try {
         const result = await operation(item, globalIndex);
         results[globalIndex] = result;
@@ -806,27 +708,21 @@ export async function executeBatch<T, R>({
           batchIndex: globalIndex,
           item
         });
-        
         errors.push({ index: globalIndex, item, error: appError });
         onError?.(appError, item, globalIndex);
-        
         if (!continueOnError) {
           throw appError;
         }
-        
         completed++;
         onProgress?.(completed, items.length, errors.length);
         return null;
       }
     });
-
     // Wait for batch to complete
     await Promise.all(batchPromises);
   }
-
   return { results, errors, completed };
 }
-
 /**
  * Queue-based operation processor with concurrency control
  */
@@ -845,12 +741,10 @@ export class OperationQueue {
     failed: 0,
     pending: 0
   };
-
   constructor(
     private maxConcurrency: number = 3,
     private onProgress?: (stats: typeof this.stats) => void
   ) {}
-
   async add<T>({
     operation,
     priority = 0,
@@ -862,7 +756,6 @@ export class OperationQueue {
   }): Promise<T> {
     return new Promise((resolve, reject) => {
       const id = `op_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-      
       this.queue.push({
         id,
         operation,
@@ -871,28 +764,21 @@ export class OperationQueue {
         priority,
         context
       });
-
       // Sort by priority (higher first)
       this.queue.sort((a, b) => b.priority - a.priority);
-      
       this.stats.pending = this.queue.length;
       this.onProgress?.(this.stats);
-      
       this.processNext();
     });
   }
-
   private async processNext() {
     if (this.running >= this.maxConcurrency || this.queue.length === 0) {
       return;
     }
-
     const item = this.queue.shift();
     if (!item) return;
-
     this.running++;
     this.stats.pending = this.queue.length;
-    
     try {
       const result = await item.operation();
       item.resolve(result);
@@ -907,12 +793,10 @@ export class OperationQueue {
     } finally {
       this.running--;
       this.onProgress?.(this.stats);
-      
       // Process next item
       setImmediate(() => this.processNext());
     }
   }
-
   getStats() {
     return {
       ...this.stats,
@@ -920,7 +804,6 @@ export class OperationQueue {
       pending: this.queue.length
     };
   }
-
   clear() {
     this.queue.forEach(item => {
       item.reject(new AppError(
@@ -935,7 +818,6 @@ export class OperationQueue {
     this.stats = { processed: 0, failed: 0, pending: 0 };
   }
 }
-
 /**
  * Rate-limited operation executor
  */
@@ -946,7 +828,6 @@ export class RateLimiter {
     resolve: () => void;
     reject: (error: AppError) => void;
   }> = [];
-
   constructor(
     private maxTokens: number = 10,
     private refillRate: number = 1, // tokens per second
@@ -955,22 +836,18 @@ export class RateLimiter {
     this.tokens = maxTokens;
     this.lastRefill = Date.now();
   }
-
   async execute<T>(operation: () => Promise<T>): Promise<T> {
     await this.acquire();
     return operation();
   }
-
   private async acquire(): Promise<void> {
     return new Promise((resolve, reject) => {
       this.refillTokens();
-      
       if (this.tokens > 0) {
         this.tokens--;
         resolve();
       } else {
         this.waitingQueue.push({ resolve, reject });
-        
         // Set timeout for queued requests
         setTimeout(() => {
           const index = this.waitingQueue.findIndex(item => item.resolve === resolve);
@@ -988,16 +865,13 @@ export class RateLimiter {
       }
     });
   }
-
   private refillTokens() {
     const now = Date.now();
     const timeSinceRefill = now - this.lastRefill;
     const tokensToAdd = Math.floor((timeSinceRefill / 1000) * this.refillRate);
-    
     if (tokensToAdd > 0) {
       this.tokens = Math.min(this.maxTokens, this.tokens + tokensToAdd);
       this.lastRefill = now;
-      
       // Process waiting queue
       while (this.tokens > 0 && this.waitingQueue.length > 0) {
         const item = this.waitingQueue.shift();
@@ -1008,7 +882,6 @@ export class RateLimiter {
       }
     }
   }
-
   getStats() {
     return {
       tokens: this.tokens,
@@ -1018,7 +891,6 @@ export class RateLimiter {
     };
   }
 }
-
 // Export instances for common use cases
 export const defaultCircuitBreaker = new CircuitBreaker();
 export const defaultOperationQueue = new OperationQueue();

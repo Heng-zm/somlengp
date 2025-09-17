@@ -46,6 +46,9 @@ export function createLazyComponent(
   fallback?: React.ComponentType
 ) {
   const LazyComponent = React.lazy(importFunc);
+// Memory leak prevention: Timers need cleanup, Observers need cleanup
+// Add cleanup in useEffect return function
+
   
   const LazyWrapper = (props: Record<string, unknown>) => {
     const FallbackComponent = fallback;

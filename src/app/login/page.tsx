@@ -32,6 +32,9 @@ import * as z from "zod";
 import { cn } from "@/lib/utils";
 import { Mail, Lock, Eye, EyeOff, LogIn, Loader2 } from "lucide-react";
 import { BackIconButton } from "@/components/ui/back-button";
+// Performance optimization needed: Consider memoizing inline styles, inline event handlers
+// Use useMemo for objects/arrays and useCallback for functions
+
 
 // Google Icon Component
 const GoogleIcon = () => (

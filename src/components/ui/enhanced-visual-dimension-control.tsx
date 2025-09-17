@@ -1,13 +1,14 @@
 'use client';
-
 import React, { useState, useCallback, useMemo, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
-import { Link, LinkIcon, Unlink, Lock, Unlock, RotateCcw, Maximize2 } from 'lucide-react';
+import { Link, LinkIcon, Unlink, Lock, Unlock, RotateCcw, Maximize2 } from 'lucide-react' // TODO: Consider importing icons individually for better tree shaking;
 import { cn } from '@/lib/utils';
+// Performance optimization needed: Consider memoizing inline styles, inline event handlers
+// Use useMemo for objects/arrays and useCallback for functions
 
 export interface EnhancedVisualDimensionControlProps {
   width: number;
@@ -30,13 +31,11 @@ export interface EnhancedVisualDimensionControlProps {
   disabled?: boolean;
   onValidationError?: (error: string | null) => void;
 }
-
 interface ValidationResult {
   isValid: boolean;
   error?: string;
   warnings?: string[];
 }
-
 export function EnhancedVisualDimensionControl({
   width,
   height,
@@ -65,38 +64,29 @@ export function EnhancedVisualDimensionControl({
   const [isResizing, setIsResizing] = useState(false);
   const [lastValidWidth, setLastValidWidth] = useState(width);
   const [lastValidHeight, setLastValidHeight] = useState(height);
-  
   const widthInputRef = useRef<HTMLInputElement>(null);
   const heightInputRef = useRef<HTMLInputElement>(null);
   const previewRef = useRef<HTMLDivElement>(null);
-  
   // Calculate aspect ratio with better precision and validation
   const aspectRatio = useMemo(() => {
     if (!originalWidth || !originalHeight || originalWidth <= 0 || originalHeight <= 0) {
       return 1;
     }
-    
     const ratio = originalWidth / originalHeight;
-    
     // Validate ratio
     if (!isFinite(ratio) || ratio <= 0 || ratio === Infinity) {
-      console.warn('Invalid aspect ratio calculated:', { originalWidth, originalHeight, ratio });
       return 1;
     }
-    
     // Clamp ratio to reasonable bounds (1:1000 to 1000:1)
     return Math.max(0.001, Math.min(1000, ratio));
   }, [originalWidth, originalHeight]);
-
   // Enhanced validation function
   const validateDimensions = useCallback((w: number, h: number): ValidationResult => {
     const result: ValidationResult = { isValid: true, warnings: [] };
-    
     // Check if values are finite numbers
     if (!isFinite(w) || !isFinite(h)) {
       return { isValid: false, error: 'Dimensions must be valid numbers' };
     }
-    
     // Check minimum bounds
     if (w < minWidth || h < minHeight) {
       return { 
@@ -104,7 +94,6 @@ export function EnhancedVisualDimensionControl({
         error: `Dimensions must be at least ${minWidth}×${minHeight} ${unit}` 
       };
     }
-    
     // Check maximum bounds
     if (w > maxWidth || h > maxHeight) {
       return { 
@@ -112,7 +101,6 @@ export function EnhancedVisualDimensionControl({
         error: `Dimensions must not exceed ${maxWidth}×${maxHeight} ${unit}` 
       };
     }
-    
     // Decimal validation
     if (!allowDecimalValues && (w % 1 !== 0 || h % 1 !== 0)) {
       return { 
@@ -120,36 +108,28 @@ export function EnhancedVisualDimensionControl({
         error: 'Only whole numbers are allowed' 
       };
     }
-    
     // Performance warnings
     const totalPixels = w * h;
     if (totalPixels > 16777216) { // 4096x4096
       result.warnings?.push('Large dimensions may cause performance issues');
     }
-    
     if (originalWidth && originalHeight) {
       const upscaleFactor = Math.max(w / originalWidth, h / originalHeight);
       if (upscaleFactor > 2) {
         result.warnings?.push(`Upscaling by ${upscaleFactor.toFixed(1)}x may reduce quality`);
       }
     }
-    
     return result;
   }, [minWidth, minHeight, maxWidth, maxHeight, allowDecimalValues, unit, originalWidth, originalHeight]);
-
   // Safely parse number input with validation
   const parseNumberInput = useCallback((value: string): number | null => {
     if (!value || value.trim() === '') return null;
-    
     const parsed = allowDecimalValues ? parseFloat(value) : parseInt(value, 10);
-    
     if (isNaN(parsed) || !isFinite(parsed)) return null;
-    
     return allowDecimalValues ? 
       parseFloat(parsed.toFixed(precision)) : 
       Math.round(parsed);
   }, [allowDecimalValues, precision]);
-
   // Enhanced dimension update with aspect ratio and validation
   const updateDimensionsWithValidation = useCallback((
     newWidth: number | null, 
@@ -159,7 +139,6 @@ export function EnhancedVisualDimensionControl({
   ) => {
     let finalWidth = newWidth ?? width;
     let finalHeight = newHeight ?? height;
-    
     // Apply aspect ratio if enabled and we have a valid ratio
     if (respectAspectRatio && aspectRatio > 0 && isFinite(aspectRatio)) {
       if (sourceField === 'width' && newWidth !== null) {
@@ -168,14 +147,11 @@ export function EnhancedVisualDimensionControl({
         finalWidth = Math.round(newHeight * aspectRatio);
       }
     }
-    
     // Ensure bounds
     finalWidth = Math.max(minWidth, Math.min(maxWidth, finalWidth));
     finalHeight = Math.max(minHeight, Math.min(maxHeight, finalHeight));
-    
     // Validate the final dimensions
     const validation = validateDimensions(finalWidth, finalHeight);
-    
     if (validation.isValid) {
       // Update if values changed
       if (finalWidth !== width) {
@@ -186,43 +162,34 @@ export function EnhancedVisualDimensionControl({
         onHeightChange?.(finalHeight);
         setLastValidHeight(finalHeight);
       }
-      
       onValidationError?.(null);
-      
       // Show warnings if any
       if (validation.warnings && validation.warnings.length > 0) {
-        console.warn('Dimension warnings:', validation.warnings);
       }
     } else {
       onValidationError?.(validation.error || 'Invalid dimensions');
     }
-    
     return validation.isValid;
   }, [width, height, keepAspectRatio, aspectRatio, minWidth, minHeight, maxWidth, maxHeight, 
       onWidthChange, onHeightChange, onValidationError, validateDimensions]);
-
   // Handle width input change
   const handleWidthChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
     setInputWidth(value);
-    
     const parsedWidth = parseNumberInput(value);
     if (parsedWidth !== null) {
       updateDimensionsWithValidation(parsedWidth, null, keepAspectRatio, 'width');
     }
   }, [parseNumberInput, updateDimensionsWithValidation, keepAspectRatio]);
-
   // Handle height input change
   const handleHeightChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
     setInputHeight(value);
-    
     const parsedHeight = parseNumberInput(value);
     if (parsedHeight !== null) {
       updateDimensionsWithValidation(null, parsedHeight, keepAspectRatio, 'height');
     }
   }, [parseNumberInput, updateDimensionsWithValidation, keepAspectRatio]);
-
   // Handle input blur - revert to last valid value if invalid
   const handleInputBlur = useCallback((field: 'width' | 'height') => {
     if (field === 'width') {
@@ -237,7 +204,6 @@ export function EnhancedVisualDimensionControl({
       }
     }
   }, [inputWidth, inputHeight, parseNumberInput, validateDimensions, height, width, lastValidWidth, lastValidHeight]);
-
   // Reset to original dimensions
   const resetToOriginal = useCallback(() => {
     if (originalWidth && originalHeight) {
@@ -246,20 +212,16 @@ export function EnhancedVisualDimensionControl({
       setInputHeight(originalHeight.toString());
     }
   }, [originalWidth, originalHeight, updateDimensionsWithValidation]);
-
   // Fit to bounds while maintaining aspect ratio
   const fitToBounds = useCallback(() => {
     if (!originalWidth || !originalHeight) return;
-    
     const maxRatio = Math.min(maxWidth / originalWidth, maxHeight / originalHeight);
     const fittedWidth = Math.floor(originalWidth * maxRatio);
     const fittedHeight = Math.floor(originalHeight * maxRatio);
-    
     updateDimensionsWithValidation(fittedWidth, fittedHeight, false);
     setInputWidth(fittedWidth.toString());
     setInputHeight(fittedHeight.toString());
   }, [originalWidth, originalHeight, maxWidth, maxHeight, updateDimensionsWithValidation]);
-
   // Update input values when props change
   useEffect(() => {
     setInputWidth(width.toString());
@@ -267,39 +229,32 @@ export function EnhancedVisualDimensionControl({
     setLastValidWidth(width);
     setLastValidHeight(height);
   }, [width, height]);
-
   // Visual preview calculations
   const previewScale = useMemo(() => {
     if (!showVisualPreview) return 1;
-    
     const maxPreviewSize = 200;
     const scale = Math.min(maxPreviewSize / width, maxPreviewSize / height, 1);
     return Math.max(0.1, Math.min(1, scale));
   }, [width, height, showVisualPreview]);
-
   const previewDimensions = useMemo(() => ({
     width: Math.round(width * previewScale),
     height: Math.round(height * previewScale)
   }), [width, height, previewScale]);
-
   // Calculate dimension ratios and statistics
   const dimensionStats = useMemo(() => {
     const currentRatio = width / height;
     const megapixels = (width * height) / 1000000;
-    
     let ratioText = `${currentRatio.toFixed(3)}:1`;
     if (Math.abs(currentRatio - 16/9) < 0.01) ratioText = '16:9';
     else if (Math.abs(currentRatio - 4/3) < 0.01) ratioText = '4:3';
     else if (Math.abs(currentRatio - 1) < 0.01) ratioText = '1:1';
     else if (Math.abs(currentRatio - 3/2) < 0.01) ratioText = '3:2';
-    
     return {
       ratio: ratioText,
       megapixels: megapixels.toFixed(2),
       aspectRatio: currentRatio
     };
   }, [width, height]);
-
   return (
     <div className={cn('space-y-4', className)}>
       {/* Input Controls */}
@@ -332,7 +287,6 @@ export function EnhancedVisualDimensionControl({
             <span className="text-xs text-gray-500 min-w-[2rem]">{unit}</span>
           </div>
         </div>
-
         {/* Aspect Ratio Control */}
         <div className="flex items-center justify-center py-1">
           <Button
@@ -356,7 +310,6 @@ export function EnhancedVisualDimensionControl({
             )}
           </Button>
         </div>
-
         {/* Height Input */}
         <div className="space-y-1">
           <Label htmlFor="height-input" className="text-xs font-medium flex items-center justify-between">
@@ -386,7 +339,6 @@ export function EnhancedVisualDimensionControl({
           </div>
         </div>
       </div>
-
       {/* Quick Actions */}
       <div className="flex gap-1">
         <Button
@@ -412,7 +364,6 @@ export function EnhancedVisualDimensionControl({
           Fit
         </Button>
       </div>
-
       {/* Visual Preview */}
       {showVisualPreview && (
         <Card>
@@ -424,7 +375,6 @@ export function EnhancedVisualDimensionControl({
                   {previewDimensions.width}×{previewDimensions.height}
                 </Badge>
               </div>
-              
               <div 
                 ref={previewRef}
                 className="mx-auto border-2 border-dashed border-gray-300 bg-gray-50 dark:bg-gray-900 dark:border-gray-700 flex items-center justify-center relative rounded"
@@ -444,7 +394,6 @@ export function EnhancedVisualDimensionControl({
           </CardContent>
         </Card>
       )}
-
       {/* Dimension Statistics */}
       <div className="grid grid-cols-3 gap-2 text-xs">
         <div className="text-center p-2 bg-gray-50 dark:bg-gray-900 rounded">
@@ -465,7 +414,6 @@ export function EnhancedVisualDimensionControl({
           </div>
         </div>
       </div>
-
       {/* Keyboard Shortcuts Help */}
       <details className="text-xs text-gray-500">
         <summary className="cursor-pointer hover:text-gray-700 dark:hover:text-gray-300">
@@ -481,5 +429,4 @@ export function EnhancedVisualDimensionControl({
     </div>
   );
 }
-
 export default EnhancedVisualDimensionControl;

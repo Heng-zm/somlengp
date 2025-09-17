@@ -1,9 +1,13 @@
 'use client';
-
 import React, { useRef, useEffect, useState, useCallback } from 'react';
 import jsQR from 'jsqr';
 import { Button } from '@/components/ui/button';
 import { Upload, X } from 'lucide-react';
+// Memory leak prevention: Timers need cleanup
+// Add cleanup in useEffect return function
+
+// Performance optimization needed: Consider memoizing inline styles, inline event handlers, dynamic classNames
+// Use useMemo for objects/arrays and useCallback for functions
 
 interface SimpleQRScannerProps {
   onScanSuccess?: (data: string) => void;
@@ -11,13 +15,11 @@ interface SimpleQRScannerProps {
   onClose?: () => void;
   className?: string;
 }
-
 export function SimpleQRScanner({ onScanSuccess, onScanError, onClose, className = '' }: SimpleQRScannerProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const scanIntervalRef = useRef<NodeJS.Timeout>();
-  
   const [isScanning, setIsScanning] = useState(false);
   const [stream, setStream] = useState<MediaStream | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -25,22 +27,18 @@ export function SimpleQRScanner({ onScanSuccess, onScanError, onClose, className
   const [lastScannedData, setLastScannedData] = useState<string>('');
   const [isProcessingUpload, setIsProcessingUpload] = useState(false);
   const [debugInfo, setDebugInfo] = useState({ attempts: 0, lastAttempt: 0 });
-
   // Check if camera is supported
   const isCameraSupported = useCallback(() => {
     return !!(navigator?.mediaDevices?.getUserMedia);
   }, []);
-
   // Request camera access
   const requestCamera = useCallback(async () => {
     if (!isCameraSupported()) {
       setError('Camera is not supported in this browser');
       return;
     }
-
     setIsLoading(true);
     setError('');
-
     try {
       const mediaStream = await navigator.mediaDevices.getUserMedia({
         video: { 
@@ -49,9 +47,7 @@ export function SimpleQRScanner({ onScanSuccess, onScanError, onClose, className
           height: { ideal: 720 }
         }
       });
-      
       setStream(mediaStream);
-      console.log('Camera access granted');
     } catch (err) {
       console.error('Camera access error:', err);
       const message = err instanceof Error ? err.message : 'Failed to access camera';
@@ -61,7 +57,6 @@ export function SimpleQRScanner({ onScanSuccess, onScanError, onClose, className
       setIsLoading(false);
     }
   }, [isCameraSupported, onScanError]);
-
   // Stop camera
   const stopCamera = useCallback(() => {
     if (stream) {
@@ -73,87 +68,68 @@ export function SimpleQRScanner({ onScanSuccess, onScanError, onClose, className
       clearInterval(scanIntervalRef.current);
     }
   }, [stream]);
-
   // Scan QR code from video
   const scanQRCode = useCallback(() => {
     const video = videoRef.current;
     const canvas = canvasRef.current;
-    
     if (!video || !canvas || video.videoWidth === 0 || video.videoHeight === 0) {
       return;
     }
-
     // Check if video is ready
     if (video.readyState < 2) {
       return;
     }
-
     const context = canvas.getContext('2d');
     if (!context) return;
-
     // Set canvas size to match video
     canvas.width = video.videoWidth;
     canvas.height = video.videoHeight;
-
     // Draw video frame to canvas
     context.drawImage(video, 0, 0, canvas.width, canvas.height);
-
     // Get image data
     const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
-
     // Update debug info
     setDebugInfo(prev => ({
       attempts: prev.attempts + 1,
       lastAttempt: Date.now()
     }));
-
     try {
       // Scan for QR codes with optimal settings
       const code = jsQR(imageData.data, imageData.width, imageData.height, {
         inversionAttempts: 'attemptBoth',
       });
-
       if (code && code.data && code.data.trim() !== '' && code.data !== lastScannedData) {
-        console.log('Simple QR Scanner: QR Code detected:', code.data);
         setLastScannedData(code.data);
         setIsScanning(false);
         if (scanIntervalRef.current) {
           clearInterval(scanIntervalRef.current);
         }
-        
         // Trigger vibration if available
         if (navigator?.vibrate) {
           navigator.vibrate([100, 50, 100]);
         }
-        
         onScanSuccess?.(code.data);
       }
     } catch (error) {
       console.error('QR scanning error:', error);
     }
   }, [lastScannedData, onScanSuccess]);
-
   // Start scanning
   const startScanning = useCallback(() => {
     if (!isScanning && stream) {
-      console.log('Starting QR code scanning...');
       setIsScanning(true);
       scanIntervalRef.current = setInterval(scanQRCode, 100); // Scan every 100ms
     }
   }, [isScanning, stream, scanQRCode]);
-
   // Set up video when stream is available
   useEffect(() => {
     if (videoRef.current && stream) {
       videoRef.current.srcObject = stream;
-      
       videoRef.current.onloadedmetadata = () => {
-        console.log('Video metadata loaded');
         setTimeout(startScanning, 500); // Small delay to ensure video is ready
       };
     }
   }, [stream, startScanning]);
-
   // Auto-request camera on mount
   useEffect(() => {
     requestCamera();
@@ -161,40 +137,30 @@ export function SimpleQRScanner({ onScanSuccess, onScanError, onClose, className
       stopCamera();
     };
   }, [requestCamera, stopCamera]);
-
   // File upload handler
   const handleFileUpload = useCallback(async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
-
     if (!file.type.startsWith('image/')) {
       onScanError?.('Please select a valid image file');
       return;
     }
-
     setIsProcessingUpload(true);
-
     try {
       const img = new Image();
-      
       img.onload = () => {
         const canvas = canvasRef.current;
         if (!canvas) return;
-
         const context = canvas.getContext('2d');
         if (!context) return;
-
         canvas.width = img.width;
         canvas.height = img.height;
         context.drawImage(img, 0, 0);
-
         const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
-        
         try {
           const code = jsQR(imageData.data, imageData.width, imageData.height, {
             inversionAttempts: 'attemptBoth',
           });
-
           if (code && code.data) {
             onScanSuccess?.(code.data);
           } else {
@@ -206,12 +172,10 @@ export function SimpleQRScanner({ onScanSuccess, onScanError, onClose, className
           setIsProcessingUpload(false);
         }
       };
-
       img.onerror = () => {
         onScanError?.('Failed to load the uploaded image');
         setIsProcessingUpload(false);
       };
-
       const reader = new FileReader();
       reader.onload = (e) => {
         if (e.target?.result) {
@@ -223,17 +187,14 @@ export function SimpleQRScanner({ onScanSuccess, onScanError, onClose, className
       onScanError?.('Failed to process the uploaded file');
       setIsProcessingUpload(false);
     }
-
     if (event.target) {
       event.target.value = '';
     }
   }, [onScanSuccess, onScanError]);
-
   const handleClose = () => {
     stopCamera();
     onClose?.();
   };
-
   if (!isCameraSupported()) {
     return (
       <div className={`flex flex-col items-center justify-center p-8 bg-gray-100 rounded-lg border border-gray-300 ${className}`}>
@@ -258,7 +219,6 @@ export function SimpleQRScanner({ onScanSuccess, onScanError, onClose, className
             Close
           </Button>
         </div>
-        
         <canvas ref={canvasRef} className="hidden" />
         <input
           ref={fileInputRef}
@@ -270,7 +230,6 @@ export function SimpleQRScanner({ onScanSuccess, onScanError, onClose, className
       </div>
     );
   }
-
   return (
     <div className={`relative bg-black rounded-2xl overflow-hidden ${className}`}>
       {/* Video Preview */}
@@ -283,7 +242,6 @@ export function SimpleQRScanner({ onScanSuccess, onScanError, onClose, className
           className="w-full h-full object-cover"
           style={{ minHeight: '400px', maxHeight: '600px' }}
         />
-        
         {/* Scanning Overlay */}
         <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
           <div className="relative">
@@ -293,7 +251,6 @@ export function SimpleQRScanner({ onScanSuccess, onScanError, onClose, className
               <div className="absolute top-0 right-0 w-6 h-6 border-r-4 border-t-4 border-green-400 rounded-tr-lg"></div>
               <div className="absolute bottom-0 left-0 w-6 h-6 border-l-4 border-b-4 border-green-400 rounded-bl-lg"></div>
               <div className="absolute bottom-0 right-0 w-6 h-6 border-r-4 border-b-4 border-green-400 rounded-br-lg"></div>
-              
               {/* Scanning animation */}
               {isScanning && (
                 <div className="absolute inset-0 border-2 border-green-400 rounded-xl animate-pulse">
@@ -301,7 +258,6 @@ export function SimpleQRScanner({ onScanSuccess, onScanError, onClose, className
                 </div>
               )}
             </div>
-            
             <div className="mt-4 text-center">
               <p className="text-white text-sm">
                 {isScanning ? 'Scanning for QR codes...' : 'Position QR code within the frame'}
@@ -314,7 +270,6 @@ export function SimpleQRScanner({ onScanSuccess, onScanError, onClose, className
             </div>
           </div>
         </div>
-
         {/* Controls */}
         {stream && (
           <>
@@ -332,7 +287,6 @@ export function SimpleQRScanner({ onScanSuccess, onScanError, onClose, className
                 )}
               </Button>
             </div>
-            
             <div className="absolute top-4 right-4">
               <Button
                 onClick={handleClose}
@@ -345,7 +299,6 @@ export function SimpleQRScanner({ onScanSuccess, onScanError, onClose, className
           </>
         )}
       </div>
-
       {/* Error Display */}
       {error && (
         <div className="absolute top-4 left-4 right-4 bg-red-500/90 text-white p-3 rounded-lg">
@@ -353,7 +306,6 @@ export function SimpleQRScanner({ onScanSuccess, onScanError, onClose, className
           <p className="text-xs">{error}</p>
         </div>
       )}
-
       {/* Loading State */}
       {(isLoading || isProcessingUpload) && (
         <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
@@ -365,7 +317,6 @@ export function SimpleQRScanner({ onScanSuccess, onScanError, onClose, className
           </div>
         </div>
       )}
-
       {/* Hidden canvas and file input */}
       <canvas ref={canvasRef} className="hidden" />
       <input
@@ -378,3 +329,6 @@ export function SimpleQRScanner({ onScanSuccess, onScanError, onClose, className
     </div>
   );
 }
+
+// Default export for lazy loading
+export default SimpleQRScanner;

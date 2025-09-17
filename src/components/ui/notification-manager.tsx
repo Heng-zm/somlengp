@@ -1,5 +1,4 @@
 "use client"
-
 import * as React from "react"
 import { createContext, useContext, useReducer, useCallback, useEffect } from "react"
 import { Alert, AlertTitle, AlertDescription } from "./alert"
@@ -23,6 +22,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "./card"
 import { Switch } from "./switch"
 import { Slider } from "./slider"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./select"
+// Performance optimization needed: Consider memoizing inline styles, inline event handlers
+// Use useMemo for objects/arrays and useCallback for functions
 
 // Types
 interface NotificationSettings {
@@ -40,7 +41,6 @@ interface NotificationSettings {
     end: string
   }
 }
-
 interface NotificationItem {
   id: string
   type: 'alert' | 'toast'
@@ -64,14 +64,12 @@ interface NotificationItem {
   dismissed: boolean
   read: boolean
 }
-
 interface NotificationState {
   notifications: NotificationItem[]
   settings: NotificationSettings
   history: NotificationItem[]
   unreadCount: number
 }
-
 // Initial state
 const defaultSettings: NotificationSettings = {
   enabled: true,
@@ -88,14 +86,12 @@ const defaultSettings: NotificationSettings = {
     end: '08:00'
   }
 }
-
 const initialState: NotificationState = {
   notifications: [],
   settings: defaultSettings,
   history: [],
   unreadCount: 0
 }
-
 // Actions
 type NotificationAction =
   | { type: 'ADD_NOTIFICATION'; payload: Omit<NotificationItem, 'id' | 'timestamp' | 'dismissed' | 'read'> }
@@ -105,7 +101,6 @@ type NotificationAction =
   | { type: 'UPDATE_SETTINGS'; payload: Partial<NotificationSettings> }
   | { type: 'CLEAR_HISTORY' }
   | { type: 'UPDATE_PROGRESS'; payload: { id: string; progress: number } }
-
 // Reducer
 function notificationReducer(state: NotificationState, action: NotificationAction): NotificationState {
   switch (action.type) {
@@ -117,12 +112,10 @@ function notificationReducer(state: NotificationState, action: NotificationActio
         dismissed: false,
         read: false
       }
-
       // Check if notifications are disabled
       if (!state.settings.enabled) {
         return state
       }
-
       // Check quiet hours
       if (state.settings.quietHours.enabled && isInQuietHours(new Date(), state.settings.quietHours)) {
         // Store in history for later
@@ -131,13 +124,11 @@ function notificationReducer(state: NotificationState, action: NotificationActio
           history: [...state.history, newNotification]
         }
       }
-
       // Limit max notifications
       const notifications = [...state.notifications, newNotification]
       if (notifications.length > state.settings.maxNotifications) {
         notifications.shift()
       }
-
       return {
         ...state,
         notifications,
@@ -145,14 +136,12 @@ function notificationReducer(state: NotificationState, action: NotificationActio
         unreadCount: state.unreadCount + 1
       }
     }
-
     case 'DISMISS_NOTIFICATION': {
       return {
         ...state,
         notifications: state.notifications.filter(n => n.id !== action.payload.id)
       }
     }
-
     case 'MARK_AS_READ': {
       const notification = state.notifications.find(n => n.id === action.payload.id)
       return {
@@ -163,7 +152,6 @@ function notificationReducer(state: NotificationState, action: NotificationActio
         unreadCount: notification && !notification.read ? state.unreadCount - 1 : state.unreadCount
       }
     }
-
     case 'CLEAR_ALL': {
       return {
         ...state,
@@ -171,21 +159,18 @@ function notificationReducer(state: NotificationState, action: NotificationActio
         unreadCount: 0
       }
     }
-
     case 'UPDATE_SETTINGS': {
       return {
         ...state,
         settings: { ...state.settings, ...action.payload }
       }
     }
-
     case 'CLEAR_HISTORY': {
       return {
         ...state,
         history: []
       }
     }
-
     case 'UPDATE_PROGRESS': {
       return {
         ...state,
@@ -194,12 +179,10 @@ function notificationReducer(state: NotificationState, action: NotificationActio
         )
       }
     }
-
     default:
       return state
   }
 }
-
 // Helper functions
 function isInQuietHours(date: Date, quietHours: { start: string; end: string }): boolean {
   const currentTime = date.getHours() * 60 + date.getMinutes()
@@ -207,17 +190,14 @@ function isInQuietHours(date: Date, quietHours: { start: string; end: string }):
   const [endHour, endMin] = quietHours.end.split(':').map(Number)
   const startTime = startHour * 60 + startMin
   const endTime = endHour * 60 + endMin
-
   if (startTime <= endTime) {
     return currentTime >= startTime && currentTime <= endTime
   } else {
     return currentTime >= startTime || currentTime <= endTime
   }
 }
-
 function playNotificationSound(soundType: string, volume: number): void {
   if (typeof window === 'undefined') return
-  
   try {
     const soundMap: Record<string, string> = {
       success: '/sounds/success.mp3',
@@ -226,16 +206,13 @@ function playNotificationSound(soundType: string, volume: number): void {
       info: '/sounds/info.mp3',
       notification: '/sounds/notification.mp3',
     }
-    
     const soundFile = soundMap[soundType] || soundMap.notification
     const audio = new Audio(soundFile)
     audio.volume = Math.max(0, Math.min(1, volume))
     audio.play().catch(console.warn)
   } catch (error) {
-    console.warn('Failed to play notification sound:', error)
   }
 }
-
 // Context
 interface NotificationContextValue {
   state: NotificationState
@@ -247,13 +224,10 @@ interface NotificationContextValue {
   clearHistory: () => void
   updateProgress: (id: string, progress: number) => void
 }
-
 const NotificationContext = createContext<NotificationContextValue | null>(null)
-
 // Provider component
 export function NotificationProvider({ children }: { children: React.ReactNode }) {
   const [state, dispatch] = useReducer(notificationReducer, initialState)
-
   // Load settings from localStorage
   useEffect(() => {
     try {
@@ -263,27 +237,21 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
         dispatch({ type: 'UPDATE_SETTINGS', payload: settings })
       }
     } catch (error) {
-      console.warn('Failed to load notification settings:', error)
     }
   }, [])
-
   // Save settings to localStorage
   useEffect(() => {
     try {
       localStorage.setItem('notification-settings', JSON.stringify(state.settings))
     } catch (error) {
-      console.warn('Failed to save notification settings:', error)
     }
   }, [state.settings])
-
   const addNotification = useCallback((notification: Omit<NotificationItem, 'id' | 'timestamp' | 'dismissed' | 'read'>) => {
     dispatch({ type: 'ADD_NOTIFICATION', payload: notification })
-    
     // Play sound if enabled
     if (state.settings.soundEnabled && notification.soundType) {
       playNotificationSound(notification.soundType, state.settings.volume)
     }
-
     // Create toast if type is toast
     if (notification.type === 'toast') {
       toast({
@@ -293,31 +261,24 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
       })
     }
   }, [state.settings.soundEnabled, state.settings.volume])
-
   const dismissNotification = useCallback((id: string) => {
     dispatch({ type: 'DISMISS_NOTIFICATION', payload: { id } })
   }, [])
-
   const markAsRead = useCallback((id: string) => {
     dispatch({ type: 'MARK_AS_READ', payload: { id } })
   }, [])
-
   const clearAll = useCallback(() => {
     dispatch({ type: 'CLEAR_ALL' })
   }, [])
-
   const updateSettings = useCallback((settings: Partial<NotificationSettings>) => {
     dispatch({ type: 'UPDATE_SETTINGS', payload: settings })
   }, [])
-
   const clearHistory = useCallback(() => {
     dispatch({ type: 'CLEAR_HISTORY' })
   }, [])
-
   const updateProgress = useCallback((id: string, progress: number) => {
     dispatch({ type: 'UPDATE_PROGRESS', payload: { id, progress } })
   }, [])
-
   const value = {
     state,
     addNotification,
@@ -328,7 +289,6 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
     clearHistory,
     updateProgress
   }
-
   return (
     <NotificationContext.Provider value={value}>
       {children}
@@ -336,7 +296,6 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
     </NotificationContext.Provider>
   )
 }
-
 // Hook to use notifications
 export function useNotifications() {
   const context = useContext(NotificationContext)
@@ -345,15 +304,12 @@ export function useNotifications() {
   }
   return context
 }
-
 // Notification container component
 function NotificationContainer() {
   const { state, dismissNotification, markAsRead } = useNotifications()
-
   if (!state.settings.enabled) {
     return null
   }
-
   return (
     <div
       className={cn(
@@ -393,11 +349,9 @@ function NotificationContainer() {
     </div>
   )
 }
-
 // Notification settings component
 export function NotificationSettings() {
   const { state, updateSettings } = useNotifications()
-
   return (
     <Card className="w-full max-w-2xl">
       <CardHeader>
@@ -418,7 +372,6 @@ export function NotificationSettings() {
             onCheckedChange={(enabled) => updateSettings({ enabled })}
           />
         </div>
-
         {/* Sound Settings */}
         <div className="space-y-4">
           <div className="flex items-center justify-between">
@@ -431,7 +384,6 @@ export function NotificationSettings() {
               onCheckedChange={(soundEnabled) => updateSettings({ soundEnabled })}
             />
           </div>
-
           {state.settings.soundEnabled && (
             <div>
               <label className="text-sm font-medium">Volume</label>
@@ -445,7 +397,6 @@ export function NotificationSettings() {
             </div>
           )}
         </div>
-
         {/* Position Settings */}
         <div>
           <label className="text-sm font-medium">Position</label>
@@ -466,7 +417,6 @@ export function NotificationSettings() {
             </SelectContent>
           </Select>
         </div>
-
         {/* Max Notifications */}
         <div>
           <label className="text-sm font-medium">Maximum Notifications</label>
@@ -482,7 +432,6 @@ export function NotificationSettings() {
             Currently: {state.settings.maxNotifications}
           </p>
         </div>
-
         {/* Auto Close Settings */}
         <div className="space-y-4">
           <div className="flex items-center justify-between">
@@ -495,7 +444,6 @@ export function NotificationSettings() {
               onCheckedChange={(autoClose) => updateSettings({ autoClose })}
             />
           </div>
-
           {state.settings.autoClose && (
             <div>
               <label className="text-sm font-medium">Auto Close Delay (seconds)</label>
@@ -513,7 +461,6 @@ export function NotificationSettings() {
             </div>
           )}
         </div>
-
         {/* Quiet Hours */}
         <div className="space-y-4">
           <div className="flex items-center justify-between">
@@ -530,7 +477,6 @@ export function NotificationSettings() {
               }
             />
           </div>
-
           {state.settings.quietHours.enabled && (
             <div className="grid grid-cols-2 gap-4">
               <div>
@@ -566,7 +512,6 @@ export function NotificationSettings() {
     </Card>
   )
 }
-
 // Quick notification helpers
 export const notifications = {
   success: (title: string, description?: string, options?: Partial<NotificationItem>) => ({
@@ -582,7 +527,6 @@ export const notifications = {
     icon: CheckCircle2,
     ...options
   }),
-
   error: (title: string, description?: string, options?: Partial<NotificationItem>) => ({
     type: 'alert' as const,
     variant: 'error' as const,
@@ -596,7 +540,6 @@ export const notifications = {
     icon: AlertTriangle,
     ...options
   }),
-
   warning: (title: string, description?: string, options?: Partial<NotificationItem>) => ({
     type: 'alert' as const,
     variant: 'warning' as const,
@@ -610,7 +553,6 @@ export const notifications = {
     icon: AlertTriangle,
     ...options
   }),
-
   info: (title: string, description?: string, options?: Partial<NotificationItem>) => ({
     type: 'alert' as const,
     variant: 'info' as const,

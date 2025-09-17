@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef, useCallback, memo } from 'react';
 import { useRouter } from 'next/navigation';
 import { AuthGuard } from '@/components/auth/auth-guard';
 import { useAuth } from '@/contexts/auth-context';
@@ -38,9 +38,12 @@ import {
 import { showErrorToast, showSuccessToast } from '@/lib/toast-utils';
 import { cn } from '@/lib/utils';
 import { generateMessageId } from '@/lib/id-utils';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion' // TODO: Consider lazy loading animations for better initial load;
 import { AIFormat, formatAIResponse } from '@/lib/ai-formatter';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+// Performance optimization needed: Consider memoizing inline styles, inline event handlers
+// Use useMemo for objects/arrays and useCallback for functions
+
 
 interface FileAttachment {
   name: string;
@@ -84,7 +87,7 @@ const AI_MODELS: AIModel[] = [
   }
 ];
 
-export default function AIAssistantPage() {
+const AIAssistantPageComponent = function AIAssistantPage() {
   const { user } = useAuth();
   const router = useRouter();
   const [messages, setMessages] = useState<Message[]>([]);
@@ -805,3 +808,6 @@ export default function AIAssistantPage() {
     </AuthGuard>
   );
 }
+
+
+export default memo(AIAssistantPageComponent);

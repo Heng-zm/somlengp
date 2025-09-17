@@ -11,6 +11,12 @@ import {
 } from '@/lib/comment-cache';
 import { getCommentAnalytics } from '@/lib/optimized-firestore-comments';
 import { 
+// Memory leak prevention: Timers need cleanup
+// Add cleanup in useEffect return function
+
+// Performance optimization needed: Consider memoizing inline event handlers, dynamic classNames
+// Use useMemo for objects/arrays and useCallback for functions
+
   BarChart, 
   TrendingUp, 
   Clock, 

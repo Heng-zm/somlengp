@@ -1,9 +1,16 @@
 "use client";
 
+import { memo } from 'react';
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { cn } from '@/lib/utils';
 import { AlertContainerAlert } from './alert-utils';
 import {
+// Memory leak prevention: Timers need cleanup
+// Add cleanup in useEffect return function
+
+// Performance optimization needed: Consider memoizing inline styles
+// Use useMemo for objects/arrays and useCallback for functions
+
   SuccessAlert,
   ErrorAlert,
   WarningAlert,
@@ -396,7 +403,7 @@ export function useVirtualizedAlerts() {
   // Cleanup on unmount
   useEffect(() => {
     return () => {
-      timeouts.forEach(timeout => clearTimeout(timeout));
+      timeouts.forEach(timeout => clearTimeout(timeout), []);
     };
   }, [timeouts]);
 

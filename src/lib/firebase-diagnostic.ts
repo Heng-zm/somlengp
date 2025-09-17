@@ -1,41 +1,29 @@
 // Firebase connection diagnostic utility
-
 import { initializeApp, getApps } from "firebase/app";
 import { getAuth, signInAnonymously, connectAuthEmulator } from "firebase/auth";
 import { getFirestore, connectFirestoreEmulator, enableNetwork, disableNetwork } from "firebase/firestore";
-
 interface DiagnosticResult {
   step: string;
   success: boolean;
   error?: string;
   details?: any;
 }
-
 export class FirebaseDiagnostic {
   private results: DiagnosticResult[] = [];
-
   async runDiagnostics(): Promise<DiagnosticResult[]> {
-    console.log('🔍 Running Firebase diagnostics...');
     this.results = [];
-
     // Step 1: Check environment variables
     await this.checkEnvironmentVariables();
-
     // Step 2: Test Firebase app initialization
     await this.testFirebaseInitialization();
-
     // Step 3: Test network connectivity
     await this.testNetworkConnectivity();
-
     // Step 4: Test Firestore connection
     await this.testFirestoreConnection();
-
     // Step 5: Test Auth connection
     await this.testAuthConnection();
-
     return this.results;
   }
-
   private async checkEnvironmentVariables(): Promise<void> {
     try {
       const requiredVars = [
@@ -43,13 +31,10 @@ export class FirebaseDiagnostic {
         'NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN',
         'NEXT_PUBLIC_FIREBASE_PROJECT_ID'
       ];
-
       const missing = requiredVars.filter(varName => !process.env[varName]);
-      
       if (missing.length > 0) {
         throw new Error(`Missing environment variables: ${missing.join(', ')}`);
       }
-
       this.results.push({
         step: 'Environment Variables',
         success: true,
@@ -68,7 +53,6 @@ export class FirebaseDiagnostic {
       });
     }
   }
-
   private async testFirebaseInitialization(): Promise<void> {
     try {
       const firebaseConfig = {
@@ -81,9 +65,7 @@ export class FirebaseDiagnostic {
         appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
         measurementId: process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID,
       };
-
       const app = getApps().length === 0 ? initializeApp(firebaseConfig, 'diagnostic') : getApps()[0];
-      
       this.results.push({
         step: 'Firebase App Initialization',
         success: true,
@@ -100,7 +82,6 @@ export class FirebaseDiagnostic {
       });
     }
   }
-
   private async testNetworkConnectivity(): Promise<void> {
     try {
       // Test basic connectivity to Firebase endpoints
@@ -109,7 +90,6 @@ export class FirebaseDiagnostic {
         'https://identitytoolkit.googleapis.com/',
         'https://firestore.googleapis.com/'
       ];
-
       const results = await Promise.allSettled(
         endpoints.map(endpoint => 
           fetch(endpoint, { method: 'HEAD', mode: 'no-cors' })
@@ -117,7 +97,6 @@ export class FirebaseDiagnostic {
             .catch(error => ({ endpoint, success: false, error: error.message }))
         )
       );
-
       this.results.push({
         step: 'Network Connectivity',
         success: results.every(result => result.status === 'fulfilled'),
@@ -133,17 +112,13 @@ export class FirebaseDiagnostic {
       });
     }
   }
-
   private async testFirestoreConnection(): Promise<void> {
     try {
       const app = getApps()[0];
       if (!app) throw new Error('No Firebase app initialized');
-
       const db = getFirestore(app);
-      
       // Try to enable network (this will test connectivity)
       await enableNetwork(db);
-      
       this.results.push({
         step: 'Firestore Connection',
         success: true,
@@ -160,14 +135,11 @@ export class FirebaseDiagnostic {
       });
     }
   }
-
   private async testAuthConnection(): Promise<void> {
     try {
       const app = getApps()[0];
       if (!app) throw new Error('No Firebase app initialized');
-
       const auth = getAuth(app);
-      
       // Just check if auth is initialized, don't actually sign in
       this.results.push({
         step: 'Auth Connection',
@@ -185,59 +157,35 @@ export class FirebaseDiagnostic {
       });
     }
   }
-
   printResults(): void {
-    console.log('\n🔍 Firebase Diagnostic Results:');
-    console.log('================================');
-    
     this.results.forEach((result, index) => {
       const status = result.success ? '✅' : '❌';
-      console.log(`${index + 1}. ${status} ${result.step}`);
-      
       if (!result.success && result.error) {
-        console.log(`   Error: ${result.error}`);
       }
-      
       if (result.details) {
-        console.log(`   Details:`, result.details);
       }
-      console.log('');
     });
-
     // Provide recommendations
     const failedSteps = this.results.filter(r => !r.success);
     if (failedSteps.length > 0) {
-      console.log('🔧 Recommendations:');
       failedSteps.forEach(step => {
         switch (step.step) {
           case 'Environment Variables':
-            console.log('- Check your .env.local file and ensure all NEXT_PUBLIC_FIREBASE_* variables are set');
-            console.log('- Verify the values match your Firebase project configuration');
             break;
           case 'Firebase App Initialization':
-            console.log('- Verify your Firebase configuration values are correct');
-            console.log('- Check if your Firebase project exists and is active');
             break;
           case 'Network Connectivity':
-            console.log('- Check your internet connection');
-            console.log('- Verify firewall/proxy settings allow Firebase connections');
             break;
           case 'Firestore Connection':
-            console.log('- Ensure Firestore is enabled in your Firebase project');
-            console.log('- Check Firestore security rules');
             break;
           case 'Auth Connection':
-            console.log('- Ensure Authentication is enabled in Firebase Console');
-            console.log('- Verify authentication providers are configured');
             break;
         }
       });
     } else {
-      console.log('✅ All diagnostics passed! The issue might be intermittent.');
     }
   }
 }
-
 // Helper function to run diagnostics
 export async function runFirebaseDiagnostics(): Promise<void> {
   const diagnostic = new FirebaseDiagnostic();

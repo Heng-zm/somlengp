@@ -28,6 +28,9 @@ import {
 import { db } from './firebase';
 import { Comment, CommentUser, CommentSortType } from '@/types/comment-types';
 import { commentCache, commentPerformanceMonitor } from './comment-cache';
+// Memory leak prevention: Timers need cleanup
+// Add cleanup in useEffect return function
+
 
 // Constants for optimized queries
 const COMMENTS_COLLECTION = 'comments';

@@ -28,6 +28,9 @@ import {
   User
 } from "lucide-react";
 import Link from "next/link";
+// Performance optimization needed: Consider memoizing inline event handlers
+// Use useMemo for objects/arrays and useCallback for functions
+
 
 // Google Icon Component
 const GoogleIcon = () => (

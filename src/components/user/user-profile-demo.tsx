@@ -7,6 +7,9 @@ import { Badge } from '@/components/ui/badge';
 import { UserProfile } from './user-profile';
 import { Calendar, Clock, User, Zap } from 'lucide-react';
 import { formatAccountAge } from '@/lib/user-profile';
+// Performance optimization needed: Consider memoizing dynamic classNames
+// Use useMemo for objects/arrays and useCallback for functions
+
 
 /**
  * Demo component showcasing the user profile features

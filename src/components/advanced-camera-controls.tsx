@@ -1,5 +1,4 @@
 'use client';
-
 import React, { useState, useEffect, useCallback } from 'react';
 import { 
   ZoomIn, 
@@ -17,16 +16,17 @@ import { Button } from '@/components/ui/button';
 import { Slider } from '@/components/ui/slider';
 import { useToast } from '@/hooks/use-toast';
 import {
+// Performance optimization needed: Consider memoizing dynamic classNames
+// Use useMemo for objects/arrays and useCallback for functions
+
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover';
-
 export interface CameraControlsProps {
   stream: MediaStream | null;
   className?: string;
 }
-
 // Extended interface to handle camera-specific properties
 interface ExtendedMediaTrackConstraints {
   zoom?: number;
@@ -38,7 +38,6 @@ interface ExtendedMediaTrackConstraints {
   colorTemperature?: number;
   torch?: boolean;
 }
-
 interface CameraCapabilities {
   zoom?: {
     min: number;
@@ -69,28 +68,21 @@ interface CameraCapabilities {
     mode: 'manual' | 'continuous';
   };
 }
-
 export function AdvancedCameraControls({ stream, className = '' }: CameraControlsProps) {
   const [capabilities, setCapabilities] = useState<CameraCapabilities>({});
   const [isLoading, setIsLoading] = useState(false);
   const [torchEnabled, setTorchEnabled] = useState(false);
   const [autoFocusEnabled, setAutoFocusEnabled] = useState(true);
   const [showAdvanced, setShowAdvanced] = useState(false);
-  
   const { toast } = useToast();
-
   const initializeCameraCapabilities = useCallback(async () => {
     if (!stream) return;
-    
     try {
       setIsLoading(true);
       const videoTrack = stream.getVideoTracks()[0];
-      
       if (!videoTrack) {
-        console.warn('No video track found in stream');
         return;
       }
-
       interface MediaTrackCapabilities {
         zoom?: { min: number; max: number; step: number };
         focusDistance?: { min: number; max: number; step: number };
@@ -98,7 +90,6 @@ export function AdvancedCameraControls({ stream, className = '' }: CameraControl
         colorTemperature?: { min: number; max: number; step: number };
         torch?: boolean;
       }
-      
       interface MediaTrackSettings {
         zoom?: number;
         focusDistance?: number;
@@ -109,15 +100,9 @@ export function AdvancedCameraControls({ stream, className = '' }: CameraControl
         colorTemperature?: number;
         whiteBalanceMode?: string;
       }
-      
       const trackCapabilities = videoTrack.getCapabilities() as MediaTrackCapabilities;
       const trackSettings = videoTrack.getSettings() as MediaTrackSettings;
-      
-      console.log('Camera capabilities:', trackCapabilities);
-      console.log('Current settings:', trackSettings);
-
       const newCapabilities: CameraCapabilities = {};
-
       // Zoom capabilities
       if (trackCapabilities.zoom) {
         newCapabilities.zoom = {
@@ -127,7 +112,6 @@ export function AdvancedCameraControls({ stream, className = '' }: CameraControl
           current: trackSettings.zoom || 1
         };
       }
-
       // Focus capabilities
       if (trackCapabilities.focusDistance) {
         newCapabilities.focus = {
@@ -138,7 +122,6 @@ export function AdvancedCameraControls({ stream, className = '' }: CameraControl
           mode: (trackSettings.focusMode as 'manual' | 'continuous' | 'single-shot') || 'continuous'
         };
       }
-
       // Exposure capabilities
       if (trackCapabilities.exposureCompensation) {
         newCapabilities.exposure = {
@@ -149,13 +132,11 @@ export function AdvancedCameraControls({ stream, className = '' }: CameraControl
           mode: (trackSettings.exposureMode as 'manual' | 'continuous') || 'continuous'
         };
       }
-
       // Torch capabilities
       if ('torch' in trackCapabilities) {
         newCapabilities.torch = true;
         setTorchEnabled(trackSettings.torch || false);
       }
-
       // White balance capabilities
       if (trackCapabilities.colorTemperature) {
         newCapabilities.whiteBalance = {
@@ -166,14 +147,11 @@ export function AdvancedCameraControls({ stream, className = '' }: CameraControl
           mode: (trackSettings.whiteBalanceMode as 'manual' | 'continuous') || 'continuous'
         };
       }
-
       setCapabilities(newCapabilities);
-      
       toast({
         title: "Camera Controls Ready",
         description: `${Object.keys(newCapabilities).length} advanced features available`,
       });
-      
     } catch (error) {
       console.error('Failed to initialize camera capabilities:', error);
       toast({
@@ -185,7 +163,6 @@ export function AdvancedCameraControls({ stream, className = '' }: CameraControl
       setIsLoading(false);
     }
   }, [stream, toast]);
-
   // Initialize camera capabilities
   useEffect(() => {
     if (stream) {
@@ -195,20 +172,16 @@ export function AdvancedCameraControls({ stream, className = '' }: CameraControl
       setTorchEnabled(false);
     }
   }, [stream, initializeCameraCapabilities]);
-
   // Apply camera constraints
   const applyConstraints = useCallback(async (constraints: ExtendedMediaTrackConstraints) => {
     if (!stream) return false;
-
     try {
       const videoTrack = stream.getVideoTracks()[0];
       if (!videoTrack) return false;
-
       // Convert our extended constraints to the proper MediaTrackConstraints format
       const mediaConstraints: MediaTrackConstraints = {
         advanced: [constraints as any] // Cast to any since we know these are valid constraint properties
       };
-      
       await videoTrack.applyConstraints(mediaConstraints);
       return true;
     } catch (error) {
@@ -221,14 +194,12 @@ export function AdvancedCameraControls({ stream, className = '' }: CameraControl
       return false;
     }
   }, [stream, toast]);
-
   // Zoom controls
   const handleZoomChange = useCallback(async (value: number[]) => {
     const zoomValue = value[0];
     const success = await applyConstraints({
       zoom: zoomValue
     });
-    
     if (success && capabilities.zoom) {
       setCapabilities(prev => ({
         ...prev,
@@ -236,21 +207,18 @@ export function AdvancedCameraControls({ stream, className = '' }: CameraControl
       }));
     }
   }, [applyConstraints, capabilities.zoom]);
-
   const zoomIn = useCallback(() => {
     if (capabilities.zoom) {
       const newZoom = Math.min(capabilities.zoom.max, capabilities.zoom.current + capabilities.zoom.step);
       handleZoomChange([newZoom]);
     }
   }, [capabilities.zoom, handleZoomChange]);
-
   const zoomOut = useCallback(() => {
     if (capabilities.zoom) {
       const newZoom = Math.max(capabilities.zoom.min, capabilities.zoom.current - capabilities.zoom.step);
       handleZoomChange([newZoom]);
     }
   }, [capabilities.zoom, handleZoomChange]);
-
   // Focus controls
   const handleFocusChange = useCallback(async (value: number[]) => {
     const focusValue = value[0];
@@ -258,7 +226,6 @@ export function AdvancedCameraControls({ stream, className = '' }: CameraControl
       focusMode: 'manual',
       focusDistance: focusValue 
     });
-    
     if (success && capabilities.focus) {
       setCapabilities(prev => ({
         ...prev,
@@ -267,13 +234,11 @@ export function AdvancedCameraControls({ stream, className = '' }: CameraControl
       setAutoFocusEnabled(false);
     }
   }, [applyConstraints, capabilities.focus]);
-
   const toggleAutoFocus = useCallback(async () => {
     const newMode = autoFocusEnabled ? 'manual' : 'continuous';
     const success = await applyConstraints({
       focusMode: newMode
     });
-    
     if (success) {
       setAutoFocusEnabled(!autoFocusEnabled);
       if (capabilities.focus) {
@@ -282,14 +247,12 @@ export function AdvancedCameraControls({ stream, className = '' }: CameraControl
           focus: prev.focus ? { ...prev.focus, mode: newMode as 'manual' | 'continuous' } : undefined
         }));
       }
-      
       toast({
         title: autoFocusEnabled ? "Manual Focus" : "Auto Focus",
         description: `Focus mode changed to ${newMode}`,
       });
     }
   }, [autoFocusEnabled, applyConstraints, capabilities.focus, toast]);
-
   // Exposure controls
   const handleExposureChange = useCallback(async (value: number[]) => {
     const exposureValue = value[0];
@@ -297,7 +260,6 @@ export function AdvancedCameraControls({ stream, className = '' }: CameraControl
       exposureMode: 'manual',
       exposureCompensation: exposureValue 
     });
-    
     if (success && capabilities.exposure) {
       setCapabilities(prev => ({
         ...prev,
@@ -305,15 +267,12 @@ export function AdvancedCameraControls({ stream, className = '' }: CameraControl
       }));
     }
   }, [applyConstraints, capabilities.exposure]);
-
   // Torch control
   const toggleTorch = useCallback(async () => {
     if (!capabilities.torch) return;
-
     const success = await applyConstraints({
       torch: !torchEnabled
     });
-    
     if (success) {
       setTorchEnabled(!torchEnabled);
       toast({
@@ -322,7 +281,6 @@ export function AdvancedCameraControls({ stream, className = '' }: CameraControl
       });
     }
   }, [capabilities.torch, torchEnabled, applyConstraints, toast]);
-
   // White balance controls
   const handleWhiteBalanceChange = useCallback(async (value: number[]) => {
     const wbValue = value[0];
@@ -330,7 +288,6 @@ export function AdvancedCameraControls({ stream, className = '' }: CameraControl
       whiteBalanceMode: 'manual',
       colorTemperature: wbValue 
     });
-    
     if (success && capabilities.whiteBalance) {
       setCapabilities(prev => ({
         ...prev,
@@ -338,7 +295,6 @@ export function AdvancedCameraControls({ stream, className = '' }: CameraControl
       }));
     }
   }, [applyConstraints, capabilities.whiteBalance]);
-
   // Reset all controls to defaults
   const resetControls = useCallback(async () => {
     try {
@@ -349,7 +305,6 @@ export function AdvancedCameraControls({ stream, className = '' }: CameraControl
         whiteBalanceMode: 'continuous',
         torch: false
       });
-      
       // Reset state
       setCapabilities(prev => ({
         ...prev,
@@ -358,10 +313,8 @@ export function AdvancedCameraControls({ stream, className = '' }: CameraControl
         exposure: prev.exposure ? { ...prev.exposure, mode: 'continuous' } : undefined,
         whiteBalance: prev.whiteBalance ? { ...prev.whiteBalance, mode: 'continuous' } : undefined,
       }));
-      
       setTorchEnabled(false);
       setAutoFocusEnabled(true);
-      
       toast({
         title: "Controls Reset",
         description: "All camera settings restored to defaults",
@@ -370,7 +323,6 @@ export function AdvancedCameraControls({ stream, className = '' }: CameraControl
       console.error('Failed to reset controls:', error);
     }
   }, [applyConstraints, toast]);
-
   if (!stream || isLoading) {
     return (
       <div className={`flex items-center justify-center p-4 ${className}`}>
@@ -381,9 +333,7 @@ export function AdvancedCameraControls({ stream, className = '' }: CameraControl
       </div>
     );
   }
-
   const hasControls = Object.keys(capabilities).length > 0;
-
   if (!hasControls) {
     return (
       <div className={`flex items-center justify-center p-2 ${className}`}>
@@ -394,7 +344,6 @@ export function AdvancedCameraControls({ stream, className = '' }: CameraControl
       </div>
     );
   }
-
   return (
     <div className={`bg-black/20 backdrop-blur-sm rounded-2xl p-4 space-y-4 ${className}`}>
       {/* Quick Controls */}
@@ -412,13 +361,11 @@ export function AdvancedCameraControls({ stream, className = '' }: CameraControl
               >
                 <ZoomOut className="h-4 w-4 text-white" />
               </Button>
-              
               <div className="flex items-center gap-2 min-w-20">
                 <span className="text-white text-xs font-mono">
                   {capabilities.zoom.current.toFixed(1)}x
                 </span>
               </div>
-              
               <Button
                 variant="outline"
                 size="sm"
@@ -430,7 +377,6 @@ export function AdvancedCameraControls({ stream, className = '' }: CameraControl
               </Button>
             </>
           )}
-          
           {/* Focus Toggle */}
           {capabilities.focus && (
             <Button
@@ -444,7 +390,6 @@ export function AdvancedCameraControls({ stream, className = '' }: CameraControl
               <Focus className="h-4 w-4 text-white" />
             </Button>
           )}
-          
           {/* Torch Toggle */}
           {capabilities.torch && (
             <Button
@@ -463,7 +408,6 @@ export function AdvancedCameraControls({ stream, className = '' }: CameraControl
             </Button>
           )}
         </div>
-        
         <div className="flex items-center gap-2">
           {/* Advanced Settings */}
           <Popover open={showAdvanced} onOpenChange={setShowAdvanced}>
@@ -476,7 +420,6 @@ export function AdvancedCameraControls({ stream, className = '' }: CameraControl
                 <Settings className="h-4 w-4 text-white" />
               </Button>
             </PopoverTrigger>
-            
             <PopoverContent 
               className="w-80 bg-black/90 backdrop-blur-xl border-white/20 text-white"
               side="top"
@@ -494,7 +437,6 @@ export function AdvancedCameraControls({ stream, className = '' }: CameraControl
                     Reset
                   </Button>
                 </div>
-                
                 {/* Zoom Slider */}
                 {capabilities.zoom && (
                   <div className="space-y-2">
@@ -514,7 +456,6 @@ export function AdvancedCameraControls({ stream, className = '' }: CameraControl
                     />
                   </div>
                 )}
-                
                 {/* Focus Slider */}
                 {capabilities.focus && !autoFocusEnabled && (
                   <div className="space-y-2">
@@ -534,7 +475,6 @@ export function AdvancedCameraControls({ stream, className = '' }: CameraControl
                     />
                   </div>
                 )}
-                
                 {/* Exposure Slider */}
                 {capabilities.exposure && (
                   <div className="space-y-2">
@@ -558,7 +498,6 @@ export function AdvancedCameraControls({ stream, className = '' }: CameraControl
                     </div>
                   </div>
                 )}
-                
                 {/* White Balance Slider */}
                 {capabilities.whiteBalance && (
                   <div className="space-y-2">
@@ -593,7 +532,6 @@ export function AdvancedCameraControls({ stream, className = '' }: CameraControl
           </Popover>
         </div>
       </div>
-      
       {/* Status Indicators */}
       <div className="flex flex-wrap gap-2 text-xs text-gray-300">
         {capabilities.zoom && (
@@ -602,14 +540,12 @@ export function AdvancedCameraControls({ stream, className = '' }: CameraControl
             <span>Zoom: {capabilities.zoom.current.toFixed(1)}x</span>
           </div>
         )}
-        
         {capabilities.focus && (
           <div className="flex items-center gap-1 bg-white/10 rounded-full px-2 py-1">
             <Focus className="h-3 w-3" />
             <span>Focus: {autoFocusEnabled ? 'Auto' : 'Manual'}</span>
           </div>
         )}
-        
         {capabilities.torch && torchEnabled && (
           <div className="flex items-center gap-1 bg-yellow-500/20 rounded-full px-2 py-1">
             <Flashlight className="h-3 w-3" />

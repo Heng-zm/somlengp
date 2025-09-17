@@ -19,6 +19,9 @@ import {
   Download
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+// Performance optimization needed: Consider memoizing inline event handlers
+// Use useMemo for objects/arrays and useCallback for functions
+
 
 export interface ExportFormat {
   id: string;

@@ -1,32 +1,27 @@
 "use client";
-
 import React, { useEffect, useRef } from 'react';
+// Memory leak prevention: Timers need cleanup
+// Add cleanup in useEffect return function
 
 // Performance monitoring hook for React components
 export function usePerformanceMonitor(componentName: string) {
   const renderCount = useRef(0);
   const startTime = useRef<number>(0);
-
   useEffect(() => {
     renderCount.current += 1;
   }, []);
-
   useEffect(() => {
     startTime.current = performance.now();
-    
     return () => {
       const endTime = performance.now();
       const duration = endTime - startTime.current;
-      
       if (process.env.NODE_ENV === 'development' && duration > 16) {
-        console.warn(`⚠️ ${componentName} took ${duration.toFixed(2)}ms to render (render #${renderCount.current})`);
+        console.warn(`${componentName} took ${duration}ms to render (render #${renderCount.current})`);
       }
     };
   }, [componentName]);
-
   return { renderCount: renderCount.current };
 }
-
 // Memory usage monitoring hook
 export function useMemoryMonitor() {
   useEffect(() => {
@@ -36,34 +31,28 @@ export function useMemoryMonitor() {
         if (!memInfo) return;
         const used = Math.round(memInfo.usedJSHeapSize / 1048576 * 100) / 100;
         const total = Math.round(memInfo.totalJSHeapSize / 1048576 * 100) / 100;
-        
         if (used > 50) { // Warn if using more than 50MB
-          console.warn(`🧠 Memory usage: ${used}MB / ${total}MB`);
+          console.warn(`⚠️ Memory usage high: ${used}MB / ${total}MB`);
         }
       };
-
       const interval = setInterval(logMemoryUsage, 30000); // Check every 30 seconds
       return () => clearInterval(interval);
     }
   }, []);
 }
-
 // Component that wraps other components with performance monitoring
 interface PerformanceWrapperProps {
   name: string;
   children: React.ReactNode;
   logRenders?: boolean;
 }
-
 export const PerformanceWrapper = React.memo<PerformanceWrapperProps>(function PerformanceWrapper({ 
   name, 
   children 
 }) {
   usePerformanceMonitor(name);
-  
   return <>{children}</>;
 });
-
 // Hook for measuring bundle size impact
 export function useBundleAnalyzer() {
   useEffect(() => {
@@ -71,7 +60,6 @@ export function useBundleAnalyzer() {
       // Log initial bundle information
       const scripts = document.querySelectorAll('script[src]');
       let totalSize = 0;
-      
       scripts.forEach(script => {
         const src = script.getAttribute('src');
         if (src && src.includes('/_next/static/')) {
@@ -79,20 +67,17 @@ export function useBundleAnalyzer() {
           totalSize += 1;
         }
       });
-      
       if (totalSize > 10) {
-        console.warn(`📦 ${totalSize} script files loaded - consider code splitting`);
+        console.warn(`⚠️ Many script bundles detected: ${totalSize} files`);
       }
     }
   }, []);
 }
-
 // Error boundary with performance impact tracking
 interface PerformanceErrorBoundaryState {
   hasError: boolean;
   errorInfo?: { componentStack?: string };
 }
-
 export class PerformanceErrorBoundary extends React.Component<
   { children: React.ReactNode; fallback?: React.ReactNode },
   PerformanceErrorBoundaryState
@@ -101,20 +86,16 @@ export class PerformanceErrorBoundary extends React.Component<
     super(props);
     this.state = { hasError: false };
   }
-
   static getDerivedStateFromError() {
     return { hasError: true };
   }
-
   componentDidCatch(error: Error, errorInfo: { componentStack?: string }) {
     this.setState({ errorInfo });
-    
     if (process.env.NODE_ENV === 'development') {
       console.error('🚨 Performance Error Boundary caught an error:', error);
       console.error('Component stack:', errorInfo.componentStack);
     }
   }
-
   render() {
     if (this.state.hasError) {
       return this.props.fallback || (
@@ -126,41 +107,32 @@ export class PerformanceErrorBoundary extends React.Component<
         </div>
       );
     }
-
     return this.props.children;
   }
 }
-
 // Hook to detect slow renders and memory leaks
 export function useRenderOptimizer() {
   const lastRender = useRef<number>(0);
   const renderTimes = useRef<number[]>([]);
-  
   useEffect(() => {
     const currentTime = performance.now();
-    
     if (lastRender.current > 0) {
       const renderTime = currentTime - lastRender.current;
       renderTimes.current.push(renderTime);
-      
       // Keep only last 10 render times
       if (renderTimes.current.length > 10) {
         renderTimes.current.shift();
       }
-      
       // Check for consistently slow renders
       if (renderTimes.current.length >= 5) {
         const avgRenderTime = renderTimes.current.reduce((a, b) => a + b, 0) / renderTimes.current.length;
-        
         if (avgRenderTime > 16 && process.env.NODE_ENV === 'development') {
-          console.warn(`🐌 Component averaging ${avgRenderTime.toFixed(2)}ms per render (target: <16ms)`);
+          console.warn(`⚠️ Slow renders detected: ${avgRenderTime.toFixed(2)}ms per render (target: <16ms)`);
         }
       }
     }
-    
     lastRender.current = currentTime;
   });
-  
   return {
     avgRenderTime: renderTimes.current.length > 0 
       ? renderTimes.current.reduce((a, b) => a + b, 0) / renderTimes.current.length 

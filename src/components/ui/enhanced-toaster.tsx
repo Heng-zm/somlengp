@@ -219,7 +219,7 @@ export function EnhancedToaster() {
     if (toasts.length > 0) {
       const newToasts = toasts.filter(toast => 
         !toastHistory.some(historyToast => historyToast.id === toast.id)
-      )
+      , [])
       if (newToasts.length > 0) {
         setToastHistory(prev => [...prev, ...newToasts])
       }

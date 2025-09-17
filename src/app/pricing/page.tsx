@@ -2,14 +2,17 @@
 
 import Link from 'next/link'
 import Image from 'next/image'
-import { useState } from 'react'
-import { ArrowRight, Check, Star, Sparkles, Zap, Crown, Users, Shield } from 'lucide-react'
+import { useState, memo } from 'react';
+import { ArrowRight, Check, Star, Sparkles, Zap, Crown, Users, Shield } from 'lucide-react' // TODO: Consider importing icons individually for better tree shaking
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Switch } from '@/components/ui/switch'
+// Performance optimization needed: Consider memoizing dynamic classNames
+// Use useMemo for objects/arrays and useCallback for functions
 
-export default function PricingPage() {
+
+const PricingPageComponent = function PricingPage() {
   const [isAnnual, setIsAnnual] = useState(false)
 
   const pricingPlans = [
@@ -453,3 +456,6 @@ export default function PricingPage() {
     </div>
   )
 }
+
+
+export default memo(PricingPageComponent);
