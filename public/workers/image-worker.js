@@ -155,6 +155,9 @@ class ImageProcessor {
         // Reset canvas size to minimal to release memory
         this.canvas.width = 1;
         this.canvas.height = 1;
+        // Clear any filters or transformations
+        this.ctx.filter = 'none';
+        this.ctx.setTransform(1, 0, 0, 1, 0, 0);
       }
       
       // Suggest garbage collection if available (development only)
@@ -164,6 +167,16 @@ class ImageProcessor {
         } catch (e) {
           // Ignore gc errors
         }
+      }
+      
+      // Request idle callback to ensure cleanup happens
+      if (typeof requestIdleCallback === 'function') {
+        requestIdleCallback(() => {
+          // Additional cleanup during idle time
+          if (this.ctx && this.canvas) {
+            this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+          }
+        }, { timeout: 1000 });
       }
     }
   }
@@ -440,6 +453,12 @@ self.addEventListener('message', async (event) => {
       self.postMessage({ type: 'test-response', timestamp: Date.now() });
       return;
     }
+    
+    if (type === 'ping') {
+      // Ping response for worker health monitoring
+      self.postMessage({ type: 'ping-response', timestamp: Date.now() });
+      return;
+    }
 
     await processor.initialize();
 
@@ -465,10 +484,23 @@ self.addEventListener('message', async (event) => {
     });
 
   } catch (error) {
+    // Enhanced error reporting with more context
+    const errorInfo = {
+      message: error.message || 'Unknown worker error',
+      type: error.name || 'Error',
+      stack: error.stack,
+      timestamp: Date.now(),
+      workerOperation: type,
+      dataSize: data ? (data.imageData ? data.imageData.byteLength : 'N/A') : 'N/A'
+    };
+    
+    console.error('Worker error details:', errorInfo);
+    
     self.postMessage({
       type: 'error',
       id,
-      error: error.message
+      error: errorInfo.message,
+      errorDetails: errorInfo
     });
   }
 });

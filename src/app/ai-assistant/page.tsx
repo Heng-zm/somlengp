@@ -38,7 +38,8 @@ import {
 import { showErrorToast, showSuccessToast } from '@/lib/toast-utils';
 import { cn } from '@/lib/utils';
 import { generateMessageId } from '@/lib/id-utils';
-import { motion, AnimatePresence } from 'framer-motion' // TODO: Consider lazy loading animations for better initial load;
+import { motion, AnimatePresence } from 'framer-motion';
+// TODO: Consider lazy loading framer-motion for better initial load performance
 import { AIFormat, formatAIResponse } from '@/lib/ai-formatter';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 // Performance optimization needed: Consider memoizing inline styles, inline event handlers

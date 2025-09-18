@@ -28,7 +28,10 @@ const nextConfig = {
       '@radix-ui/react-popover',
       '@radix-ui/react-tooltip',
       'framer-motion',
-      'recharts'
+      'recharts',
+      'date-fns',
+      'clsx',
+      'class-variance-authority'
     ],
     // Enable turbopack for faster builds (replaces deprecated turbo)
     // Moved to config.turbopack as per Next.js warning

@@ -158,9 +158,8 @@ export function ConvertImageFormatPage() {
     // This effect will run when the component unmounts or when fileObjectURLs changes.
     // It's crucial for preventing memory leaks.
     return () => {
-        fileObjectURLs.forEach(url => URL.revokeObjectURL(url), []);
+      fileObjectURLs.forEach(url => URL.revokeObjectURL(url));
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [fileObjectURLs]);
 
   const handleFileSelect = useCallback(

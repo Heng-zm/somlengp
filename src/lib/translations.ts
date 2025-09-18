@@ -239,10 +239,10 @@ interface BaseTranslations {
     imageConverterDesc: string;
     passwordGen: string;
     passwordGenDesc: string;
-    imageResize: string;
-    imageResizeDesc: string;
     textUtils: string;
     textUtilsDesc: string;
+    screenShare: string;
+    screenShareDesc: string;
     
     fileTooLargeDescription: (size: number) => string; // Only function-based translation
 }
@@ -522,10 +522,10 @@ const enTranslations: Translations = {
     imageConverterDesc: "Change image formats (JPG, PNG, WebP) with optimized compression.",
     passwordGen: "Password Gen",
     passwordGenDesc: "Generate secure, random passwords with customizable length and complexity.",
-    imageResize: "Image Resize",
-    imageResizeDesc: "Resize images to different dimensions while maintaining quality",
     textUtils: "Text Utils",
     textUtilsDesc: "Count words, remove duplicates, format text, and more text manipulation tools.",
+    screenShare: "Screen Share",
+    screenShareDesc: "Capture and record your screen with audio. Perfect for tutorials and presentations.",
 };
 
 const kmTranslations: Translations = {
@@ -764,10 +764,10 @@ const kmTranslations: Translations = {
     imageConverterDesc: "ផ្លាស់ប្តូរទ្រង់ទ្រាយរូបភាព (JPG, PNG, WebP) ជាមួយការបង្រួមបង្កើន។",
     passwordGen: "បង្កើតពាក្យសម្ងាត់",
     passwordGenDesc: "បង្កើតពាក្យសម្ងាត់សុវត្ថិភាព ចៃដន្យ ជាមួយប្រវែង និងភាពស្មុគស្មាញដែលអាចកំណត់បាន។",
-    imageResize: "ផ្លាស់ប្តូរទំហំរូបភាព",
-    imageResizeDesc: "ផ្លាស់ប្តូរទំហំរូបភាពទៅវិមាត្រផ្សេងៗ ខណៈរក្សាគុណភាព",
     textUtils: "ឧបករណ៍អត្ថបទ",
     textUtilsDesc: "រាប់ពាក្យ លុបស្ទួន ធ្វើទ្រង់ទ្រាយអត្ថបទ និងឧបករណ៍រៀបចំអត្ថបទបន្ថែមទៀត។",
+    screenShare: "ចែករំលែកអេក្រង់",
+    screenShareDesc: "ចាប់យក និងថតអេក្រង់ជាមួយសំឡេង។ ល្អសម្រាប់ការបង្រៀន និងការបង្ហាញ។",
 };
 
 export const allTranslations = {

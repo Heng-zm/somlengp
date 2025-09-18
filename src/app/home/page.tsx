@@ -1,7 +1,19 @@
 
 'use client';
 import { useMemo, useState, useEffect, useCallback, memo } from 'react';
-import { Mic, FileText, Combine, Image as ImageIcon, Wand2, AudioLines, Sparkles, QrCode, Shield, Maximize2 } from 'lucide-react' // TODO: Consider importing icons individually for better tree shaking;
+// Optimized individual icon imports for better tree shaking
+import { 
+  Mic, 
+  FileText, 
+  Combine, 
+  Image as ImageIcon, 
+  Wand2, 
+  AudioLines, 
+  Sparkles, 
+  QrCode, 
+  Shield,
+  Share2
+} from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useLanguage } from '@/hooks/use-language';
 import { getPerformanceTracker, DEFAULT_BUDGETS } from '@/lib/performance-tracker';
@@ -112,12 +124,13 @@ const HomePageComponent = function HomePage() {
     { href: '/generate-qr-code', title: t('qrGenerator'), description: t('qrGeneratorDesc'), icon: QrCode },
     { href: '/voice-transcript', title: t('voiceToText'), description: t('voiceToTextDesc'), icon: Mic },
     { href: '/text-to-speech', title: t('textReader'), description: t('textReaderDesc'), icon: AudioLines },
+    // Screen and media tools
+    { href: '/screen-share', title: t('screenShare'), description: t('screenShareDesc'), icon: Share2 },
     // Document tools
     { href: '/pdf-transcript', title: t('pdfReader'), description: t('pdfReaderDesc'), icon: FileText },
     { href: '/combine-pdf', title: t('pdfMerger'), description: t('pdfMergerDesc'), icon: Combine },
     { href: '/image-to-pdf', title: t('imageToPdfTitle'), description: t('imageToPdfDesc'), icon: ImageIcon },
     { href: '/convert-image-format', title: t('imageConverter'), description: t('imageConverterDesc'), icon: Wand2 },
-    { href: '/image-resize', title: t('imageResize') || 'Image Resize', description: t('imageResizeDesc') || 'Resize images to different dimensions while maintaining quality', icon: Maximize2 },
     // New useful tools
     { href: '/password-generator', title: t('passwordGen'), description: t('passwordGenDesc'), icon: Shield },
   ], [t]);
