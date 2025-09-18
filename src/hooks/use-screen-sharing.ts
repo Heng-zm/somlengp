@@ -3,6 +3,16 @@
 import { useState, useRef, useCallback, useEffect } from 'react';
 import { useWebRTC } from './use-webrtc';
 import { signalingService } from '@/lib/signaling-service';
+import { serverTimestamp } from 'firebase/firestore';
+
+// WebRTC message type (from useWebRTC hook)
+interface WebRTCSignalingMessage {
+  type: 'offer' | 'answer' | 'ice-candidate' | 'join' | 'leave';
+  sessionId: string;
+  userId: string;
+  data?: any;
+  timestamp?: number;
+}
 
 interface ScreenCaptureOptions {
   video: {
@@ -49,13 +59,21 @@ export function useScreenSharing() {
   // Set up WebRTC signaling callbacks
   useEffect(() => {
     webrtc.setSignalingCallbacks({
-      onSendMessage: (message) => {
+      onSendMessage: async (message: WebRTCSignalingMessage) => {
         if (sharingState.sessionId) {
-          signalingService.sendMessage({
-            ...message,
-            sessionId: sharingState.sessionId,
-            userId: sharingState.userId
-          });
+          try {
+            // Convert WebRTC message to Firebase message format
+            await signalingService.sendMessage({
+              type: message.type,
+              sessionId: sharingState.sessionId,
+              userId: sharingState.userId,
+              data: message.data,
+              timestamp: serverTimestamp() as any // Firebase will set the server timestamp
+            });
+          } catch (error) {
+            console.error('Failed to send signaling message:', error);
+            setError('Failed to send message. Connection may be unstable.');
+          }
         }
       }
     });
@@ -64,34 +82,81 @@ export function useScreenSharing() {
   // Handle signaling messages
   useEffect(() => {
     if (sharingState.sessionId && sharingState.mode !== 'idle') {
-      signalingService.listen(
-        sharingState.sessionId,
-        sharingState.userId,
-        (message) => {
-          console.log('Received signaling message:', message.type, 'from:', message.userId);
-          
-          // Prevent processing our own messages
-          if (message.userId === sharingState.userId) {
-            console.log('Ignoring own message');
-            return;
+      try {
+        signalingService.listen(
+          sharingState.sessionId,
+          sharingState.userId,
+          (message) => {
+            console.log('Received signaling message:', message.type, 'from:', message.userId);
+            
+            // Prevent processing our own messages
+            if (message.userId === sharingState.userId) {
+              console.log('Ignoring own message');
+              return;
+            }
+            
+            // Handle different message types
+            if (message.type === 'offer' && sharingState.mode === 'viewing' && !sharingState.isAnswerSent) {
+              console.log('Processing offer as viewer');
+              // Convert Firebase message to WebRTC message format
+              const webrtcMessage: WebRTCSignalingMessage = {
+                type: message.type,
+                sessionId: message.sessionId,
+                userId: message.userId,
+                data: message.data,
+                timestamp: message.timestamp?.toMillis()
+              };
+              webrtc.handleSignalingMessage(webrtcMessage);
+              setSharingState(prev => ({ ...prev, isAnswerSent: true }));
+            } else if (message.type === 'answer' && sharingState.mode === 'hosting' && sharingState.isOfferSent) {
+              console.log('Processing answer as host');
+              const webrtcMessage: WebRTCSignalingMessage = {
+                type: message.type,
+                sessionId: message.sessionId,
+                userId: message.userId,
+                data: message.data,
+                timestamp: message.timestamp?.toMillis()
+              };
+              webrtc.handleSignalingMessage(webrtcMessage);
+            } else if (message.type === 'ice-candidate') {
+              console.log('Processing ICE candidate');
+              const webrtcMessage: WebRTCSignalingMessage = {
+                type: message.type,
+                sessionId: message.sessionId,
+                userId: message.userId,
+                data: message.data,
+                timestamp: message.timestamp?.toMillis()
+              };
+              webrtc.handleSignalingMessage(webrtcMessage);
+            } else if (message.type === 'host-left') {
+              console.log('Host left the session');
+              setError('Host has left the session');
+              stopSession();
+            } else if (message.type === 'join' && sharingState.mode === 'hosting' && localStream) {
+              // When someone joins and we're hosting, send them an offer after a short delay
+              // to ensure they're ready to receive it
+              console.log('Participant joined, sending offer in 1 second...');
+              setTimeout(() => {
+                if (sharingState.sessionId) {
+                  webrtc.createOffer(localStream, sharingState.sessionId, sharingState.userId)
+                    .then(() => {
+                      console.log('Offer sent to new participant');
+                      setSharingState(prev => ({ ...prev, isOfferSent: true }));
+                    })
+                    .catch(error => {
+                      console.error('Failed to send offer to new participant:', error);
+                    });
+                }
+              }, 1000);
+            } else {
+              console.log('Ignoring message:', message.type, 'in mode:', sharingState.mode);
+            }
           }
-          
-          // Handle different message types
-          if (message.type === 'offer' && sharingState.mode === 'viewing' && !sharingState.isAnswerSent) {
-            console.log('Processing offer as viewer');
-            webrtc.handleSignalingMessage(message);
-            setSharingState(prev => ({ ...prev, isAnswerSent: true }));
-          } else if (message.type === 'answer' && sharingState.mode === 'hosting' && sharingState.isOfferSent) {
-            console.log('Processing answer as host');
-            webrtc.handleSignalingMessage(message);
-          } else if (message.type === 'ice-candidate') {
-            console.log('Processing ICE candidate');
-            webrtc.handleSignalingMessage(message);
-          } else {
-            console.log('Ignoring message:', message.type, 'in mode:', sharingState.mode);
-          }
-        }
-      );
+        );
+      } catch (error) {
+        console.error('Failed to start listening for messages:', error);
+        setError('Failed to connect to session messaging');
+      }
 
       return () => {
         signalingService.stopListening(sharingState.sessionId!, sharingState.userId);
@@ -112,6 +177,8 @@ export function useScreenSharing() {
       remoteVideoRef.current.srcObject = webrtc.remoteStream;
     }
   }, [webrtc.remoteStream, webrtc.isConnected]);
+
+  // Note: Participant detection is now handled through 'join' messages in the message listener above
 
   // Start screen capture
   const startScreenCapture = useCallback(async (options: Partial<ScreenCaptureOptions> = {}) => {
@@ -189,9 +256,15 @@ export function useScreenSharing() {
 
   // Start hosting a sharing session
   const startHosting = useCallback(async (options: Partial<ScreenCaptureOptions> = {}) => {
+    setIsLoading(true);
+    setError(null);
+    
     try {
       const stream = await startScreenCapture(options);
-      const sessionId = signalingService.createSession(sharingState.userId);
+      const sessionId = await signalingService.createSession(
+        sharingState.userId, 
+        `Host-${sharingState.userId.slice(-6)}`
+      );
       
       setSharingState(prev => ({
         ...prev,
@@ -202,17 +275,23 @@ export function useScreenSharing() {
         isAnswerSent: false
       }));
 
-      // Create WebRTC offer when stream is ready
-      if (stream) {
-        await webrtc.createOffer(stream, sessionId, sharingState.userId);
-        setSharingState(prev => ({ ...prev, isOfferSent: true }));
-      }
+      // Offers will be sent when participants join (handled by participant listener)
 
-    } catch (error) {
+    } catch (error: any) {
       console.error('Failed to start hosting:', error);
-      setError('Failed to start hosting session');
+      setError(error?.message || 'Failed to start hosting session');
+      
+      // Clean up on error
+      stopScreenCapture();
+      setSharingState(prev => ({
+        ...prev,
+        mode: 'idle',
+        sessionId: null
+      }));
+    } finally {
+      setIsLoading(false);
     }
-  }, [startScreenCapture, sharingState.userId, webrtc]);
+  }, [startScreenCapture, sharingState.userId, webrtc, stopScreenCapture]);
 
   // Join a sharing session as viewer
   const joinSession = useCallback(async (sessionId: string) => {
@@ -220,13 +299,19 @@ export function useScreenSharing() {
     setError(null);
     
     try {
-      // Check if session exists
-      if (!signalingService.sessionExists(sessionId)) {
-        throw new Error('Session not found');
+      // Check if session exists and is active
+      const sessionExists = await signalingService.sessionExists(sessionId);
+      if (!sessionExists) {
+        throw new Error('Session not found or is no longer active');
       }
 
       // Join the session
-      const joined = signalingService.joinSession(sessionId, sharingState.userId);
+      const joined = await signalingService.joinSession(
+        sessionId, 
+        sharingState.userId,
+        `Viewer-${sharingState.userId.slice(-6)}`
+      );
+      
       if (!joined) {
         throw new Error('Failed to join session');
       }
@@ -239,27 +324,23 @@ export function useScreenSharing() {
         isAnswerSent: false
       }));
 
+      console.log('Successfully joined session as viewer. Waiting for host to send offer...');
       // The WebRTC connection will be established when we receive an offer
 
     } catch (error: any) {
-      setError('Failed to join session: ' + error.message);
+      console.error('Failed to join session:', error);
+      setError(error?.message || 'Failed to join session');
     } finally {
       setIsLoading(false);
     }
   }, [sharingState.userId]);
 
   // Stop hosting or viewing session
-  const stopSession = useCallback(() => {
-    if (sharingState.sessionId) {
-      signalingService.leaveSession(sharingState.sessionId, sharingState.userId);
-    }
+  const stopSession = useCallback(async () => {
+    const currentSessionId = sharingState.sessionId;
+    const currentUserId = sharingState.userId;
     
-    if (sharingState.mode === 'hosting') {
-      stopScreenCapture();
-    }
-
-    webrtc.closeConnection();
-    
+    // Clean up UI state first
     setSharingState(prev => ({
       ...prev,
       mode: 'idle',
@@ -270,9 +351,25 @@ export function useScreenSharing() {
       isOfferSent: false,
       isAnswerSent: false
     }));
+    
+    if (sharingState.mode === 'hosting') {
+      stopScreenCapture();
+    }
 
+    webrtc.closeConnection();
+    
     if (remoteVideoRef.current) {
       remoteVideoRef.current.srcObject = null;
+    }
+    
+    // Leave the Firebase session (async but non-blocking)
+    if (currentSessionId) {
+      try {
+        await signalingService.leaveSession(currentSessionId, currentUserId);
+      } catch (error) {
+        console.error('Error leaving session:', error);
+        // Don't show error to user since session is already stopped locally
+      }
     }
   }, [sharingState.sessionId, sharingState.mode, sharingState.userId, stopScreenCapture, webrtc]);
 
@@ -316,7 +413,9 @@ export function useScreenSharing() {
     return () => {
       // Direct cleanup without calling stopSession to avoid infinite loops
       if (sharingState.sessionId) {
-        signalingService.leaveSession(sharingState.sessionId, sharingState.userId);
+        // Fire and forget - don't await since this is cleanup
+        signalingService.leaveSession(sharingState.sessionId, sharingState.userId)
+          .catch(error => console.error('Cleanup: Error leaving session:', error));
       }
       
       if (localStreamRef.current) {
@@ -325,6 +424,7 @@ export function useScreenSharing() {
       }
 
       webrtc.closeConnection();
+      signalingService.cleanup();
     };
   }, []); // Empty dependency array to run only on unmount
 

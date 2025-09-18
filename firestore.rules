@@ -419,5 +419,92 @@ service cloud.firestore {
              && newData.lastUserId >= (resource == null ? 0 : oldData.lastUserId)
              && newData.updatedAt is timestamp;
     }
+    
+    // Screen sharing sessions collection rules
+    match /sessions/{sessionId} {
+      // Allow anyone to read session info (for joining)
+      allow read: if true;
+      
+      // Allow creating sessions
+      allow create: if isValidSession(request.resource.data);
+      
+      // Allow host to update session (participants, status)
+      allow update: if isValidSessionUpdate(request.resource.data, resource.data);
+      
+      // Allow host or participants to update last activity
+      allow update: if isParticipantActivityUpdate(request.resource.data, resource.data);
+      
+      // Allow host to delete/deactivate session
+      allow delete: if resource.data.hostId == request.auth.uid
+                   || resource.data.hostId.matches('user_[0-9a-z_]+'); // Anonymous users
+      
+      // Messages subcollection for signaling
+      match /messages/{messageId} {
+        // Allow reading messages for participants
+        allow read: if true; // Public read for simplicity - messages contain WebRTC signaling data
+        
+        // Allow creating messages from session participants
+        allow create: if isValidSignalingMessage(request.resource.data)
+                     && (request.resource.data.userId in resource.data.participants
+                         || request.resource.data.userId.matches('user_[0-9a-z_]+')) // Anonymous users
+                     && request.resource.data.sessionId == sessionId;
+        
+        // Messages are append-only, no updates or deletes
+        allow update, delete: if false;
+      }
+    }
+    
+    function isValidSession(data) {
+      return data.keys().hasAll(['id', 'hostId', 'participants', 'isActive', 'createdAt', 'lastActivity'])
+             && data.id is string
+             && data.hostId is string
+             && data.participants is list
+             && data.participants.size() >= 1
+             && data.hostId in data.participants
+             && data.isActive is bool
+             && data.createdAt is timestamp
+             && data.lastActivity is timestamp
+             // Optional fields
+             && (!('hostName' in data) || data.hostName is string);
+    }
+    
+    function isValidSessionUpdate(newData, oldData) {
+      return (
+        // Core fields shouldn't change
+        newData.id == oldData.id
+        && newData.hostId == oldData.hostId
+        && newData.createdAt == oldData.createdAt
+        // Updatable fields
+        && newData.participants is list
+        && newData.participants.size() >= 0
+        && newData.isActive is bool
+        && newData.lastActivity is timestamp
+        // Host name can be updated
+        && (!('hostName' in newData) || newData.hostName is string)
+      );
+    }
+    
+    function isParticipantActivityUpdate(newData, oldData) {
+      return (
+        // Only lastActivity field changes
+        newData.id == oldData.id
+        && newData.hostId == oldData.hostId
+        && newData.participants == oldData.participants
+        && newData.isActive == oldData.isActive
+        && newData.createdAt == oldData.createdAt
+        && newData.lastActivity is timestamp
+        && (!('hostName' in oldData) || newData.hostName == oldData.hostName)
+      );
+    }
+    
+    function isValidSignalingMessage(data) {
+      return data.keys().hasAll(['type', 'sessionId', 'userId', 'timestamp'])
+             && data.type in ['offer', 'answer', 'ice-candidate', 'join', 'leave', 'host-left']
+             && data.sessionId is string
+             && data.userId is string
+             && data.timestamp is timestamp
+             // data field is optional and can contain any signaling data
+             && (!('data' in data) || data.data != null);
+    }
   }
 }
