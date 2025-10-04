@@ -12,7 +12,6 @@ import {
   Sparkles, 
   QrCode, 
   Shield,
-  Share2
 } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useLanguage } from '@/hooks/use-language';
@@ -125,7 +124,6 @@ const HomePageComponent = function HomePage() {
     { href: '/voice-transcript', title: t('voiceToText'), description: t('voiceToTextDesc'), icon: Mic },
     { href: '/text-to-speech', title: t('textReader'), description: t('textReaderDesc'), icon: AudioLines },
     // Screen and media tools
-    { href: '/screen-share', title: t('screenShare'), description: t('screenShareDesc'), icon: Share2 },
     // Document tools
     { href: '/pdf-transcript', title: t('pdfReader'), description: t('pdfReaderDesc'), icon: FileText },
     { href: '/combine-pdf', title: t('pdfMerger'), description: t('pdfMergerDesc'), icon: Combine },

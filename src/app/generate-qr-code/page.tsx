@@ -3,8 +3,7 @@
 import { memo } from 'react';
 import React, { useState, useRef, useContext, useCallback, useMemo, useEffect } from 'react';
 import Image from 'next/image';
-import Link from 'next/link';
-import { Download, Copy, QrCode, Share2, Camera } from 'lucide-react';
+import { Download, Copy, QrCode, Share } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
@@ -437,7 +436,7 @@ const GenerateQRCodePageComponent = function GenerateQRCodePage() {
                         className="w-full h-12 border-2 border-gray-300 hover:border-gray-400 hover:bg-gray-100 rounded-2xl transition-all duration-200 transform hover:scale-[1.02]"
                       >
                         <div className="flex items-center gap-2">
-                          <Share2 className="h-4 w-4 text-gray-600" />
+                          <Share className="h-4 w-4 text-gray-600" />
                           <span className="font-medium text-gray-700">🚀 Share QR Code</span>
                         </div>
                       </Button>
@@ -594,7 +593,7 @@ const GenerateQRCodePageComponent = function GenerateQRCodePage() {
                       onClick={shareQRCode}
                       className="flex items-center gap-2 bg-gradient-to-r from-gray-500 to-gray-700 hover:from-gray-600 hover:to-gray-800 text-white shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105 rounded-2xl px-6 py-3"
                     >
-                      <Share2 className="h-4 w-4" />
+                      <Share className="h-4 w-4" />
                       Share
                     </Button>
                   )}

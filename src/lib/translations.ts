@@ -241,8 +241,6 @@ interface BaseTranslations {
     passwordGenDesc: string;
     textUtils: string;
     textUtilsDesc: string;
-    screenShare: string;
-    screenShareDesc: string;
     
     fileTooLargeDescription: (size: number) => string; // Only function-based translation
 }
@@ -524,8 +522,6 @@ const enTranslations: Translations = {
     passwordGenDesc: "Generate secure, random passwords with customizable length and complexity.",
     textUtils: "Text Utils",
     textUtilsDesc: "Count words, remove duplicates, format text, and more text manipulation tools.",
-    screenShare: "Screen Share",
-    screenShareDesc: "Capture and record your screen with audio. Perfect for tutorials and presentations.",
 };
 
 const kmTranslations: Translations = {
@@ -766,8 +762,6 @@ const kmTranslations: Translations = {
     passwordGenDesc: "បង្កើតពាក្យសម្ងាត់សុវត្ថិភាព ចៃដន្យ ជាមួយប្រវែង និងភាពស្មុគស្មាញដែលអាចកំណត់បាន។",
     textUtils: "ឧបករណ៍អត្ថបទ",
     textUtilsDesc: "រាប់ពាក្យ លុបស្ទួន ធ្វើទ្រង់ទ្រាយអត្ថបទ និងឧបករណ៍រៀបចំអត្ថបទបន្ថែមទៀត។",
-    screenShare: "ចែករំលែកអេក្រង់",
-    screenShareDesc: "ចាប់យក និងថតអេក្រង់ជាមួយសំឡេង។ ល្អសម្រាប់ការបង្រៀន និងការបង្ហាញ។",
 };
 
 export const allTranslations = {

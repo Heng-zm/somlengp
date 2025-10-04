@@ -22,7 +22,15 @@ if (!getApps().length) {
         }),
       });
     } else {
-      throw new Error('Firebase Admin SDK requires service account credentials');
+      console.warn('⚠️ Firebase Admin SDK credentials not found. Some features may not work properly.');
+      // Initialize with application default credentials or minimal config for development
+      if (process.env.NODE_ENV === 'development') {
+        console.warn('⚠️ Running in development mode without Firebase Admin SDK credentials.');
+        // Throw error to prevent build issues
+        throw new Error('Firebase Admin SDK requires service account credentials. Please check your .env file.');
+      } else {
+        throw new Error('Firebase Admin SDK requires service account credentials');
+      }
     }
   } catch (error) {
     console.error('Failed to initialize Firebase Admin SDK:', error);
