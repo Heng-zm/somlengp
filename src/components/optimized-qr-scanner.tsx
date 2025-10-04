@@ -85,21 +85,21 @@ const OptimizedQRScannerComponent = function OptimizedQRScanner({
   // Auto-start camera when component mounts (with debounce)
   useEffect(() => {
     let timeoutId: NodeJS.Timeout;
-    if (isSupported && !stream && !isLoading && !cameraError) {
+    if (isSupported && !stream && !isLoading && !cameraError && workerReady) {
       // Debounce camera request to prevent race conditions
       timeoutId = setTimeout(() => {
         requestCamera().catch(err => {
           console.error('Failed to initialize camera:', err);
           onScanError?.('Failed to initialize camera');
         });
-      }, 100);
+      }, 200); // Increased delay for better stability
     }
     return () => {
       if (timeoutId) {
         clearTimeout(timeoutId);
       }
     };
-  }, [isSupported, stream, isLoading, cameraError, requestCamera, onScanError]);
+  }, [isSupported, stream, isLoading, cameraError, workerReady, requestCamera, onScanError]);
   // Use Web Worker for enhanced performance
   const {
     isReady: workerReady,
@@ -192,6 +192,12 @@ const OptimizedQRScannerComponent = function OptimizedQRScanner({
         video.videoWidth === 0 || video.videoHeight === 0) {
       return;
     }
+    
+    // Verify video is actually playing
+    if (video.paused || video.ended || video.readyState < 2) {
+      return;
+    }
+    
     // Throttle scans based on adaptive interval
     const now = performance.now();
     const interval = getScanInterval();
@@ -301,15 +307,42 @@ const OptimizedQRScannerComponent = function OptimizedQRScanner({
   // Set up video element when stream is available
   useEffect(() => {
     if (videoRef.current && stream) {
-      videoRef.current.srcObject = stream;
-      // Auto-start scanning when video loads
-      videoRef.current.onloadedmetadata = () => {
-        if (workerReady) {
-          startScanning();
+      const video = videoRef.current;
+      video.srcObject = stream;
+      
+      // Enhanced video ready detection
+      const handleVideoReady = () => {
+        // Wait for video to actually start playing and have dimensions
+        if (video.videoWidth > 0 && video.videoHeight > 0 && workerReady) {
+          // Additional delay to ensure video frame is stable
+          setTimeout(() => {
+            if (video.readyState >= 2 && !isScanning) {
+              startScanning();
+            }
+          }, 300);
         }
       };
+      
+      // Multiple event listeners for better compatibility
+      video.onloadedmetadata = handleVideoReady;
+      video.oncanplay = handleVideoReady;
+      video.onplaying = handleVideoReady;
+      
+      // Fallback timeout in case events don't fire
+      const fallbackTimeout = setTimeout(() => {
+        if (video.videoWidth > 0 && video.videoHeight > 0 && workerReady && !isScanning) {
+          startScanning();
+        }
+      }, 2000);
+      
+      return () => {
+        clearTimeout(fallbackTimeout);
+        video.onloadedmetadata = null;
+        video.oncanplay = null;
+        video.onplaying = null;
+      };
     }
-  }, [stream, workerReady, startScanning]);
+  }, [stream, workerReady, startScanning, isScanning]);
   // Start scanning when worker becomes ready
   useEffect(() => {
     if (stream && workerReady && !isScanning) {

@@ -53,7 +53,7 @@ export function QRScanner({ onScanSuccess, onScanError, onClose, className = '' 
       return;
     }
     // Check if video is actually playing and has loaded metadata
-    if (video.readyState < 2) {
+    if (video.readyState < 2 || video.paused || video.ended) {
       return;
     }
     const context = canvas.getContext('2d');
@@ -91,21 +91,40 @@ export function QRScanner({ onScanSuccess, onScanError, onClose, className = '' 
   // Set up video element when stream is available
   useEffect(() => {
     if (videoRef.current && stream) {
-      videoRef.current.srcObject = stream;
-      // Wait for video to be ready before starting scanning
       const video = videoRef.current;
-      video.onloadedmetadata = () => {
-        // Small delay to ensure video is fully ready
-        setTimeout(() => {
-          startScanning();
-        }, 500);
+      video.srcObject = stream;
+      
+      // Enhanced video ready detection
+      const handleVideoReady = () => {
+        // Ensure video is actually ready
+        if (video.videoWidth > 0 && video.videoHeight > 0 && video.readyState >= 2) {
+          // Additional delay to ensure video frame is stable
+          setTimeout(() => {
+            if (!isScanning && video.videoWidth > 0) {
+              startScanning();
+            }
+          }, 500);
+        }
       };
-      // Fallback: start scanning after a delay even if metadata doesn't load
-      setTimeout(() => {
-        if (!isScanning && video.videoWidth > 0 && video.videoHeight > 0) {
+      
+      // Multiple event listeners for better compatibility
+      video.onloadedmetadata = handleVideoReady;
+      video.oncanplay = handleVideoReady;
+      video.onplaying = handleVideoReady;
+      
+      // Fallback timeout with stricter checks
+      const fallbackTimeout = setTimeout(() => {
+        if (!isScanning && video.videoWidth > 0 && video.videoHeight > 0 && video.readyState >= 2) {
           startScanning();
         }
-      }, 2000);
+      }, 3000);
+      
+      return () => {
+        clearTimeout(fallbackTimeout);
+        video.onloadedmetadata = null;
+        video.oncanplay = null;
+        video.onplaying = null;
+      };
     }
   }, [stream, startScanning, isScanning]);
   // Cleanup on unmount
