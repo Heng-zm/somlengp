@@ -65,6 +65,14 @@ const OptimizedQRScannerComponent = function OptimizedQRScanner({
     stopCamera
   } = useQRCamera();
 
+  // Use Web Worker for enhanced performance
+  const {
+    isReady: workerReady,
+    scanQR,
+    stats: workerStats,
+    error: workerError
+  } = useQRScannerWorker();
+
   // Memoized styles for performance
   const scanFrameStyle = useMemo(() => ({
     width: '300px',
@@ -100,13 +108,6 @@ const OptimizedQRScannerComponent = function OptimizedQRScanner({
       }
     };
   }, [isSupported, stream, isLoading, cameraError, workerReady, requestCamera, onScanError]);
-  // Use Web Worker for enhanced performance
-  const {
-    isReady: workerReady,
-    scanQR,
-    stats: workerStats,
-    error: workerError
-  } = useQRScannerWorker();
   // Get or create canvas from pool for better memory management
   const getCanvas = useCallback(() => {
     if (canvasPoolRef.current.length > 0) {

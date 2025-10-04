@@ -205,7 +205,7 @@ export function QRScannerDebug() {
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
                     <div>
                       <span className="font-semibold">Dimensions:</span><br />
-                      {info.videoWidth} × {info.videoHeight}
+                      {info.videoWidth} &times; {info.videoHeight}
                     </div>
                     <div>
                       <span className="font-semibold">Ready State:</span><br />
@@ -246,12 +246,12 @@ export function QRScannerDebug() {
           <CardTitle>Debug Instructions</CardTitle>
         </CardHeader>
         <CardContent className="space-y-2 text-sm">
-          <p><strong>Video Ready:</strong> Video dimensions should be > 0×0 and ready state should be ≥ 2</p>
+          <p><strong>Video Ready:</strong> Video dimensions should be &gt; 0&times;0 and ready state should be ≥ 2</p>
           <p><strong>Stream Active:</strong> Camera stream should be active and not paused</p>
           <p><strong>Common Issues:</strong></p>
           <ul className="list-disc list-inside ml-4 space-y-1">
-            <li>Video dimensions 0×0: Camera not initialized or failed</li>
-            <li>Ready State < 2: Video metadata not loaded</li>
+            <li>Video dimensions 0&times;0: Camera not initialized or failed</li>
+            <li>Ready State &lt; 2: Video metadata not loaded</li>
             <li>Stream inactive: Camera permission denied or device busy</li>
             <li>Video paused: Playback not started automatically</li>
           </ul>
