@@ -44,7 +44,7 @@ function initializeSupabase(): SupabaseClient<Database> {
         auth: {
           autoRefreshToken: true,
           persistSession: true,
-          detectSessionInUrl: true,
+          detectSessionInUrl: false, // Disabled to prevent automatic callback handling
           storageKey: 'supabase-auth-token',
           storage: typeof window !== 'undefined' ? window.localStorage : undefined,
         },

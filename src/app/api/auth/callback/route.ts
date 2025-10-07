@@ -26,8 +26,26 @@ export async function GET(request: NextRequest) {
     return NextResponse.redirect(new URL(`/login?error=${encodeURIComponent(error_description || error)}`, requestUrl.origin))
   }
 
-  // If no code is provided, redirect to login
+  // If no code is provided, check if this is a direct access attempt
   if (!code) {
+    // Check referer to see if this was a direct access
+    const referer = request.headers.get('referer')
+    const userAgent = request.headers.get('user-agent')
+    
+    console.warn('Auth callback accessed without code:', {
+      referer,
+      userAgent: userAgent?.substring(0, 100),
+      searchParams: Object.fromEntries(requestUrl.searchParams.entries()),
+      timestamp: new Date().toISOString()
+    })
+    
+    // If it's a direct browser access (no referer or same origin referer), 
+    // just redirect silently without logging as error
+    if (!referer || new URL(referer).origin === requestUrl.origin) {
+      return NextResponse.redirect(new URL('/login?info=callback_direct_access', requestUrl.origin))
+    }
+    
+    // Otherwise log as error
     console.error('No authorization code provided in callback')
     return NextResponse.redirect(new URL('/login?error=no_code', requestUrl.origin))
   }

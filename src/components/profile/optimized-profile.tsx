@@ -492,6 +492,7 @@ export const OptimizedProfile = memo(function OptimizedProfile() {
                       <AnimatePresence>
                         {userData.provider && (
                           <motion.div
+                            key="provider-badge"
                             initial={{ opacity: 0, scale: 0.8 }}
                             animate={{ opacity: 1, scale: 1 }}
                             exit={{ opacity: 0, scale: 0.8 }}
@@ -505,6 +506,7 @@ export const OptimizedProfile = memo(function OptimizedProfile() {
                         
                         {userData.isEmailConfirmed && (
                           <motion.div
+                            key="verified-badge"
                             initial={{ opacity: 0, scale: 0.8 }}
                             animate={{ opacity: 1, scale: 1 }}
                             exit={{ opacity: 0, scale: 0.8 }}
@@ -518,6 +520,7 @@ export const OptimizedProfile = memo(function OptimizedProfile() {
                         
                         {userData.isNewUser && (
                           <motion.div
+                            key="new-member-badge"
                             initial={{ opacity: 0, scale: 0.8 }}
                             animate={{ opacity: 1, scale: 1 }}
                             exit={{ opacity: 0, scale: 0.8 }}
@@ -531,6 +534,7 @@ export const OptimizedProfile = memo(function OptimizedProfile() {
                         
                         {userData.isPremiumUser && (
                           <motion.div
+                            key="premium-badge"
                             initial={{ opacity: 0, scale: 0.8 }}
                             animate={{ opacity: 1, scale: 1 }}
                             exit={{ opacity: 0, scale: 0.8 }}
