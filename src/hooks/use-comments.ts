@@ -5,7 +5,7 @@ import {
   getComments,
   createComment,
   createAnonymousComment,
-  voteComment,
+  voteOnComment,
   updateComment,
   deleteComment
 } from '@/lib/firestore-comments';
@@ -422,10 +422,9 @@ export function useComments({ pageId = 'default-page', userId, initialComments, 
       if (isAnonymous || !userId) {
         // Create anonymous or guest comment
         newComment = await createAnonymousComment(
-          content,
           pageId,
-          parentId,
-          isAnonymous
+          content,
+          parentId
         );
       } else {
         // Create authenticated user comment
@@ -435,8 +434,8 @@ export function useComments({ pageId = 'default-page', userId, initialComments, 
           isVerified: false
         };
         newComment = await createComment(
-          content,
           pageId,
+          content,
           author,
           parentId
         );
@@ -488,7 +487,7 @@ export function useComments({ pageId = 'default-page', userId, initialComments, 
     }
     try {
       // Try to vote on the comment
-      await voteComment(commentId, userId, voteType);
+      await voteOnComment(commentId, userId, voteType);
       // Refresh comments to get updated vote counts
       await loadComments(true);
     } catch (error: any) {

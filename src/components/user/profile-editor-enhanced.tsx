@@ -3,6 +3,7 @@
 import React, { useState, useRef, useCallback, useEffect, useMemo } from 'react';
 import { useAuth } from '@/contexts/auth-context';
 import { Button } from '@/components/ui/button';
+import { getDisplayName, getPhotoURL, getAccessToken } from '@/lib/supabase-user-utils';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card } from '@/components/ui/card';
@@ -80,8 +81,8 @@ export function EnhancedProfileEditor({ className }: ProfileEditorProps) {
   const [formState, setFormState] = useState({
     isEditing: false,
     isLoading: false,
-    displayName: user?.displayName || '',
-    photoURL: user?.photoURL || '',
+    displayName: getDisplayName(user) || '',
+    photoURL: getPhotoURL(user) || '',
   });
   
   const [uiState, setUiState] = useState({
@@ -103,14 +104,14 @@ export function EnhancedProfileEditor({ className }: ProfileEditorProps) {
   const hasChanges = useMemo(() => {
     if (!user) return false;
     return (
-      formState.displayName !== (user.displayName || '') ||
-      formState.photoURL !== (user.photoURL || '') ||
+      formState.displayName !== (getDisplayName(user) || '') ||
+      formState.photoURL !== (getPhotoURL(user) || '') ||
       uiState.previewURL !== null
     );
   }, [formState.displayName, formState.photoURL, uiState.previewURL, user]);
 
   const userInitial = useMemo(() => {
-    return (user?.displayName || user?.email || 'U').charAt(0).toUpperCase();
+    return (getDisplayName(user) || user?.email || 'U').charAt(0).toUpperCase();
   }, [user]);
 
   // Validation function with memoization
@@ -215,18 +216,18 @@ export function EnhancedProfileEditor({ className }: ProfileEditorProps) {
       
       if (!user) return; // Safety check
       
-      if (formState.displayName !== (user.displayName || '')) {
+      if (formState.displayName !== (getDisplayName(user) || '')) {
         updates.displayName = formState.displayName.trim();
       }
       
-      if (formState.photoURL !== (user.photoURL || '')) {
+      if (formState.photoURL !== (getPhotoURL(user) || '')) {
         updates.photoURL = formState.photoURL || null;
       }
 
-      // Get Firebase Auth token with retry
+      // Get Supabase Auth token with retry
       let token: string;
       try {
-        token = await user.getIdToken(true); // Force refresh
+        token = await getAccessToken() || ''; // Force refresh
       } catch (tokenError) {
         throw new Error('Authentication failed. Please sign in again.');
       }
@@ -325,8 +326,8 @@ export function EnhancedProfileEditor({ className }: ProfileEditorProps) {
     setFormState({
       isEditing: false,
       isLoading: false,
-      displayName: user.displayName || '',
-      photoURL: user.photoURL || '',
+      displayName: getDisplayName(user) || '',
+      photoURL: getPhotoURL(user) || '',
     });
     
     setUiState({
@@ -382,8 +383,8 @@ export function EnhancedProfileEditor({ className }: ProfileEditorProps) {
             <div className="relative">
               <Avatar className="h-20 w-20">
                 <AvatarImage 
-                  src={uiState.previewURL || formState.photoURL || user.photoURL || undefined} 
-                  alt={user.displayName || 'User'} 
+                  src={uiState.previewURL || formState.photoURL || getPhotoURL(user) || undefined} 
+                  alt={getDisplayName(user) || 'User'}
                 />
                 <AvatarFallback className="text-lg">
                   {userInitial}
@@ -462,7 +463,7 @@ export function EnhancedProfileEditor({ className }: ProfileEditorProps) {
               </div>
             ) : (
               <p className="p-2 bg-muted rounded-md">
-                {user.displayName || 'No display name set'}
+                {getDisplayName(user) || 'No display name set'}
               </p>
             )}
           </div>

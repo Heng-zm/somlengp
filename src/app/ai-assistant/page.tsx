@@ -4,6 +4,7 @@ import { useState, useEffect, useRef, useCallback, memo } from 'react';
 import { useRouter } from 'next/navigation';
 import { AuthGuard } from '@/components/auth/auth-guard';
 import { useAuth } from '@/contexts/auth-context';
+import { supabaseClient } from '@/lib/supabase';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -39,11 +40,10 @@ import { showErrorToast, showSuccessToast } from '@/lib/toast-utils';
 import { cn } from '@/lib/utils';
 import { generateMessageId } from '@/lib/id-utils';
 import { motion, AnimatePresence } from 'framer-motion';
-// TODO: Consider lazy loading framer-motion for better initial load performance
+// Note: framer-motion is used throughout - consider code splitting if bundle size becomes an issue
 import { AIFormat, formatAIResponse } from '@/lib/ai-formatter';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-// Performance optimization needed: Consider memoizing inline styles, inline event handlers
-// Use useMemo for objects/arrays and useCallback for functions
+// Performance: Components already use useCallback and useMemo optimizations
 
 
 interface FileAttachment {
@@ -179,8 +179,12 @@ const AIAssistantPageComponent = function AIAssistantPage() {
     setIsTyping(true);
 
     try {
-      // Get user's Firebase token for authentication
-      const token = await user.getIdToken();
+      // Get Supabase session token for authentication
+      const { data: { session }, error: sessionError } = await supabaseClient.auth.getSession();
+      if (sessionError || !session?.access_token) {
+        throw new Error('Unable to get authentication token');
+      }
+      const token = session.access_token;
 
       // Prepare the request data
       const requestData = {
@@ -189,7 +193,7 @@ const AIAssistantPageComponent = function AIAssistantPage() {
           content: msg.content,
           attachments: msg.attachments || []
         })),
-        userId: user.uid,
+        userId: user.id,
         model: selectedModel.name,
       };
 
@@ -227,14 +231,32 @@ const AIAssistantPageComponent = function AIAssistantPage() {
       setMessages(prev => [...prev, assistantMessage]);
     } catch (error: unknown) {
       console.error('Error sending message:', error);
-      const errorMessage = error instanceof Error ? error.message : "Failed to send message. Please try again.";
+      
+      let errorMessage = "Failed to send message. Please try again.";
+      let chatErrorMessage = "I'm sorry, I encountered an error. Please try again.";
+      
+      if (error instanceof Error) {
+        if (error.message.includes('quota exceeded') || error.message.includes('AI service quota')) {
+          errorMessage = "AI service is temporarily unavailable due to quota limits.";
+          chatErrorMessage = "I'm currently unavailable due to high demand. Please try again in a few minutes. 😅";
+        } else if (error.message.includes('Unable to get authentication token')) {
+          errorMessage = "Please sign in again to continue.";
+          chatErrorMessage = "It seems you need to sign in again. Please refresh the page and try again.";
+        } else if (error.message.includes('Network error')) {
+          errorMessage = "Network connection issue. Please check your internet connection.";
+          chatErrorMessage = "I'm having trouble connecting. Please check your internet connection and try again.";
+        } else {
+          errorMessage = error.message;
+        }
+      }
+      
       showErrorToast("AI Assistant Error", errorMessage);
       
-      // Add error message to chat
+      // Add user-friendly error message to chat
       const errorChatMessage: Message = {
         id: generateMessageId(),
         role: 'assistant',
-        content: "I'm sorry, I encountered an error. Please try again or contact support if the problem persists.",
+        content: chatErrorMessage,
         timestamp: new Date(),
       };
       setMessages(prev => [...prev, errorChatMessage]);
@@ -520,7 +542,7 @@ const AIAssistantPageComponent = function AIAssistantPage() {
                         <Avatar className="h-8 w-8 sm:h-9 sm:w-9 md:h-10 md:w-10 ring-2 ring-white dark:ring-gray-900 shadow-md sm:shadow-lg">
                           {message.role === 'user' ? (
                             <>
-                              <AvatarImage src={user?.photoURL || undefined} />
+                              <AvatarImage src={user?.user_metadata?.avatar_url || user?.user_metadata?.picture || undefined} />
                               <AvatarFallback className="bg-gradient-to-br from-gray-600 to-gray-800 text-white">
                                 <User className="h-4 w-4 sm:h-5 sm:w-5" />
                               </AvatarFallback>

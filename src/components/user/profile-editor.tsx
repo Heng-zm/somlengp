@@ -3,6 +3,7 @@
 import React, { useState, useRef } from 'react';
 import { useAuth } from '@/contexts/auth-context';
 import { Button } from '@/components/ui/button';
+import { getDisplayName, getPhotoURL, getAccessToken } from '@/lib/supabase-user-utils';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card } from '@/components/ui/card';
@@ -40,8 +41,8 @@ export function ProfileEditor({ className }: ProfileEditorProps) {
   const { user } = useAuth();
   const [isEditing, setIsEditing] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [displayName, setDisplayName] = useState(user?.displayName || '');
-  const [photoURL, setPhotoURL] = useState(user?.photoURL || '');
+  const [displayName, setDisplayName] = useState(getDisplayName(user) || '');
+  const [photoURL, setPhotoURL] = useState(getPhotoURL(user) || '');
   const [previewURL, setPreviewURL] = useState<string | null>(null);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [showUnsavedWarning, setShowUnsavedWarning] = useState(false);
@@ -53,8 +54,8 @@ export function ProfileEditor({ className }: ProfileEditorProps) {
   // Check if there are unsaved changes
   const hasChanges = () => {
     return (
-      displayName !== (user.displayName || '') ||
-      photoURL !== (user.photoURL || '') ||
+      displayName !== (getDisplayName(user) || '') ||
+      photoURL !== (getPhotoURL(user) || '') ||
       previewURL !== null
     );
   };
@@ -124,16 +125,16 @@ export function ProfileEditor({ className }: ProfileEditorProps) {
     try {
       const updates: Record<string, any> = {};
       
-      if (displayName !== (user.displayName || '')) {
+      if (displayName !== (getDisplayName(user) || '')) {
         updates.displayName = displayName.trim();
       }
       
-      if (photoURL !== (user.photoURL || '')) {
+      if (photoURL !== (getPhotoURL(user) || '')) {
         updates.photoURL = photoURL || null;
       }
 
-      // Get Firebase Auth token
-      const token = await user.getIdToken();
+      // Get Supabase Auth token
+      const token = await getAccessToken();
 
       const response = await fetch('/api/user/profile', {
         method: 'PATCH',
@@ -186,8 +187,8 @@ export function ProfileEditor({ className }: ProfileEditorProps) {
 
   const cancelEdit = () => {
     setIsEditing(false);
-    setDisplayName(user.displayName || '');
-    setPhotoURL(user.photoURL || '');
+    setDisplayName(getDisplayName(user) || '');
+    setPhotoURL(getPhotoURL(user) || '');
     setPreviewURL(null);
     setErrors({});
     setShowUnsavedWarning(false);
@@ -221,11 +222,11 @@ export function ProfileEditor({ className }: ProfileEditorProps) {
             <div className="relative">
               <Avatar className="h-20 w-20">
                 <AvatarImage 
-                  src={previewURL || photoURL || user.photoURL || undefined} 
-                  alt={user.displayName || 'User'} 
+                  src={previewURL || photoURL || getPhotoURL(user) || undefined} 
+                  alt={getDisplayName(user) || 'User'} 
                 />
                 <AvatarFallback className="text-lg">
-                  {(user.displayName || user.email || 'U').charAt(0).toUpperCase()}
+                  {(getDisplayName(user) || user.email || 'U').charAt(0).toUpperCase()}
                 </AvatarFallback>
               </Avatar>
               {isEditing && (
@@ -291,7 +292,7 @@ export function ProfileEditor({ className }: ProfileEditorProps) {
               </div>
             ) : (
               <p className="p-2 bg-muted rounded-md">
-                {user.displayName || 'No display name set'}
+                {getDisplayName(user) || 'No display name set'}
               </p>
             )}
           </div>

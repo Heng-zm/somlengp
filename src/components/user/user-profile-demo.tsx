@@ -7,6 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { UserProfile } from './user-profile';
 import { Calendar, Clock, User, Zap } from 'lucide-react';
 import { formatAccountAge } from '@/lib/user-profile';
+import { getAccountCreationDate } from '@/lib/supabase-user-utils';
 // Performance optimization needed: Consider memoizing dynamic classNames
 // Use useMemo for objects/arrays and useCallback for functions
 
@@ -32,7 +33,7 @@ export function UserProfileDemo() {
   const userInfo = getUserInfo();
   const accountAge = getAccountAge();
   const timeSinceLastSignIn = getTimeSinceLastSignIn();
-  const accountCreationDate = user.metadata.creationTime ? new Date(user.metadata.creationTime) : null;
+  const accountCreationDate = getAccountCreationDate(user);
 
   return (
     <div className="space-y-8 max-w-6xl mx-auto p-4">
@@ -123,7 +124,7 @@ export function UserProfileDemo() {
                 <div className="flex items-center justify-between">
                   <span className="text-sm font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wide">User ID</span>
                   <Badge variant="outline" className="font-mono bg-gradient-to-r from-gray-100 to-gray-200 dark:from-gray-700 dark:to-gray-600 border-gray-300 dark:border-gray-600">
-                    {userInfo.id.substring(0, 8)}...
+                    {userInfo.id?.substring(0, 8) || 'N/A'}...
                   </Badge>
                 </div>
               </div>

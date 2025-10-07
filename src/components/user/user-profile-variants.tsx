@@ -5,7 +5,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { User } from 'firebase/auth';
+import type { User } from '@supabase/supabase-js';
 import { 
   Clock, 
   Calendar, 
@@ -18,6 +18,7 @@ import {
 } from 'lucide-react';
 import { formatRelativeTime } from '@/lib/user-profile';
 import { cn } from '@/lib/utils';
+import { getDisplayName, getPhotoURL, getUserId, isEmailVerified, getCreationTime, getLastSignInTime, getProvider } from '@/lib/supabase-user-utils';
 
 interface UserProfileCardProps {
   user: User;
@@ -34,7 +35,7 @@ export const CompactProfileCard = memo(function CompactProfileCard({
   className,
   onClick 
 }: UserProfileCardProps) {
-  const userInitial = user.displayName?.charAt(0) || user.email?.charAt(0) || 'U';
+  const userInitial = getDisplayName(user).charAt(0) || user.email?.charAt(0) || 'U';
   
   return (
     <Card 
@@ -50,15 +51,15 @@ export const CompactProfileCard = memo(function CompactProfileCard({
           <div className="relative">
             <Avatar className="h-12 w-12 ring-2 ring-blue-500/20 group-hover:ring-blue-500/40 transition-all duration-300">
               <AvatarImage 
-                src={user.photoURL || ''} 
-                alt={user.displayName || 'User'}
+                src={getPhotoURL(user) || ''} 
+                alt={getDisplayName(user) || 'User'}
                 className="object-cover"
               />
               <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-600 text-white font-bold">
                 {userInitial}
               </AvatarFallback>
             </Avatar>
-            {user.emailVerified && (
+            {isEmailVerified(user) && (
               <div className="absolute -top-1 -right-1 w-5 h-5 bg-gradient-to-r from-emerald-400 to-green-500 rounded-full flex items-center justify-center ring-2 ring-white dark:ring-gray-900">
                 <Shield className="h-2.5 w-2.5 text-white" />
               </div>
@@ -67,15 +68,15 @@ export const CompactProfileCard = memo(function CompactProfileCard({
           
           <div className="flex-1 min-w-0">
             <h3 className="font-semibold text-gray-900 dark:text-gray-100 truncate group-hover:text-blue-700 dark:group-hover:text-blue-300 transition-colors duration-200">
-              {user.displayName || user.email?.split('@')[0] || 'User'}
+              {getDisplayName(user) || user.email?.split('@')[0] || 'User'}
             </h3>
             <p className="text-sm text-gray-500 dark:text-gray-400 truncate">
               {user.email}
             </p>
-            {user.metadata.lastSignInTime && (
+            {getLastSignInTime(user) && (
               <p className="text-xs text-gray-400 dark:text-gray-500 flex items-center gap-1 mt-1">
                 <Clock className="h-3 w-3" />
-                {formatRelativeTime(new Date(user.metadata.lastSignInTime))}
+                {formatRelativeTime(getLastSignInTime(user)!)}
               </p>
             )}
           </div>
@@ -92,9 +93,9 @@ export const DetailedProfileCard = memo(function DetailedProfileCard({
   className,
   onClick 
 }: UserProfileCardProps) {
-  const userInitial = user.displayName?.charAt(0) || user.email?.charAt(0) || 'U';
-  const creationTime = user.metadata.creationTime ? new Date(user.metadata.creationTime) : null;
-  const lastSignInTime = user.metadata.lastSignInTime ? new Date(user.metadata.lastSignInTime) : null;
+  const userInitial = getDisplayName(user).charAt(0) || user.email?.charAt(0) || 'U';
+  const creationTime = getCreationTime(user);
+  const lastSignInTime = getLastSignInTime(user);
   
   return (
     <Card 
@@ -110,7 +111,7 @@ export const DetailedProfileCard = memo(function DetailedProfileCard({
         <div className="relative h-20 bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 rounded-t-lg overflow-hidden">
           <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
           <div className="absolute top-4 right-4">
-            {user.providerData?.[0]?.providerId === 'google.com' && (
+            {getProvider(user) === 'google' && (
               <Badge className="bg-white/20 text-white border-white/30 backdrop-blur-sm">
                 <Star className="h-3 w-3 mr-1" />
                 Google
@@ -124,8 +125,8 @@ export const DetailedProfileCard = memo(function DetailedProfileCard({
           <div className="flex items-start -mt-8 mb-4">
             <Avatar className="h-16 w-16 ring-4 ring-white dark:ring-gray-900 shadow-xl">
               <AvatarImage 
-                src={user.photoURL || ''} 
-                alt={user.displayName || 'User'}
+                src={getPhotoURL(user) || ''} 
+                alt={getDisplayName(user) || 'User'}
                 className="object-cover"
               />
               <AvatarFallback className="bg-gradient-to-br from-blue-500 via-purple-500 to-indigo-600 text-white font-bold text-lg">
@@ -133,7 +134,7 @@ export const DetailedProfileCard = memo(function DetailedProfileCard({
               </AvatarFallback>
             </Avatar>
             
-            {user.emailVerified && (
+            {isEmailVerified(user) && (
               <Badge className="ml-3 mt-2 bg-gradient-to-r from-emerald-500 to-green-600 text-white border-0 shadow-sm">
                 <Shield className="h-3 w-3 mr-1" />
                 Verified
@@ -144,7 +145,7 @@ export const DetailedProfileCard = memo(function DetailedProfileCard({
           <div className="space-y-3">
             <div>
               <h2 className="text-xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 dark:from-white dark:to-gray-300 bg-clip-text text-transparent">
-                {user.displayName || user.email?.split('@')[0] || 'User'}
+                {getDisplayName(user) || user.email?.split('@')[0] || 'User'}
               </h2>
               <div className="flex items-center gap-2 text-gray-600 dark:text-gray-400 mt-1">
                 <Mail className="h-4 w-4" />
@@ -211,7 +212,7 @@ export const SocialProfileCard = memo(function SocialProfileCard({
   className,
   onClick 
 }: UserProfileCardProps) {
-  const userInitial = user.displayName?.charAt(0) || user.email?.charAt(0) || 'U';
+  const userInitial = getDisplayName(user).charAt(0) || user.email?.charAt(0) || 'U';
   
   return (
     <Card 
@@ -227,8 +228,8 @@ export const SocialProfileCard = memo(function SocialProfileCard({
           <div className="flex items-center space-x-4">
             <Avatar className="h-14 w-14 ring-2 ring-gradient-to-r ring-pink-500/30 ring-offset-2 ring-offset-white dark:ring-offset-gray-900">
               <AvatarImage 
-                src={user.photoURL || ''} 
-                alt={user.displayName || 'User'}
+                src={getPhotoURL(user) || ''} 
+                alt={getDisplayName(user) || 'User'}
                 className="object-cover"
               />
               <AvatarFallback className="bg-gradient-to-br from-pink-500 via-purple-500 to-indigo-500 text-white font-bold">
@@ -238,12 +239,12 @@ export const SocialProfileCard = memo(function SocialProfileCard({
             
             <div>
               <h3 className="font-bold text-lg text-gray-900 dark:text-gray-100">
-                {user.displayName || user.email?.split('@')[0] || 'User'}
+                {getDisplayName(user) || user.email?.split('@')[0] || 'User'}
               </h3>
               <p className="text-gray-500 dark:text-gray-400 text-sm">
                 @{user.email?.split('@')[0] || 'user'}
               </p>
-              {user.emailVerified && (
+              {isEmailVerified(user) && (
                 <div className="flex items-center gap-1 mt-1">
                   <Shield className="h-3 w-3 text-blue-500" />
                   <span className="text-xs text-blue-600 dark:text-blue-400">Verified</span>
@@ -264,7 +265,7 @@ export const SocialProfileCard = memo(function SocialProfileCard({
 
         {/* Bio section could go here */}
         <p className="text-gray-600 dark:text-gray-400 text-sm mb-4 line-clamp-2">
-          Welcome to my profile! Member since {user.metadata.creationTime ? formatRelativeTime(new Date(user.metadata.creationTime)) : 'recently'}.
+          Welcome to my profile! Member since {getCreationTime(user) ? formatRelativeTime(getCreationTime(user)!) : 'recently'}.
         </p>
 
         {/* Social stats */}
@@ -295,7 +296,7 @@ export const PremiumProfileCard = memo(function PremiumProfileCard({
   className,
   onClick 
 }: UserProfileCardProps) {
-  const userInitial = user.displayName?.charAt(0) || user.email?.charAt(0) || 'U';
+  const userInitial = getDisplayName(user).charAt(0) || user.email?.charAt(0) || 'U';
   
   return (
     <Card 
@@ -325,8 +326,8 @@ export const PremiumProfileCard = memo(function PremiumProfileCard({
           <div className="relative">
             <Avatar className="h-16 w-16 ring-4 ring-gradient-to-r ring-amber-400/50 ring-offset-2 ring-offset-white dark:ring-offset-gray-900 shadow-xl">
               <AvatarImage 
-                src={user.photoURL || ''} 
-                alt={user.displayName || 'User'}
+                src={getPhotoURL(user) || ''} 
+                alt={getDisplayName(user) || 'User'}
                 className="object-cover"
               />
               <AvatarFallback className="bg-gradient-to-br from-amber-500 via-orange-500 to-yellow-600 text-white font-bold text-lg">
@@ -341,12 +342,12 @@ export const PremiumProfileCard = memo(function PremiumProfileCard({
           
           <div className="flex-1">
             <h2 className="text-xl font-bold bg-gradient-to-r from-amber-600 via-orange-600 to-yellow-600 bg-clip-text text-transparent mb-2">
-              {user.displayName || user.email?.split('@')[0] || 'User'}
+              {getDisplayName(user) || user.email?.split('@')[0] || 'User'}
             </h2>
             <div className="flex items-center gap-2 text-gray-600 dark:text-gray-400 mb-2">
               <Mail className="h-4 w-4" />
               <span className="text-sm">{user.email}</span>
-              {user.emailVerified && (
+              {isEmailVerified(user) && (
                 <Shield className="h-4 w-4 text-emerald-500" />
               )}
             </div>
@@ -356,10 +357,10 @@ export const PremiumProfileCard = memo(function PremiumProfileCard({
                 <Star className="h-4 w-4 fill-current" />
                 <span>Premium Member</span>
               </div>
-              {user.metadata.creationTime && (
+              {getCreationTime(user) && (
                 <div className="flex items-center gap-1 text-gray-500 dark:text-gray-400">
                   <Calendar className="h-4 w-4" />
-                  <span>Since {formatRelativeTime(new Date(user.metadata.creationTime))}</span>
+                  <span>Since {formatRelativeTime(getCreationTime(user)!)}</span>
                 </div>
               )}
             </div>
@@ -400,7 +401,7 @@ export const MinimalProfileCard = memo(function MinimalProfileCard({
   className,
   onClick 
 }: UserProfileCardProps) {
-  const userInitial = user.displayName?.charAt(0) || user.email?.charAt(0) || 'U';
+  const userInitial = getDisplayName(user).charAt(0) || user.email?.charAt(0) || 'U';
   
   return (
     <div 
@@ -417,8 +418,8 @@ export const MinimalProfileCard = memo(function MinimalProfileCard({
       <div className="flex items-center space-x-3">
         <Avatar className="h-10 w-10 ring-2 ring-gray-200/50 dark:ring-gray-700/50 group-hover:ring-blue-400/50 transition-all duration-200">
           <AvatarImage 
-            src={user.photoURL || ''} 
-            alt={user.displayName || 'User'}
+            src={getPhotoURL(user) || ''} 
+            alt={getDisplayName(user) || 'User'}
             className="object-cover"
           />
           <AvatarFallback className="bg-gradient-to-br from-gray-400 to-gray-600 text-white font-medium text-sm">
@@ -428,14 +429,14 @@ export const MinimalProfileCard = memo(function MinimalProfileCard({
         
         <div className="flex-1 min-w-0">
           <p className="font-medium text-gray-900 dark:text-gray-100 truncate group-hover:text-blue-700 dark:group-hover:text-blue-300 transition-colors duration-200">
-            {user.displayName || user.email?.split('@')[0] || 'User'}
+            {getDisplayName(user) || user.email?.split('@')[0] || 'User'}
           </p>
           <p className="text-sm text-gray-500 dark:text-gray-400 truncate">
             {user.email}
           </p>
         </div>
 
-        {user.emailVerified && (
+        {isEmailVerified(user) && (
           <div className="shrink-0">
             <Shield className="h-4 w-4 text-emerald-500" />
           </div>

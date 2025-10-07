@@ -203,16 +203,8 @@ $RECYCLE.BIN/
 # Windows shortcuts
 *.lnk
 
-# Firebase
-.firebase/
-.firebaserc
-firebase-debug.log*
-firebase-debug.*.log*
-
-# Firebase Functions
-functions/node_modules/
-functions/.env
-functions/.env.local
+# Supabase (if using local development)
+# Note: Supabase config is typically handled via environment variables
 
 # Vercel
 .vercel

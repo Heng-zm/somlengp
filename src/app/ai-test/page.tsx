@@ -4,6 +4,7 @@ import { useState, memo } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useAuth } from '@/contexts/auth-context';
+import { supabaseClient } from '@/lib/supabase';
 
 const AITestPageComponent = function AITestPage() {
   const { user } = useAuth();
@@ -15,7 +16,12 @@ const AITestPageComponent = function AITestPage() {
 
     setLoading(true);
     try {
-      const token = await user.getIdToken();
+      const { data: { session } } = await supabaseClient.auth.getSession();
+      const token = session?.access_token;
+      
+      if (!token) {
+        throw new Error('No access token available');
+      }
       
       const res = await fetch('/api/ai-assistant', {
         method: 'POST',
@@ -25,7 +31,7 @@ const AITestPageComponent = function AITestPage() {
         },
         body: JSON.stringify({
           messages: [{ role: 'user', content: 'Hello! Can you tell me a short joke?' }],
-          userId: user.uid,
+          userId: user.id,
         }),
       });
 

@@ -12,7 +12,7 @@ export async function GET() {
     deployment: {
       vercel: !!process.env.VERCEL,
       netlify: !!process.env.NETLIFY,
-      firebase: !!process.env.FIREBASE_CONFIG,
+      supabase: !!process.env.NEXT_PUBLIC_SUPABASE_URL,
       docker: !!process.env.DOCKER_CONTAINER
     }
   };

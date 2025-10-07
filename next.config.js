@@ -16,7 +16,7 @@ const nextConfig = {
   // Enable experimental features for better performance
   experimental: {
     optimizeCss: true,
-    // Ensure all routes work with Firebase App Hosting
+    // Server-side optimizations
     serverActions: {
       bodySizeLimit: '50mb', // Increase to 50mb for large image files
     },
@@ -57,12 +57,6 @@ const nextConfig = {
       },
       {
         protocol: 'https',
-        hostname: 'firebasestorage.googleapis.com',
-        port: '',
-        pathname: '/**',
-      },
-      {
-        protocol: 'https',
         hostname: 'storage.googleapis.com',
         port: '',
         pathname: '/**',
@@ -93,7 +87,7 @@ const nextConfig = {
           },
           {
             key: 'Permissions-Policy',
-            value: 'camera=(), microphone=(), geolocation=(), interest-cohort=()',
+            value: 'camera=(self), microphone=(self), geolocation=(), interest-cohort=()',
           },
           {
             key: 'Strict-Transport-Security',
@@ -101,7 +95,7 @@ const nextConfig = {
           },
           {
             key: 'Content-Security-Policy',
-            value: "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.googletagmanager.com https://www.google-analytics.com https://vercel.live https://va.vercel-scripts.com https://apis.google.com https://accounts.google.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https: blob:; connect-src 'self' https://api.google.com https://firebase.googleapis.com https://*.firebaseio.com https://www.google-analytics.com https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://firebaseinstallations.googleapis.com https://fcmregistrations.googleapis.com https://firebasestorage.googleapis.com https://*.googleapis.com https://vercel.live https://va.vercel-scripts.com; frame-src 'self' https://*.firebaseapp.com https://accounts.google.com; frame-ancestors 'none'; base-uri 'self'; form-action 'self';",
+            value: "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.googletagmanager.com https://www.google-analytics.com https://vercel.live https://va.vercel-scripts.com https://apis.google.com https://accounts.google.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https: blob:; connect-src 'self' https://api.google.com https://*.supabase.co https://www.google-analytics.com https://*.googleapis.com https://vercel.live https://va.vercel-scripts.com; frame-src 'self' https://accounts.google.com; frame-ancestors 'none'; base-uri 'self'; form-action 'self';"
           },
           {
             key: 'Cross-Origin-Opener-Policy',
@@ -190,22 +184,13 @@ const nextConfig = {
             chunks: 'all',
             enforce: true,
           },
-          // Firebase Core
-          firebase: {
-            test: /[\\/]node_modules[\\/]firebase[\\/]/,
-            name: 'firebase',
+          // Supabase
+          supabase: {
+            test: /[\\/]node_modules[\\/]@supabase[\\/]/,
+            name: 'supabase',
             priority: 15,
             chunks: 'all',
             maxSize: 250000,
-            enforce: true,
-          },
-          // Firebase Firestore (separate chunk)
-          firestore: {
-            test: /[\\/]node_modules[\\/]firebase[\\/]firestore/,
-            name: 'firestore',
-            priority: 20,
-            chunks: 'all',
-            maxSize: 200000,
             enforce: true,
           },
           // AI libraries

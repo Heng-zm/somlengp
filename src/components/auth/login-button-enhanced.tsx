@@ -24,6 +24,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
+import { getDisplayName, getPhotoURL } from "@/lib/supabase-user-utils";
 
 
 export type LoginButtonVariant = 
@@ -324,12 +325,12 @@ export function EnhancedLoginButton({
         >
           <Avatar className="h-9 w-9 ring-2 ring-blue-500/20 hover:ring-blue-500/50 transition-all duration-200">
             <AvatarImage 
-              src={user.photoURL || ''} 
-              alt={user.displayName || 'User'}
+              src={getPhotoURL(user) || ''} 
+              alt={getDisplayName(user) || 'User'}
               className="object-cover"
             />
             <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-600 text-white font-semibold">
-              {user.displayName?.charAt(0) || user.email?.charAt(0) || 'U'}
+              {getDisplayName(user)?.charAt(0) || user.email?.charAt(0) || 'U'}
             </AvatarFallback>
           </Avatar>
           {/* Online indicator */}
@@ -343,17 +344,17 @@ export function EnhancedLoginButton({
           <div className="flex items-center space-x-3">
             <Avatar className="h-12 w-12 ring-2 ring-blue-500/30">
               <AvatarImage 
-                src={user.photoURL || ''} 
-                alt={user.displayName || 'User'}
+                src={getPhotoURL(user) || ''} 
+                alt={getDisplayName(user) || 'User'}
                 className="object-cover"
               />
               <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-600 text-white text-lg font-bold">
-                {user.displayName?.charAt(0) || user.email?.charAt(0) || 'U'}
+                {getDisplayName(user)?.charAt(0) || user.email?.charAt(0) || 'U'}
               </AvatarFallback>
             </Avatar>
             <div className="flex-1 min-w-0">
               <p className="text-sm font-semibold text-gray-900 dark:text-gray-100 truncate">
-                {user.displayName || 'User'}
+                {getDisplayName(user) || 'User'}
               </p>
               <p className="text-xs text-gray-600 dark:text-gray-400 truncate">
                 {user.email}

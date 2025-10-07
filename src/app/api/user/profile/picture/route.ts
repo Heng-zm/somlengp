@@ -59,7 +59,7 @@ async function uploadProfilePicture(request: NextRequest, user: AuthenticatedUse
     } catch (error) {
       // Continue without old photo URL
     }
-    // Upload to Firebase Storage
+    // Upload to Supabase Storage
     let photoURL: string;
     try {
       photoURL = await updateProfilePicture(

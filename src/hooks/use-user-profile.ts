@@ -7,6 +7,7 @@ import {
   formatDate, 
   formatRelativeTime
 } from '@/lib/user-profile';
+import { getUserId, getDisplayName, getPhotoURL, getCreationTime, getLastSignInTime } from '@/lib/supabase-user-utils';
 
 /**
  * Simplified hook for user profile display
@@ -20,14 +21,14 @@ export function useUserProfile() {
   const getUserInfo = () => {
     if (!user) return null;
 
-    const creationTime = user.metadata.creationTime ? new Date(user.metadata.creationTime) : null;
-    const lastSignInTime = user.metadata.lastSignInTime ? new Date(user.metadata.lastSignInTime) : null;
+    const creationTime = getCreationTime(user);
+    const lastSignInTime = getLastSignInTime(user);
 
     return {
-      id: user.uid,
-      displayName: user.displayName,
+      id: getUserId(user),
+      displayName: getDisplayName(user),
       email: user.email,
-      photoURL: user.photoURL,
+      photoURL: getPhotoURL(user),
       creationTime,
       lastSignInTime,
       formattedCreationTime: formatDate(creationTime),
@@ -41,13 +42,13 @@ export function useUserProfile() {
    * Checks if the user account was created today
    */
   const isNewUser = () => {
-    if (!user?.metadata.creationTime) return false;
+    const creationTime = getCreationTime(user);
+    if (!creationTime) return false;
     const today = new Date();
-    const creationDate = new Date(user.metadata.creationTime);
     return (
-      today.getFullYear() === creationDate.getFullYear() &&
-      today.getMonth() === creationDate.getMonth() &&
-      today.getDate() === creationDate.getDate()
+      today.getFullYear() === creationTime.getFullYear() &&
+      today.getMonth() === creationTime.getMonth() &&
+      today.getDate() === creationTime.getDate()
     );
   };
 
@@ -55,10 +56,10 @@ export function useUserProfile() {
    * Gets the account age in days
    */
   const getAccountAge = () => {
-    if (!user?.metadata.creationTime) return 0;
+    const creationTime = getCreationTime(user);
+    if (!creationTime) return 0;
     const now = new Date();
-    const creationDate = new Date(user.metadata.creationTime);
-    const diffInMs = now.getTime() - creationDate.getTime();
+    const diffInMs = now.getTime() - creationTime.getTime();
     return Math.floor(diffInMs / (1000 * 60 * 60 * 24));
   };
 
@@ -66,10 +67,10 @@ export function useUserProfile() {
    * Gets detailed time since last sign in
    */
   const getTimeSinceLastSignIn = () => {
-    if (!user?.metadata.lastSignInTime) return null;
+    const lastSignInTime = getLastSignInTime(user);
+    if (!lastSignInTime) return null;
     const now = new Date();
-    const lastSignInDate = new Date(user.metadata.lastSignInTime);
-    const diffInMs = now.getTime() - lastSignInDate.getTime();
+    const diffInMs = now.getTime() - lastSignInTime.getTime();
     
     const minutes = Math.floor(diffInMs / (1000 * 60));
     const hours = Math.floor(diffInMs / (1000 * 60 * 60));
@@ -79,7 +80,7 @@ export function useUserProfile() {
       minutes,
       hours,
       days,
-      formatted: formatRelativeTime(lastSignInDate)
+      formatted: formatRelativeTime(lastSignInTime)
     };
   };
 

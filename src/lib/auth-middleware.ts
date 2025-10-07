@@ -1,50 +1,25 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getAuth } from 'firebase-admin/auth';
-import { initializeApp, getApps, cert } from 'firebase-admin/app';
-// Initialize Firebase Admin SDK if not already initialized
+import { createClient } from '@supabase/supabase-js';
+// Initialize Supabase Admin client
+let supabaseAdmin: ReturnType<typeof createClient> | null = null;
 let initializationError: Error | null = null;
-if (!getApps().length) {
-  try {
-    const projectId = process.env.FIREBASE_PROJECT_ID || process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID;
-    // Check if we have service account credentials
-    const clientEmail = process.env.FIREBASE_CLIENT_EMAIL;
-    const privateKey = process.env.FIREBASE_PRIVATE_KEY;
-    if (!projectId) {
-      throw new Error('Firebase project ID is required. Set FIREBASE_PROJECT_ID or NEXT_PUBLIC_FIREBASE_PROJECT_ID.');
-    }
-    if (clientEmail && privateKey) {
-      // Validate credentials format
-      if (!clientEmail.includes('@') || !privateKey.includes('BEGIN PRIVATE KEY')) {
-        throw new Error('Invalid Firebase service account credentials format');
-      }
-      // Initialize with service account credentials (production/local with service account)
-      initializeApp({
-        projectId: projectId,
-        credential: cert({
-          projectId: projectId,
-          clientEmail: clientEmail,
-          privateKey: privateKey.replace(/\\n/g, '\n'),
-        }),
-      });
-      if (process.env.NODE_ENV === 'development') {
-      }
-    } else {
-      const missingVars = [];
-      if (!clientEmail) missingVars.push('FIREBASE_CLIENT_EMAIL');
-      if (!privateKey) missingVars.push('FIREBASE_PRIVATE_KEY');
-      console.warn(`Firebase Admin SDK missing credentials: ${missingVars.join(', ')}`);
-      const error = new Error(`Firebase Admin SDK requires service account credentials for token verification. Missing: ${missingVars.join(', ')}`);
-      initializationError = error;
-      throw error;
-    }
-  } catch (error) {
-    initializationError = error as Error;
-    console.error('Failed to initialize Firebase Admin SDK:', error);
-    // Don't throw here to allow the module to load, but store the error for later handling
+
+try {
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  
+  if (!supabaseUrl || !supabaseServiceKey) {
+    throw new Error('Supabase configuration missing. Please check NEXT_PUBLIC_SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY.');
   }
+  
+  supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey);
+} catch (error) {
+  initializationError = error as Error;
+  console.error('Failed to initialize Supabase Admin client:', error);
 }
+
 // Export a function to check initialization status
-export function getFirebaseInitializationError(): Error | null {
+export function getSupabaseInitializationError(): Error | null {
   return initializationError;
 }
 export interface AuthenticatedUser {
@@ -66,15 +41,16 @@ export async function verifyAuthToken(request: NextRequest): Promise<{
   status?: number;
 }> {
   try {
-    // Check if Firebase initialization failed
-    const initError = getFirebaseInitializationError();
-    if (initError) {
+    // Check if Supabase initialization failed
+    const initError = getSupabaseInitializationError();
+    if (initError || !supabaseAdmin) {
       return {
         success: false,
-        error: 'Firebase authentication is not properly configured',
+        error: 'Supabase authentication is not properly configured',
         status: 503
       };
     }
+    
     const authHeader = request.headers.get('authorization');
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
       return {
@@ -83,6 +59,7 @@ export async function verifyAuthToken(request: NextRequest): Promise<{
         status: 401
       };
     }
+    
     const token = authHeader.substring(7); // Remove "Bearer " prefix
     if (!token || token.trim().length === 0) {
       return {
@@ -91,74 +68,29 @@ export async function verifyAuthToken(request: NextRequest): Promise<{
         status: 401
       };
     }
-    // Verify the token with Firebase Admin SDK
-    const auth = getAuth();
-    const decodedToken = await auth.verifyIdToken(token, true); // checkRevoked = true
-    if (!decodedToken) {
+    
+    // Verify the JWT token with Supabase
+    const { data: { user }, error } = await supabaseAdmin.auth.getUser(token);
+    
+    if (error || !user) {
       return {
         success: false,
         error: 'Token verification failed',
         status: 401
       };
     }
-    // Check if token is expired
-    const now = Math.floor(Date.now() / 1000);
-    if (decodedToken.exp < now) {
-      return {
-        success: false,
-        error: 'Token has expired',
-        status: 401
-      };
-    }
-    // Check if token was issued too far in the past (optional security measure)
-    const maxTokenAge = 24 * 60 * 60; // 24 hours in seconds
-    if (now - decodedToken.iat > maxTokenAge) {
-      return {
-        success: false,
-        error: 'Token is too old, please re-authenticate',
-        status: 401
-      };
-    }
+    
     return {
       success: true,
       user: {
-        uid: decodedToken.uid,
-        email: decodedToken.email,
-        emailVerified: decodedToken.email_verified || false,
-        customClaims: decodedToken
+        uid: user.id,
+        email: user.email,
+        emailVerified: !!user.email_confirmed_at,
+        customClaims: user.user_metadata || {}
       }
     };
   } catch (error: any) {
     console.error('Token verification error:', error);
-    // Handle specific Firebase Auth errors
-    if (error.code === 'auth/id-token-expired') {
-      return {
-        success: false,
-        error: 'Token has expired, please re-authenticate',
-        status: 401
-      };
-    }
-    if (error.code === 'auth/id-token-revoked') {
-      return {
-        success: false,
-        error: 'Token has been revoked, please re-authenticate',
-        status: 401
-      };
-    }
-    if (error.code === 'auth/invalid-id-token') {
-      return {
-        success: false,
-        error: 'Invalid token format or signature',
-        status: 401
-      };
-    }
-    if (error.code === 'auth/project-not-found') {
-      return {
-        success: false,
-        error: 'Firebase project configuration error',
-        status: 500
-      };
-    }
     return {
       success: false,
       error: 'Authentication verification failed',

@@ -3,6 +3,7 @@ import { useAuth } from '@/contexts/auth-context';
 import { showErrorToast } from '@/lib/toast-utils';
 import { ChatMessage, AIResponse, AIAssistantConfig, DEFAULT_AI_CONFIG } from '@/lib/ai-types';
 import { debug } from '@/lib/debug';
+import { getUserId, getAccessToken } from '@/lib/supabase-user-utils';
 
 interface UseAIAssistantReturn {
   messages: ChatMessage[];
@@ -42,15 +43,15 @@ export function useAIAssistant(initialMessages: ChatMessage[] = []): UseAIAssist
     setIsTyping(true);
 
     try {
-      // Get user's Firebase token for authentication
-      const token = await user.getIdToken();
+      // Get user's Supabase token for authentication
+      const token = await getAccessToken();
 
       const requestBody = {
         messages: [...messages, userMessage].map(msg => ({
           role: msg.role,
           content: msg.content,
         })),
-        userId: user.uid,
+        userId: getUserId(user),
         config: { ...DEFAULT_AI_CONFIG, ...config },
       };
 

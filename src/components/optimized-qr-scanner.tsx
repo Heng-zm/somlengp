@@ -60,6 +60,7 @@ const OptimizedQRScannerComponent = function OptimizedQRScanner({
     isLoading,
     isSupported,
     hasPermission,
+    permissionState,
     error: cameraError,
     requestCamera,
     stopCamera
@@ -448,6 +449,26 @@ const OptimizedQRScannerComponent = function OptimizedQRScanner({
       event.target.value = '';
     }
   }, [workerReady, onScanSuccess, onScanError, scanQR, getCanvas, returnCanvas, triggerVibration, triggerSound]);
+  // Handle camera permission request with better user feedback
+  const handlePermissionRequest = useCallback(async () => {
+    try {
+      const result = await requestCamera();
+      if (!result.success && result.error) {
+        let errorMessage = 'Failed to access camera';
+        if (result.error.name === 'NotAllowedError') {
+          errorMessage = 'Camera permission was denied. Please allow camera access and try again.';
+        } else if (result.error.name === 'NotFoundError') {
+          errorMessage = 'No camera found on this device.';
+        } else if (result.error.name === 'NotReadableError') {
+          errorMessage = 'Camera is already in use by another application.';
+        }
+        onScanError?.(errorMessage);
+      }
+    } catch (error) {
+      onScanError?.('An unexpected error occurred while accessing the camera.');
+    }
+  }, [requestCamera, onScanError]);
+
   if (!isSupported) {
     return (
       <div className={`flex flex-col items-center justify-center p-8 bg-gray-100 rounded-lg border border-gray-300 ${className}`}>
@@ -467,6 +488,90 @@ const OptimizedQRScannerComponent = function OptimizedQRScanner({
             ) : (
               <Upload className="h-5 w-5" />
             )}
+          </Button>
+          <Button onClick={onClose} variant="outline">Close</Button>
+        </div>
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="image/*"
+          onChange={handleFileUpload}
+          className="hidden"
+          aria-label="Upload QR code image"
+        />
+      </div>
+    );
+  }
+
+  // Handle permission denied state
+  if (isSupported && permissionState === 'denied') {
+    return (
+      <div className={`flex flex-col items-center justify-center p-8 bg-red-50 rounded-lg border border-red-200 ${className}`}>
+        <h3 className="text-red-800 font-semibold text-lg mb-2">Camera Permission Denied</h3>
+        <p className="text-red-700 text-center text-sm mb-4">
+          Camera permission was denied. To use the QR scanner, please:
+        </p>
+        <ul className="text-red-600 text-sm mb-4 space-y-1">
+          <li>• Click the camera icon in your browser's address bar</li>
+          <li>• Allow camera access for this site</li>
+          <li>• Refresh the page and try again</li>
+        </ul>
+        <p className="text-red-600 text-center text-sm mb-4">
+          Or you can upload an image to scan for QR codes.
+        </p>
+        <div className="flex gap-3">
+          <Button
+            onClick={handleUploadClick}
+            disabled={isProcessingUpload || !workerReady}
+            variant="outline"
+          >
+            {isProcessingUpload ? (
+              <div className="animate-spin rounded-full h-4 w-4 border-2 border-gray-600 border-t-transparent mr-2"></div>
+            ) : (
+              <Upload className="h-4 w-4 mr-2" />
+            )}
+            Upload Image
+          </Button>
+          <Button onClick={handlePermissionRequest} variant="default">
+            Try Again
+          </Button>
+          <Button onClick={onClose} variant="outline">Close</Button>
+        </div>
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="image/*"
+          onChange={handleFileUpload}
+          className="hidden"
+          aria-label="Upload QR code image"
+        />
+      </div>
+    );
+  }
+
+  // Handle no camera stream yet (waiting for permission or loading)
+  if (isSupported && !stream && !isLoading && !cameraError) {
+    return (
+      <div className={`flex flex-col items-center justify-center p-8 bg-blue-50 rounded-lg border border-blue-200 ${className}`}>
+        <h3 className="text-blue-800 font-semibold text-lg mb-2">Camera Access Required</h3>
+        <p className="text-blue-700 text-center text-sm mb-4">
+          Please allow camera access to use the QR code scanner, or upload an image instead.
+        </p>
+        <div className="flex gap-3">
+          <Button onClick={handlePermissionRequest} variant="default">
+            Enable Camera
+          </Button>
+          <Button
+            onClick={handleUploadClick}
+            disabled={isProcessingUpload || !workerReady}
+            variant="outline"
+          >
+            {isProcessingUpload ? (
+              <div className="animate-spin rounded-full h-4 w-4 border-2 border-gray-600 border-t-transparent mr-2"></div>
+            ) : (
+              <Upload className="h-4 w-4 mr-2" />
+            )}
+            Upload Image
           </Button>
           <Button onClick={onClose} variant="outline">Close</Button>
         </div>

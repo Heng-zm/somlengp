@@ -30,6 +30,7 @@ import {
 } from '@/lib/toast-utils';
 import { cn } from '@/lib/utils';
 import { generateMessageId } from '@/lib/id-utils';
+import { getUserId, getAccessToken } from '@/lib/supabase-user-utils';
 import { motion, AnimatePresence } from 'framer-motion' // TODO: Consider lazy loading animations for better initial load;
 // Memory leak prevention: Timers need cleanup
 // Add cleanup in useEffect return function
@@ -114,7 +115,7 @@ export const AIAssistantWidget = memo(function AIAssistantWidget({ className, va
     setIsTyping(true);
 
     try {
-      const token = await user.getIdToken();
+      const token = await getAccessToken();
 
       const response = await fetch('/api/ai-assistant', {
         method: 'POST',
@@ -127,7 +128,7 @@ export const AIAssistantWidget = memo(function AIAssistantWidget({ className, va
             role: msg.role,
             content: msg.content,
           })),
-          userId: user.uid,
+          userId: getUserId(user),
         }),
       });
 

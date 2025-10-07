@@ -85,9 +85,9 @@ const EnhancedProfilePageComponent = function EnhancedProfilePage() {
   const userData = useMemo(() => {
     if (!user) return null;
     
-    const userCreationTime = user.metadata.creationTime ? new Date(user.metadata.creationTime) : null;
-    const lastSignInTime = user.metadata.lastSignInTime ? new Date(user.metadata.lastSignInTime) : null;
-    const displayName = user.displayName || user.email?.split('@')[0] || 'User';
+    const userCreationTime = user.created_at ? new Date(user.created_at) : null;
+    const lastSignInTime = user.last_sign_in_at ? new Date(user.last_sign_in_at) : null;
+    const displayName = user.user_metadata?.full_name || user.user_metadata?.name || user.email?.split('@')[0] || 'User';
     const userInitials = displayName.charAt(0).toUpperCase() + (displayName.split(' ')[1]?.charAt(0)?.toUpperCase() || '');
     
     // Account age calculation
@@ -146,7 +146,7 @@ const EnhancedProfilePageComponent = function EnhancedProfilePage() {
     setDeleteError(null);
     
     try {
-      await deleteAccount(password);
+      await deleteAccount(); // The auth context doesn't need the password
       router.push('/');
     } catch (error: unknown) {
       console.error('Delete account failed:', error);
@@ -236,7 +236,7 @@ const EnhancedProfilePageComponent = function EnhancedProfilePage() {
                     <div className="relative group">
                       <div className="absolute -inset-1 bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 rounded-full opacity-30 group-hover:opacity-50 transition-opacity blur-sm"></div>
                       <Avatar className="relative h-20 w-20 md:h-24 md:w-24 border-4 border-white dark:border-gray-950 shadow-2xl">
-                        <AvatarImage src={user.photoURL || undefined} alt={userData.displayName} className="object-cover" />
+                        <AvatarImage src={user.user_metadata?.avatar_url || user.user_metadata?.picture || undefined} alt={userData.displayName} className="object-cover" />
                         <AvatarFallback className="text-xl md:text-2xl font-bold bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500 text-white">
                           {userData.userInitials}
                         </AvatarFallback>
@@ -266,7 +266,7 @@ const EnhancedProfilePageComponent = function EnhancedProfilePage() {
                           </Badge>
                         )}
                         
-                        {user.emailVerified && (
+                        {user.email_confirmed_at && (
                           <Badge className="bg-gradient-to-r from-green-500 to-emerald-500 text-white border-0 shadow-md hover:shadow-lg transition-shadow">
                             <Shield className="h-3 w-3 mr-1" />
                             Verified
@@ -280,7 +280,7 @@ const EnhancedProfilePageComponent = function EnhancedProfilePage() {
                           </Badge>
                         )}
                         
-                        {user.providerData?.[0]?.providerId === 'google.com' && (
+                        {user.app_metadata?.provider === 'google' && (
                           <Badge className="bg-gradient-to-r from-red-500 to-pink-500 text-white border-0 shadow-md hover:shadow-lg transition-shadow">
                             <Zap className="h-3 w-3 mr-1" />
                             Google
@@ -381,7 +381,7 @@ const EnhancedProfilePageComponent = function EnhancedProfilePage() {
                           
                           <div className="text-center p-4 rounded-xl bg-gradient-to-br from-cyan-50 to-blue-50 dark:from-cyan-950/30 dark:to-blue-950/30 border border-cyan-200/50 dark:border-cyan-700/30">
                             <div className="text-2xl font-bold text-cyan-600 dark:text-cyan-400">
-                              {user.providerData?.length || 1}
+                              {user.app_metadata?.provider ? 1 : 1}
                             </div>
                             <div className="text-xs text-cyan-600/70 dark:text-cyan-400/70 uppercase tracking-wide">
                               Providers
@@ -396,7 +396,7 @@ const EnhancedProfilePageComponent = function EnhancedProfilePage() {
                               <Activity className="h-3 w-3 mr-1" />
                               Online
                             </Badge>
-                            {user.emailVerified && (
+                            {user.email_confirmed_at && (
                               <Badge className="bg-blue-100 text-blue-800 border-blue-200 hover:bg-blue-100">
                                 <Shield className="h-3 w-3 mr-1" />
                                 Verified
@@ -438,7 +438,7 @@ const EnhancedProfilePageComponent = function EnhancedProfilePage() {
                       <Button 
                         variant="outline" 
                         className="h-16 flex-col gap-2 hover:bg-green-50 hover:border-green-300 dark:hover:bg-green-950/30 transition-colors group"
-                        onClick={() => copyToClipboard(user.uid, 'uid')}
+                        onClick={() => copyToClipboard(user.id, 'uid')}
                       >
                         {copiedField === 'uid' ? (
                           <CheckCircle2 className="h-5 w-5 text-green-600" />

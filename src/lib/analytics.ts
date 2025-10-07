@@ -1,6 +1,10 @@
 // Privacy-respecting user activity tracking and analytics
-import { doc, setDoc, updateDoc, getDoc, collection, query, where, orderBy, limit, getDocs, Timestamp } from 'firebase/firestore';
-import { db } from '@/lib/firebase';
+// NOTE: Firebase analytics temporarily disabled during Supabase migration
+// TODO: Implement Supabase-based analytics system
+
+// Placeholder imports - Firebase functionality disabled
+// import { doc, setDoc, updateDoc, getDoc, collection, query, where, orderBy, limit, getDocs, Timestamp } from 'firebase/firestore';
+// import { db } from '@/lib/firebase';
 // Activity event types
 export type ActivityType = 
   | 'login'
@@ -52,32 +56,9 @@ export async function logActivity(
   userAgent?: string
 ): Promise<void> {
   try {
-    if (!db) {
-      return;
-    }
-    const activityId = `${userId}_${type}_${Date.now()}`;
-    const sessionId = getSessionId();
-    // Create privacy-safe activity event
-    const activityEvent: Omit<ActivityEvent, 'id'> = {
-      userId,
-      type,
-      timestamp: new Date(),
-      metadata: sanitizeMetadata(metadata),
-      sessionId,
-      userAgent: sanitizeUserAgent(userAgent),
-      // IP address and location would be added server-side if needed
-    };
-    // Store in Firestore with automatic cleanup
-    const activityRef = doc(db, 'user_activities', activityId);
-    await setDoc(activityRef, {
-      ...activityEvent,
-      timestamp: Timestamp.fromDate(activityEvent.timestamp),
-      // Add TTL for automatic cleanup (30 days)
-      expiresAt: Timestamp.fromDate(new Date(Date.now() + 30 * 24 * 60 * 60 * 1000))
-    });
-    // Update user analytics summary (async, don't block)
-    updateUserAnalytics(userId, type).catch(error => {
-    });
+    // Analytics temporarily disabled during migration
+    console.log('Analytics disabled during Supabase migration:', { userId, type, metadata });
+    return;
   } catch (error) {
     console.error('Failed to log activity:', error);
     // Don't throw error - analytics shouldn't break user experience
@@ -86,46 +67,9 @@ export async function logActivity(
 // Update aggregated user analytics
 async function updateUserAnalytics(userId: string, activityType: ActivityType): Promise<void> {
   try {
-    if (!db) return;
-    const analyticsRef = doc(db, 'user_analytics', userId);
-    const analyticsDoc = await getDoc(analyticsRef);
-    const now = new Date();
-    const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-    const monthAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
-    if (analyticsDoc.exists()) {
-      const current = analyticsDoc.data() as UserAnalytics;
-      // Count recent activities
-      const recentActivities = await getRecentActivitiesCount(userId, weekAgo);
-      const monthlyActivities = await getRecentActivitiesCount(userId, monthAgo);
-      await updateDoc(analyticsRef, {
-        totalActivities: current.totalActivities + 1,
-        lastActiveDate: Timestamp.fromDate(now),
-        weeklyActivityCount: recentActivities,
-        monthlyActivityCount: monthlyActivities,
-        favoriteFeatures: updateFavoriteFeatures(current.favoriteFeatures || [], activityType),
-        updatedAt: Timestamp.fromDate(now)
-      });
-    } else {
-      // Create new analytics document
-      const analytics: Omit<UserAnalytics, 'userId'> = {
-        totalSessions: 1,
-        totalActivities: 1,
-        lastActiveDate: now,
-        firstActiveDate: now,
-        favoriteFeatures: [activityType],
-        averageSessionDuration: 0,
-        weeklyActivityCount: 1,
-        monthlyActivityCount: 1,
-        updatedAt: now
-      };
-      await setDoc(analyticsRef, {
-        userId,
-        ...analytics,
-        lastActiveDate: Timestamp.fromDate(analytics.lastActiveDate),
-        firstActiveDate: Timestamp.fromDate(analytics.firstActiveDate),
-        updatedAt: Timestamp.fromDate(analytics.updatedAt)
-      });
-    }
+    // Analytics temporarily disabled during migration
+    console.log('User analytics disabled during Supabase migration:', { userId, activityType });
+    return;
   } catch (error) {
     console.error('Failed to update user analytics:', error);
   }
@@ -133,14 +77,8 @@ async function updateUserAnalytics(userId: string, activityType: ActivityType): 
 // Get user's recent activities count
 async function getRecentActivitiesCount(userId: string, since: Date): Promise<number> {
   try {
-    if (!db) return 0;
-    const q = query(
-      collection(db, 'user_activities'),
-      where('userId', '==', userId),
-      where('timestamp', '>=', Timestamp.fromDate(since))
-    );
-    const snapshot = await getDocs(q);
-    return snapshot.size;
+    // Analytics temporarily disabled during migration
+    return 0;
   } catch (error) {
     return 0;
   }
@@ -148,25 +86,8 @@ async function getRecentActivitiesCount(userId: string, since: Date): Promise<nu
 // Get user analytics summary
 export async function getUserAnalytics(userId: string): Promise<UserAnalytics | null> {
   try {
-    if (!db) return null;
-    const analyticsRef = doc(db, 'user_analytics', userId);
-    const analyticsDoc = await getDoc(analyticsRef);
-    if (!analyticsDoc.exists()) {
-      return null;
-    }
-    const data = analyticsDoc.data();
-    return {
-      userId: data.userId,
-      totalSessions: data.totalSessions || 0,
-      totalActivities: data.totalActivities || 0,
-      lastActiveDate: data.lastActiveDate?.toDate() || new Date(),
-      firstActiveDate: data.firstActiveDate?.toDate() || new Date(),
-      favoriteFeatures: data.favoriteFeatures || [],
-      averageSessionDuration: data.averageSessionDuration || 0,
-      weeklyActivityCount: data.weeklyActivityCount || 0,
-      monthlyActivityCount: data.monthlyActivityCount || 0,
-      updatedAt: data.updatedAt?.toDate() || new Date()
-    };
+    // Analytics temporarily disabled during migration
+    return null;
   } catch (error) {
     console.error('Failed to get user analytics:', error);
     return null;
@@ -178,19 +99,8 @@ export async function getUserRecentActivities(
   limitCount: number = 10
 ): Promise<ActivityEvent[]> {
   try {
-    if (!db) return [];
-    const q = query(
-      collection(db, 'user_activities'),
-      where('userId', '==', userId),
-      orderBy('timestamp', 'desc'),
-      limit(limitCount)
-    );
-    const snapshot = await getDocs(q);
-    return snapshot.docs.map(doc => ({
-      id: doc.id,
-      ...doc.data(),
-      timestamp: doc.data().timestamp?.toDate() || new Date()
-    } as ActivityEvent));
+    // Analytics temporarily disabled during migration
+    return [];
   } catch (error) {
     console.error('Failed to get user recent activities:', error);
     return [];
@@ -264,12 +174,7 @@ export const ActivityLogger = {
 // Privacy utilities
 export function deleteUserAnalytics(userId: string): Promise<void> {
   // For GDPR compliance - delete all user analytics data
-  return Promise.all([
-    // Delete analytics summary
-    db && doc(db, 'user_analytics', userId) ? 
-      updateDoc(doc(db, 'user_analytics', userId), { deleted: true }) : 
-      Promise.resolve(),
-    // Mark activities for deletion (they'll be auto-deleted by TTL)
-    // In production, you might want to immediately delete them
-  ]).then(() => undefined);
+  // Analytics temporarily disabled during migration
+  console.log('Delete user analytics disabled during Supabase migration:', userId);
+  return Promise.resolve();
 }

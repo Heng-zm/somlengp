@@ -4,14 +4,14 @@ import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { runFirebaseDiagnostics } from '@/lib/firebase-diagnostic';
+import { runSupabaseDiagnostics } from '@/lib/firebase-diagnostic';
 interface TestResult {
   step: string;
   success: boolean;
   error?: string;
   details?: any;
 }
-const FirebaseTestPageComponent = function FirebaseTestPage() {
+const FirebaseTestPageComponent = function SupabaseTestPage() {
   const [results, setResults] = useState<TestResult[]>([]);
   const [isRunning, setIsRunning] = useState(false);
   const [basicInfo, setBasicInfo] = useState<any>({});
@@ -19,24 +19,24 @@ const FirebaseTestPageComponent = function FirebaseTestPage() {
     // Get basic environment info
     setBasicInfo({
       nodeEnv: process.env.NODE_ENV,
-      hasApiKey: !!process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
-      hasProjectId: !!process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
-      projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID?.substring(0, 15) + '...' || 'Not set',
+      hasUrl: !!process.env.NEXT_PUBLIC_SUPABASE_URL,
+      hasAnonKey: !!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+      url: process.env.NEXT_PUBLIC_SUPABASE_URL?.substring(0, 30) + '...' || 'Not set',
       userAgent: typeof window !== 'undefined' ? window.navigator.userAgent : 'Server-side',
     });
   }, []);
   const runDiagnostics = async () => {
     setIsRunning(true);
     try {
-      await runFirebaseDiagnostics();
+      await runSupabaseDiagnostics();
       // For now, create mock results since the diagnostic runs in console
       const mockResults: TestResult[] = [
         {
           step: 'Environment Variables',
-          success: !!process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
+          success: !!process.env.NEXT_PUBLIC_SUPABASE_URL && !!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
           details: {
-            hasApiKey: !!process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
-            hasProjectId: !!process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
+            hasUrl: !!process.env.NEXT_PUBLIC_SUPABASE_URL,
+            hasAnonKey: !!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
           }
         },
         {
@@ -57,26 +57,31 @@ const FirebaseTestPageComponent = function FirebaseTestPage() {
       setIsRunning(false);
     }
   };
-  const testFirebaseDirectly = async () => {
+  const testSupabaseDirectly = async () => {
     try {
-      // Test a simple Firebase connection
-      const { db, auth } = await import('@/lib/firebase');
-      if (!db) {
-        throw new Error('Firestore not initialized');
+      // Test a simple Supabase connection
+      const { supabaseClient } = await import('@/lib/supabase');
+      if (!supabaseClient) {
+        throw new Error('Supabase client not initialized');
       }
-      if (!auth) {
-        throw new Error('Auth not initialized');
+      
+      // Test a basic connection
+      const { data, error } = await supabaseClient.auth.getSession();
+      if (error && !error.message.includes('session_not_found')) {
+        throw error;
       }
+      
+      console.log('✅ Supabase connection test successful');
     } catch (error) {
-      console.error('❌ Firebase initialization failed:', error);
+      console.error('❌ Supabase connection failed:', error);
     }
   };
   return (
     <div className="max-w-4xl mx-auto p-6 space-y-6">
       <div className="text-center">
-        <h1 className="text-3xl font-bold">Firebase Connection Test</h1>
+        <h1 className="text-3xl font-bold">Supabase Connection Test</h1>
         <p className="text-muted-foreground mt-2">
-          Diagnose Firebase connectivity issues
+          Diagnose Supabase connectivity issues
         </p>
       </div>
       {/* Basic Info Card */}
@@ -87,19 +92,19 @@ const FirebaseTestPageComponent = function FirebaseTestPage() {
             <strong>Environment:</strong> {basicInfo.nodeEnv}
           </div>
           <div>
-            <strong>Has API Key:</strong>{' '}
-            <Badge variant={basicInfo.hasApiKey ? 'default' : 'destructive'}>
-              {basicInfo.hasApiKey ? 'Yes' : 'No'}
+            <strong>Has Supabase URL:</strong>{' '}
+            <Badge variant={basicInfo.hasUrl ? 'default' : 'destructive'}>
+              {basicInfo.hasUrl ? 'Yes' : 'No'}
             </Badge>
           </div>
           <div>
-            <strong>Has Project ID:</strong>{' '}
-            <Badge variant={basicInfo.hasProjectId ? 'default' : 'destructive'}>
-              {basicInfo.hasProjectId ? 'Yes' : 'No'}
+            <strong>Has Anon Key:</strong>{' '}
+            <Badge variant={basicInfo.hasAnonKey ? 'default' : 'destructive'}>
+              {basicInfo.hasAnonKey ? 'Yes' : 'No'}
             </Badge>
           </div>
           <div>
-            <strong>Project ID:</strong> {basicInfo.projectId}
+            <strong>Supabase URL:</strong> {basicInfo.url}
           </div>
         </div>
       </Card>
@@ -108,8 +113,8 @@ const FirebaseTestPageComponent = function FirebaseTestPage() {
         <Button onClick={runDiagnostics} disabled={isRunning}>
           {isRunning ? 'Running Diagnostics...' : 'Run Full Diagnostics'}
         </Button>
-        <Button variant="outline" onClick={testFirebaseDirectly}>
-          Test Firebase Import
+        <Button variant="outline" onClick={testSupabaseDirectly}>
+          Test Supabase Import
         </Button>
       </div>
       {/* Results */}
@@ -151,10 +156,10 @@ const FirebaseTestPageComponent = function FirebaseTestPage() {
             <strong>1. Check Console Output:</strong> Open browser dev tools and check the console for detailed diagnostic information.
           </div>
           <div>
-            <strong>2. Verify Environment Variables:</strong> Ensure all NEXT_PUBLIC_FIREBASE_* variables are set in your .env.local file.
+            <strong>2. Verify Environment Variables:</strong> Ensure NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY are set in your .env.local file.
           </div>
           <div>
-            <strong>3. Check Firebase Project:</strong> Verify your Firebase project is active and Firestore is enabled.
+            <strong>3. Check Supabase Project:</strong> Verify your Supabase project is active and database is accessible.
           </div>
           <div>
             <strong>4. Network Issues:</strong> The error suggests a network connectivity issue. Check your internet connection and firewall settings.

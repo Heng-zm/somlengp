@@ -3,6 +3,7 @@
 import React, { useState, useRef, useCallback, useEffect, useMemo } from 'react';
 import { useAuth } from '@/contexts/auth-context';
 import { Button } from '@/components/ui/button';
+import { getDisplayName, getPhotoURL } from '@/lib/supabase-user-utils';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
@@ -92,8 +93,8 @@ export function ProfileEditorDialog({ className, trigger }: ProfileEditorDialogP
   // Form state
   const [formState, setFormState] = useState({
     isLoading: false,
-    displayName: user?.displayName || '',
-    photoURL: user?.photoURL || '',
+    displayName: getDisplayName(user) || '',
+    photoURL: getPhotoURL(user) || '',
   });
   
   const [uiState, setUiState] = useState({
@@ -116,8 +117,8 @@ export function ProfileEditorDialog({ className, trigger }: ProfileEditorDialogP
     if (isOpen && user) {
       setFormState({
         isLoading: false,
-        displayName: user.displayName || '',
-        photoURL: user.photoURL || '',
+        displayName: getDisplayName(user) || '',
+        photoURL: getPhotoURL(user) || '',
       });
       setUiState({
         previewURL: null,
@@ -132,14 +133,14 @@ export function ProfileEditorDialog({ className, trigger }: ProfileEditorDialogP
   const hasChanges = useMemo(() => {
     if (!user) return false;
     return (
-      formState.displayName !== (user.displayName || '') ||
-      formState.photoURL !== (user.photoURL || '') ||
+      formState.displayName !== (getDisplayName(user) || '') ||
+      formState.photoURL !== (getPhotoURL(user) || '') ||
       uiState.previewURL !== null
     );
   }, [formState.displayName, formState.photoURL, uiState.previewURL, user]);
 
   const userInitial = useMemo(() => {
-    return (user?.displayName || user?.email || 'U').charAt(0).toUpperCase();
+    return (getDisplayName(user) || user?.email || 'U').charAt(0).toUpperCase();
   }, [user]);
 
   // Validation function with memoization
@@ -245,18 +246,19 @@ export function ProfileEditorDialog({ className, trigger }: ProfileEditorDialogP
       
       if (!user) return; // Safety check
       
-      if (formState.displayName !== (user.displayName || '')) {
+      if (formState.displayName !== (getDisplayName(user) || '')) {
         updates.displayName = formState.displayName.trim();
       }
       
-      if (formState.photoURL !== (user.photoURL || '')) {
+      if (formState.photoURL !== (getPhotoURL(user) || '')) {
         updates.photoURL = formState.photoURL || null;
       }
 
-      // Get Firebase Auth token
+      // Get Supabase Auth token
       let token: string;
       try {
-        token = await user.getIdToken(true);
+        const { getAccessToken } = await import('@/lib/supabase-user-utils');
+        token = await getAccessToken() || '';
       } catch (tokenError) {
         throw new Error('Authentication failed. Please sign in again.');
       }
@@ -399,8 +401,8 @@ export function ProfileEditorDialog({ className, trigger }: ProfileEditorDialogP
               <div className="relative">
                 <Avatar className="h-20 w-20">
                   <AvatarImage 
-                    src={uiState.previewURL || formState.photoURL || user.photoURL || undefined} 
-                    alt={user.displayName || 'User'} 
+                    src={uiState.previewURL || formState.photoURL || getPhotoURL(user) || undefined} 
+                    alt={getDisplayName(user) || 'User'}
                   />
                   <AvatarFallback className="text-lg">
                     {userInitial}

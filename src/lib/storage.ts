@@ -1,17 +1,28 @@
-import { 
-  getStorage, 
-  ref, 
-  uploadBytes, 
-  getDownloadURL, 
-  deleteObject,
-  StorageError 
-} from 'firebase/storage';
-import { app } from '@/lib/firebase';
-// Initialize Firebase Storage
-let storage: ReturnType<typeof getStorage> | null = null;
-// Initialize storage when app is available
-if (app) {
-  storage = getStorage(app);
+import { createClient } from '@supabase/supabase-js';
+
+// Initialize Supabase client for storage operations
+let supabaseStorage: ReturnType<typeof createClient> | null = null;
+
+try {
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  
+  if (supabaseUrl && supabaseAnonKey) {
+    supabaseStorage = createClient(supabaseUrl, supabaseAnonKey);
+  }
+} catch (error) {
+  console.warn('Supabase Storage client not initialized:', error);
+}
+
+const STORAGE_BUCKET = 'profile-pictures';
+const storage: null = null; // Keep for backwards compatibility
+
+class StorageError extends Error {
+  code: string;
+  constructor(message: string, code: string) {
+    super(message);
+    this.code = code;
+  }
 }
 /**
  * Optimizes an image file before upload
@@ -60,102 +71,110 @@ export async function optimizeImage(file: File, maxWidth = 400, maxHeight = 400,
   });
 }
 /**
- * Uploads a profile picture to Firebase Storage
+ * Uploads a profile picture to Supabase Storage
  */
 export async function uploadProfilePicture(userId: string, file: File): Promise<string> {
+  if (!supabaseStorage) {
+    throw new StorageError('Supabase Storage not initialized', 'STORAGE_NOT_CONFIGURED');
+  }
+  
   try {
-    // Check if storage is initialized
-    if (!storage) {
-      throw new Error('Firebase Storage not initialized');
-    }
-    // Validate file
-    if (!file.type.startsWith('image/')) {
-      throw new Error('File must be an image');
-    }
-    if (file.size > 10 * 1024 * 1024) { // 10MB limit
-      throw new Error('File size must be less than 10MB');
-    }
-    // Optimize image
-    const optimizedFile = await optimizeImage(file);
-    // Create reference
+    // Create a unique filename
     const timestamp = Date.now();
-    const fileName = `profile_${timestamp}.jpg`;
-    const storageRef = ref(storage, `profile-pictures/${userId}/${fileName}`);
-    // Upload file
-    const snapshot = await uploadBytes(storageRef, optimizedFile, {
-      customMetadata: {
-        originalName: file.name,
-        uploadedAt: new Date().toISOString(),
-        userId: userId
-      }
-    });
-    // Get download URL
-    const downloadURL = await getDownloadURL(snapshot.ref);
-    return downloadURL;
-  } catch (error) {
-    console.error('Error uploading profile picture:', error);
-    if (error instanceof StorageError) {
-      switch (error.code) {
-        case 'storage/unauthorized':
-          throw new Error('You are not authorized to upload files');
-        case 'storage/canceled':
-          throw new Error('Upload was cancelled');
-        case 'storage/quota-exceeded':
-          throw new Error('Storage quota exceeded');
-        case 'storage/invalid-format':
-          throw new Error('Invalid file format');
-        default:
-          throw new Error('Upload failed. Please try again.');
-      }
+    const extension = file.name.split('.').pop() || 'jpg';
+    const filename = `${userId}/${timestamp}.${extension}`;
+    
+    // Upload to Supabase Storage
+    const { data, error } = await (supabaseStorage as any).storage
+      .from(STORAGE_BUCKET)
+      .upload(filename, file, {
+        cacheControl: '3600',
+        upsert: true
+      });
+    
+    if (error) {
+      throw new StorageError(error.message, 'UPLOAD_ERROR');
     }
-    throw error;
+    
+    // Get the public URL
+    const { data: publicUrlData } = (supabaseStorage as any).storage
+      .from(STORAGE_BUCKET)
+      .getPublicUrl(filename);
+    
+    if (!publicUrlData?.publicUrl) {
+      throw new StorageError('Failed to get public URL', 'PUBLIC_URL_ERROR');
+    }
+    
+    return publicUrlData.publicUrl;
+  } catch (error) {
+    if (error instanceof StorageError) {
+      throw error;
+    }
+    throw new StorageError('Failed to upload profile picture', 'UPLOAD_FAILED');
   }
 }
 /**
- * Deletes an old profile picture from storage
+ * Deletes an old profile picture from Supabase Storage
  */
 export async function deleteProfilePicture(photoURL: string): Promise<void> {
+  if (!supabaseStorage || !photoURL) {
+    return; // Nothing to delete or storage not configured
+  }
+  
   try {
-    // Check if storage is initialized
-    if (!storage) {
+    // Extract the filename from the URL
+    const url = new URL(photoURL);
+    const pathname = url.pathname;
+    
+    // Extract the filename from the path (after /storage/v1/object/public/profile-pictures/)
+    const bucketPath = '/storage/v1/object/public/' + STORAGE_BUCKET + '/';
+    const startIndex = pathname.indexOf(bucketPath);
+    
+    if (startIndex === -1) {
+      console.warn('Could not parse photo URL for deletion:', photoURL);
       return;
     }
-    // Only delete files from our storage
-    if (!photoURL.includes('firebasestorage.googleapis.com')) {
-      return; // Skip deletion for external URLs
+    
+    const filename = pathname.substring(startIndex + bucketPath.length);
+    
+    if (!filename) {
+      console.warn('No filename found in photo URL:', photoURL);
+      return;
     }
-    // Extract the storage path from the URL
-    const url = new URL(photoURL);
-    const pathMatch = url.pathname.match(/\/o\/(.+)\?/);
-    if (!pathMatch) {
-      throw new Error('Invalid storage URL');
+    
+    // Delete from Supabase Storage
+    const { error } = await (supabaseStorage as any).storage
+      .from(STORAGE_BUCKET)
+      .remove([filename]);
+    
+    if (error) {
+      console.warn('Failed to delete profile picture:', error);
+      // Don't throw error for deletion failures - it's not critical
     }
-    const filePath = decodeURIComponent(pathMatch[1]);
-    const storageRef = ref(storage, filePath);
-    await deleteObject(storageRef);
   } catch (error) {
-    // Don't throw error for deletion failures - not critical
+    console.warn('Error deleting profile picture:', error);
+    // Don't throw error for deletion failures - it's not critical
   }
 }
 /**
- * Uploads and replaces profile picture
+ * Uploads and replaces profile picture using Supabase Storage
  */
 export async function updateProfilePicture(userId: string, file: File, oldPhotoURL?: string): Promise<string> {
   try {
-    // Upload new picture first
-    const newPhotoURL = await uploadProfilePicture(userId, file);
-    // Delete old picture (if it exists and is from our storage)
+    // Delete the old profile picture if it exists
     if (oldPhotoURL) {
-      try {
-        await deleteProfilePicture(oldPhotoURL);
-      } catch (error) {
-        // Log but don't fail - new upload was successful
-      }
+      await deleteProfilePicture(oldPhotoURL);
     }
+    
+    // Upload the new profile picture
+    const newPhotoURL = await uploadProfilePicture(userId, file);
+    
     return newPhotoURL;
   } catch (error) {
-    console.error('Error updating profile picture:', error);
-    throw error;
+    if (error instanceof StorageError) {
+      throw error;
+    }
+    throw new StorageError('Failed to update profile picture', 'UPDATE_FAILED');
   }
 }
 /**

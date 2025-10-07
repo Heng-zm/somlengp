@@ -1,72 +1,41 @@
-import { 
-  doc, 
-  getDoc, 
-  setDoc, 
-  updateDoc, 
-  deleteDoc, 
-  serverTimestamp,
-  runTransaction 
-} from 'firebase/firestore';
-import { User } from 'firebase/auth';
-import { db } from '@/lib/firebase';
+import type { User } from '@supabase/supabase-js';
+import { supabaseClient } from '@/lib/supabase';
 import { UserProfile, UserCounter } from '@/lib/types';
+import type { Database } from '@/types/supabase';
 
 /**
- * Gets the next available user ID by incrementing a counter in Firestore
- */
-async function getNextUserId(): Promise<number> {
-  if (!db) {
-    throw new Error('Firestore is not initialized.');
-  }
-  return await runTransaction(db, async (transaction) => {
-    const counterRef = doc(db!, 'metadata', 'userCounter');
-    const counterDoc = await transaction.get(counterRef);
-    
-    let nextUserId = 1;
-    
-    if (counterDoc.exists()) {
-      const counterData = counterDoc.data() as UserCounter;
-      nextUserId = (counterData.lastUserId || 0) + 1;
-    }
-    
-    // Update the counter
-    transaction.set(counterRef, {
-      lastUserId: nextUserId,
-      updatedAt: new Date()
-    }, { merge: true });
-    
-    return nextUserId;
-  });
-}
-
-/**
- * Gets a user profile from Firestore
+ * Gets a user profile from Supabase
  */
 export async function getUserProfile(uid: string): Promise<UserProfile | null> {
-  if (!db) {
-    throw new Error('Firestore is not initialized.');
-  }
   try {
-    const userRef = doc(db, 'userProfiles', uid);
-    const userDoc = await getDoc(userRef);
+    const { data, error } = await supabaseClient
+      .from('profiles')
+      .select('*')
+      .eq('id', uid)
+      .single();
     
-    if (!userDoc.exists()) {
+    if (error) {
+      if (error.code === 'PGRST116') {
+        // No rows found
+        return null;
+      }
+      throw error;
+    }
+    
+    if (!data) {
       return null;
     }
     
-    const data = userDoc.data();
-    
-    // Convert Firestore timestamps to Date objects
     return {
-      uid: data.uid,
-      userId: data.userId || 0, // Backward compatibility
+      uid: data.id,
+      userId: 0, // Backward compatibility
       email: data.email,
-      displayName: data.displayName,
-      photoURL: data.profilePicture || data.photoURL,
-      createdAt: data.createdAt?.toDate() || new Date(),
-      lastSignInTime: data.lastLoginAt?.toDate() || data.lastSignInTime?.toDate() || null,
-      profileCreatedAt: data.createdAt?.toDate(),
-      profileUpdatedAt: data.updatedAt?.toDate(),
+      displayName: data.full_name,
+      photoURL: data.avatar_url,
+      createdAt: new Date(data.created_at),
+      lastSignInTime: data.updated_at ? new Date(data.updated_at) : null,
+      profileCreatedAt: new Date(data.created_at),
+      profileUpdatedAt: new Date(data.updated_at),
     } as UserProfile;
   } catch (error) {
     console.error('Error getting user profile:', error);
@@ -75,45 +44,42 @@ export async function getUserProfile(uid: string): Promise<UserProfile | null> {
 }
 
 /**
- * Creates a new user profile in Firestore
+ * Creates a new user profile in Supabase
  */
 export async function createUserProfile(user: User): Promise<UserProfile> {
-  if (!db) {
-    throw new Error('Firestore is not initialized.');
-  }
   try {
-    const now = new Date();
+    const now = new Date().toISOString();
     
     const userProfile = {
-      uid: user.uid,
+      id: user.id,
       email: user.email || '',
-      displayName: user.displayName || 'Anonymous User',
-      profilePicture: user.photoURL || undefined,
-      createdAt: serverTimestamp(),
-      lastLoginAt: serverTimestamp(),
-      isPublic: true, // Default to public profile
-      // Optional fields
-      isEmailVerified: user.emailVerified || false,
-      provider: user.providerData[0]?.providerId || 'email',
-      role: 'user',
-      status: 'active',
-      loginCount: 1
+      full_name: user.user_metadata?.full_name || user.user_metadata?.name || 'Anonymous User',
+      avatar_url: user.user_metadata?.avatar_url || user.user_metadata?.picture,
+      created_at: now,
+      updated_at: now,
     };
-    const userRef = doc(db, 'userProfiles', user.uid);
     
-    // Create the user profile
-    await setDoc(userRef, userProfile);
+    // Create the user profile in Supabase
+    const { data, error } = await supabaseClient
+      .from('profiles')
+      .upsert(userProfile)
+      .select()
+      .single();
+    
+    if (error) {
+      throw error;
+    }
     
     return {
-      uid: user.uid,
+      uid: user.id,
       userId: 0, // Keep for backward compatibility
-      email: user.email,
-      displayName: user.displayName,
-      photoURL: user.photoURL,
-      createdAt: now,
-      lastSignInTime: now,
-      profileCreatedAt: now,
-      profileUpdatedAt: now,
+      email: user.email || null,
+      displayName: userProfile.full_name,
+      photoURL: userProfile.avatar_url,
+      createdAt: new Date(now),
+      lastSignInTime: new Date(now),
+      profileCreatedAt: new Date(now),
+      profileUpdatedAt: new Date(now),
     };
   } catch (error) {
     console.error('Error creating user profile:', error);
@@ -125,15 +91,17 @@ export async function createUserProfile(user: User): Promise<UserProfile> {
  * Updates the last sign-in time for a user
  */
 export async function updateLastSignInTime(uid: string): Promise<void> {
-  if (!db) {
-    throw new Error('Firestore is not initialized.');
-  }
   try {
-    const userRef = doc(db, 'userProfiles', uid);
-    await updateDoc(userRef, {
-      lastLoginAt: serverTimestamp(),
-      updatedAt: serverTimestamp(),
-    });
+    const now = new Date().toISOString();
+    
+    const { error } = await supabaseClient
+      .from('profiles')
+      .update({ updated_at: now })
+      .eq('id', uid);
+    
+    if (error) {
+      throw error;
+    }
   } catch (error) {
     console.error('Error updating last sign-in time:', error);
     throw error;
@@ -141,15 +109,18 @@ export async function updateLastSignInTime(uid: string): Promise<void> {
 }
 
 /**
- * Deletes a user profile from Firestore
+ * Deletes a user profile from Supabase
  */
 export async function deleteUserProfile(uid: string): Promise<void> {
-  if (!db) {
-    throw new Error('Firestore is not initialized.');
-  }
   try {
-    const userRef = doc(db, 'userProfiles', uid);
-    await deleteDoc(userRef);
+    const { error } = await supabaseClient
+      .from('profiles')
+      .delete()
+      .eq('id', uid);
+    
+    if (error) {
+      throw error;
+    }
   } catch (error) {
     console.error('Error deleting user profile:', error);
     throw error;
@@ -163,21 +134,23 @@ export async function updateUserProfile(
   uid: string, 
   updates: Partial<Pick<UserProfile, 'email' | 'displayName' | 'photoURL'>>
 ): Promise<void> {
-  if (!db) {
-    throw new Error('Firestore is not initialized.');
-  }
   try {
-    const userRef = doc(db, 'userProfiles', uid);
-    // Map old field names to new ones
-    const mappedUpdates: any = {};
-    if (updates.displayName !== undefined) mappedUpdates.displayName = updates.displayName;
-    if (updates.email !== undefined) mappedUpdates.email = updates.email;
-    if (updates.photoURL !== undefined) mappedUpdates.profilePicture = updates.photoURL;
+    const now = new Date().toISOString();
     
-    await updateDoc(userRef, {
-      ...mappedUpdates,
-      updatedAt: serverTimestamp(),
-    });
+    // Map old field names to new ones
+    const mappedUpdates: any = { updated_at: now };
+    if (updates.displayName !== undefined) mappedUpdates.full_name = updates.displayName;
+    if (updates.email !== undefined) mappedUpdates.email = updates.email;
+    if (updates.photoURL !== undefined) mappedUpdates.avatar_url = updates.photoURL;
+    
+    const { error } = await supabaseClient
+      .from('profiles')
+      .update(mappedUpdates)
+      .eq('id', uid);
+    
+    if (error) {
+      throw error;
+    }
   } catch (error) {
     console.error('Error updating user profile:', error);
     throw error;

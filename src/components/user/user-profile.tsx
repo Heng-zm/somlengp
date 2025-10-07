@@ -3,13 +3,13 @@
 import { memo, useMemo } from 'react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
-import { User } from 'firebase/auth';
+import type { User } from '@supabase/supabase-js';
 import { Clock, Calendar } from 'lucide-react';
 import { formatRelativeTime } from '@/lib/user-profile';
 import { cn } from '@/lib/utils';
 
 interface UserProfileProps {
-  user: User;
+  user: User | null;
   size?: 'sm' | 'md' | 'lg' | 'xl';
   showName?: boolean;
   showUserId?: boolean;
@@ -85,9 +85,38 @@ export const UserProfile = memo(function UserProfile({
   const variantClasses = variantMap[variant];
   
   const { lastSignInTime, creationTime, userInitial, containerClasses, avatarClasses, fallbackClasses } = useMemo(() => {
-    const lastSignInTime = user.metadata.lastSignInTime ? new Date(user.metadata.lastSignInTime) : null;
-    const creationTime = user.metadata.creationTime ? new Date(user.metadata.creationTime) : null;
-    const userInitial = user.displayName?.charAt(0) || user.email?.charAt(0) || 'U';
+    // Supabase user structure - handle potentially undefined user
+    if (!user) {
+      return {
+        lastSignInTime: null,
+        creationTime: null,
+        userInitial: 'U',
+        containerClasses: cn(
+          variantClasses.container, 
+          sizeClasses.spacing,
+          'group cursor-pointer transition-all duration-200 ease-in-out',
+          'hover:scale-[1.02] active:scale-[0.98]',
+          className
+        ),
+        avatarClasses: cn(
+          sizeClasses.avatar, 
+          'ring-2 ring-white/50 dark:ring-gray-800/50 shadow-lg',
+          'transition-all duration-300 group-hover:ring-4 group-hover:ring-blue-500/30',
+          'relative overflow-hidden'
+        ),
+        fallbackClasses: cn(
+          'bg-gradient-to-br from-mono-gray-800 via-mono-gray-700 to-mono-gray-900', 
+          'text-mono-white font-bold shadow-inner',
+          'transition-all duration-300 group-hover:from-mono-gray-700 group-hover:to-mono-gray-800',
+          sizeClasses.fallback
+        )
+      };
+    }
+    
+    const lastSignInTime = user.last_sign_in_at ? new Date(user.last_sign_in_at) : null;
+    const creationTime = user.created_at ? new Date(user.created_at) : null;
+    const displayName = user.user_metadata?.full_name || user.user_metadata?.name || user.email?.split('@')[0] || 'User';
+    const userInitial = displayName.charAt(0) || 'U';
     
     return {
       lastSignInTime,
@@ -113,15 +142,15 @@ export const UserProfile = memo(function UserProfile({
         sizeClasses.fallback
       )
     };
-  }, [user.metadata.lastSignInTime, user.metadata.creationTime, user.displayName, user.email, sizeClasses, variantClasses, className]);
+  }, [user?.last_sign_in_at, user?.created_at, user?.user_metadata, user?.email, sizeClasses, variantClasses, className]);
 
   return (
     <div className={containerClasses}>
       <div className="relative">
         <Avatar className={avatarClasses}>
           <AvatarImage 
-            src={user.photoURL || ''} 
-            alt={user.displayName || 'User'}
+            src={user?.user_metadata?.avatar_url || user?.user_metadata?.picture || ''} 
+            alt={user?.user_metadata?.full_name || user?.user_metadata?.name || 'User'}
             className="object-cover transition-all duration-300 group-hover:scale-110"
           />
           <AvatarFallback className={fallbackClasses}>
@@ -150,9 +179,9 @@ export const UserProfile = memo(function UserProfile({
               'group-hover:from-mono-black group-hover:to-mono-gray-800 dark:group-hover:from-mono-white dark:group-hover:to-mono-gray-200',
               sizeClasses.text
             )}>
-              {user.displayName || user.email || 'User'}
+              {user?.user_metadata?.full_name || user?.user_metadata?.name || user?.email?.split('@')[0] || 'User'}
             </p>
-            {!user.displayName && user.email && (
+            {!(user?.user_metadata?.full_name || user?.user_metadata?.name) && user?.email && (
               <p className="text-sm text-gray-600 dark:text-gray-400 truncate transition-colors duration-200 group-hover:text-gray-800 dark:group-hover:text-gray-200">
                 {user.email}
               </p>
@@ -161,18 +190,18 @@ export const UserProfile = memo(function UserProfile({
           
           <div className="flex flex-wrap items-center gap-2">
             {/* User ID Badge */}
-            {showUserId && (
+            {showUserId && user && (
               <Badge 
                 variant="outline" 
                 className="text-xs font-mono bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-900 border-gray-200/50 dark:border-gray-700/50 hover:border-blue-300 dark:hover:border-blue-600 transition-all duration-200"
               >
                 <span className="text-gray-500 dark:text-gray-400">ID:</span>
-                <span className="ml-1 text-gray-700 dark:text-gray-300">{user.uid.substring(0, 8)}...</span>
+                <span className="ml-1 text-gray-700 dark:text-gray-300">{user.id.substring(0, 8)}...</span>
               </Badge>
             )}
             
             {/* Email Verification Badge */}
-            {user.emailVerified && (
+            {user?.email_confirmed_at && (
               <Badge className="text-xs bg-mono-gray-700 text-mono-white hover:bg-mono-gray-600 transition-all duration-200 shadow-sm">
                 Verified
               </Badge>

@@ -4,8 +4,7 @@ import { useState, useEffect, memo } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { useAuth } from '@/contexts/auth-context';
-import { auth, googleProvider } from '@/lib/firebase';
-import { signInWithPopup, signInWithRedirect } from 'firebase/auth';
+import { supabaseClient } from '@/lib/supabase';
 
 const AuthTestPageComponent = function AuthTestPage() {
   const { user, loading, signInWithGoogle, logout } = useAuth();
@@ -28,39 +27,46 @@ const AuthTestPageComponent = function AuthTestPage() {
 
   const testDirectPopup = async () => {
     setIsTestingDirect(true);
-    addResult('Testing direct Firebase popup...');
-    
-    if (!auth || !googleProvider) {
-      addResult('❌ Firebase auth is not initialized');
-      setIsTestingDirect(false);
-      return;
-    }
+    addResult('Testing direct Supabase OAuth...');
     
     try {
-      const result = await signInWithPopup(auth, googleProvider);
-      addResult(`✅ Direct popup successful: ${result.user.email}`);
+      const { data, error } = await supabaseClient.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: window.location.origin + '/auth/callback'
+        }
+      });
+      if (error) {
+        addResult(`❌ Direct OAuth failed: ${error.message}`);
+      } else {
+        addResult('✅ Direct OAuth initiated successfully');
+      }
     } catch (error: unknown) {
-      const authError = error as { code?: string; message?: string };
-      addResult(`❌ Direct popup failed: ${authError.code || 'Unknown error'} - ${authError.message || 'Unknown message'}`);
+      const authError = error as { message?: string };
+      addResult(`❌ Direct OAuth failed: ${authError.message || 'Unknown message'}`);
     } finally {
       setIsTestingDirect(false);
     }
   };
 
   const testDirectRedirect = async () => {
-    addResult('Testing direct Firebase redirect...');
-    
-    if (!auth || !googleProvider) {
-      addResult('❌ Firebase auth is not initialized');
-      return;
-    }
+    addResult('Testing direct Supabase redirect...');
     
     try {
-      await signInWithRedirect(auth, googleProvider);
-      addResult('🔄 Redirect initiated...');
+      const { error } = await supabaseClient.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: window.location.origin + '/auth/callback'
+        }
+      });
+      if (error) {
+        addResult(`❌ Direct redirect failed: ${error.message}`);
+      } else {
+        addResult('🔄 Redirect initiated...');
+      }
     } catch (error: unknown) {
-      const authError = error as { code?: string; message?: string };
-      addResult(`❌ Direct redirect failed: ${authError.code || 'Unknown error'} - ${authError.message || 'Unknown message'}`);
+      const authError = error as { message?: string };
+      addResult(`❌ Direct redirect failed: ${authError.message || 'Unknown message'}`);
     }
   };
 
@@ -169,13 +175,13 @@ const AuthTestPageComponent = function AuthTestPage() {
               <strong>Popup Blocked:</strong> Enable popups for this domain in your browser settings
             </div>
             <div>
-              <strong>Unauthorized Domain:</strong> Add &apos;{hostname || 'your-domain'}&apos; to Firebase Console → Authentication → Settings → Authorized domains
+              <strong>Unauthorized Domain:</strong> Add &apos;{hostname || 'your-domain'}&apos; to Supabase Dashboard → Authentication → URL Configuration → Redirect URLs
             </div>
             <div>
-              <strong>Invalid OAuth Client:</strong> Check Google Cloud Console OAuth configuration
+              <strong>Invalid OAuth Client:</strong> Check Google Cloud Console OAuth configuration and Supabase Google provider settings
             </div>
             <div>
-              <strong>Development vs Production:</strong> Make sure localhost:3000 is in authorized domains for development
+              <strong>Development vs Production:</strong> Make sure localhost:3000/auth/callback is in redirect URLs for development
             </div>
           </div>
         </Card>

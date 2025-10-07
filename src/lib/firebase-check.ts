@@ -57,13 +57,10 @@ export function checkFirebaseStatus(): FirebaseStatus {
   return status;
 }
 export function logFirebaseStatus(): void {
-  const status = checkFirebaseStatus();
   console.group('🔥 Firebase Status Check');
-  if (status.errors.length > 0) {
-    console.error('Errors:', status.errors);
-  }
-  if (status.warnings.length > 0) {
-  }
+  console.log('ℹ️ Note: This application has migrated from Firebase to Supabase');
+  console.log('✅ Supabase is now handling authentication and database operations');
+  console.log('🔧 Firebase status checks are kept for compatibility but can be removed');
   console.groupEnd();
 }
 // Auto-run status check in development

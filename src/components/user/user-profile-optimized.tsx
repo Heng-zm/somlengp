@@ -3,10 +3,11 @@
 import { memo, useMemo, useCallback } from 'react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
-import { User } from 'firebase/auth';
+import type { User } from '@supabase/supabase-js';
 import { Clock, Calendar } from 'lucide-react';
 import { formatRelativeTime } from '@/lib/user-profile';
 import { cn } from '@/lib/utils';
+import { getDisplayName, getPhotoURL, getUserId, isEmailVerified, getCreationTime, getLastSignInTime } from '@/lib/supabase-user-utils';
 
 interface UserProfileProps {
   user: User;
@@ -165,19 +166,19 @@ export const OptimizedUserProfile = memo(function OptimizedUserProfile({
   
   // Memoize parsed dates to avoid repeated Date construction
   const dates = useMemo(() => ({
-    lastSignInTime: user.metadata.lastSignInTime ? new Date(user.metadata.lastSignInTime) : null,
-    creationTime: user.metadata.creationTime ? new Date(user.metadata.creationTime) : null,
-  }), [user.metadata.lastSignInTime, user.metadata.creationTime]);
+    lastSignInTime: getLastSignInTime(user),
+    creationTime: getCreationTime(user),
+  }), [user]);
 
   // Memoize user initial calculation
   const userInitial = useMemo(() => {
-    return user.displayName?.charAt(0) || user.email?.charAt(0) || 'U';
-  }, [user.displayName, user.email]);
+    return getDisplayName(user).charAt(0) || user.email?.charAt(0) || 'U';
+  }, [user]);
 
   // Memoize display name calculation
   const displayName = useMemo(() => {
-    return user.displayName || user.email || 'User';
-  }, [user.displayName, user.email]);
+    return getDisplayName(user);
+  }, [user]);
 
   // Memoize class calculations for performance
   const classes = useMemo(() => ({
@@ -218,7 +219,7 @@ export const OptimizedUserProfile = memo(function OptimizedUserProfile({
       <div className="relative">
         <Avatar className={classes.avatar}>
           <AvatarImage 
-            src={user.photoURL || ''} 
+            src={getPhotoURL(user) || ''} 
             alt={displayName}
             className="object-cover transition-all duration-300 group-hover:scale-110"
             loading="lazy" // Add lazy loading for better performance
@@ -239,7 +240,7 @@ export const OptimizedUserProfile = memo(function OptimizedUserProfile({
             <p className={classes.displayName}>
               {displayName}
             </p>
-            {!user.displayName && user.email && (
+            {!getDisplayName(user) && user.email && (
               <p className="text-sm text-gray-600 dark:text-gray-400 truncate transition-colors duration-200 group-hover:text-gray-800 dark:group-hover:text-gray-200">
                 {user.email}
               </p>
@@ -247,8 +248,8 @@ export const OptimizedUserProfile = memo(function OptimizedUserProfile({
           </div>
           
           <div className="flex flex-wrap items-center gap-2">
-            <UserBadge type="userId" userId={showUserId ? user.uid : undefined} />
-            <UserBadge type="verified" isVerified={user.emailVerified} />
+            <UserBadge type="userId" userId={showUserId ? getUserId(user) || undefined : undefined} />
+            <UserBadge type="verified" isVerified={isEmailVerified(user)} />
           </div>
           
           <div className="space-y-1">

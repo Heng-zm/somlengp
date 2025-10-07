@@ -1,7 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import { ENV_CONFIG, logEnvironmentStatus } from '@/lib/env-config';
-import { withAuth, AuthenticatedUser, checkRateLimit, validateRequest } from '@/lib/auth-middleware';
+import { withAuth, AuthenticatedUser, checkRateLimit } from '@/lib/supabase-auth-middleware';
+
+// Validate request helper function
+function validateRequest(body: any, requiredFields: string[]) {
+  for (const field of requiredFields) {
+    if (!body[field]) {
+      return { valid: false, error: `Missing required field: ${field}` };
+    }
+  }
+  return { valid: true };
+}
 
 // Initialize environment and log status
 logEnvironmentStatus();
@@ -262,20 +272,20 @@ async function handleAIAssistant(request: NextRequest, user: AuthenticatedUser):
       details: errorObj.details?.[0]?.reason
     });
 
-    // Handle specific Gemini API errors
+    // Handle specific Gemini API errors - prioritize quota/rate limit errors first
+    if (errorObj.message?.includes('QUOTA_EXCEEDED') || errorObj.message?.includes('quota exceeded') || errorObj.message?.includes('RATE_LIMIT_EXCEEDED')) {
+      console.error('💸 Quota Exceeded Error');
+      return NextResponse.json(
+        { error: 'AI service quota exceeded. Please try again in a few minutes.' },
+        { status: 429 }
+      );
+    }
+
     if (errorObj.message?.includes('API_KEY_INVALID') || errorObj.message?.includes('invalid api key')) {
       console.error('🔑 Invalid API Key Error');
       return NextResponse.json(
         { error: 'Invalid API configuration. Please check the Gemini API key.' },
         { status: 500 }
-      );
-    }
-
-    if (errorObj.message?.includes('QUOTA_EXCEEDED') || errorObj.message?.includes('quota exceeded')) {
-      console.error('💸 Quota Exceeded Error');
-      return NextResponse.json(
-        { error: 'API quota exceeded. Please try again later.' },
-        { status: 429 }
       );
     }
 
@@ -287,8 +297,8 @@ async function handleAIAssistant(request: NextRequest, user: AuthenticatedUser):
       );
     }
 
-    // Handle network or timeout errors
-    if (errorObj.code === 'NETWORK_ERROR' || errorObj.message?.includes('fetch')) {
+    // Handle network or timeout errors (but exclude quota-related fetch errors)
+    if ((errorObj.code === 'NETWORK_ERROR' || errorObj.message?.includes('fetch')) && !errorObj.message?.includes('quota')) {
       console.error('🌐 Network Error');
       return NextResponse.json(
         { error: 'Network error. Please check your connection and try again.' },

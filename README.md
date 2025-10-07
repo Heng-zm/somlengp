@@ -13,7 +13,7 @@
 ### AI Assistant (Premium)
 - **🤖 Powered by Gemini 1.5 Flash**: Advanced conversational AI using Google's latest technology
 - **💬 Real-time Chat**: Instant responses with typing indicators
-- **🔐 Secure Authentication**: Google OAuth integration with Firebase
+- **🔐 Secure Authentication**: Google OAuth integration with Supabase
 - **📋 Message Management**: Copy responses and clear chat history
 
 ### User Experience
@@ -26,8 +26,8 @@
 
 - **Frontend**: Next.js 15.4, React 18, TypeScript 5
 - **Styling**: Tailwind CSS, Radix UI components, Framer Motion
-- **Authentication**: NextAuth.js with Google OAuth, Firebase Auth
-- **Backend**: Firebase, Google AI (Gemini 1.5), Node.js 20+
+- **Authentication**: NextAuth.js with Google OAuth, Supabase Auth
+- **Backend**: Supabase, Google AI (Gemini 1.5), Node.js 20+
 - **AI Integration**: Genkit AI framework, Google Generative AI
 - **Form Management**: React Hook Form with Zod validation
 - **Charts & Analytics**: Recharts, Vercel Analytics
@@ -39,7 +39,7 @@
 
 - Node.js 20+ and npm
 - Google Cloud Platform account (for AI features)
-- Firebase project (for authentication and database)
+- Supabase project (for authentication and database)
 
 ## 🚀 Getting Started
 
@@ -65,10 +65,10 @@ Configure the following environment variables:
 # Google AI API Key (for AI Assistant)
 GOOGLE_API_KEY=your_google_ai_api_key
 
-# Firebase Configuration
-NEXT_PUBLIC_FIREBASE_API_KEY=your_firebase_api_key
-NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=your_project.firebaseapp.com
-NEXT_PUBLIC_FIREBASE_PROJECT_ID=your_project_id
+# Supabase Configuration
+NEXT_PUBLIC_SUPABASE_URL=https://your-project-id.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
+SUPABASE_SERVICE_ROLE_KEY=your_supabase_service_role_key
 
 # NextAuth Configuration
 NEXTAUTH_URL=http://localhost:3000
@@ -77,11 +77,11 @@ NEXTAUTH_SECRET=your_nextauth_secret
 # Additional API keys as needed
 ```
 
-### 4. Firebase Setup
-1. Create a new Firebase project at [Firebase Console](https://console.firebase.google.com/)
+### 4. Supabase Setup
+1. Create a new Supabase project at [Supabase Console](https://supabase.com/dashboard)
 2. Enable Google Authentication in the Authentication section
-3. Set up Firestore database
-4. Add your domain to authorized domains
+3. Set up your database tables (see SUPABASE_SETUP_GUIDE.md)
+4. Add your domain to authorized domains in Authentication settings
 
 ### 5. Google AI Setup
 1. Visit [Google AI Studio](https://aistudio.google.com/app/apikey)
@@ -143,8 +143,7 @@ somlengp/
 ├── docs/                    # Project documentation
 ├── scripts/                 # Build and utility scripts
 ├── .env.example             # Environment variables template
-├── firestore.rules          # Firestore security rules
-└── apphosting.yaml          # Deployment configuration
+└── SUPABASE_SETUP_GUIDE.md  # Supabase setup and migration guide
 ```
 
 ## 🎨 Design System
@@ -181,7 +180,7 @@ The AI Assistant uses configurable settings in `src/lib/ai-types.ts`:
 
 ## 🔐 Security Features
 
-- **Authentication Required**: Firebase token validation for premium features
+- **Authentication Required**: Supabase JWT validation for premium features
 - **User Context**: All requests tied to authenticated users
 - **Content Safety**: Google's built-in AI safety filters
 - **Secure Headers**: Next.js security best practices
@@ -193,7 +192,7 @@ Comprehensive documentation is available in the project root:
 - `AI_ASSISTANT_README.md` - AI Assistant setup and usage
 - `AUTH_FIXES_README.md` - Authentication troubleshooting
 - `GOOGLE_AUTH_README.md` - Google Authentication setup
-- `FIREBASE_DEPLOYMENT_FIX.md` - Firebase deployment guide
+- `SUPABASE_SETUP_GUIDE.md` - Supabase setup and migration guide
 - `PERFORMANCE_OPTIMIZATIONS.md` - Performance guidelines
 - `USER_PROFILE_FEATURES.md` - User profile functionality
 - `OTP_SETUP_README.md` - OTP authentication setup
@@ -219,9 +218,9 @@ npm run start
 ### Common Issues
 
 **Authentication Problems**
-- Verify Firebase configuration
-- Check Google OAuth settings
-- Ensure authorized domains are configured
+- Verify Supabase configuration
+- Check Google OAuth settings in Supabase dashboard
+- Ensure authorized domains are configured in Authentication settings
 
 **AI Assistant Not Working**
 - Verify `GOOGLE_API_KEY` environment variable

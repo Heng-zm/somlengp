@@ -7,6 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { useComments } from '@/hooks/use-comments';
 import { useAuth } from '@/contexts/auth-context';
 import { AlertCircle, CheckCircle2, XCircle, User } from 'lucide-react';
+import { getUserId, getDisplayName } from '@/lib/supabase-user-utils';
 
 export function CommentDebug() {
   const [testResults, setTestResults] = useState<Record<string, 'pending' | 'success' | 'error'>>({});
@@ -15,7 +16,7 @@ export function CommentDebug() {
   
   const { state, actions, stats } = useComments({
     pageId: 'debug-page',
-    userId: user?.uid
+    userId: getUserId(user) || undefined
   });
 
   const updateTestResult = (testName: string, result: 'success' | 'error', error?: string) => {
@@ -159,8 +160,8 @@ export function CommentDebug() {
                   </Badge>
                 )}
               </div>
-              <div>User ID: {user?.uid || 'None'}</div>
-              <div>Display Name: {user?.displayName || 'None'}</div>
+              <div>User ID: {getUserId(user) || 'None'}</div>
+              <div>Display Name: {getDisplayName(user) || 'None'}</div>
               <div>Email: {user?.email || 'None'}</div>
             </div>
           </div>

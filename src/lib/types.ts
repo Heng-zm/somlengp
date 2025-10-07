@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { User } from 'firebase/auth';
+import type { User } from '@supabase/supabase-js';
 
 export type TranscriptWord = {
   text: string;

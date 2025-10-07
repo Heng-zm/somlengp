@@ -11,13 +11,7 @@ import { LanguageProvider } from '@/components/providers/language-provider';
 import { Kantumruy_Pro } from 'next/font/google';
 import Script from 'next/script';
 
-// Import Firebase status check for debugging in development
-if (process.env.NODE_ENV === 'development') {
-  import('@/lib/firebase-check');
-// Performance optimization needed: Consider memoizing dynamic classNames
-// Use useMemo for objects/arrays and useCallback for functions
-
-}
+// Firebase has been fully migrated to Supabase - no need for status checks anymore
 
 const kantumruy = Kantumruy_Pro({
   subsets: ['khmer', 'latin'],

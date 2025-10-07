@@ -1,8 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { withAuth, AuthenticatedUser, checkRateLimit } from '@/lib/auth-middleware';
 import { getUserProfileAdmin, updateUserProfileAdmin } from '@/lib/user-profile-admin-db';
-import { updateProfile } from 'firebase/auth';
-import { auth } from '@/lib/firebase';
+import { supabase } from '@/lib/supabase';
 // GET - Retrieve user profile
 async function getProfile(request: NextRequest, user: AuthenticatedUser): Promise<NextResponse> {
   try {
@@ -131,17 +130,21 @@ async function updateUserProfileHandler(request: NextRequest, user: Authenticate
         { status: 400 }
       );
     }
-    // Update the profile in Firestore using Admin SDK
+    // Update the profile in database using Admin SDK
     await updateUserProfileAdmin(user.uid, updates);
-    // Also update Firebase Auth profile if displayName or photoURL changed
-    if (auth && auth.currentUser && (updates.displayName !== undefined || updates.photoURL !== undefined)) {
+    // Also update Supabase Auth profile if displayName or photoURL changed
+    if (updates.displayName !== undefined || updates.photoURL !== undefined) {
       try {
-        const authUpdates: { displayName?: string; photoURL?: string } = {};
-        if (updates.displayName !== undefined) authUpdates.displayName = updates.displayName;
-        if (updates.photoURL !== undefined) authUpdates.photoURL = updates.photoURL;
-        await updateProfile(auth.currentUser, authUpdates);
+        const authUpdates: { data: { display_name?: string; avatar_url?: string } } = { data: {} };
+        if (updates.displayName !== undefined) authUpdates.data.display_name = updates.displayName;
+        if (updates.photoURL !== undefined) authUpdates.data.avatar_url = updates.photoURL;
+        const { error } = await supabase.auth.updateUser(authUpdates);
+        if (error) {
+          console.warn('Failed to update Supabase auth profile:', error);
+        }
       } catch (authError) {
-        // Continue - the Firestore update was successful
+        // Continue - the database update was successful
+        console.warn('Error updating Supabase auth profile:', authError);
       }
     }
     // Get the updated profile

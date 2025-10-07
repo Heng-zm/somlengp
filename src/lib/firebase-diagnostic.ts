@@ -1,25 +1,23 @@
-// Firebase connection diagnostic utility
-import { initializeApp, getApps } from "firebase/app";
-import { getAuth, signInAnonymously, connectAuthEmulator } from "firebase/auth";
-import { getFirestore, connectFirestoreEmulator, enableNetwork, disableNetwork } from "firebase/firestore";
+// Supabase connection diagnostic utility
+import { supabaseClient } from './supabase';
 interface DiagnosticResult {
   step: string;
   success: boolean;
   error?: string;
   details?: any;
 }
-export class FirebaseDiagnostic {
+export class SupabaseDiagnostic {
   private results: DiagnosticResult[] = [];
   async runDiagnostics(): Promise<DiagnosticResult[]> {
     this.results = [];
     // Step 1: Check environment variables
     await this.checkEnvironmentVariables();
-    // Step 2: Test Firebase app initialization
-    await this.testFirebaseInitialization();
+    // Step 2: Test Supabase client initialization
+    await this.testSupabaseInitialization();
     // Step 3: Test network connectivity
     await this.testNetworkConnectivity();
-    // Step 4: Test Firestore connection
-    await this.testFirestoreConnection();
+    // Step 4: Test database connection
+    await this.testDatabaseConnection();
     // Step 5: Test Auth connection
     await this.testAuthConnection();
     return this.results;
@@ -27,9 +25,8 @@ export class FirebaseDiagnostic {
   private async checkEnvironmentVariables(): Promise<void> {
     try {
       const requiredVars = [
-        'NEXT_PUBLIC_FIREBASE_API_KEY',
-        'NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN',
-        'NEXT_PUBLIC_FIREBASE_PROJECT_ID'
+        'NEXT_PUBLIC_SUPABASE_URL',
+        'NEXT_PUBLIC_SUPABASE_ANON_KEY'
       ];
       const missing = requiredVars.filter(varName => !process.env[varName]);
       if (missing.length > 0) {
@@ -39,10 +36,9 @@ export class FirebaseDiagnostic {
         step: 'Environment Variables',
         success: true,
         details: {
-          hasApiKey: !!process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
-          hasAuthDomain: !!process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
-          hasProjectId: !!process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
-          projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID?.substring(0, 10) + '...'
+          hasUrl: !!process.env.NEXT_PUBLIC_SUPABASE_URL,
+          hasAnonKey: !!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+          url: process.env.NEXT_PUBLIC_SUPABASE_URL?.substring(0, 30) + '...'
         }
       });
     } catch (error) {
@@ -53,30 +49,30 @@ export class FirebaseDiagnostic {
       });
     }
   }
-  private async testFirebaseInitialization(): Promise<void> {
+  private async testSupabaseInitialization(): Promise<void> {
     try {
-      const firebaseConfig = {
-        apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
-        authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
-        databaseURL: process.env.NEXT_PUBLIC_FIREBASE_DATABASE_URL,
-        projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
-        storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
-        messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
-        appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
-        measurementId: process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID,
-      };
-      const app = getApps().length === 0 ? initializeApp(firebaseConfig, 'diagnostic') : getApps()[0];
+      // Test if Supabase client is initialized properly
+      if (!supabaseClient) {
+        throw new Error('Supabase client not initialized');
+      }
+      
+      // Test basic connection by getting current session
+      const { data, error } = await supabaseClient.auth.getSession();
+      if (error && !error.message.includes('session_not_found')) {
+        throw error;
+      }
+      
       this.results.push({
-        step: 'Firebase App Initialization',
+        step: 'Supabase Client Initialization',
         success: true,
         details: {
-          appName: app.name,
-          projectId: app.options.projectId
+          hasSession: !!data.session,
+          clientInitialized: true
         }
       });
     } catch (error) {
       this.results.push({
-        step: 'Firebase App Initialization',
+        step: 'Supabase Client Initialization',
         success: false,
         error: error instanceof Error ? error.message : 'Unknown error'
       });
@@ -84,12 +80,17 @@ export class FirebaseDiagnostic {
   }
   private async testNetworkConnectivity(): Promise<void> {
     try {
-      // Test basic connectivity to Firebase endpoints
+      // Test basic connectivity to Supabase endpoints
+      const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+      if (!supabaseUrl) {
+        throw new Error('Supabase URL not configured');
+      }
+      
       const endpoints = [
-        'https://firebase.googleapis.com/',
-        'https://identitytoolkit.googleapis.com/',
-        'https://firestore.googleapis.com/'
+        supabaseUrl + '/rest/v1/',
+        supabaseUrl + '/auth/v1/'
       ];
+      
       const results = await Promise.allSettled(
         endpoints.map(endpoint => 
           fetch(endpoint, { method: 'HEAD', mode: 'no-cors' })
@@ -112,24 +113,26 @@ export class FirebaseDiagnostic {
       });
     }
   }
-  private async testFirestoreConnection(): Promise<void> {
+  private async testDatabaseConnection(): Promise<void> {
     try {
-      const app = getApps()[0];
-      if (!app) throw new Error('No Firebase app initialized');
-      const db = getFirestore(app);
-      // Try to enable network (this will test connectivity)
-      await enableNetwork(db);
+      // Test basic database connection by trying to query a simple table
+      const { data, error } = await supabaseClient.from('profiles').select('id').limit(1);
+      
+      if (error && !error.message.includes('relation "profiles" does not exist')) {
+        throw error;
+      }
+      
       this.results.push({
-        step: 'Firestore Connection',
+        step: 'Database Connection',
         success: true,
         details: {
-          app: app.name,
-          projectId: app.options.projectId
+          canQuery: true,
+          testResult: error ? 'Table not found (normal for new setup)' : 'Connected successfully'
         }
       });
     } catch (error) {
       this.results.push({
-        step: 'Firestore Connection',
+        step: 'Database Connection',
         success: false,
         error: error instanceof Error ? error.message : 'Unknown error'
       });
@@ -137,16 +140,19 @@ export class FirebaseDiagnostic {
   }
   private async testAuthConnection(): Promise<void> {
     try {
-      const app = getApps()[0];
-      if (!app) throw new Error('No Firebase app initialized');
-      const auth = getAuth(app);
-      // Just check if auth is initialized, don't actually sign in
+      // Test auth connection by checking current session
+      const { data, error } = await supabaseClient.auth.getSession();
+      
+      if (error && !error.message.includes('session_not_found')) {
+        throw error;
+      }
+      
       this.results.push({
         step: 'Auth Connection',
         success: true,
         details: {
-          currentUser: auth.currentUser?.uid || null,
-          app: app.name
+          currentUser: data.session?.user?.id || null,
+          hasSession: !!data.session
         }
       });
     } catch (error) {
@@ -187,8 +193,13 @@ export class FirebaseDiagnostic {
   }
 }
 // Helper function to run diagnostics
-export async function runFirebaseDiagnostics(): Promise<void> {
-  const diagnostic = new FirebaseDiagnostic();
+export async function runSupabaseDiagnostics(): Promise<void> {
+  const diagnostic = new SupabaseDiagnostic();
   await diagnostic.runDiagnostics();
   diagnostic.printResults();
+}
+
+// For backward compatibility
+export async function runFirebaseDiagnostics(): Promise<void> {
+  return runSupabaseDiagnostics();
 }
