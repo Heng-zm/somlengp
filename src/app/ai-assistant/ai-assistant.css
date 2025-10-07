@@ -1,0 +1,123 @@
+/* Code overview section */
+.code-overview-section {
+  background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+  border-bottom: 1px solid #475569;
+}
+
+.code-overview-section:hover {
+  background: linear-gradient(135deg, #334155 0%, #475569 100%);
+}
+
+/* Ensure proper scrolling on all devices */
+.overflow-x-auto::-webkit-scrollbar {
+  height: 8px;
+}
+
+.overflow-x-auto::-webkit-scrollbar-track {
+  background: #2d3748;
+  border-radius: 4px;
+}
+
+.overflow-x-auto::-webkit-scrollbar-thumb {
+  background: #4a5568;
+  border-radius: 4px;
+}
+
+.overflow-x-auto::-webkit-scrollbar-thumb:hover {
+  background: #718096;
+}
+
+/* Mobile improvements */
+@media (max-width: 640px) {
+  /* Ensure code blocks don't overflow on small screens */
+  .not-prose {
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+  }
+  
+  /* Better code block spacing */
+  .code-overview-section {
+    padding-left: 0.5rem !important;
+    padding-right: 0.5rem !important;
+  }
+  
+  /* Improve code font size on very small screens */
+  .overflow-x-auto pre {
+    font-size: 11px !important;
+    line-height: 1.3 !important;
+    padding: 0.75rem !important;
+  }
+  
+  /* Better message spacing on mobile */
+  .prose {
+    font-size: 14px !important;
+  }
+  
+  .prose p {
+    margin-bottom: 0.5rem !important;
+  }
+  
+  /* Prevent horizontal scroll on the main container */
+  body {
+    overflow-x: hidden;
+  }
+  
+  /* Ensure messages don't break layout */
+  .flex.gap-3.p-4 {
+    padding: 0.75rem !important;
+    gap: 0.5rem !important;
+  }
+  
+  /* Code block improvements for mobile */
+  .group {
+    border-radius: 0.5rem !important;
+  }
+  
+  /* Prevent text from overflowing */
+  .truncate {
+    max-width: 150px !important;
+  }
+}
+
+/* Extra small screens */
+@media (max-width: 380px) {
+  .overflow-x-auto pre {
+    font-size: 10px !important;
+    line-height: 1.2 !important;
+    padding: 0.5rem !important;
+  }
+  
+  .prose {
+    font-size: 13px !important;
+  }
+  
+  /* Even smaller truncation for tiny screens */
+  .truncate {
+    max-width: 100px !important;
+  }
+  
+  /* Adjust button sizes */
+  .h-7.w-7 {
+    height: 1.5rem !important;
+    width: 1.5rem !important;
+  }
+}
+
+/* Smooth scrolling for better UX */
+.overflow-x-auto {
+  scroll-behavior: smooth;
+}
+
+/* Focus states for accessibility */
+.overflow-x-auto:focus {
+  outline: 2px solid #3b82f6;
+  outline-offset: 2px;
+}
+
+/* Touch improvements */
+@media (pointer: coarse) {
+  .overflow-x-auto {
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior-x: contain;
+  }
+}

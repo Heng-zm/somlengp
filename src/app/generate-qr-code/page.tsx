@@ -3,7 +3,12 @@
 import { memo } from 'react';
 import React, { useState, useRef, useContext, useCallback, useMemo, useEffect } from 'react';
 import Image from 'next/image';
-import { Download, Copy, QrCode, Share } from 'lucide-react';
+import { 
+  Download, Copy, QrCode, Share, Settings, Palette, 
+  Monitor, Smartphone, Image as ImageIcon, FileImage, Camera,
+  Zap, Shield, Lock, Wrench, Eye, RotateCcw,
+  Sparkles, CheckCircle, Loader2, Type, Hash
+} from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
@@ -16,21 +21,36 @@ import { FeaturePageLayout } from '@/layouts/feature-page-layout';
 import { QRScannerFAB } from '@/components/floating-action-button';
 import { QRScannerSheet } from '@/components/qr-scanner-sheet';
 import QRCodeLib from 'qrcode';
-// Memory leak prevention: Timers need cleanup
-// Add cleanup in useEffect return function
 
-// Performance optimization needed: Consider memoizing inline styles, inline event handlers, dynamic classNames
-// Use useMemo for objects/arrays and useCallback for functions
+// Custom hook for debouncing
+function useDebounce<T>(value: T, delay: number): T {
+  const [debouncedValue, setDebouncedValue] = useState<T>(value);
+
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedValue(value);
+    }, delay);
+
+    return () => {
+      clearTimeout(handler);
+    };
+  }, [value, delay]);
+
+  return debouncedValue;
+}
 
 
 const GenerateQRCodePageComponent = function GenerateQRCodePage() {
   const [inputText, setInputText] = useState('');
   const [qrCodeUrl, setQrCodeUrl] = useState('');
+  const [livePreviewUrl, setLivePreviewUrl] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
+  const [isLiveGenerating, setIsLiveGenerating] = useState(false);
   const [errorCorrectionLevel, setErrorCorrectionLevel] = useState('M');
   const [size, setSize] = useState(256);
   const [foregroundColor, setForegroundColor] = useState('#000000');
   const [backgroundColor, setBackgroundColor] = useState('#ffffff');
+  const [outputFormat, setOutputFormat] = useState<'png' | 'svg' | 'jpeg'>('png');
   const [isSheetOpen, setIsSheetOpen] = useState(false);
   const [isScannerOpen, setIsScannerOpen] = useState(false);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -41,18 +61,70 @@ const GenerateQRCodePageComponent = function GenerateQRCodePage() {
     throw new Error('GenerateQRCodePage must be used within a LanguageProvider');
   }
 
-  // Memoized QR generation options
-  const qrOptions = useMemo(() => ({
+  // Debounced values for live preview
+  const debouncedInputText = useDebounce(inputText, 300);
+  const debouncedQrOptions = useDebounce({
     errorCorrectionLevel: errorCorrectionLevel as 'L' | 'M' | 'Q' | 'H',
-    type: 'image/png' as const,
-    quality: 0.92,
     margin: 1,
     color: {
       dark: foregroundColor,
       light: backgroundColor,
     },
     width: size,
-  }), [errorCorrectionLevel, foregroundColor, backgroundColor, size]);
+    ...(outputFormat === 'jpeg' && { quality: 0.8 }),
+    ...(outputFormat === 'png' && { quality: 0.92 })
+  }, 100);
+
+  // Memoized QR generation options
+  const qrOptions = useMemo(() => ({
+    errorCorrectionLevel: errorCorrectionLevel as 'L' | 'M' | 'Q' | 'H',
+    margin: 1,
+    color: {
+      dark: foregroundColor,
+      light: backgroundColor,
+    },
+    width: size,
+    ...(outputFormat === 'jpeg' && { quality: 0.8 }),
+    ...(outputFormat === 'png' && { quality: 0.92 })
+  }), [errorCorrectionLevel, foregroundColor, backgroundColor, size, outputFormat]);
+
+  // Live preview generation effect
+  useEffect(() => {
+    const generateLivePreview = async () => {
+      if (!debouncedInputText.trim()) {
+        setLivePreviewUrl('');
+        return;
+      }
+
+      setIsLiveGenerating(true);
+      try {
+        let url: string;
+        if (outputFormat === 'svg') {
+          // Generate SVG string and convert to data URL
+          const svgString = await QRCodeLib.toString(debouncedInputText, {
+            ...debouncedQrOptions,
+            type: 'svg',
+          });
+          url = `data:image/svg+xml;base64,${btoa(svgString)}`;
+        } else {
+          // Create properly typed options for toDataURL
+          const dataUrlOptions = {
+            ...debouncedQrOptions,
+            type: outputFormat === 'jpeg' ? 'image/jpeg' as const : 'image/png' as const
+          };
+          url = await QRCodeLib.toDataURL(debouncedInputText, dataUrlOptions);
+        }
+        setLivePreviewUrl(url);
+      } catch (error) {
+        console.error('Error generating live preview:', error);
+        setLivePreviewUrl('');
+      } finally {
+        setIsLiveGenerating(false);
+      }
+    };
+
+    generateLivePreview();
+  }, [debouncedInputText, debouncedQrOptions, outputFormat]);
 
   // Cleanup canvas on unmount
   useEffect(() => {
@@ -77,7 +149,24 @@ const GenerateQRCodePageComponent = function GenerateQRCodePage() {
     setIsGenerating(true);
     
     try {
-      const url = await QRCodeLib.toDataURL(inputText, qrOptions);
+      // Use live preview URL if available, otherwise generate new one
+      let url = livePreviewUrl;
+      if (!url) {
+        if (outputFormat === 'svg') {
+          const svgString = await QRCodeLib.toString(inputText, {
+            ...qrOptions,
+            type: 'svg',
+          });
+          url = `data:image/svg+xml;base64,${btoa(svgString)}`;
+        } else {
+          // Create properly typed options for toDataURL
+          const dataUrlOptions = {
+            ...qrOptions,
+            type: outputFormat === 'jpeg' ? 'image/jpeg' as const : 'image/png' as const
+          };
+          url = await QRCodeLib.toDataURL(inputText, dataUrlOptions);
+        }
+      }
       setQrCodeUrl(url);
       
       // Also generate on canvas for download
@@ -95,20 +184,20 @@ const GenerateQRCodePageComponent = function GenerateQRCodePage() {
     } finally {
       setIsGenerating(false);
     }
-  }, [inputText, qrOptions]);
+  }, [inputText, qrOptions, livePreviewUrl, outputFormat]);
 
   const downloadQRCode = useCallback(() => {
     if (!qrCodeUrl) return;
     
     const link = document.createElement('a');
-    link.download = 'qr-code.png';
+    link.download = `qr-code.${outputFormat}`;
     link.href = qrCodeUrl;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
     
     showSuccessToast("Download Complete!");
-  }, [qrCodeUrl]);
+  }, [qrCodeUrl, outputFormat]);
 
   const copyToClipboard = useCallback(async () => {
     if (!qrCodeUrl) return;
@@ -136,7 +225,7 @@ const GenerateQRCodePageComponent = function GenerateQRCodePage() {
     try {
       const response = await fetch(qrCodeUrl);
       const blob = await response.blob();
-      const file = new File([blob], 'qr-code.png', { type: blob.type });
+      const file = new File([blob], `qr-code.${outputFormat}`, { type: blob.type });
       
       await navigator.share({
         title: 'QR Code',
@@ -147,15 +236,14 @@ const GenerateQRCodePageComponent = function GenerateQRCodePage() {
       console.error('Error sharing QR code:', error);
       showErrorToast("Share Failed");
     }
-  }, [qrCodeUrl, inputText]);
+  }, [qrCodeUrl, inputText, outputFormat]);
 
   const handleScanSuccess = useCallback((data: string) => {
     setInputText(data);
     setIsScannerOpen(false);
-    setTimeout(() => {
-      generateQRCode();
-    }, 500);
-  }, [generateQRCode]);
+    // No need to call generateQRCode since live preview will handle it automatically
+    // The 500ms delay is removed as live preview updates in real-time
+  }, []);
 
   // Memoized color reset function
   const resetColors = useCallback(() => {
@@ -177,6 +265,56 @@ const GenerateQRCodePageComponent = function GenerateQRCodePage() {
     ), []
   );
 
+  // Memoized live preview download handler
+  const handleLivePreviewDownload = useCallback(() => {
+    if (livePreviewUrl) {
+      const link = document.createElement('a');
+      link.download = `qr-code.${outputFormat}`;
+      link.href = livePreviewUrl;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      showSuccessToast("Download Complete!");
+    }
+  }, [livePreviewUrl, outputFormat]);
+
+  // Memoized live preview copy handler
+  const handleLivePreviewCopy = useCallback(async () => {
+    if (livePreviewUrl) {
+      try {
+        const response = await fetch(livePreviewUrl);
+        const blob = await response.blob();
+        await navigator.clipboard.write([
+          new ClipboardItem({ [blob.type]: blob })
+        ]);
+        showSuccessToast("Copied Successfully!");
+      } catch (error) {
+        console.error('Failed to copy QR code:', error);
+        showErrorToast("Copy Failed");
+      }
+    }
+  }, [livePreviewUrl]);
+
+  // Memoized live preview share handler
+  const handleLivePreviewShare = useCallback(async () => {
+    if (livePreviewUrl && navigator.share) {
+      try {
+        const response = await fetch(livePreviewUrl);
+        const blob = await response.blob();
+        const file = new File([blob], `qr-code.${outputFormat}`, { type: blob.type });
+        
+        await navigator.share({
+          title: 'QR Code',
+          text: `QR Code for: ${inputText}`,
+          files: [file],
+        });
+      } catch (error) {
+        console.error('Error sharing QR code:', error);
+        showErrorToast("Share Failed");
+      }
+    }
+  }, [livePreviewUrl, outputFormat, inputText]);
+
   return (
     <FeaturePageLayout title="QR Code Generator">
       <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-100">
@@ -190,7 +328,7 @@ const GenerateQRCodePageComponent = function GenerateQRCodePage() {
               {/* Text Input */}
               <div className="space-y-3">
                 <Label htmlFor="input-text" className="text-base font-semibold text-gray-800 flex items-center gap-2">
-                  <span className="w-2 h-2 bg-black rounded-full"></span>
+                  <Type className="w-4 h-4 text-gray-600" />
                   Enter Your Content
                 </Label>
                 <Textarea
@@ -210,37 +348,51 @@ const GenerateQRCodePageComponent = function GenerateQRCodePage() {
               {/* Settings */}
               <div className="space-y-4">
                 <h3 className="text-lg font-semibold text-gray-800 flex items-center gap-2">
-                  <span className="w-2 h-2 bg-gray-600 rounded-full"></span>
+                  <Settings className="w-5 h-5 text-gray-700" />
                   Customize Settings
                 </h3>
                 
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-3 gap-4">
                   <div className="space-y-2">
-                    <Label className="text-sm font-medium text-gray-700">Error Correction</Label>
+                    <Label className="text-sm font-medium text-gray-700 flex items-center gap-2"><Shield className="w-4 h-4 text-gray-600" /> Error Correction</Label>
                     <Select value={errorCorrectionLevel} onValueChange={setErrorCorrectionLevel}>
                       <SelectTrigger className="h-12 border-2 border-gray-200 focus:border-gray-500 rounded-xl bg-white/80">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent className="bg-white/95 backdrop-blur-xl border-gray-200 rounded-xl">
-                        <SelectItem value="L" className="rounded-lg">🔧 Low (7%)</SelectItem>
-                        <SelectItem value="M" className="rounded-lg">⚡ Medium (15%)</SelectItem>
-                        <SelectItem value="Q" className="rounded-lg">🔒 Quartile (25%)</SelectItem>
-                        <SelectItem value="H" className="rounded-lg">🛡️ High (30%)</SelectItem>
+                        <SelectItem value="L" className="rounded-lg flex items-center gap-2"><Wrench className="w-4 h-4" /> Low (7%)</SelectItem>
+                        <SelectItem value="M" className="rounded-lg flex items-center gap-2"><Zap className="w-4 h-4" /> Medium (15%)</SelectItem>
+                        <SelectItem value="Q" className="rounded-lg flex items-center gap-2"><Lock className="w-4 h-4" /> Quartile (25%)</SelectItem>
+                        <SelectItem value="H" className="rounded-lg flex items-center gap-2"><Shield className="w-4 h-4" /> High (30%)</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
                   
                   <div className="space-y-2">
-                    <Label className="text-sm font-medium text-gray-700">QR Code Size</Label>
+                    <Label className="text-sm font-medium text-gray-700 flex items-center gap-2"><Monitor className="w-4 h-4 text-gray-600" /> Size</Label>
                     <Select value={size.toString()} onValueChange={(value) => setSize(parseInt(value))}>
                       <SelectTrigger className="h-12 border-2 border-gray-200 focus:border-purple-400 rounded-xl bg-white/80">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent className="bg-white/95 backdrop-blur-xl border-gray-200 rounded-xl">
-                        <SelectItem value="128" className="rounded-lg">📱 Small (128px)</SelectItem>
-                        <SelectItem value="256" className="rounded-lg">💻 Medium (256px)</SelectItem>
-                        <SelectItem value="512" className="rounded-lg">🖥️ Large (512px)</SelectItem>
-                        <SelectItem value="1024" className="rounded-lg">🎯 XL (1024px)</SelectItem>
+                        <SelectItem value="128" className="rounded-lg flex items-center gap-2"><Smartphone className="w-4 h-4" /> Small (128px)</SelectItem>
+                        <SelectItem value="256" className="rounded-lg flex items-center gap-2"><Monitor className="w-4 h-4" /> Medium (256px)</SelectItem>
+                        <SelectItem value="512" className="rounded-lg flex items-center gap-2"><Monitor className="w-4 h-4" /> Large (512px)</SelectItem>
+                        <SelectItem value="1024" className="rounded-lg flex items-center gap-2"><Monitor className="w-4 h-4" /> XL (1024px)</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label className="text-sm font-medium text-gray-700 flex items-center gap-2"><ImageIcon className="w-4 h-4 text-gray-600" /> Format</Label>
+                    <Select value={outputFormat} onValueChange={(value: 'png' | 'svg' | 'jpeg') => setOutputFormat(value)}>
+                      <SelectTrigger className="h-12 border-2 border-gray-200 focus:border-blue-400 rounded-xl bg-white/80">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent className="bg-white/95 backdrop-blur-xl border-gray-200 rounded-xl">
+                        <SelectItem value="png" className="rounded-lg flex items-center gap-2"><FileImage className="w-4 h-4" /> PNG (High Quality)</SelectItem>
+                        <SelectItem value="svg" className="rounded-lg flex items-center gap-2"><ImageIcon className="w-4 h-4" /> SVG (Scalable)</SelectItem>
+                        <SelectItem value="jpeg" className="rounded-lg flex items-center gap-2"><Camera className="w-4 h-4" /> JPEG (Compact)</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
@@ -250,8 +402,8 @@ const GenerateQRCodePageComponent = function GenerateQRCodePage() {
               {/* Color Customization */}
               <div className="space-y-4">
                 <h3 className="text-lg font-semibold text-gray-800 flex items-center gap-2">
-                  <span className="w-2 h-2 bg-gray-500 rounded-full"></span>
-                  Color Theme
+                  <Palette className="w-5 h-5 text-gray-700" />
+                  Colors
                 </h3>
                 
                 <div className="bg-gradient-to-r from-gray-50 to-gray-100/50 rounded-2xl p-6 space-y-4">
@@ -259,7 +411,7 @@ const GenerateQRCodePageComponent = function GenerateQRCodePage() {
                     {/* Foreground Color */}
                     <div className="space-y-3">
                       <div className="flex items-center justify-between">
-                        <Label className="text-sm font-semibold text-gray-700">Foreground</Label>
+                        <Label className="text-sm font-semibold text-gray-700 flex items-center gap-2"><Hash className="w-4 h-4 text-gray-600" /> Foreground</Label>
                         <span className="text-xs font-mono bg-white px-2 py-1 rounded-lg border text-gray-600">
                           {foregroundColor}
                         </span>
@@ -290,7 +442,7 @@ const GenerateQRCodePageComponent = function GenerateQRCodePage() {
                     {/* Background Color */}
                     <div className="space-y-3">
                       <div className="flex items-center justify-between">
-                        <Label className="text-sm font-semibold text-gray-700">Background</Label>
+                        <Label className="text-sm font-semibold text-gray-700 flex items-center gap-2"><Hash className="w-4 h-4 text-gray-600" /> Background</Label>
                         <span className="text-xs font-mono bg-white px-2 py-1 rounded-lg border text-gray-600">
                           {backgroundColor}
                         </span>
@@ -321,7 +473,7 @@ const GenerateQRCodePageComponent = function GenerateQRCodePage() {
                   
                   {/* Color Preview */}
                   <div className="flex items-center justify-between pt-4 border-t border-gray-200">
-                    <div className="text-sm font-medium text-gray-700">Preview</div>
+                    <div className="text-sm font-medium text-gray-700 flex items-center gap-2"><Eye className="w-4 h-4 text-gray-600" /> Preview</div>
                     <div className="flex items-center gap-3">
                       <div 
                         className="w-12 h-12 rounded-xl border-2 border-gray-200 flex items-center justify-center"
@@ -344,7 +496,7 @@ const GenerateQRCodePageComponent = function GenerateQRCodePage() {
                         onClick={resetColors}
                         className="text-xs text-gray-600 hover:text-gray-800 font-medium px-3 py-1 rounded-lg hover:bg-gray-50 transition-colors duration-200"
                       >
-                        Reset
+                        <span className="flex items-center gap-2"><RotateCcw className="w-4 h-4" /> Reset</span>
                       </button>
                     </div>
                   </div>
@@ -359,13 +511,18 @@ const GenerateQRCodePageComponent = function GenerateQRCodePage() {
               >
                 {isGenerating ? (
                   <div className="flex items-center gap-3">
-                    <div className="animate-spin rounded-full h-5 w-5 border-2 border-white border-t-transparent"></div>
-                    <span>Generating Magic...</span>
+                    <Loader2 className="h-5 w-5 animate-spin" />
+                    <span>Generating...</span>
+                  </div>
+                ) : livePreviewUrl ? (
+                  <div className="flex items-center gap-3">
+                    <Eye className="h-5 w-5" />
+                    <span>View Full QR Code</span>
                   </div>
                 ) : (
                   <div className="flex items-center gap-3">
                     <QrCode className="h-5 w-5" />
-                    <span>✨ Generate QR Code</span>
+                    <span>Generate QR Code</span>
                   </div>
                 )}
               </Button>
@@ -376,32 +533,49 @@ const GenerateQRCodePageComponent = function GenerateQRCodePage() {
           <div className="hidden lg:block bg-white/90 backdrop-blur-xl rounded-3xl shadow-2xl border border-gray-200 p-8">
             <div className="space-y-6">
               <div className="text-center">
-                <h2 className="text-2xl font-bold bg-gradient-to-r from-gray-800 to-black bg-clip-text text-transparent mb-2">
-                  ✨ Your QR Code
+                <h2 className="text-2xl font-bold bg-gradient-to-r from-gray-800 to-black bg-clip-text text-transparent mb-2 flex items-center justify-center gap-2">
+                  <Sparkles className="w-6 h-6 text-gray-600" /> Live Preview
                 </h2>
                 <p className="text-gray-600">
-                  {qrCodeUrl ? 'Ready to share!' : 'Generate a QR code to preview it here'}
+                  {livePreviewUrl ? 'Updates as you type!' : (inputText.trim() ? 'Generating preview...' : 'Type something to see live preview')}
                 </p>
               </div>
 
-              {qrCodeUrl ? (
+              {livePreviewUrl || isLiveGenerating ? (
                 <div className="space-y-6">
                   {/* QR Code Display */}
                   <div className="flex justify-center">
                     <div className="relative group">
                       <div className="absolute -inset-2 bg-gradient-to-r from-gray-400 via-gray-300 to-gray-500 rounded-3xl blur-lg opacity-20 group-hover:opacity-30 transition-opacity duration-500 animate-pulse"></div>
                       <div className="relative bg-white p-8 rounded-3xl shadow-2xl border border-gray-100">
-                        <Image
-                          src={qrCodeUrl}
-                          alt="Generated QR Code"
-                          width={280}
-                          height={280}
-                          className="w-full h-auto rounded-2xl transition-transform duration-300 hover:scale-105"
-                          unoptimized={true}
-                        />
-                        <div className="absolute -top-3 -right-3 w-6 h-6 bg-gradient-to-r from-gray-600 to-gray-800 rounded-full flex items-center justify-center shadow-lg animate-bounce">
-                          <span className="text-white text-xs font-bold">✓</span>
-                        </div>
+                        {isLiveGenerating && !livePreviewUrl ? (
+                          <div className="w-[280px] h-[280px] flex items-center justify-center">
+                            <Loader2 className="h-12 w-12 animate-spin text-gray-600" />
+                          </div>
+                        ) : livePreviewUrl ? (
+                          <Image
+                            src={livePreviewUrl}
+                            alt="Live QR Code Preview"
+                            width={280}
+                            height={280}
+                            className={`w-full h-auto rounded-2xl transition-all duration-300 hover:scale-105 ${isLiveGenerating ? 'opacity-70' : 'opacity-100'}`}
+                            unoptimized={true}
+                          />
+                        ) : (
+                          <div className="w-[280px] h-[280px] flex items-center justify-center text-gray-400">
+                            <QrCode className="h-16 w-16" />
+                          </div>
+                        )}
+                        {livePreviewUrl && (
+                          <div className="absolute -top-3 -right-3 w-6 h-6 bg-gradient-to-r from-green-500 to-green-600 rounded-full flex items-center justify-center shadow-lg">
+                            <CheckCircle className="w-4 h-4 text-white" />
+                          </div>
+                        )}
+                        {isLiveGenerating && livePreviewUrl && (
+                          <div className="absolute -top-3 -left-3 w-6 h-6 bg-gradient-to-r from-blue-500 to-blue-600 rounded-full flex items-center justify-center shadow-lg">
+                            <div className="w-2 h-2 bg-white rounded-full animate-pulse"></div>
+                          </div>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -409,87 +583,92 @@ const GenerateQRCodePageComponent = function GenerateQRCodePage() {
                   {/* Action Buttons */}
                   <div className="grid grid-cols-1 gap-3">
                     <Button
-                      onClick={downloadQRCode}
-                      className="w-full h-12 bg-gradient-to-r from-gray-700 to-gray-900 hover:from-gray-800 hover:to-black text-white rounded-2xl shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-[1.02]"
+                      onClick={handleLivePreviewDownload}
+                      disabled={!livePreviewUrl || isLiveGenerating}
+                      className="w-full h-12 bg-gradient-to-r from-gray-700 to-gray-900 hover:from-gray-800 hover:to-black text-white rounded-2xl shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-[1.02] disabled:opacity-50 disabled:hover:scale-100"
                     >
                       <div className="flex items-center gap-2">
                         <Download className="h-4 w-4" />
-                        <span className="font-medium">💾 Download PNG</span>
+                        <span className="font-medium">Download {outputFormat.toUpperCase()}</span>
                       </div>
                     </Button>
                     
                     <Button
-                      onClick={copyToClipboard}
+                      onClick={handleLivePreviewCopy}
+                      disabled={!livePreviewUrl || isLiveGenerating}
                       variant="outline"
-                      className="w-full h-12 border-2 border-gray-200 hover:border-gray-300 hover:bg-gray-50 rounded-2xl transition-all duration-200 transform hover:scale-[1.02]"
+                      className="w-full h-12 border-2 border-gray-200 hover:border-gray-300 hover:bg-gray-50 rounded-2xl transition-all duration-200 transform hover:scale-[1.02] disabled:opacity-50 disabled:hover:scale-100"
                     >
                       <div className="flex items-center gap-2">
                         <Copy className="h-4 w-4 text-gray-600" />
-                        <span className="font-medium text-gray-700">📋 Copy to Clipboard</span>
+                        <span className="font-medium text-gray-700">Copy to Clipboard</span>
                       </div>
                     </Button>
                     
                     {typeof navigator !== 'undefined' && 'share' in navigator && (
                       <Button
-                        onClick={shareQRCode}
+                        onClick={handleLivePreviewShare}
+                        disabled={!livePreviewUrl || isLiveGenerating}
                         variant="outline"
-                        className="w-full h-12 border-2 border-gray-300 hover:border-gray-400 hover:bg-gray-100 rounded-2xl transition-all duration-200 transform hover:scale-[1.02]"
+                        className="w-full h-12 border-2 border-gray-300 hover:border-gray-400 hover:bg-gray-100 rounded-2xl transition-all duration-200 transform hover:scale-[1.02] disabled:opacity-50 disabled:hover:scale-100"
                       >
                         <div className="flex items-center gap-2">
                           <Share className="h-4 w-4 text-gray-600" />
-                          <span className="font-medium text-gray-700">🚀 Share QR Code</span>
+                          <span className="font-medium text-gray-700">Share QR Code</span>
                         </div>
                       </Button>
                     )}
                   </div>
                   
                   {/* QR Code Details */}
-                  <div className="bg-gradient-to-r from-gray-50/80 to-gray-100/50 rounded-2xl p-6 border border-gray-100">
-                    <h4 className="font-semibold text-gray-800 text-center mb-4 text-lg">
-                      📊 QR Code Information
-                    </h4>
-                    <div className="space-y-3">
-                      <div className="flex justify-between items-center p-3 bg-white/70 rounded-xl">
-                        <span className="text-gray-600 font-medium text-sm">📝 Content:</span>
-                        <span className="font-semibold text-gray-800 text-sm max-w-[60%] text-right truncate">
-                          {inputText.length > 25 ? `${inputText.substring(0, 25)}...` : inputText}
-                        </span>
-                      </div>
-                      <div className="flex justify-between items-center p-3 bg-white/70 rounded-xl">
-                        <span className="text-gray-600 font-medium text-sm">📐 Size:</span>
-                        <span className="font-semibold text-gray-800 text-sm">{size}×{size}px</span>
-                      </div>
-                      <div className="flex justify-between items-center p-3 bg-white/70 rounded-xl">
-                        <span className="text-gray-600 font-medium text-sm">🛡️ Error Correction:</span>
-                        <span className="font-semibold text-gray-800 text-sm">
-                          {errorCorrectionLevel === 'L' && '🔧 Low (7%)'}
-                          {errorCorrectionLevel === 'M' && '⚡ Medium (15%)'}
-                          {errorCorrectionLevel === 'Q' && '🔒 Quartile (25%)'}
-                          {errorCorrectionLevel === 'H' && '🛡️ High (30%)'}
-                        </span>
-                      </div>
-                      <div className="flex justify-between items-center p-3 bg-white/70 rounded-xl">
-                        <span className="text-gray-600 font-medium text-sm">🎨 Colors:</span>
-                        <div className="flex gap-3 items-center">
-                          <div className="flex items-center gap-2">
-                            <div 
-                              className="w-5 h-5 rounded-full border-2 border-gray-300 shadow-sm" 
-                              style={{ backgroundColor: foregroundColor }}
-                            />
-                            <span className="text-xs text-gray-500 font-mono">{foregroundColor}</span>
-                          </div>
-                          <div className="w-1 h-1 bg-gray-400 rounded-full"></div>
-                          <div className="flex items-center gap-2">
-                            <div 
-                              className="w-5 h-5 rounded-full border-2 border-gray-300 shadow-sm" 
-                              style={{ backgroundColor: backgroundColor }}
-                            />
-                            <span className="text-xs text-gray-500 font-mono">{backgroundColor}</span>
+                  {livePreviewUrl && (
+                    <div className="bg-gradient-to-r from-gray-50/80 to-gray-100/50 rounded-2xl p-6 border border-gray-100">
+                      <h4 className="font-semibold text-gray-800 text-center mb-4 text-lg flex items-center justify-center gap-2">
+                        <Eye className="w-5 h-5 text-gray-600" /> Live Preview Info
+                      </h4>
+                      <div className="space-y-3">
+                        <div className="flex justify-between items-center p-3 bg-white/70 rounded-xl">
+                          <span className="text-gray-600 font-medium text-sm flex items-center gap-2"><Type className="w-4 h-4" /> Content:</span>
+                          <span className="font-semibold text-gray-800 text-sm max-w-[60%] text-right truncate">
+                            {inputText.length > 25 ? `${inputText.substring(0, 25)}...` : inputText}
+                          </span>
+                        </div>
+                        <div className="flex justify-between items-center p-3 bg-white/70 rounded-xl">
+                          <span className="text-gray-600 font-medium text-sm flex items-center gap-2"><Monitor className="w-4 h-4" /> Size:</span>
+                          <span className="font-semibold text-gray-800 text-sm">{size}×{size}px</span>
+                        </div>
+                        <div className="flex justify-between items-center p-3 bg-white/70 rounded-xl">
+                          <span className="text-gray-600 font-medium text-sm flex items-center gap-2"><Shield className="w-4 h-4" /> Error Correction:</span>
+                          <span className="font-semibold text-gray-800 text-sm">
+                            {errorCorrectionLevel === 'L' && <span className="flex items-center gap-1"><Wrench className="w-4 h-4" /> Low (7%)</span>}
+                            {errorCorrectionLevel === 'M' && <span className="flex items-center gap-1"><Zap className="w-4 h-4" /> Medium (15%)</span>}
+                            {errorCorrectionLevel === 'Q' && <span className="flex items-center gap-1"><Lock className="w-4 h-4" /> Quartile (25%)</span>}
+                            {errorCorrectionLevel === 'H' && <span className="flex items-center gap-1"><Shield className="w-4 h-4" /> High (30%)</span>}
+                          </span>
+                        </div>
+                        <div className="flex justify-between items-center p-3 bg-white/70 rounded-xl">
+                          <span className="text-gray-600 font-medium text-sm flex items-center gap-2"><Palette className="w-4 h-4" /> Colors:</span>
+                          <div className="flex gap-3 items-center">
+                            <div className="flex items-center gap-2">
+                              <div 
+                                className="w-5 h-5 rounded-full border-2 border-gray-300 shadow-sm" 
+                                style={{ backgroundColor: foregroundColor }}
+                              />
+                              <span className="text-xs text-gray-500 font-mono">{foregroundColor}</span>
+                            </div>
+                            <div className="w-1 h-1 bg-gray-400 rounded-full"></div>
+                            <div className="flex items-center gap-2">
+                              <div 
+                                className="w-5 h-5 rounded-full border-2 border-gray-300 shadow-sm" 
+                                style={{ backgroundColor: backgroundColor }}
+                              />
+                              <span className="text-xs text-gray-500 font-mono">{backgroundColor}</span>
+                            </div>
                           </div>
                         </div>
                       </div>
                     </div>
-                  </div>
+                  )}
                 </div>
               ) : (
                 <div className="flex flex-col items-center justify-center h-96 text-gray-500">
@@ -500,7 +679,7 @@ const GenerateQRCodePageComponent = function GenerateQRCodePage() {
                     </div>
                   </div>
                   <div className="text-center space-y-3 max-w-sm">
-                    <h3 className="text-xl font-semibold text-gray-700">🎯 Ready to Generate</h3>
+                    <h3 className="text-xl font-semibold text-gray-700 flex items-center justify-center gap-2"><QrCode className="w-5 h-5" /> Ready to Generate</h3>
                     <p className="text-gray-500 leading-relaxed">
                       Enter your content on the left and click the generate button to create your personalized QR code.
                     </p>
@@ -537,8 +716,8 @@ const GenerateQRCodePageComponent = function GenerateQRCodePage() {
           <div className="flex-shrink-0">
             <SheetHeader className="pb-4 pt-2">
               <div className="w-12 h-1.5 bg-gray-300 rounded-full mx-auto mb-4 opacity-60" />
-              <SheetTitle className="text-center text-2xl font-bold bg-gradient-to-r from-gray-800 via-gray-600 to-black bg-clip-text text-transparent">
-                🎉 QR Code Generated!
+              <SheetTitle className="text-center text-2xl font-bold bg-gradient-to-r from-gray-800 via-gray-600 to-black bg-clip-text text-transparent flex items-center justify-center gap-2">
+                <CheckCircle className="w-6 h-6 text-green-600" /> QR Code Generated!
               </SheetTitle>
               <SheetDescription className="text-center text-gray-600 text-base">
                 Your QR code is ready to use. Scan, share, or download it below.
@@ -563,8 +742,8 @@ const GenerateQRCodePageComponent = function GenerateQRCodePage() {
                         className="w-full max-w-xs h-auto rounded-2xl shadow-lg"
                         unoptimized={true}
                       />
-                      <div className="absolute -top-3 -right-3 w-6 h-6 bg-gradient-to-br from-gray-600 to-gray-800 rounded-full flex items-center justify-center shadow-lg animate-bounce">
-                        <div className="w-2 h-2 bg-white rounded-full" />
+                      <div className="absolute -top-3 -right-3 w-6 h-6 bg-gradient-to-br from-green-500 to-green-600 rounded-full flex items-center justify-center shadow-lg">
+                        <CheckCircle className="w-4 h-4 text-white" />
                       </div>
                     </div>
                   </div>
@@ -601,24 +780,24 @@ const GenerateQRCodePageComponent = function GenerateQRCodePage() {
 
                 {/* QR Code Details */}
                 <div className="bg-gradient-to-r from-gray-50/80 to-gray-100/60 backdrop-blur-sm rounded-2xl p-5 mx-4 border border-gray-100">
-                  <h4 className="font-semibold text-gray-800 text-center mb-4 text-lg">QR Code Details</h4>
+                  <h4 className="font-semibold text-gray-800 text-center mb-4 text-lg flex items-center justify-center gap-2"><Eye className="w-5 h-5 text-gray-600" /> QR Code Details</h4>
                   <div className="space-y-3">
                     <div className="flex justify-between items-center p-3 bg-white/60 rounded-xl backdrop-blur-sm">
-                      <span className="text-gray-500 text-sm font-medium">Data:</span>
+                      <span className="text-gray-500 text-sm font-medium flex items-center gap-2"><Type className="w-4 h-4" /> Data:</span>
                       <span className="font-medium text-gray-800 text-sm break-all text-right max-w-[60%]">
                         {inputText.length > 30 ? `${inputText.substring(0, 30)}...` : inputText}
                       </span>
                     </div>
                     <div className="flex justify-between items-center p-3 bg-white/60 rounded-xl backdrop-blur-sm">
-                      <span className="text-gray-500 text-sm font-medium">Size:</span>
+                      <span className="text-gray-500 text-sm font-medium flex items-center gap-2"><Monitor className="w-4 h-4" /> Size:</span>
                       <span className="font-medium text-gray-800 text-sm">{size}×{size}px</span>
                     </div>
                     <div className="flex justify-between items-center p-3 bg-white/60 rounded-xl backdrop-blur-sm">
-                      <span className="text-gray-500 text-sm font-medium">Error Correction:</span>
+                      <span className="text-gray-500 text-sm font-medium flex items-center gap-2"><Shield className="w-4 h-4" /> Error Correction:</span>
                       <span className="font-medium text-gray-800 text-sm">{errorCorrectionLevel}</span>
                     </div>
                     <div className="flex justify-between items-center p-3 bg-white/60 rounded-xl backdrop-blur-sm">
-                      <span className="text-gray-500 text-sm font-medium">Colors:</span>
+                      <span className="text-gray-500 text-sm font-medium flex items-center gap-2"><Palette className="w-4 h-4" /> Colors:</span>
                       <div className="flex gap-2 items-center">
                         <div className="flex items-center gap-1">
                           <div 

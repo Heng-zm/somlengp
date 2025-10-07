@@ -9,8 +9,6 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { cn } from '@/lib/utils';
 import { useIntersectionObserver } from '@/lib/performance';
 
-// Lazy load the AI Assistant Widget
-const AIAssistantWidget = lazy(() => import('@/components/shared/ai-assistant-widget').then(mod => ({ default: mod.AIAssistantWidget })));
 // Memory leak prevention: Observers need cleanup
 // Add cleanup in useEffect return function
 
@@ -267,10 +265,6 @@ export const OptimizedFeatureGrid = memo(function OptimizedFeatureGrid({
         />
       </div>
 
-      {/* Floating AI Assistant Widget */}
-      <Suspense fallback={null}>
-        <AIAssistantWidget />
-      </Suspense>
     </>
   );
 });

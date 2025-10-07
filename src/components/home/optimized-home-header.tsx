@@ -13,7 +13,6 @@ const SheetHeader = lazy(() => import('@/components/ui/sheet').then(mod => ({ de
 const SheetTitle = lazy(() => import('@/components/ui/sheet').then(mod => ({ default: mod.SheetTitle })));
 const SheetTrigger = lazy(() => import('@/components/ui/sheet').then(mod => ({ default: mod.SheetTrigger })));
 const Sidebar = lazy(() => import('@/components/shared/sidebar').then(mod => ({ default: mod.Sidebar })));
-const AuthFormsHomeOnly = lazy(() => import('@/components/auth/auth-forms-home-only').then(mod => ({ default: mod.AuthFormsHomeOnly })));
 
 interface HomeHeaderProps {
   visitorCount: number | null;
@@ -128,11 +127,6 @@ export const OptimizedHomeHeader = memo(function OptimizedHomeHeader({
       
       {/* Right side - Auth and Theme toggle */}
       <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
-        <div className="flex items-center">
-          <Suspense fallback={<div className="w-20 h-8" />}>
-            <AuthFormsHomeOnly />
-          </Suspense>
-        </div>
         <ThemeToggleButton theme={theme} onToggle={handleThemeToggle} />
       </div>
     </header>

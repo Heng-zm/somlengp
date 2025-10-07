@@ -5,7 +5,6 @@ import './globals.css';
 import { GoogleAnalytics } from '@next/third-parties/google'; // Keep this import
 import { Analytics } from '@vercel/analytics/next';
 import { AppLayout } from '@/layouts/app-layout';
-import { AuthProvider } from '@/contexts/auth-context';
 import { PerformanceOverlay } from '@/components/shared/performance-dashboard';
 import { LanguageProvider } from '@/components/providers/language-provider';
 import { Kantumruy_Pro } from 'next/font/google';
@@ -89,11 +88,9 @@ export default function RootLayout({
 
         
         <LanguageProvider>
-          <AuthProvider>
-            <AppLayout>
-              {children}
-            </AppLayout>
-          </AuthProvider>
+          <AppLayout>
+            {children}
+          </AppLayout>
         </LanguageProvider>
         <Toaster />
         <Analytics />

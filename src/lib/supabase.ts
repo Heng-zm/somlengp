@@ -41,13 +41,6 @@ function initializeSupabase(): SupabaseClient<Database> {
       validateSupabaseConfig();
       
       _supabaseInstance = createClient<Database>(supabaseUrl, supabaseAnonKey, {
-        auth: {
-          autoRefreshToken: true,
-          persistSession: true,
-          detectSessionInUrl: false, // Disabled to prevent automatic callback handling
-          storageKey: 'supabase-auth-token',
-          storage: typeof window !== 'undefined' ? window.localStorage : undefined,
-        },
         realtime: {
           params: {
             eventsPerSecond: 10,
@@ -98,44 +91,6 @@ export function getSupabaseStatus(): {
   };
 }
 
-// Helper function for authenticated operations
-export async function getSupabaseSession() {
-  const { data: { session }, error } = await supabaseClient.auth.getSession();
-  
-  if (error) {
-    console.error('Error getting Supabase session:', error);
-    return null;
-  }
-  
-  return session;
-}
 
-// Helper function for getting current user
-export async function getSupabaseUser() {
-  const { data: { user }, error } = await supabaseClient.auth.getUser();
-  
-  if (error) {
-    console.error('Error getting Supabase user:', error);
-    return null;
-  }
-  
-  return user;
-}
-
-// Server-side Supabase client (for API routes and server components)
-export function createServerSupabaseClient() {
-  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-  
-  if (!serviceRoleKey) {
-    throw new Error('SUPABASE_SERVICE_ROLE_KEY is required for server-side operations');
-  }
-  
-  return createClient<Database>(supabaseUrl, serviceRoleKey, {
-    auth: {
-      autoRefreshToken: false,
-      persistSession: false,
-    },
-  });
-}
 
 export default supabaseClient;

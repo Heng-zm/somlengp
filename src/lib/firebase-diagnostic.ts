@@ -116,9 +116,9 @@ export class SupabaseDiagnostic {
   private async testDatabaseConnection(): Promise<void> {
     try {
       // Test basic database connection by trying to query a simple table
-      const { data, error } = await supabaseClient.from('profiles').select('id').limit(1);
+      const { data, error } = await supabaseClient.from('visits').select('id').limit(1);
       
-      if (error && !error.message.includes('relation "profiles" does not exist')) {
+      if (error && !error.message.includes('relation "visits" does not exist')) {
         throw error;
       }
       

@@ -9,52 +9,12 @@ export type Json =
 export interface Database {
   public: {
     Tables: {
-      profiles: {
-        Row: {
-          id: string
-          created_at: string
-          updated_at: string
-          email: string
-          full_name: string | null
-          avatar_url: string | null
-          role: 'user' | 'admin'
-          phone: string | null
-          bio: string | null
-          preferences: Json | null
-        }
-        Insert: {
-          id?: string
-          created_at?: string
-          updated_at?: string
-          email: string
-          full_name?: string | null
-          avatar_url?: string | null
-          role?: 'user' | 'admin'
-          phone?: string | null
-          bio?: string | null
-          preferences?: Json | null
-        }
-        Update: {
-          id?: string
-          created_at?: string
-          updated_at?: string
-          email?: string
-          full_name?: string | null
-          avatar_url?: string | null
-          role?: 'user' | 'admin'
-          phone?: string | null
-          bio?: string | null
-          preferences?: Json | null
-        }
-        Relationships: []
-      }
       comments: {
         Row: {
           id: string
           created_at: string
           updated_at: string
           content: string
-          author_id: string
           author_name: string
           author_email: string
           page_path: string
@@ -69,7 +29,6 @@ export interface Database {
           created_at?: string
           updated_at?: string
           content: string
-          author_id?: string
           author_name: string
           author_email: string
           page_path: string
@@ -84,7 +43,6 @@ export interface Database {
           created_at?: string
           updated_at?: string
           content?: string
-          author_id?: string
           author_name?: string
           author_email?: string
           page_path?: string
@@ -95,13 +53,6 @@ export interface Database {
           metadata?: Json | null
         }
         Relationships: [
-          {
-            foreignKeyName: "comments_author_id_fkey"
-            columns: ["author_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
           {
             foreignKeyName: "comments_parent_id_fkey"
             columns: ["parent_id"]

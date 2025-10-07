@@ -1,7 +1,12 @@
 'use client';
 
 import { useState, useCallback, useEffect, useMemo, memo } from 'react';
-import { Copy, RefreshCw, Shield, Check, Eye, EyeOff, History, Download, Trash2, Settings, Sparkles, Lock, Key, Zap, MoreHorizontal, ChevronDown } from 'lucide-react' // TODO: Consider importing icons individually for better tree shaking;
+import { 
+  Copy, RefreshCw, Shield, Check, Eye, EyeOff, History, Download, Trash2, 
+  Settings, Sparkles, Lock, Key, Zap, MoreHorizontal, ChevronDown,
+  Hash, Type, FileText, Activity, Timer, TrendingUp, AlertTriangle,
+  CheckCircle2, Target, Layers, MousePointer, RotateCcw, Info
+} from 'lucide-react';
 import { FeaturePageLayout } from '@/layouts/feature-page-layout';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -276,7 +281,8 @@ const PasswordGeneratorPageComponent = function PasswordGeneratorPage() {
       id: 'uppercase',
       label: 'Uppercase',
       description: 'A-Z',
-      icon: 'Aa',
+      icon: <Type className="w-3 h-3" />,
+      textIcon: 'A',
       color: 'blue',
       checked: options.includeUppercase,
       onChange: (checked: boolean) => setOptions(prev => ({ ...prev, includeUppercase: checked }))
@@ -285,7 +291,8 @@ const PasswordGeneratorPageComponent = function PasswordGeneratorPage() {
       id: 'lowercase',
       label: 'Lowercase',
       description: 'a-z',
-      icon: 'abc',
+      icon: <Type className="w-3 h-3" />,
+      textIcon: 'a',
       color: 'green',
       checked: options.includeLowercase,
       onChange: (checked: boolean) => setOptions(prev => ({ ...prev, includeLowercase: checked }))
@@ -294,7 +301,8 @@ const PasswordGeneratorPageComponent = function PasswordGeneratorPage() {
       id: 'numbers',
       label: 'Numbers',
       description: '0-9',
-      icon: '123',
+      icon: <Hash className="w-3 h-3" />,
+      textIcon: '1',
       color: 'orange',
       checked: options.includeNumbers,
       onChange: (checked: boolean) => setOptions(prev => ({ ...prev, includeNumbers: checked }))
@@ -303,7 +311,8 @@ const PasswordGeneratorPageComponent = function PasswordGeneratorPage() {
       id: 'symbols',
       label: 'Symbols',
       description: '!@#$%',
-      icon: '!@#',
+      icon: <Hash className="w-3 h-3" />,
+      textIcon: '#',
       color: 'purple',
       checked: options.includeSymbols,
       onChange: (checked: boolean) => setOptions(prev => ({ ...prev, includeSymbols: checked }))
@@ -433,23 +442,37 @@ const PasswordGeneratorPageComponent = function PasswordGeneratorPage() {
             {password && (
               <div className="border rounded-lg p-4">
                 <div className="flex items-center justify-between mb-3">
-                  <span className="text-sm font-medium">Password Strength</span>
+                  <div className="flex items-center gap-2">
+                    <Activity className="w-4 h-4 text-gray-600" />
+                    <span className="text-sm font-medium">Password Strength</span>
+                  </div>
                   <Badge 
                     variant={passwordStrength >= 80 ? "default" : passwordStrength >= 60 ? "secondary" : passwordStrength >= 30 ? "outline" : "destructive"}
                     className={cn(
+                      "flex items-center gap-1",
                       passwordStrength >= 80 ? "bg-gray-800 text-white" :
                       passwordStrength >= 60 ? "bg-gray-600 text-white" :
                       passwordStrength >= 30 ? "bg-gray-400 text-gray-900" :
                       "bg-gray-900 text-white"
                     )}
                   >
+                    {passwordStrength >= 80 ? <CheckCircle2 className="w-3 h-3" /> :
+                     passwordStrength >= 60 ? <Target className="w-3 h-3" /> :
+                     passwordStrength >= 30 ? <TrendingUp className="w-3 h-3" /> :
+                     <AlertTriangle className="w-3 h-3" />}
                     {strengthInfo.label}
                   </Badge>
                 </div>
                 <Progress value={passwordStrength} className="h-2" />
                 <div className="flex justify-between items-center text-xs text-muted-foreground mt-2">
-                  <span>Security Score: {passwordStrength}/100</span>
-                  <span>{password.length} characters</span>
+                  <div className="flex items-center gap-1">
+                    <Shield className="w-3 h-3" />
+                    <span>Security Score: {passwordStrength}/100</span>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <FileText className="w-3 h-3" />
+                    <span>{password.length} characters</span>
+                  </div>
                 </div>
               </div>
             )}
@@ -479,8 +502,12 @@ const PasswordGeneratorPageComponent = function PasswordGeneratorPage() {
               {/* Length Slider */}
               <div className="space-y-4 mb-6">
                 <div className="flex items-center justify-between">
-                  <Label className="text-base font-semibold text-slate-700 dark:text-slate-200">Password Length</Label>
-                  <Badge className="bg-gray-100 dark:bg-gray-800/30 text-gray-800 dark:text-gray-200 px-3 py-1 rounded-full font-semibold border-0">
+                  <div className="flex items-center gap-2">
+                    <Layers className="w-4 h-4 text-gray-600" />
+                    <Label className="text-base font-semibold text-slate-700 dark:text-slate-200">Password Length</Label>
+                  </div>
+                  <Badge className="bg-gray-100 dark:bg-gray-800/30 text-gray-800 dark:text-gray-200 px-3 py-1 rounded-full font-semibold border-0 flex items-center gap-1">
+                    <FileText className="w-3 h-3" />
                     {options.length} characters
                   </Badge>
                 </div>
@@ -495,17 +522,30 @@ const PasswordGeneratorPageComponent = function PasswordGeneratorPage() {
                   />
                 </div>
                 <div className="flex justify-between text-xs text-slate-500 dark:text-slate-400 px-3">
-                  <span>Weak (4)</span>
-                  <span>Strong (32)</span>
-                  <span>Ultra (128)</span>
+                  <div className="flex items-center gap-1">
+                    <AlertTriangle className="w-3 h-3" />
+                    <span>Weak (4)</span>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <Target className="w-3 h-3" />
+                    <span>Strong (32)</span>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <CheckCircle2 className="w-3 h-3" />
+                    <span>Ultra (128)</span>
+                  </div>
                 </div>
               </div>
 
               {/* Character Types - Dropdown Select Interface */}
               <div className="space-y-4 mb-6">
                 <div className="flex items-center justify-between">
-                  <Label className="text-base font-semibold text-slate-700 dark:text-slate-200">Character Types</Label>
-                  <Badge className="bg-gray-100 dark:bg-gray-800/30 text-gray-800 dark:text-gray-200 px-3 py-1 rounded-full font-semibold border-0">
+                  <div className="flex items-center gap-2">
+                    <MousePointer className="w-4 h-4 text-gray-600" />
+                    <Label className="text-base font-semibold text-slate-700 dark:text-slate-200">Character Types</Label>
+                  </div>
+                  <Badge className="bg-gray-100 dark:bg-gray-800/30 text-gray-800 dark:text-gray-200 px-3 py-1 rounded-full font-semibold border-0 flex items-center gap-1">
+                    <CheckCircle2 className="w-3 h-3" />
                     {characterTypes.filter(type => type.checked).length} selected
                   </Badge>
                 </div>
@@ -526,7 +566,7 @@ const PasswordGeneratorPageComponent = function PasswordGeneratorPage() {
                                 "bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300"
                               )}
                             >
-                              {type.icon}
+                              {type.textIcon}
                             </div>
                           ))}
                         </div>
@@ -551,11 +591,11 @@ const PasswordGeneratorPageComponent = function PasswordGeneratorPage() {
                             <div className="flex items-center gap-3">
                               <div 
                                 className={cn(
-                                  "w-8 h-8 rounded-lg flex items-center justify-center text-xs font-bold",
+                                  "w-8 h-8 rounded-lg flex items-center justify-center text-sm font-bold",
                                   "bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300"
                                 )}
                               >
-                                {type.icon}
+                                {type.textIcon}
                               </div>
                               <div>
                                 <div className="text-sm font-medium text-slate-700 dark:text-slate-200">{type.label}</div>
@@ -598,15 +638,20 @@ const PasswordGeneratorPageComponent = function PasswordGeneratorPage() {
                   <div className="w-full h-px bg-gradient-to-r from-transparent via-slate-300 dark:via-slate-600 to-transparent mb-6"></div>
                   <div className="space-y-6 mb-6">
                     <h4 className="text-base font-semibold text-slate-700 dark:text-slate-200 flex items-center gap-2">
-                      <Sparkles className="w-4 h-4 text-gray-600" />
+                      <Settings className="w-4 h-4 text-gray-600" />
                       Advanced Options
                     </h4>
                     
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <div className="flex items-center justify-between p-3 bg-slate-50/50 dark:bg-slate-900/50 rounded-xl border border-slate-200/50 dark:border-slate-700/50">
-                        <div>
-                          <Label htmlFor="excludeSimilar" className="text-sm font-medium text-slate-700 dark:text-slate-200">Exclude Similar</Label>
-                          <p className="text-xs text-slate-500 dark:text-slate-400">Remove: il1Lo0O</p>
+                        <div className="flex items-start gap-3">
+                          <div className="w-8 h-8 bg-gray-200 dark:bg-gray-700 rounded-lg flex items-center justify-center mt-0.5">
+                            <Eye className="w-4 h-4 text-gray-600 dark:text-gray-300" />
+                          </div>
+                          <div>
+                            <Label htmlFor="excludeSimilar" className="text-sm font-medium text-slate-700 dark:text-slate-200 flex items-center gap-2">Exclude Similar</Label>
+                            <p className="text-xs text-slate-500 dark:text-slate-400">Remove: il1Lo0O</p>
+                          </div>
                         </div>
                         <Switch
                           id="excludeSimilar"
@@ -616,9 +661,14 @@ const PasswordGeneratorPageComponent = function PasswordGeneratorPage() {
                       </div>
                       
                       <div className="flex items-center justify-between p-3 bg-slate-50/50 dark:bg-slate-900/50 rounded-xl border border-slate-200/50 dark:border-slate-700/50">
-                        <div>
-                          <Label htmlFor="excludeAmbiguous" className="text-sm font-medium text-slate-700 dark:text-slate-200">Exclude Ambiguous</Label>
-                          <p className="text-xs text-slate-500 dark:text-slate-400">Remove: {`{}[]()`}</p>
+                        <div className="flex items-start gap-3">
+                          <div className="w-8 h-8 bg-gray-200 dark:bg-gray-700 rounded-lg flex items-center justify-center mt-0.5">
+                            <AlertTriangle className="w-4 h-4 text-gray-600 dark:text-gray-300" />
+                          </div>
+                          <div>
+                            <Label htmlFor="excludeAmbiguous" className="text-sm font-medium text-slate-700 dark:text-slate-200 flex items-center gap-2">Exclude Ambiguous</Label>
+                            <p className="text-xs text-slate-500 dark:text-slate-400">Remove: {`{}[]()`}</p>
+                          </div>
                         </div>
                         <Switch
                           id="excludeAmbiguous"
@@ -629,14 +679,20 @@ const PasswordGeneratorPageComponent = function PasswordGeneratorPage() {
                     </div>
                     
                     <div className="space-y-3">
-                      <Label htmlFor="customChars" className="text-sm font-semibold text-slate-700 dark:text-slate-200">Custom Characters</Label>
-                      <Input
-                        id="customChars"
-                        value={options.customChars}
-                        onChange={(e) => setOptions(prev => ({ ...prev, customChars: e.target.value }))}
-                        placeholder="Add your own characters..."
-                        className="px-4 py-2 bg-slate-50/50 dark:bg-slate-900/50 border-slate-200/50 dark:border-slate-700/50 rounded-xl focus:ring-2 focus:ring-gray-500/20 focus:border-gray-400 transition-all"
-                      />
+                      <div className="flex items-center gap-2">
+                        <Type className="w-4 h-4 text-gray-600" />
+                        <Label htmlFor="customChars" className="text-sm font-semibold text-slate-700 dark:text-slate-200">Custom Characters</Label>
+                      </div>
+                      <div className="relative">
+                        <Input
+                          id="customChars"
+                          value={options.customChars}
+                          onChange={(e) => setOptions(prev => ({ ...prev, customChars: e.target.value }))}
+                          placeholder="Add your own characters..."
+                          className="px-4 py-2 pl-10 bg-slate-50/50 dark:bg-slate-900/50 border-slate-200/50 dark:border-slate-700/50 rounded-xl focus:ring-2 focus:ring-gray-500/20 focus:border-gray-400 transition-all"
+                        />
+                        <Hash className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 transform -translate-y-1/2" />
+                      </div>
                     </div>
                   </div>
                 </>
@@ -721,10 +777,16 @@ const PasswordGeneratorPageComponent = function PasswordGeneratorPage() {
             <div className="flex-1 overflow-hidden">
               {history.length === 0 ? (
                 <div className="flex flex-col items-center justify-center h-full text-center py-16">
-                  <div className="w-16 h-16 bg-slate-100 dark:bg-slate-800 rounded-2xl mx-auto mb-4 flex items-center justify-center">
+                  <div className="w-16 h-16 bg-slate-100 dark:bg-slate-800 rounded-2xl mx-auto mb-4 flex items-center justify-center relative">
                     <History className="w-8 h-8 text-slate-400" />
+                    <div className="absolute -top-1 -right-1 w-4 h-4 bg-gray-200 dark:bg-gray-700 rounded-full flex items-center justify-center">
+                      <Info className="w-2.5 h-2.5 text-gray-500" />
+                    </div>
                   </div>
-                  <h3 className="text-lg font-semibold text-slate-700 dark:text-slate-200 mb-2">No passwords generated yet</h3>
+                  <h3 className="text-lg font-semibold text-slate-700 dark:text-slate-200 mb-2 flex items-center gap-2 justify-center">
+                    <Timer className="w-4 h-4 text-slate-500" />
+                    No passwords generated yet
+                  </h3>
                   <p className="text-sm text-slate-500 dark:text-slate-400 max-w-sm">Your password history will appear here as you generate new passwords</p>
                 </div>
               ) : (

@@ -1,15 +1,12 @@
 "use client";
 
-import { useState, useEffect, useRef, useCallback, memo } from 'react';
-import { useRouter } from 'next/navigation';
-import { AuthGuard } from '@/components/auth/auth-guard';
-import { useAuth } from '@/contexts/auth-context';
-import { supabaseClient } from '@/lib/supabase';
+import { useState, useEffect, useRef, useCallback, memo, ErrorInfo, Component, Suspense, lazy } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
+import { Card, CardContent } from '@/components/ui/card';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -18,7 +15,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { AIModel } from '@/components/shared/model-selector';
 import {
   Send, 
   Bot, 
@@ -30,39 +26,158 @@ import {
   ArrowLeft,
   Settings,
   ChevronDown,
+  MessageSquare,
+  Zap,
+  Star,
+  Rocket,
+  Clock,
+  Hash,
+  Activity,
+  CheckCircle2,
+  AlertCircle,
+  Info,
+  Loader2,
+  Brain,
+  Lightbulb,
+  Target,
+  MessageCircle,
   FileText,
-  Paperclip,
-  X,
-  Image,
-  File
+  ChevronUp,
+  ChevronDown as ChevronDownIcon,
+  Code2,
+  PlayCircle,
+  ChevronLeft,
+  ChevronRight,
+  ArrowLeft as ArrowLeftIcon,
+  ArrowRight,
+  Code,
+  Database,
+  Terminal,
+  Globe,
+  Cpu,
+  Wrench,
+  Diamond,
+  Gem,
+  Coffee,
+  Gamepad2,
+  Package
 } from 'lucide-react';
-import { showErrorToast, showSuccessToast } from '@/lib/toast-utils';
+import { showSuccessToast } from '@/lib/toast-utils';
 import { cn } from '@/lib/utils';
 import { generateMessageId } from '@/lib/id-utils';
 import { motion, AnimatePresence } from 'framer-motion';
-// Note: framer-motion is used throughout - consider code splitting if bundle size becomes an issue
-import { AIFormat, formatAIResponse } from '@/lib/ai-formatter';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-// Performance: Components already use useCallback and useMemo optimizations
+import Link from 'next/link';
+import ReactMarkdown from 'react-markdown';
+import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
+import { oneDark } from 'react-syntax-highlighter/dist/esm/styles/prism';
 
+/**
+ * Skeleton loader for code blocks
+ */
+const CodeSkeleton = memo(function CodeSkeleton({ lines = 5 }: { lines?: number }) {
+  return (
+    <div className="animate-pulse bg-gray-800 rounded p-4">
+      <div className="space-y-2">
+        {Array.from({ length: lines }).map((_, i) => (
+          <div 
+            key={i}
+            className={`h-4 bg-gray-700 rounded ${
+              i === 0 ? 'w-3/4' : 
+              i === 1 ? 'w-1/2' : 
+              i === lines - 1 ? 'w-2/3' :
+              'w-5/6'
+            }`}
+          />
+        ))}
+      </div>
+    </div>
+  );
+});
 
-interface FileAttachment {
-  name: string;
-  type: string;
-  size: number;
-  content: string; // base64 encoded content
-  url?: string; // preview URL for images
-}
+/**
+ * Lazy loading wrapper for syntax highlighter with loading skeleton
+ */
+const LazyCodeHighlighter = memo(function LazyCodeHighlighter({
+  language,
+  children,
+  customStyle
+}: LazyCodeHighlighterProps) {
+  const lineCount = children.split('\n').length;
+  
+  return (
+    <Suspense fallback={<CodeSkeleton lines={Math.min(lineCount, 10)} />}>
+      <SyntaxHighlighter
+        style={oneDark}
+        language={language}
+        PreTag="div"
+        customStyle={customStyle}
+      >
+        {children}
+      </SyntaxHighlighter>
+    </Suspense>
+  );
+});
+import './ai-assistant.css';
 
 interface Message {
   id: string;
   role: 'user' | 'assistant';
   content: string;
   timestamp: Date;
-  format?: AIFormat; // format used for assistant messages
-  attachments?: FileAttachment[]; // file attachments
+  model?: string;
+  tokens?: TokenUsage;
 }
 
+interface TokenUsage {
+  prompt: number;
+  completion: number;
+  total: number;
+}
+
+interface AIModel {
+  id: string;
+  name: string;
+  displayName: string;
+  description: string;
+  icon: string;
+}
+
+interface CodeOverview {
+  lines: number;
+  functions: number;
+  classes: number;
+  loops: number;
+  complexity: 'Simple' | 'Moderate' | 'Complex';
+  features: string;
+  language: string;
+  icon: React.ReactNode;
+}
+
+interface CodeBlockProps {
+  codeString: string;
+  language: string;
+  isUser: boolean;
+}
+
+interface LazyCodeHighlighterProps {
+  language: string;
+  children: string;
+  customStyle: React.CSSProperties;
+}
+
+interface MessageComponentProps {
+  message: Message;
+}
+
+interface ErrorBoundaryProps {
+  children: React.ReactNode;
+  fallback?: React.ComponentType<{ error: Error }>;
+}
+
+interface ErrorBoundaryState {
+  hasError: boolean;
+  error?: Error;
+}
 
 const AI_MODELS: AIModel[] = [
   {
@@ -70,47 +185,609 @@ const AI_MODELS: AIModel[] = [
     name: 'gemini-1.5-flash',
     displayName: 'Gemini 1.5 Flash',
     description: 'Fast and efficient for most tasks',
-    icon: '⚡'
+    icon: 'Zap'
   },
   {
     id: 'gemini-2.0-flash-exp',
     name: 'gemini-2.0-flash-exp',
     displayName: 'Gemini 2.0 Flash (Experimental)',
     description: 'Latest experimental model with enhanced capabilities',
-    icon: '✨'
+    icon: 'Sparkles'
   },
   {
     id: 'gemini-2.5-flash',
     name: 'gemini-2.5-flash',
     displayName: 'Gemini 2.5 Flash',
-    description: 'Next-generation model with improved performance and capabilities',
-    icon: '🚀'
+    description: 'Next-generation model with improved performance',
+    icon: 'Rocket'
   }
 ];
 
-const AIAssistantPageComponent = function AIAssistantPage() {
-  const { user } = useAuth();
-  const router = useRouter();
+// Helper function to render AI model icons
+const renderModelIcon = (iconName: string) => {
+  const iconProps = { className: "w-4 h-4" };
+  switch (iconName) {
+    case 'Zap':
+      return <Zap {...iconProps} />;
+    case 'Sparkles':
+      return <Sparkles {...iconProps} />;
+    case 'Rocket':
+      return <Rocket {...iconProps} />;
+    default:
+      return <Brain {...iconProps} />;
+  }
+};
+
+/**
+ * Generates code overview statistics and complexity analysis
+ * @param code - The code string to analyze
+ * @param language - The programming language of the code
+ * @returns CodeOverview object with analysis results
+ */
+const generateCodeOverview = (code: string, language: string): CodeOverview => {
+  const lines = code.trim().split('\n').length;
+  const functions = (code.match(/def\s+\w+|function\s+\w+|const\s+\w+\s*=|let\s+\w+\s*=|var\s+\w+\s*=/g) || []).length;
+  const classes = (code.match(/class\s+\w+|interface\s+\w+|type\s+\w+/g) || []).length;
+  const imports = (code.match(/import\s+|from\s+|#include|require\(/g) || []).length;
+  const loops = (code.match(/for\s*\(|while\s*\(|for\s+\w+\s+in|forEach/g) || []).length;
+  
+  const features = [];
+  if (functions > 0) features.push(`${functions} function${functions > 1 ? 's' : ''}`);
+  if (classes > 0) features.push(`${classes} class${classes > 1 ? 'es' : ''}`);
+  if (imports > 0) features.push(`${imports} import${imports > 1 ? 's' : ''}`);
+  if (loops > 0) features.push(`${loops} loop${loops > 1 ? 's' : ''}`);
+  
+  // Estimate complexity
+  let complexity: 'Simple' | 'Moderate' | 'Complex' = 'Simple';
+  const complexityScore = (functions * 2) + (classes * 3) + (loops * 2) + (lines * 0.1);
+  if (complexityScore > 50) complexity = 'Complex';
+  else if (complexityScore > 20) complexity = 'Moderate';
+  
+  // Language-specific insights
+  const getLanguageIcon = (lang: string) => {
+    const iconProps = { className: "w-4 h-4" };
+    switch (lang.toLowerCase()) {
+      case 'python': return <Code2 {...iconProps} />;
+      case 'javascript': return <Zap {...iconProps} />;
+      case 'typescript': return <Code {...iconProps} />;
+      case 'java': return <Coffee {...iconProps} />;
+      case 'cpp': case 'c++': return <Cpu {...iconProps} />;
+      case 'c': return <Wrench {...iconProps} />;
+      case 'go': return <Rocket {...iconProps} />;
+      case 'rust': return <Cpu {...iconProps} />;
+      case 'php': return <Globe {...iconProps} />;
+      case 'ruby': return <Diamond {...iconProps} />;
+      case 'swift': return <Zap {...iconProps} />;
+      case 'kotlin': return <Target {...iconProps} />;
+      case 'html': return <Globe {...iconProps} />;
+      case 'css': return <Sparkles {...iconProps} />;
+      case 'sql': return <Database {...iconProps} />;
+      case 'bash': case 'shell': return <Terminal {...iconProps} />;
+      case 'json': return <Package {...iconProps} />;
+      default: return <FileText {...iconProps} />;
+    }
+  };
+  
+  return {
+    lines,
+    functions,
+    classes,
+    loops,
+    complexity,
+    features: features.length > 0 ? features.join(', ') : 'Code snippet',
+    language: language || 'text',
+    icon: getLanguageIcon(language)
+  };
+};
+
+/**
+ * Error Boundary Component to catch and handle React errors gracefully
+ */
+class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
+  constructor(props: ErrorBoundaryProps) {
+    super(props);
+    this.state = { hasError: false };
+  }
+
+  static getDerivedStateFromError(error: Error) {
+    return { hasError: true, error };
+  }
+
+  componentDidCatch(error: Error, errorInfo: ErrorInfo) {
+    console.error('Error boundary caught an error:', error, errorInfo);
+  }
+
+  render() {
+    if (this.state.hasError) {
+      if (this.props.fallback) {
+        const FallbackComponent = this.props.fallback;
+        return <FallbackComponent error={this.state.error!} />;
+      }
+      
+      return (
+        <div className="flex items-center justify-center p-4 bg-red-50 dark:bg-red-900/10 border border-red-200 dark:border-red-800 rounded-lg">
+          <div className="text-center">
+            <AlertCircle className="w-8 h-8 text-red-500 mx-auto mb-2" />
+            <h3 className="text-sm font-medium text-red-800 dark:text-red-300 mb-1">Something went wrong</h3>
+            <p className="text-xs text-red-600 dark:text-red-400">
+              {this.state.error?.message || 'An unexpected error occurred'}
+            </p>
+            <Button
+              variant="outline"
+              size="sm"
+              className="mt-2 text-xs"
+              onClick={() => this.setState({ hasError: false, error: undefined })}
+            >
+              Try again
+            </Button>
+          </div>
+        </div>
+      );
+    }
+
+    return this.props.children;
+  }
+}
+
+/**
+ * Enhanced Code Block Component with syntax highlighting, overview, and navigation
+ */
+const CodeBlock = memo(function CodeBlock({ 
+  codeString, 
+  language, 
+  isUser 
+}: CodeBlockProps) {
+  const overview = generateCodeOverview(codeString, language);
+  const [showOverview, setShowOverview] = useState(codeString.split('\n').length > 10);
+  const [isExpanded, setIsExpanded] = useState(!showOverview);
+  
+  const copyCode = useCallback(() => {
+    navigator.clipboard.writeText(codeString);
+    showSuccessToast("Code copied to clipboard");
+  }, [codeString]);
+
+  const scrollRef = useRef<HTMLDivElement>(null);
+  
+  const handleKeyNavigation = useCallback((e: React.KeyboardEvent, direction: 'left' | 'right') => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      const scrollContainer = scrollRef.current;
+      if (scrollContainer) {
+        scrollContainer.scrollBy({ 
+          left: direction === 'left' ? -200 : 200, 
+          behavior: 'smooth' 
+        });
+      }
+    }
+  }, []);
+
+  return (
+    <ErrorBoundary>
+      <div className="not-prose my-2 sm:my-4 rounded-lg overflow-hidden border border-gray-700 group w-full max-w-full">
+        <div className="flex items-center justify-between bg-gray-800 px-2 sm:px-3 py-2 border-b border-gray-700">
+          <div className="flex items-center gap-1 sm:gap-2 min-w-0 flex-1">
+            <span className="text-sm sm:text-base flex-shrink-0">{overview.icon}</span>
+            <span className="text-xs text-gray-300 font-mono truncate">
+              {language}
+            </span>
+            <Badge 
+              variant="secondary" 
+              className={cn(
+                "text-xs px-1.5 sm:px-2 py-0 h-4 sm:h-5 flex-shrink-0",
+                overview.complexity === 'Complex' ? "bg-red-900/30 text-red-300 border-red-700" :
+                overview.complexity === 'Moderate' ? "bg-yellow-900/30 text-yellow-300 border-yellow-700" :
+                "bg-green-900/30 text-green-300 border-green-700"
+              )}
+            >
+              {overview.complexity}
+            </Badge>
+          </div>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="h-6 w-6 sm:h-7 sm:w-auto sm:px-2 text-xs text-gray-300 hover:text-white hover:bg-gray-700 flex-shrink-0"
+            onClick={copyCode}
+          >
+            <Copy className="w-3 h-3" />
+          </Button>
+        </div>
+      
+      {showOverview && (
+        <div className="code-overview-section px-2 sm:px-3 py-2">
+          <div className="flex items-center justify-between mb-2 gap-2">
+            <div className="flex items-center gap-1 sm:gap-2 text-xs text-gray-400 min-w-0 flex-1">
+              <FileText className="w-3 h-3 flex-shrink-0" />
+              <span className="truncate">{overview.lines} lines • {overview.features}</span>
+            </div>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setIsExpanded(!isExpanded)}
+              className="h-6 px-1.5 sm:px-2 text-xs text-gray-400 hover:text-white hover:bg-gray-700 flex-shrink-0"
+            >
+              {isExpanded ? (
+                <>
+                  <ChevronUp className="w-3 h-3 mr-1" />
+                  <span className="hidden sm:inline">Collapse</span>
+                </>
+              ) : (
+                <>
+                  <ChevronDownIcon className="w-3 h-3 mr-1" />
+                  <span className="hidden sm:inline">Expand</span>
+                </>
+              )}
+            </Button>
+          </div>
+          {!isExpanded && (
+            <div className="text-xs text-gray-500 font-mono bg-gray-800/50 px-2 py-1 rounded border border-gray-600 overflow-hidden">
+              <div className="truncate">
+                {codeString.split('\n').slice(0, 2).join(' ').substring(0, 80)}...
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+      
+      {(isExpanded || !showOverview) && (
+        <div className="relative">
+          <div 
+            ref={scrollRef}
+            className="overflow-x-auto bg-gray-900 scrollbar-thin scrollbar-thumb-gray-600 scrollbar-track-gray-800"
+            style={{
+              maxWidth: '100%',
+              fontSize: '12px',
+              lineHeight: '1.4'
+            }}
+            role="region"
+            aria-label={`Code block in ${language}`}
+            tabIndex={0}
+          >
+            <pre 
+              className="p-4 text-gray-100 font-mono text-sm leading-relaxed"
+              style={{
+                margin: 0,
+                whiteSpace: 'pre',
+                overflowWrap: 'normal',
+                wordBreak: 'normal',
+                fontSize: '12px',
+                lineHeight: '1.4'
+              }}
+            >
+              <LazyCodeHighlighter
+                language={language}
+                customStyle={{
+                  margin: 0,
+                  padding: 0,
+                  background: 'transparent',
+                  fontSize: 'inherit',
+                  lineHeight: 'inherit'
+                }}
+              >
+                {codeString}
+              </LazyCodeHighlighter>
+            </pre>
+          </div>
+          
+          {/* Scroll Navigation Buttons */}
+          <div className="absolute top-1 right-1 sm:top-2 sm:right-2 flex items-center gap-0.5 sm:gap-1 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity duration-200">
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-7 w-7 sm:h-6 sm:w-6 p-0 bg-gray-800/90 hover:bg-gray-700 text-gray-300 hover:text-white border border-gray-600 backdrop-blur-sm focus:ring-2 focus:ring-blue-500/50 rounded-md"
+              onClick={() => {
+                const scrollContainer = scrollRef.current;
+                if (scrollContainer) {
+                  scrollContainer.scrollBy({ left: -200, behavior: 'smooth' });
+                }
+              }}
+              onKeyDown={(e) => handleKeyNavigation(e, 'left')}
+              title="Scroll left"
+              aria-label="Scroll code left"
+            >
+              <ChevronLeft className="w-3.5 h-3.5 sm:w-3 sm:h-3" />
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-7 w-7 sm:h-6 sm:w-6 p-0 bg-gray-800/90 hover:bg-gray-700 text-gray-300 hover:text-white border border-gray-600 backdrop-blur-sm focus:ring-2 focus:ring-blue-500/50 rounded-md"
+              onClick={() => {
+                const scrollContainer = scrollRef.current;
+                if (scrollContainer) {
+                  scrollContainer.scrollBy({ left: 200, behavior: 'smooth' });
+                }
+              }}
+              onKeyDown={(e) => handleKeyNavigation(e, 'right')}
+              title="Scroll right"
+              aria-label="Scroll code right"
+            >
+              <ChevronRight className="w-3.5 h-3.5 sm:w-3 sm:h-3" />
+            </Button>
+          </div>
+        </div>
+      )}
+      </div>
+    </ErrorBoundary>
+  );
+});
+
+/**
+ * Message Component with markdown rendering and copy functionality
+ */
+const MessageComponent = memo(function MessageComponent({ message }: MessageComponentProps) {
+  const [copied, setCopied] = useState(false);
+
+  const copyToClipboard = useCallback(async () => {
+    try {
+      await navigator.clipboard.writeText(message.content);
+      setCopied(true);
+      showSuccessToast("Copied to clipboard");
+      setTimeout(() => setCopied(false), 2000);
+    } catch (error) {
+      console.error('Failed to copy:', error);
+    }
+  }, [message.content]);
+
+  const isUser = message.role === 'user';
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -20 }}
+      className={cn(
+        "flex gap-2 sm:gap-3 p-2 sm:p-4",
+        isUser ? "justify-end" : "justify-start"
+      )}
+    >
+      {!isUser && (
+        <Avatar className="w-8 h-8 flex-shrink-0">
+          <AvatarFallback className="bg-gradient-to-br from-blue-500/10 to-purple-500/10 border border-blue-200/20">
+            <Brain className="w-4 h-4 text-blue-600" />
+          </AvatarFallback>
+        </Avatar>
+      )}
+      
+      <div className={cn(
+        "flex flex-col gap-2 w-full max-w-[95%] sm:max-w-[85%] md:max-w-[80%] lg:max-w-[75%]",
+        isUser ? "items-end" : "items-start"
+      )}>
+        <div className={cn(
+          "px-2 sm:px-3 md:px-4 py-2 sm:py-3 rounded-2xl relative group shadow-sm border overflow-hidden",
+          isUser 
+            ? "bg-gradient-to-br from-blue-600 to-blue-700 text-white ml-4 sm:ml-8 md:ml-12 border-blue-600/20" 
+            : "bg-gradient-to-br from-gray-50 to-gray-100 border-gray-200/50 dark:from-gray-800 dark:to-gray-900 dark:border-gray-700/50"
+        )}>
+          <div className="prose prose-sm max-w-none dark:prose-invert overflow-hidden break-words" style={{ width: '100%', minWidth: 0 }}>
+            <ReactMarkdown
+              components={{
+                code: ({ inline, className, children, ...props }: any) => {
+                  const match = /language-(\w+)/.exec(className || '');
+                  const language = match ? match[1] : '';
+                  const codeString = String(children).replace(/\n$/, '');
+                  
+                  if (!inline && match) {
+                    return (
+                      <CodeBlock 
+                        codeString={codeString} 
+                        language={language} 
+                        isUser={isUser}
+                      />
+                    );
+                  }
+                  
+                  return (
+                    <code
+                      className={cn(
+                        "px-1.5 py-0.5 rounded-md text-sm font-mono",
+                        isUser 
+                          ? "bg-white/20 text-white" 
+                          : "bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200"
+                      )}
+                      {...props}
+                    >
+                      {children}
+                    </code>
+                  );
+                },
+                p: ({ children }) => (
+                  <p className="mb-2 last:mb-0 leading-relaxed">{children}</p>
+                ),
+                h1: ({ children }) => (
+                  <h1 className="text-xl font-bold mb-2 mt-4 first:mt-0">{children}</h1>
+                ),
+                h2: ({ children }) => (
+                  <h2 className="text-lg font-bold mb-2 mt-3 first:mt-0">{children}</h2>
+                ),
+                h3: ({ children }) => (
+                  <h3 className="text-base font-bold mb-2 mt-3 first:mt-0">{children}</h3>
+                ),
+                ul: ({ children }) => (
+                  <ul className="list-disc list-inside mb-2 space-y-1">{children}</ul>
+                ),
+                ol: ({ children }) => (
+                  <ol className="list-decimal list-inside mb-2 space-y-1">{children}</ol>
+                ),
+                li: ({ children }) => (
+                  <li className="ml-2">{children}</li>
+                ),
+                blockquote: ({ children }) => (
+                  <blockquote className={cn(
+                    "border-l-4 pl-4 py-2 my-2 italic",
+                    isUser 
+                      ? "border-white/30 bg-white/10" 
+                      : "border-gray-300 dark:border-gray-600 bg-gray-100 dark:bg-gray-800"
+                  )}>
+                    {children}
+                  </blockquote>
+                ),
+                strong: ({ children }) => (
+                  <strong className="font-bold">{children}</strong>
+                ),
+                em: ({ children }) => (
+                  <em className="italic">{children}</em>
+                ),
+                a: ({ href, children }) => (
+                  <a
+                    href={href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className={cn(
+                      "underline hover:no-underline transition-colors",
+                      isUser 
+                        ? "text-white hover:text-white/80" 
+                        : "text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300"
+                    )}
+                  >
+                    {children}
+                  </a>
+                ),
+              }}
+            >
+              {message.content}
+            </ReactMarkdown>
+          </div>
+          
+          {/* Copy button */}
+          <Button
+            variant="ghost"
+            size="sm"
+            className={cn(
+              "absolute -top-2 -right-2 opacity-0 group-hover:opacity-100 transition-opacity",
+              "w-6 h-6 p-0"
+            )}
+            onClick={copyToClipboard}
+          >
+            {copied ? (
+              <Badge variant="secondary" className="text-xs">Copied!</Badge>
+            ) : (
+              <Copy className="w-3 h-3" />
+            )}
+          </Button>
+        </div>
+        
+        {/* Message metadata */}
+        <div className="flex items-center gap-2 text-xs text-muted-foreground">
+          <div className="flex items-center gap-1">
+            <Clock className="w-3 h-3" />
+            <span>{message.timestamp.toLocaleTimeString()}</span>
+          </div>
+          {message.model && (
+            <>
+              <span>•</span>
+              <div className="flex items-center gap-1">
+                <Activity className="w-3 h-3" />
+                <span>{message.model}</span>
+              </div>
+            </>
+          )}
+          {message.tokens && (
+            <>
+              <span>•</span>
+              <div className="flex items-center gap-1">
+                <Hash className="w-3 h-3" />
+                <span>{message.tokens.total} tokens</span>
+              </div>
+            </>
+          )}
+        </div>
+      </div>
+      
+      {isUser && (
+        <Avatar className="w-8 h-8 flex-shrink-0">
+          <AvatarFallback className="bg-gradient-to-br from-green-500/10 to-emerald-500/10 border border-green-200/20">
+            <User className="w-4 h-4 text-green-600" />
+          </AvatarFallback>
+        </Avatar>
+      )}
+    </motion.div>
+  );
+});
+
+/**
+ * Message Skeleton Loader
+ */
+const MessageSkeleton = memo(function MessageSkeleton({ isUser = false }: { isUser?: boolean }) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      className={cn(
+        "flex gap-3 p-4",
+        isUser ? "justify-end" : "justify-start"
+      )}
+    >
+      {!isUser && (
+        <div className="w-8 h-8 bg-gray-200 dark:bg-gray-700 rounded-full animate-pulse flex-shrink-0" />
+      )}
+      
+      <div className={cn(
+        "flex flex-col gap-2 max-w-[85%] sm:max-w-[80%] lg:max-w-[75%]",
+        isUser ? "items-end" : "items-start"
+      )}>
+        <div className={cn(
+          "px-3 sm:px-4 py-3 rounded-2xl animate-pulse",
+          isUser ? "bg-blue-200 dark:bg-blue-800" : "bg-gray-200 dark:bg-gray-700"
+        )}>
+          <div className="space-y-2">
+            <div className="h-4 bg-gray-300 dark:bg-gray-600 rounded w-3/4" />
+            <div className="h-4 bg-gray-300 dark:bg-gray-600 rounded w-1/2" />
+            <div className="h-4 bg-gray-300 dark:bg-gray-600 rounded w-5/6" />
+          </div>
+        </div>
+      </div>
+      
+      {isUser && (
+        <div className="w-8 h-8 bg-gray-200 dark:bg-gray-700 rounded-full animate-pulse flex-shrink-0" />
+      )}
+    </motion.div>
+  );
+});
+
+/**
+ * Typing indicator with animation
+ */
+const TypingIndicator = memo(function TypingIndicator() {
+  return (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      className="flex gap-3 p-4"
+    >
+      <Avatar className="w-8 h-8 flex-shrink-0">
+        <AvatarFallback className="bg-gradient-to-br from-blue-500/10 to-purple-500/10 border border-blue-200/20">
+          <Brain className="w-4 h-4 text-blue-600 animate-pulse" />
+        </AvatarFallback>
+      </Avatar>
+      
+      <div className="flex items-center gap-3 px-4 py-3 bg-gradient-to-br from-gray-50 to-gray-100 border border-gray-200/50 dark:from-gray-800 dark:to-gray-900 dark:border-gray-700/50 rounded-2xl shadow-sm">
+        <div className="flex gap-1">
+          <div className="w-2 h-2 bg-blue-500/70 rounded-full animate-bounce [animation-delay:-0.3s]"></div>
+          <div className="w-2 h-2 bg-blue-500/70 rounded-full animate-bounce [animation-delay:-0.15s]"></div>
+          <div className="w-2 h-2 bg-blue-500/70 rounded-full animate-bounce"></div>
+        </div>
+        <div className="flex items-center gap-1">
+          <Lightbulb className="w-4 h-4 text-blue-500 animate-pulse" />
+          <span className="text-sm text-muted-foreground">AI is thinking...</span>
+        </div>
+      </div>
+    </motion.div>
+  );
+});
+
+export default function AIAssistantPage() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [isTyping, setIsTyping] = useState(false);
   const [selectedModel, setSelectedModel] = useState<AIModel>(AI_MODELS[0]);
-  const [responseFormat, setResponseFormat] = useState<AIFormat>('markdown');
-  const [attachedFiles, setAttachedFiles] = useState<FileAttachment[]>([]);
-  const [isDragOver, setIsDragOver] = useState(false);
-  // Text styling options
-  const [enableBold] = useState<boolean>(true);
-  const [enableItalic] = useState<boolean>(true);
-  const [enableInlineCode] = useState<boolean>(true);
+  
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Auto-scroll to bottom when new messages arrive
+  // Auto-scroll to bottom
   const scrollToBottom = useCallback(() => {
     if (scrollAreaRef.current) {
-      // Find the viewport element within the scroll area
       const viewport = scrollAreaRef.current.querySelector('[data-radix-scroll-area-viewport]') as HTMLDivElement;
       if (viewport) {
         viewport.scrollTo({ top: viewport.scrollHeight, behavior: 'smooth' });
@@ -128,72 +805,40 @@ const AIAssistantPageComponent = function AIAssistantPage() {
   }, []);
 
   // Initialize with welcome message
-  const initializeWelcomeMessage = useCallback(() => {
+  useEffect(() => {
     if (messages.length === 0) {
       setMessages([{
         id: generateMessageId(),
         role: 'assistant',
         content: `Hello! 👋 I'm your AI Assistant powered by ${selectedModel.displayName}. I'm here to help you with questions, creative tasks, problem-solving, and more. What would you like to discuss today?`,
         timestamp: new Date(),
+        model: selectedModel.name,
       }]);
     }
-  }, [messages.length, selectedModel.displayName]);
-
-  useEffect(() => {
-    initializeWelcomeMessage();
-  }, [initializeWelcomeMessage]);
-
-  // Update welcome message when model changes (only when switching models)
-  const prevSelectedModelId = useRef(selectedModel.id);
-  const updateWelcomeMessageOnModelChange = useCallback(() => {
-    if (messages.length > 0 && prevSelectedModelId.current !== selectedModel.id) {
-      setMessages([{
-        id: generateMessageId(),
-        role: 'assistant',
-        content: `Model switched to ${selectedModel.displayName}! ${selectedModel.icon} ${selectedModel.description}. How can I assist you today?`,
-        timestamp: new Date(),
-      }]);
-      prevSelectedModelId.current = selectedModel.id;
-    }
-  }, [selectedModel.id, selectedModel.displayName, selectedModel.icon, selectedModel.description, messages.length]);
-  
-  useEffect(() => {
-    updateWelcomeMessageOnModelChange();
-  }, [updateWelcomeMessageOnModelChange]);
+  }, [messages.length, selectedModel.displayName, selectedModel.name]);
 
   const sendMessage = useCallback(async () => {
-    if ((!input.trim() && attachedFiles.length === 0) || isLoading || !user) return;
+    if (!input.trim() || isLoading) return;
 
     const userMessage: Message = {
       id: generateMessageId(),
       role: 'user',
-      content: input.trim() || (attachedFiles.length > 0 ? `[Uploaded ${attachedFiles.length} file${attachedFiles.length > 1 ? 's' : ''}]` : ''),
+      content: input.trim(),
       timestamp: new Date(),
-      attachments: attachedFiles.length > 0 ? [...attachedFiles] : undefined,
     };
 
     setMessages(prev => [...prev, userMessage]);
     setInput('');
-    setAttachedFiles([]);
     setIsLoading(true);
     setIsTyping(true);
 
     try {
-      // Get Supabase session token for authentication
-      const { data: { session }, error: sessionError } = await supabaseClient.auth.getSession();
-      if (sessionError || !session?.access_token) {
-        throw new Error('Unable to get authentication token');
-      }
-      const token = session.access_token;
-
       // Prepare the request data
       const requestData = {
         messages: [...messages, userMessage].map(msg => ({
           role: msg.role,
           content: msg.content,
-          attachments: msg.attachments || []
         })),
-        userId: user.id,
         model: selectedModel.name,
       };
 
@@ -201,636 +846,229 @@ const AIAssistantPageComponent = function AIAssistantPage() {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
         },
         body: JSON.stringify(requestData),
       });
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to get response');
+        throw new Error(errorData.error || `HTTP ${response.status}: Failed to get response`);
       }
 
       const data = await response.json();
 
-      const formattedContent = formatAIResponse(data.response, { 
-        format: responseFormat,
-        enableBold,
-        enableItalic,
-        enableInlineCode
-      });
-
       const assistantMessage: Message = {
         id: generateMessageId(),
         role: 'assistant',
-        content: formattedContent,
+        content: data.response || data.message || 'Sorry, I could not generate a response.',
         timestamp: new Date(),
-        format: responseFormat,
+        model: selectedModel.name,
+        tokens: data.tokens,
       };
 
       setMessages(prev => [...prev, assistantMessage]);
+
     } catch (error: unknown) {
       console.error('Error sending message:', error);
       
-      let errorMessage = "Failed to send message. Please try again.";
-      let chatErrorMessage = "I'm sorry, I encountered an error. Please try again.";
+      const errorMessage = error instanceof Error 
+        ? error.message 
+        : "I apologize, but I encountered an error. Please try again.";
       
-      if (error instanceof Error) {
-        if (error.message.includes('quota exceeded') || error.message.includes('AI service quota')) {
-          errorMessage = "AI service is temporarily unavailable due to quota limits.";
-          chatErrorMessage = "I'm currently unavailable due to high demand. Please try again in a few minutes. 😅";
-        } else if (error.message.includes('Unable to get authentication token')) {
-          errorMessage = "Please sign in again to continue.";
-          chatErrorMessage = "It seems you need to sign in again. Please refresh the page and try again.";
-        } else if (error.message.includes('Network error')) {
-          errorMessage = "Network connection issue. Please check your internet connection.";
-          chatErrorMessage = "I'm having trouble connecting. Please check your internet connection and try again.";
-        } else {
-          errorMessage = error.message;
-        }
-      }
-      
-      showErrorToast("AI Assistant Error", errorMessage);
-      
-      // Add user-friendly error message to chat
       const errorChatMessage: Message = {
         id: generateMessageId(),
         role: 'assistant',
-        content: chatErrorMessage,
+        content: `Error: ${errorMessage}`,
         timestamp: new Date(),
+        model: selectedModel.name,
       };
+      
       setMessages(prev => [...prev, errorChatMessage]);
     } finally {
       setIsLoading(false);
       setIsTyping(false);
     }
-  }, [input, isLoading, user, messages, selectedModel.name, responseFormat, attachedFiles, enableBold, enableItalic, enableInlineCode]);
+  }, [input, messages, selectedModel, isLoading]);
 
-  const clearChat = useCallback(() => {
+  const clearMessages = useCallback(() => {
     setMessages([{
       id: generateMessageId(),
       role: 'assistant',
-      content: `Chat cleared! 🧹 I'm ready for a fresh conversation. What can I help you with?`,
+      content: `Hello! 👋 I'm your AI Assistant powered by ${selectedModel.displayName}. I'm here to help you with questions, creative tasks, problem-solving, and more. What would you like to discuss today?`,
       timestamp: new Date(),
+      model: selectedModel.name,
     }]);
-    setAttachedFiles([]);
-  }, []);
+  }, [selectedModel.displayName, selectedModel.name]);
 
-  const copyMessage = useCallback(async (content: string) => {
-    try {
-      await navigator.clipboard.writeText(content);
-      showSuccessToast("Copied!", "Message copied to clipboard");
-    } catch {
-      showErrorToast("Copy Error", "Failed to copy message");
-    }
-  }, []);
-
-  const handleKeyPress = useCallback((e: React.KeyboardEvent) => {
+  const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
       sendMessage();
     }
   }, [sendMessage]);
 
-  const goBackToHome = useCallback(() => {
-    router.push('/home');
-  }, [router]);
-
-  // File handling functions
-  const handleFileUpload = useCallback((files: FileList | File[]) => {
-    const fileArray = Array.from(files);
-    const maxFileSize = 10 * 1024 * 1024; // 10MB limit
-    const supportedTypes = [
-      'image/jpeg', 'image/png', 'image/gif', 'image/webp',
-      'text/plain', 'text/csv',
-      'application/pdf',
-      'application/json'
-    ];
-
-    fileArray.forEach(file => {
-      if (file.size > maxFileSize) {
-        showErrorToast('File too large', `${file.name} exceeds 10MB limit`);
-        return;
-      }
-
-      if (!supportedTypes.includes(file.type)) {
-        showErrorToast('Unsupported file type', `${file.type} is not supported`);
-        return;
-      }
-
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        const content = e.target?.result as string;
-        const base64Content = content.split(',')[1]; // Remove data URL prefix
-        
-        const newAttachment: FileAttachment = {
-          name: file.name,
-          type: file.type,
-          size: file.size,
-          content: base64Content,
-          url: file.type.startsWith('image/') ? content : undefined
-        };
-
-        setAttachedFiles(prev => [...prev, newAttachment]);
-        showSuccessToast('File attached', `${file.name} attached successfully`);
-      };
-
-      reader.onerror = () => {
-        showErrorToast('File read error', `Failed to read ${file.name}`);
-      };
-
-      reader.readAsDataURL(file);
-    });
-  }, []);
-
-  const removeAttachment = useCallback((index: number) => {
-    setAttachedFiles(prev => prev.filter((_, i) => i !== index));
-  }, []);
-
-  const handleFileInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files.length > 0) {
-      handleFileUpload(e.target.files);
-    }
-    // Reset input value to allow same file upload again
-    e.target.value = '';
-  }, [handleFileUpload]);
-
-  const handleDrop = useCallback((e: React.DragEvent) => {
-    e.preventDefault();
-    setIsDragOver(false);
-    
-    if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
-      handleFileUpload(e.dataTransfer.files);
-    }
-  }, [handleFileUpload]);
-
-  const handleDragOver = useCallback((e: React.DragEvent) => {
-    e.preventDefault();
-    setIsDragOver(true);
-  }, []);
-
-  const handleDragLeave = useCallback((e: React.DragEvent) => {
-    e.preventDefault();
-    setIsDragOver(false);
-  }, []);
-
-  const formatFileSize = useCallback((bytes: number): string => {
-    if (bytes === 0) return '0 Bytes';
-    const k = 1024;
-    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
-    const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
-  }, []);
-
-  const getFileIcon = useCallback((type: string) => {
-    if (type.startsWith('image/')) return <Image className="h-4 w-4" />;
-    if (type === 'application/pdf') return <FileText className="h-4 w-4" />;
-    return <File className="h-4 w-4" />;
-  }, []);
-
   return (
-    <AuthGuard>
-      <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-100 dark:from-gray-900 dark:via-black dark:to-gray-800">
-        {/* Background Pattern */}
-        <div className="absolute inset-0 bg-grid-gray-200/30 dark:bg-grid-gray-700/20 bg-[size:20px_20px] sm:bg-[size:40px_40px] [mask-image:radial-gradient(ellipse_at_center,white_50%,transparent_100%)]" />
+    <div className="flex flex-col h-screen max-h-screen overflow-hidden">
+      {/* Header */}
+      <header className="flex items-center justify-between p-4 border-b bg-gradient-to-r from-white to-gray-50/50 dark:from-gray-900 dark:to-gray-800/50 backdrop-blur supports-[backdrop-filter]:bg-background/60 shadow-sm">
+        <div className="flex items-center gap-3">
+          <Link href="/">
+            <Button variant="ghost" size="icon" className="hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl">
+              <ArrowLeft className="w-4 h-4" />
+            </Button>
+          </Link>
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl flex items-center justify-center shadow-sm">
+              <Brain className="w-4 h-4 text-white" />
+            </div>
+            <div>
+              <h1 className="text-xl font-semibold text-gray-900 dark:text-white">AI Assistant</h1>
+              <p className="text-xs text-gray-500 dark:text-gray-400">Powered by advanced AI</p>
+            </div>
+          </div>
+        </div>
         
-        <div className="relative flex flex-col h-screen max-w-7xl mx-auto">
-          {/* Header */}
-          <header className="backdrop-blur-xl bg-white/90 dark:bg-gray-900/90 border-b border-gray-200/60 dark:border-gray-700/60 sticky top-0 z-40">
-            <div className="px-3 py-3 sm:px-4 sm:py-4 md:px-6">
-              <div className="flex items-center justify-between gap-2 sm:gap-4">
-                {/* Left side - Back button and title */}
-                <div className="flex items-center gap-2 sm:gap-3 md:gap-4 flex-1 min-w-0">
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={goBackToHome}
-                    className="h-8 w-8 sm:h-10 sm:w-10 rounded-xl bg-white/50 hover:bg-gray-100 dark:bg-gray-800/50 dark:hover:bg-gray-700 transition-all duration-200 flex-shrink-0 backdrop-blur-sm border border-gray-200/60 dark:border-gray-700/60 hover:border-gray-300 dark:hover:border-gray-600 hover:shadow-md active:scale-95"
-                    aria-label="Go back to home"
-                    title="Back to Home"
-                  >
-                    <ArrowLeft className="h-4 w-4 sm:h-5 sm:w-5 text-gray-700 dark:text-gray-200" />
-                  </Button>
-                  
-                  <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
-                    <div className="relative flex-shrink-0">
-                      <div className="h-8 w-8 sm:h-10 sm:w-10 md:h-12 md:w-12 rounded-xl sm:rounded-2xl bg-gradient-to-br from-gray-600 via-gray-700 to-black flex items-center justify-center shadow-md sm:shadow-lg shadow-gray-500/25">
-                        <Sparkles className="h-3 w-3 sm:h-5 sm:w-5 md:h-6 md:w-6 text-white" />
-                      </div>
-                      <div className="absolute -bottom-0.5 -right-0.5 sm:-bottom-1 sm:-right-1 h-3 w-3 sm:h-4 sm:w-4 bg-gray-500 rounded-full border-2 border-white dark:border-gray-900 animate-pulse" />
+        <div className="flex items-center gap-2">
+          {/* Model Selector */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" className="gap-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl border-gray-200 dark:border-gray-700">
+                {renderModelIcon(selectedModel.icon)}
+                <span className="hidden sm:inline font-medium">{selectedModel.displayName}</span>
+                <ChevronDown className="w-4 h-4 opacity-50" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-80 rounded-xl border-gray-200 dark:border-gray-700 shadow-lg">
+              <DropdownMenuLabel className="flex items-center gap-2 text-gray-700 dark:text-gray-300">
+                <Target className="w-4 h-4" />
+                AI Model Selection
+              </DropdownMenuLabel>
+              <DropdownMenuSeparator className="bg-gray-100 dark:bg-gray-800" />
+              {AI_MODELS.map((model) => (
+                <DropdownMenuItem
+                  key={model.id}
+                  onClick={() => setSelectedModel(model)}
+                  className={cn(
+                    "cursor-pointer rounded-lg m-1 p-3 transition-colors",
+                    selectedModel.id === model.id 
+                      ? "bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-700" 
+                      : "hover:bg-gray-50 dark:hover:bg-gray-800"
+                  )}
+                >
+                  <div className="flex items-start gap-3 w-full">
+                    <div className={cn(
+                      "w-8 h-8 rounded-lg flex items-center justify-center",
+                      selectedModel.id === model.id 
+                        ? "bg-blue-100 dark:bg-blue-800" 
+                        : "bg-gray-100 dark:bg-gray-700"
+                    )}>
+                      {renderModelIcon(model.icon)}
                     </div>
-                    
-                    <div className="min-w-0 flex-1">
-                      <h1 className="text-base sm:text-lg md:text-xl font-bold bg-gradient-to-r from-black to-gray-800 dark:from-white dark:to-gray-300 bg-clip-text text-transparent truncate">
-                        AI Assistant
-                      </h1>
-                      <div className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm text-gray-600 dark:text-gray-400">
-                        <span className="text-sm sm:text-base flex-shrink-0">{selectedModel.icon}</span>
-                        <span className="truncate">
-                          <span className="hidden sm:inline">Powered by </span>
-                          {selectedModel.displayName}
-                        </span>
-                      </div>
+                    <div className="flex-1">
+                      <div className="font-medium text-gray-900 dark:text-white">{model.displayName}</div>
+                      <div className="text-xs text-gray-500 dark:text-gray-400">{model.description}</div>
                     </div>
+                    {selectedModel.id === model.id && (
+                      <div className="flex items-center gap-1">
+                        <CheckCircle2 className="w-4 h-4 text-blue-600" />
+                        <Badge variant="secondary" className="bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300">Active</Badge>
+                      </div>
+                    )}
                   </div>
-                </div>
-                
-                {/* Right side - Controls */}
-                <div className="flex items-center gap-1 sm:gap-2 md:gap-3 flex-shrink-0">
-                  <Badge className="hidden sm:flex bg-gray-100 text-gray-700 border-gray-200 dark:bg-gray-800/50 dark:text-gray-300 dark:border-gray-700 text-xs">
-                    <div className="h-1.5 w-1.5 bg-gray-500 rounded-full mr-1.5 animate-pulse" />
-                    Online
-                  </Badge>
-                  
-                  {/* Model Selector */}
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button 
-                        variant="outline" 
-                        className="h-8 w-8 sm:h-10 sm:w-auto rounded-xl bg-white/50 hover:bg-gray-50 dark:bg-gray-800/50 dark:hover:bg-gray-700 border border-gray-200/60 dark:border-gray-700/60 hover:border-gray-300 dark:hover:border-gray-500/50 transition-all duration-200 p-0 sm:px-3 backdrop-blur-sm shadow-sm hover:shadow-md active:scale-95 text-gray-700 dark:text-gray-200"
-                        title="Select AI Model"
-                        aria-label="Select AI Model"
-                      >
-                        <Settings className="h-4 w-4 sm:mr-2 text-gray-600 dark:text-gray-300" />
-                        <span className="hidden md:inline max-w-24 lg:max-w-none truncate font-medium">{selectedModel.displayName}</span>
-                        <span className="hidden sm:inline md:hidden text-base">{selectedModel.icon}</span>
-                        <ChevronDown className="h-4 w-4 hidden sm:inline sm:ml-2 text-gray-500 dark:text-gray-400" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end" className="w-[90vw] max-w-sm sm:w-72 backdrop-blur-xl bg-white/95 dark:bg-gray-900/95 mx-2 sm:mx-0">
-                      <DropdownMenuLabel className="text-gray-900 dark:text-gray-100 px-3 py-2">Select AI Model</DropdownMenuLabel>
-                      <DropdownMenuSeparator />
-                      {AI_MODELS.map((model) => (
-                        <DropdownMenuItem
-                          key={model.id}
-                          onClick={() => setSelectedModel(model)}
-                          className={cn(
-                            "flex flex-col items-start p-3 cursor-pointer min-h-[60px]",
-                            selectedModel.id === model.id && "bg-gray-50 dark:bg-gray-800/50"
-                          )}
-                        >
-                          <div className="flex items-center gap-3 w-full">
-                            <span className="text-lg sm:text-xl flex-shrink-0">{model.icon}</span>
-                            <div className="flex-1 min-w-0">
-                              <div className="flex items-center gap-2 mb-1">
-                                <span className="font-medium text-gray-900 dark:text-gray-100 text-sm sm:text-base truncate">{model.displayName}</span>
-                                {selectedModel.id === model.id && (
-                                  <Badge variant="secondary" className="text-xs bg-gray-100 text-gray-700 dark:bg-gray-800/50 dark:text-gray-300 flex-shrink-0">
-                                    Active
-                                  </Badge>
-                                )}
-                              </div>
-                              <p className="text-xs text-gray-500 dark:text-gray-400 line-clamp-2">
-                                {model.description}
-                              </p>
-                            </div>
-                          </div>
-                        </DropdownMenuItem>
-                      ))}
-                    </DropdownMenuContent>
-                  </DropdownMenu>
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
 
-                  {/* Response format selector */}
-                  <Select value={responseFormat} onValueChange={(v) => setResponseFormat(v as AIFormat)}>
-                    <SelectTrigger className="h-8 sm:h-10 w-[120px] rounded-xl">
-                      <SelectValue placeholder="Format" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="plain">Plain</SelectItem>
-                      <SelectItem value="markdown">Markdown</SelectItem>
-                      <SelectItem value="html">HTML</SelectItem>
-                      <SelectItem value="json">JSON</SelectItem>
-                      <SelectItem value="code">Code</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  
-                  <Button
-                    variant="outline"
-                    onClick={clearChat}
-                    className="h-10 rounded-xl bg-white/50 hover:bg-gray-100 dark:bg-gray-800/50 dark:hover:bg-gray-700/50 border border-gray-200/60 dark:border-gray-700/60 hover:border-gray-300 dark:hover:border-gray-500/50 text-gray-700 hover:text-gray-800 dark:text-gray-200 dark:hover:text-gray-100 transition-all duration-200 hidden sm:flex backdrop-blur-sm shadow-sm hover:shadow-md active:scale-95"
-                    title="Clear chat history"
-                    aria-label="Clear chat history"
-                  >
-                    <Trash2 className="h-4 w-4 mr-2" />
-                    Clear
-                  </Button>
-                </div>
+          <Button 
+            variant="outline" 
+            size="icon" 
+            onClick={clearMessages}
+            className="hover:bg-red-50 hover:border-red-200 hover:text-red-600 dark:hover:bg-red-900/20 dark:hover:border-red-700 dark:hover:text-red-400 rounded-xl transition-colors"
+            title="Clear conversation"
+          >
+            <Trash2 className="w-4 h-4" />
+          </Button>
+        </div>
+      </header>
+
+      {/* Messages */}
+      <ScrollArea 
+        ref={scrollAreaRef}
+        className="flex-1 min-h-0"
+      >
+        <div className="max-w-4xl mx-auto px-1 sm:px-2 md:px-4">
+          <AnimatePresence>
+            {messages.map((message) => (
+              <ErrorBoundary key={message.id}>
+                <MessageComponent message={message} />
+              </ErrorBoundary>
+            ))}
+            {isTyping && (
+              <ErrorBoundary>
+                <TypingIndicator />
+              </ErrorBoundary>
+            )}
+          </AnimatePresence>
+        </div>
+      </ScrollArea>
+
+      {/* Input */}
+      <div className="p-2 sm:p-4 border-t bg-gradient-to-r from-white to-gray-50/50 dark:from-gray-900 dark:to-gray-800/50 backdrop-blur supports-[backdrop-filter]:bg-background/60 shadow-sm">
+        <div className="max-w-4xl mx-auto px-1 sm:px-2 md:px-4">
+          <div className="flex items-center gap-2 sm:gap-3">
+            <div className="relative flex-1">
+              <Input
+                ref={inputRef}
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                onKeyDown={handleKeyDown}
+                placeholder="Ask me anything..."
+                disabled={isLoading}
+                className="h-10 sm:h-12 pr-10 sm:pr-12 rounded-xl sm:rounded-2xl border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 shadow-sm focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-sm sm:text-base"
+              />
+              <div className="absolute right-2 sm:right-3 top-1/2 transform -translate-y-1/2">
+                <MessageCircle className="w-3 h-3 sm:w-4 sm:h-4 text-gray-400" />
               </div>
             </div>
-          </header>
-
-          {/* Chat Area */}
-          <main className="flex-1 flex flex-col overflow-hidden">
-            {/* Messages */}
-            <ScrollArea className="flex-1 px-3 sm:px-4 md:px-6" ref={scrollAreaRef}>
-              <div className="py-4 sm:py-6 space-y-4 sm:space-y-6 max-w-4xl mx-auto">
-                <AnimatePresence>
-                  {messages.map((message) => (
-                    <motion.div
-                      key={message.id}
-                      initial={{ opacity: 0, y: 20 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: -20 }}
-                      transition={{ duration: 0.4, ease: "easeOut" }}
-                      className={cn(
-                        "flex gap-2 sm:gap-3 md:gap-4",
-                        message.role === 'user' ? 'flex-row-reverse' : ''
-                      )}
-                    >
-                      {/* Avatar */}
-                      <div className="flex-shrink-0">
-                        <Avatar className="h-8 w-8 sm:h-9 sm:w-9 md:h-10 md:w-10 ring-2 ring-white dark:ring-gray-900 shadow-md sm:shadow-lg">
-                          {message.role === 'user' ? (
-                            <>
-                              <AvatarImage src={user?.user_metadata?.avatar_url || user?.user_metadata?.picture || undefined} />
-                              <AvatarFallback className="bg-gradient-to-br from-gray-600 to-gray-800 text-white">
-                                <User className="h-4 w-4 sm:h-5 sm:w-5" />
-                              </AvatarFallback>
-                            </>
-                          ) : (
-                            <AvatarFallback className="bg-gradient-to-br from-gray-700 to-black text-white">
-                              <Bot className="h-4 w-4 sm:h-5 sm:w-5" />
-                            </AvatarFallback>
-                          )}
-                        </Avatar>
-                      </div>
-                      
-                      {/* Message Content */}
-                      <div className={cn(
-                        "flex-1 max-w-[85%] sm:max-w-[80%] md:max-w-[75%]",
-                        message.role === 'user' ? 'flex flex-col items-end' : ''
-                      )}>
-                        <div className="group relative">
-                          <div className={cn(
-                            "rounded-2xl px-3 py-2.5 sm:px-4 sm:py-3 text-sm sm:text-base leading-relaxed shadow-sm relative overflow-hidden",
-                            message.role === 'user'
-                              ? "bg-gradient-to-br from-gray-700 to-gray-800 text-white ml-auto"
-                              : "bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 border border-gray-200 dark:border-gray-700"
-                          )}>
-                            {message.role === 'assistant' && (
-                              <div className="absolute inset-0 bg-gradient-to-br from-gray-200/10 to-gray-300/10 dark:from-gray-600/10 dark:to-gray-500/10" />
-                            )}
-                            
-                            {/* File attachments in message */}
-                            {message.attachments && message.attachments.length > 0 && (
-                              <div className="mb-3">
-                                <div className="flex flex-wrap gap-2">
-                                  {message.attachments.map((attachment, index) => (
-                                    <div
-                                      key={index}
-                                      className={cn(
-                                        "flex items-center gap-2 rounded-lg px-2 py-1.5 text-xs",
-                                        message.role === 'user'
-                                          ? "bg-gray-600/50 text-gray-100"
-                                          : "bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300"
-                                      )}
-                                    >
-                                      {attachment.url && attachment.type.startsWith('image/') ? (
-                              <img 
-                                src={attachment.url} 
-                                alt={`Attachment: ${attachment.name}`}
-                                className="w-5 h-5 rounded object-cover" 
-                              />
-                                      ) : (
-                                        <div className={cn(
-                                          "text-current",
-                                          message.role === 'user' ? "text-gray-200" : "text-gray-500 dark:text-gray-400"
-                                        )}>
-                                          {getFileIcon(attachment.type)}
-                                        </div>
-                                      )}
-                                      <span className="truncate max-w-24">
-                                        {attachment.name}
-                                      </span>
-                                      <span className={cn(
-                                        "text-xs",
-                                        message.role === 'user' ? "text-gray-300" : "text-gray-500 dark:text-gray-400"
-                                      )}>
-                                        {formatFileSize(attachment.size)}
-                                      </span>
-                                    </div>
-                                  ))}
-                                </div>
-                              </div>
-                            )}
-                            
-                            <div className="relative whitespace-pre-wrap break-words word-break">
-                              {message.role === 'assistant' && message.format === 'html' ? (
-                                <div dangerouslySetInnerHTML={{ __html: message.content }} />
-                              ) : (
-                                message.content
-                              )}
-                            </div>
-                            
-                            {/* Copy button */}
-                            <div className={cn(
-                              "absolute -top-1.5 -right-1.5 sm:-top-2 sm:-right-2 flex gap-1 transition-all duration-300",
-                              // Visibility states - Always visible on mobile, hover on desktop
-                              "opacity-100 md:opacity-0 md:group-hover:opacity-100"
-                            )}>
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                className={cn(
-                                  "h-7 w-7 sm:h-8 sm:w-8 p-0 rounded-full transition-all duration-300 transform hover:scale-110 active:scale-95 touch-manipulation",
-                                  // User message styling (gray theme)
-                                  message.role === 'user'
-                                    ? "bg-gray-700/90 hover:bg-gray-600/95 active:bg-gray-800/90 text-white shadow-lg shadow-gray-500/30 hover:shadow-gray-400/40 backdrop-blur-sm border border-gray-400/30 hover:border-gray-300/50"
-                                    : "bg-white/95 dark:bg-gray-700/90 hover:bg-gray-50 dark:hover:bg-gray-600/90 active:bg-gray-100 dark:active:bg-gray-500/90 text-gray-600 hover:text-gray-700 dark:text-gray-300 dark:hover:text-gray-200 shadow-lg shadow-gray-500/15 hover:shadow-gray-400/20 border border-gray-200/70 dark:border-gray-600/70 hover:border-gray-300/80 dark:hover:border-gray-500/80 backdrop-blur-sm"
-                                )}
-                                onClick={() => copyMessage(message.content)}
-                                title="Copy message"
-                                aria-label="Copy message to clipboard"
-                              >
-                                <Copy className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
-                              </Button>
-                            </div>
-                          </div>
-                          
-                          {/* Timestamp */}
-                          <p className={cn(
-                            "text-xs text-gray-500 dark:text-gray-400 mt-1.5 sm:mt-2 px-1",
-                            message.role === 'user' ? 'text-right' : 'text-left'
-                          )}>
-                            {message.timestamp.toLocaleTimeString([], { 
-                              hour: '2-digit', 
-                              minute: '2-digit' 
-                            })}
-                          </p>
-                        </div>
-                      </div>
-                    </motion.div>
-                  ))}
-                </AnimatePresence>
-                
-                {/* Typing indicator */}
-                {isTyping && (
-                  <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    className="flex gap-2 sm:gap-3 md:gap-4"
-                  >
-                    <Avatar className="h-8 w-8 sm:h-9 sm:w-9 md:h-10 md:w-10 ring-2 ring-white dark:ring-gray-900 shadow-md sm:shadow-lg">
-                      <AvatarFallback className="bg-gradient-to-br from-gray-700 to-black text-white">
-                        <Bot className="h-4 w-4 sm:h-5 sm:w-5" />
-                      </AvatarFallback>
-                    </Avatar>
-                    
-                    <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-2xl px-3 py-2.5 sm:px-4 sm:py-3 shadow-sm">
-                      <div className="flex gap-1.5">
-                        <div className="h-2 w-2 bg-gray-400 rounded-full animate-bounce" />
-                        <div className="h-2 w-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }} />
-                        <div className="h-2 w-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }} />
-                      </div>
-                    </div>
-                  </motion.div>
-                )}
-              </div>
-            </ScrollArea>
-
-            {/* Input Area */}
-            <footer 
+            <Button
+              onClick={sendMessage}
+              disabled={!input.trim() || isLoading}
+              size="icon"
               className={cn(
-                "border-t border-gray-200/60 dark:border-gray-700/60 backdrop-blur-xl bg-white/80 dark:bg-gray-900/80 relative",
-                isDragOver && "bg-blue-50 dark:bg-blue-900/20 border-blue-300 dark:border-blue-600"
+                "w-10 h-10 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl font-medium transition-all transform hover:scale-105 active:scale-95 shadow-sm flex-shrink-0",
+                !input.trim() || isLoading
+                  ? "bg-gray-200 dark:bg-gray-700 text-gray-400 cursor-not-allowed hover:scale-100"
+                  : "bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white shadow-blue-500/25 hover:shadow-blue-500/40"
               )}
-              onDrop={handleDrop}
-              onDragOver={handleDragOver}
-              onDragLeave={handleDragLeave}
             >
-              {isDragOver && (
-                <div className="absolute inset-0 bg-blue-500/10 border-2 border-dashed border-blue-500 rounded-lg flex items-center justify-center z-10">
-                  <div className="text-center">
-                    <Paperclip className="h-8 w-8 text-blue-500 mx-auto mb-2" />
-                    <p className="text-blue-600 dark:text-blue-400 font-medium">Drop files here to attach</p>
-                  </div>
-                </div>
+              {isLoading ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                <Send className="w-4 h-4" />
               )}
-              
-              <div className="px-3 py-3 sm:px-4 sm:py-4 md:px-6">
-                <div className="max-w-4xl mx-auto">
-                  {/* File attachments preview */}
-                  {attachedFiles.length > 0 && (
-                    <div className="mb-3">
-                      <div className="flex flex-wrap gap-2">
-                        {attachedFiles.map((file, index) => (
-                          <motion.div
-                            key={index}
-                            initial={{ opacity: 0, scale: 0.9 }}
-                            animate={{ opacity: 1, scale: 1 }}
-                            exit={{ opacity: 0, scale: 0.9 }}
-                            className="flex items-center gap-2 bg-gray-100 dark:bg-gray-700 rounded-lg px-3 py-2 text-sm"
-                          >
-                            {file.url && file.type.startsWith('image/') ? (
-                              <img 
-                                src={file.url} 
-                                alt={`File preview: ${file.name}`}
-                                className="w-6 h-6 rounded object-cover" 
-                              />
-                            ) : (
-                              <div className="text-gray-500 dark:text-gray-400">
-                                {getFileIcon(file.type)}
-                              </div>
-                            )}
-                            <span className="text-gray-700 dark:text-gray-300 truncate max-w-32">
-                              {file.name}
-                            </span>
-                            <span className="text-xs text-gray-500 dark:text-gray-400">
-                              {formatFileSize(file.size)}
-                            </span>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              className="h-5 w-5 p-0 text-gray-500 hover:text-red-500 dark:text-gray-400 dark:hover:text-red-400"
-                              onClick={() => removeAttachment(index)}
-                              title="Remove attachment"
-                            >
-                              <X className="h-3 w-3" />
-                            </Button>
-                          </motion.div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                  
-                  <div className="flex items-end gap-2 sm:gap-3">
-                    <div className="flex-1 relative">
-                      <Input
-                        ref={inputRef}
-                        value={input}
-                        onChange={(e) => setInput(e.target.value)}
-                        onKeyPress={handleKeyPress}
-                        placeholder="Type your message..."
-                        disabled={isLoading}
-                        className="min-h-[48px] sm:min-h-[52px] pr-12 sm:pr-14 rounded-xl sm:rounded-2xl border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 focus:ring-2 focus:ring-gray-500 focus:border-transparent transition-all duration-200 text-sm sm:text-base resize-none touch-manipulation"
-                      />
-                      
-                      {/* File upload button inside input */}
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => fileInputRef.current?.click()}
-                        disabled={isLoading}
-                        className="absolute right-2 top-1/2 -translate-y-1/2 h-8 w-8 p-0 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg"
-                        title="Attach file"
-                        aria-label="Attach file"
-                      >
-                        <Paperclip className="h-4 w-4" />
-                      </Button>
-                    </div>
-                    
-                    <Button
-                      onClick={sendMessage}
-                      disabled={(!input.trim() && attachedFiles.length === 0) || isLoading}
-                      className="h-[48px] w-[48px] sm:h-[52px] sm:w-[52px] rounded-xl sm:rounded-2xl bg-gradient-to-r from-gray-700 via-gray-800 to-black hover:from-gray-600 hover:via-gray-700 hover:to-gray-900 active:from-gray-800 active:via-gray-900 active:to-black shadow-lg shadow-gray-500/25 hover:shadow-xl hover:shadow-gray-500/30 transition-all duration-200 disabled:opacity-50 disabled:shadow-none disabled:cursor-not-allowed touch-manipulation transform hover:scale-105 active:scale-95 backdrop-blur-sm border border-gray-400/20 hover:border-gray-300/30"
-                      title={isLoading ? "Sending message..." : "Send message"}
-                      aria-label={isLoading ? "Sending message..." : "Send message"}
-                    >
-                      {isLoading ? (
-                        <RefreshCw className="h-4 w-4 sm:h-5 sm:w-5 animate-spin text-white" />
-                      ) : (
-                        <Send className="h-4 w-4 sm:h-5 sm:w-5 text-white" />
-                      )}
-                    </Button>
-                    
-                    <Button
-                      variant="outline"
-                      onClick={clearChat}
-                      className="h-[48px] w-[48px] sm:h-[52px] sm:w-[52px] rounded-xl sm:rounded-2xl bg-white/50 hover:bg-gray-100 dark:bg-gray-800/50 dark:hover:bg-gray-700/50 border border-gray-200/60 dark:border-gray-700/60 hover:border-gray-300 dark:hover:border-gray-500/50 text-gray-700 hover:text-gray-800 dark:text-gray-200 dark:hover:text-gray-100 transition-all duration-200 sm:hidden touch-manipulation backdrop-blur-sm shadow-sm hover:shadow-md active:scale-95"
-                      title="Clear chat history"
-                      aria-label="Clear chat history"
-                    >
-                      <Trash2 className="h-4 w-4 sm:h-5 sm:w-5" />
-                    </Button>
-                  </div>
-                  
-                  <div className="flex items-center justify-between mt-2 sm:mt-3 text-xs text-gray-500 dark:text-gray-400">
-                    <span className="hidden sm:block">Press Enter to send, Shift+Enter for new line</span>
-                    <div className="flex items-center gap-1.5 sm:gap-2 ml-auto">
-                      <div className="h-1.5 w-1.5 sm:h-2 sm:w-2 bg-gray-500 rounded-full animate-pulse" />
-                      <span className="text-xs">AI Assistant is online</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </footer>
-          </main>
+            </Button>
+          </div>
           
-          {/* Hidden file input */}
-          <input
-            ref={fileInputRef}
-            type="file"
-            multiple
-            accept="image/*,.pdf,.txt,.csv,.json"
-            onChange={handleFileInputChange}
-            className="hidden"
-            aria-label="Upload files"
-          />
+          {/* Token counter or status */}
+          <div className="flex items-center justify-between mt-3 text-xs text-muted-foreground">
+            <div className="flex items-center gap-1 sm:gap-2 min-w-0">
+              <div className="flex-shrink-0">{renderModelIcon(selectedModel.icon)}</div>
+              <span className="truncate">
+                <span className="hidden sm:inline">Powered by </span>
+                {selectedModel.displayName}
+              </span>
+            </div>
+            {messages.length > 1 && (
+              <div className="flex items-center gap-1 flex-shrink-0">
+                <MessageSquare className="w-3 h-3" />
+                <span className="hidden sm:inline">{messages.length - 1} messages</span>
+                <span className="sm:hidden">{messages.length - 1}</span>
+              </div>
+            )}
+          </div>
         </div>
       </div>
-    </AuthGuard>
+    </div>
   );
 }
-
-
-export default memo(AIAssistantPageComponent);

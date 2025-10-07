@@ -1,9 +1,7 @@
 import { useState, useCallback } from 'react';
-import { useAuth } from '@/contexts/auth-context';
 import { showErrorToast } from '@/lib/toast-utils';
 import { ChatMessage, AIResponse, AIAssistantConfig, DEFAULT_AI_CONFIG } from '@/lib/ai-types';
 import { debug } from '@/lib/debug';
-import { getUserId, getAccessToken } from '@/lib/supabase-user-utils';
 
 interface UseAIAssistantReturn {
   messages: ChatMessage[];
@@ -16,7 +14,6 @@ interface UseAIAssistantReturn {
 }
 
 export function useAIAssistant(initialMessages: ChatMessage[] = []): UseAIAssistantReturn {
-  const { user } = useAuth();
   const [messages, setMessages] = useState<ChatMessage[]>(initialMessages);
   const [isLoading, setIsLoading] = useState(false);
   const [isTyping, setIsTyping] = useState(false);
@@ -26,7 +23,7 @@ export function useAIAssistant(initialMessages: ChatMessage[] = []): UseAIAssist
     content: string, 
     config: Partial<AIAssistantConfig> = {}
   ) => {
-    if (!content.trim() || isLoading || !user) {
+    if (!content.trim() || isLoading) {
       return;
     }
 
@@ -43,23 +40,18 @@ export function useAIAssistant(initialMessages: ChatMessage[] = []): UseAIAssist
     setIsTyping(true);
 
     try {
-      // Get user's Supabase token for authentication
-      const token = await getAccessToken();
-
       const requestBody = {
         messages: [...messages, userMessage].map(msg => ({
           role: msg.role,
           content: msg.content,
         })),
-        userId: getUserId(user),
-        config: { ...DEFAULT_AI_CONFIG, ...config },
+        model: config.model || DEFAULT_AI_CONFIG.model,
       };
 
       const response = await fetch('/api/ai-assistant', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
         },
         body: JSON.stringify(requestBody),
       });
@@ -69,7 +61,7 @@ export function useAIAssistant(initialMessages: ChatMessage[] = []): UseAIAssist
         throw new Error(errorData.error || `HTTP ${response.status}: Failed to get response`);
       }
 
-      const data: AIResponse = await response.json();
+      const data = await response.json();
 
       const assistantMessage: ChatMessage = {
         id: (Date.now() + 1).toString(),
@@ -77,7 +69,7 @@ export function useAIAssistant(initialMessages: ChatMessage[] = []): UseAIAssist
         content: data.response,
         timestamp: new Date(),
         model: data.model,
-        tokens: data.tokens,
+        tokens: data.tokens?.total,
       };
 
       setMessages(prev => [...prev, assistantMessage]);
@@ -89,9 +81,7 @@ export function useAIAssistant(initialMessages: ChatMessage[] = []): UseAIAssist
       let errorMessage = "I apologize, but I encountered an error. Please try again.";
       const errorObj = error as { message?: string };
       
-      if (errorObj.message?.includes('Authentication required')) {
-        errorMessage = "Please sign in to use the AI Assistant.";
-      } else if (errorObj.message?.includes('quota exceeded')) {
+      if (errorObj.message?.includes('quota exceeded')) {
         errorMessage = "API quota exceeded. Please try again later.";
       } else if (errorObj.message?.includes('safety')) {
         errorMessage = "Your message was filtered for safety. Please rephrase your request.";
@@ -111,7 +101,7 @@ export function useAIAssistant(initialMessages: ChatMessage[] = []): UseAIAssist
       setIsLoading(false);
       setIsTyping(false);
     }
-  }, [messages, user, isLoading]);
+  }, [messages, isLoading]);
 
   const retryLastMessage = useCallback(async () => {
     if (lastUserMessage && !isLoading) {

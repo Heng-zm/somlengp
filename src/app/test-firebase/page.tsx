@@ -16,21 +16,15 @@ const TestFirebasePageComponent = function TestSupabasePage() {
   useEffect(() => {
     const checkSupabaseConnection = async () => {
       try {
-        // Check auth state
-        const { data: { session }, error: sessionError } = await supabaseClient.auth.getSession();
-        if (sessionError) {
-          setStatus(prev => ({ ...prev, auth: `error: ${sessionError.message}` }));
-        } else {
-          setStatus(prev => ({ 
-            ...prev, 
-            auth: session ? 'connected with user' : 'connected (no user)',
-            user: session?.user || null
-          }));
-        }
+        // Test basic Supabase connection - skip auth since we removed it
+        setStatus(prev => ({ 
+          ...prev, 
+          auth: 'auth disabled - no authentication system'
+        }));
 
         // Test database read - try to read from a simple table or just test the connection
         try {
-          const { data, error: dbError } = await supabaseClient.from('profiles').select('id').limit(1);
+          const { data, error: dbError } = await supabaseClient.from('visits').select('id').limit(1);
           if (dbError) {
             setStatus(prev => ({ ...prev, database: `error: ${dbError.message}` }));
           } else {
@@ -51,18 +45,7 @@ const TestFirebasePageComponent = function TestSupabasePage() {
 
     checkSupabaseConnection();
 
-    // Listen for auth state changes
-    const { data: { subscription } } = supabaseClient.auth.onAuthStateChange(
-      (event, session) => {
-        setStatus(prev => ({
-          ...prev,
-          auth: session ? 'connected with user' : 'connected (no user)',
-          user: session?.user || null
-        }));
-      }
-    );
-
-    return () => subscription.unsubscribe();
+    // No auth state changes to listen for
   }, []);
 
   return (
@@ -71,7 +54,7 @@ const TestFirebasePageComponent = function TestSupabasePage() {
       <div className="space-y-4">
         <div className="p-4 border rounded">
           <h2 className="font-semibold">Supabase Auth</h2>
-          <p className={`${status.auth.includes('connected') ? 'text-green-600' : 'text-orange-600'}`}>
+          <p className={`${status.auth.includes('disabled') ? 'text-blue-600' : 'text-orange-600'}`}>
             Status: {status.auth}
           </p>
           {status.user && (
