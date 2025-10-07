@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
+import { cookies } from 'next/headers'
 
 // Initialize Supabase client for server-side operations
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
@@ -10,6 +11,14 @@ export async function GET(request: NextRequest) {
   const code = requestUrl.searchParams.get('code')
   const error = requestUrl.searchParams.get('error')
   const error_description = requestUrl.searchParams.get('error_description')
+  
+  // Debug logging
+  console.log('Auth callback received:', {
+    url: requestUrl.toString(),
+    searchParams: Object.fromEntries(requestUrl.searchParams.entries()),
+    code: code ? 'present' : 'missing',
+    error: error || 'none'
+  })
 
   // If there's an error in the callback, redirect to login with error
   if (error) {
@@ -29,7 +38,8 @@ export async function GET(request: NextRequest) {
       auth: {
         flowType: 'pkce',
         autoRefreshToken: false,
-        persistSession: false
+        persistSession: false,
+        detectSessionInUrl: false
       }
     })
 
@@ -49,19 +59,25 @@ export async function GET(request: NextRequest) {
     // Create response to redirect to profile page
     const response = NextResponse.redirect(new URL('/profile?auth=success', requestUrl.origin))
 
-    // Set the session cookies
-    response.cookies.set('supabase-access-token', data.session.access_token, {
+    // Set the session cookies using Next.js standard approach
+    response.cookies.set({
+      name: 'sb-access-token',
+      value: data.session.access_token,
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',
-      maxAge: data.session.expires_in
+      maxAge: data.session.expires_in,
+      path: '/'
     })
 
-    response.cookies.set('supabase-refresh-token', data.session.refresh_token, {
+    response.cookies.set({
+      name: 'sb-refresh-token',
+      value: data.session.refresh_token,
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',
-      maxAge: 60 * 60 * 24 * 30 // 30 days
+      maxAge: 60 * 60 * 24 * 30, // 30 days
+      path: '/'
     })
 
     return response
