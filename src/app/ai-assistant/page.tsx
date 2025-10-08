@@ -366,7 +366,7 @@ const CodeBlock = memo(function CodeBlock({
 
   return (
     <ErrorBoundary>
-      <div className="not-prose my-2 sm:my-4 rounded-lg overflow-hidden border border-gray-700 group" style={{ width: '100%', maxWidth: '100%', minWidth: 0, boxSizing: 'border-box' }}>
+      <div className="not-prose my-2 sm:my-4 rounded-lg overflow-hidden border border-gray-700 group" style={{ width: '100%', maxWidth: '100%', minWidth: 0, boxSizing: 'border-box', position: 'relative' }}>
         <div className="flex items-center justify-between bg-gray-800 px-2 sm:px-3 py-2 border-b border-gray-700" style={{ minWidth: 0 }}>
           <div className="flex items-center gap-1 sm:gap-2 min-w-0 flex-1">
             <span className="text-sm sm:text-base flex-shrink-0">{overview.icon}</span>

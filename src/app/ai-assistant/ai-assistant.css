@@ -141,6 +141,13 @@
     max-width: 100% !important;
     min-width: 0 !important;
     box-sizing: border-box !important;
+    position: relative !important;
+  }
+  
+  /* Prevent code content from exceeding container */
+  .message-container .not-prose * {
+    max-width: 100% !important;
+    box-sizing: border-box !important;
   }
   
   /* Better code block spacing */
@@ -493,11 +500,70 @@
   overflow: hidden !important;
 }
 
+/* Force code blocks to respect message container width */
+@media (max-width: 768px) {
+  .message-container.ai-message .not-prose {
+    max-width: calc(75vw) !important;
+    width: calc(75vw) !important;
+  }
+  
+  .message-container.user-message .not-prose {
+    max-width: calc(65vw) !important;
+    width: calc(65vw) !important;
+  }
+}
+
+@media (max-width: 640px) {
+  .message-container.ai-message .not-prose {
+    max-width: calc(80vw) !important;
+    width: calc(80vw) !important;
+  }
+  
+  .message-container.user-message .not-prose {
+    max-width: calc(70vw) !important;
+    width: calc(70vw) !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .message-container.ai-message .not-prose {
+    max-width: calc(85vw) !important;
+    width: calc(85vw) !important;
+  }
+  
+  .message-container.user-message .not-prose {
+    max-width: calc(80vw) !important;
+    width: calc(80vw) !important;
+  }
+}
+
 .message-container .overflow-x-auto,
 .message-bubble .overflow-x-auto {
   max-width: 100% !important;
   width: 100% !important;
   box-sizing: border-box !important;
+}
+
+/* Responsive overflow containers in messages */
+@media (max-width: 768px) {
+  .message-container .overflow-x-auto {
+    max-width: inherit !important;
+    width: inherit !important;
+  }
+}
+
+@media (max-width: 640px) {
+  .message-container .overflow-x-auto {
+    max-width: inherit !important;
+    width: inherit !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .message-container .overflow-x-auto {
+    max-width: inherit !important;
+    width: inherit !important;
+  }
 }
 
 .message-container pre,
