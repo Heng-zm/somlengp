@@ -28,7 +28,20 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
   try {
     // Parse request body
     const body: RequestBody = await request.json();
-    const { messages, model = 'gemini-1.5-flash' } = body;
+    const { messages, model = 'gemini-2.5-flash' } = body;
+
+    // Resolve and normalize model early so we can report it consistently later
+    // Based on testing, only gemini-2.0-flash-exp is currently available with this API key
+    const modelMap: Record<string, string> = {
+      // Map all model requests to the working model
+      'gemini-1.5-flash': 'gemini-2.0-flash-exp', // fallback to working model
+      'gemini-2.0-flash-exp': 'gemini-2.0-flash-exp',
+      'gemini-2.5-flash': 'gemini-2.0-flash-exp', // fallback to working model
+    };
+
+    const requestedModel = (model || 'gemini-2.5-flash').trim();
+    let effectiveModel = requestedModel in modelMap ? requestedModel : 'gemini-2.5-flash';
+    let geminiModelName = modelMap[effectiveModel];
 
     // Validate input
     if (!messages || !Array.isArray(messages) || messages.length === 0) {
@@ -52,17 +65,11 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     // Get the Gemini model
     let geminiModel;
     try {
-      // Map model names to Gemini models
-      const modelMap: Record<string, string> = {
-        'gemini-1.5-flash': 'gemini-1.5-flash',
-        'gemini-2.0-flash-exp': 'gemini-2.0-flash-exp',
-        'gemini-2.5-flash': 'gemini-1.5-flash', // Fallback to available model
-      };
-      
-      const geminiModelName = modelMap[model] || 'gemini-1.5-flash';
       geminiModel = genAI.getGenerativeModel({ model: geminiModelName });
     } catch (error) {
-      console.error('Error getting Gemini model:', error);
+      if (process.env.NODE_ENV === 'development') {
+        console.warn('Error getting Gemini model:', error);
+      }
       return NextResponse.json(
         { error: 'Failed to initialize AI model' },
         { status: 500 }
@@ -97,14 +104,39 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       });
 
       // Send message and get response
-      const result = await chat.sendMessage(lastMessage.content);
+      let result;
+      try {
+        result = await chat.sendMessage(lastMessage.content);
+      } catch (sendErr: any) {
+        // If the selected model isn't available (404), retry once with gemini-2.0-flash-exp
+        const isNotFound = sendErr?.status === 404 || /not found/i.test(sendErr?.message || '');
+        if (isNotFound && geminiModelName !== 'gemini-2.0-flash-exp') {
+          // Fallback to the only working model
+          effectiveModel = 'gemini-2.0-flash-exp';
+          geminiModelName = 'gemini-2.0-flash-exp';
+          geminiModel = genAI.getGenerativeModel({ model: geminiModelName });
+          const fallbackChat = geminiModel.startChat({
+            history: history.length > 0 ? history : undefined,
+            generationConfig: {
+              maxOutputTokens: 2048,
+              temperature: 0.7,
+              topP: 0.8,
+              topK: 10,
+            },
+          });
+          result = await fallbackChat.sendMessage(lastMessage.content);
+        } else {
+          throw sendErr;
+        }
+      }
+
       const response = result.response;
       const text = response.text();
 
       // Get token usage if available
       let tokens;
       try {
-        const usage = await result.response.usageMetadata;
+        const usage: any = response?.usageMetadata;
         if (usage) {
           tokens = {
             prompt: usage.promptTokenCount || 0,
@@ -114,19 +146,23 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
         }
       } catch (tokenError) {
         // Token info is optional, continue without it
-        console.log('Token usage info not available:', tokenError);
+        if (process.env.NODE_ENV === 'development') {
+          console.warn('Token usage info not available:', tokenError);
+        }
       }
 
       const aiResponse: AIResponse = {
         response: text,
-        model: model,
+        model: effectiveModel,
         tokens,
       };
 
       return NextResponse.json(aiResponse);
 
     } catch (aiError: any) {
-      console.error('Gemini AI Error:', aiError);
+      if (process.env.NODE_ENV === 'development') {
+        console.warn('Gemini AI Error:', aiError);
+      }
       
       let errorMessage = 'An error occurred while processing your request.';
       
@@ -136,12 +172,14 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
         errorMessage = 'Your message was filtered for safety reasons. Please rephrase your request.';
       } else if (aiError.message?.includes('blocked')) {
         errorMessage = 'Your request was blocked. Please try rephrasing your message.';
+      } else if (aiError?.status === 404) {
+        errorMessage = 'Requested model is not available. Falling back to a supported model may help.';
       }
 
       return NextResponse.json({
         error: errorMessage,
         response: errorMessage, // Provide response for the chat
-        model: model,
+        model: effectiveModel,
       });
     }
 

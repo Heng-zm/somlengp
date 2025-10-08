@@ -42,8 +42,6 @@ import {
   Target,
   MessageCircle,
   FileText,
-  ChevronUp,
-  ChevronDown as ChevronDownIcon,
   Code2,
   PlayCircle,
   ChevronLeft,
@@ -78,9 +76,9 @@ const CodeSkeleton = memo(function CodeSkeleton({ lines = 5 }: { lines?: number 
   return (
     <div className="animate-pulse bg-gray-800 rounded p-4">
       <div className="space-y-2">
-        {Array.from({ length: lines }).map((_, i) => (
+        {Array.from({ length: lines }, (_, i) => (
           <div 
-            key={i}
+            key={`skeleton-line-${i}`}
             className={`h-4 bg-gray-700 rounded ${
               i === 0 ? 'w-3/4' : 
               i === 1 ? 'w-1/2' : 
@@ -181,25 +179,25 @@ interface ErrorBoundaryState {
 
 const AI_MODELS: AIModel[] = [
   {
-    id: 'gemini-1.5-flash',
-    name: 'gemini-1.5-flash',
-    displayName: 'Gemini 1.5 Flash',
-    description: 'Fast and efficient for most tasks',
-    icon: 'Zap'
-  },
-  {
-    id: 'gemini-2.0-flash-exp',
-    name: 'gemini-2.0-flash-exp',
-    displayName: 'Gemini 2.0 Flash (Experimental)',
-    description: 'Latest experimental model with enhanced capabilities',
-    icon: 'Sparkles'
-  },
-  {
     id: 'gemini-2.5-flash',
     name: 'gemini-2.5-flash',
     displayName: 'Gemini 2.5 Flash',
     description: 'Next-generation model with improved performance',
     icon: 'Rocket'
+  },
+  {
+    id: 'gemini-2.0-flash-exp',
+    name: 'gemini-2.0-flash-exp',
+    displayName: 'Gemini 2.0 Flash (Experimental)',
+    description: 'Currently the primary available model with enhanced capabilities',
+    icon: 'Sparkles'
+  },
+  {
+    id: 'gemini-1.5-flash',
+    name: 'gemini-1.5-flash',
+    displayName: 'Gemini 1.5 Flash',
+    description: 'Fast and efficient for most tasks',
+    icon: 'Zap'
   }
 ];
 
@@ -294,7 +292,11 @@ class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
   }
 
   componentDidCatch(error: Error, errorInfo: ErrorInfo) {
-    console.error('Error boundary caught an error:', error, errorInfo);
+    // Error is already handled in state, no need for console logging in production
+    // Development logging can be handled by React DevTools
+    if (process.env.NODE_ENV === 'development') {
+      console.warn('Error boundary caught an error:', error.message, errorInfo.componentStack);
+    }
   }
 
   render() {
@@ -339,11 +341,22 @@ const CodeBlock = memo(function CodeBlock({
 }: CodeBlockProps) {
   const overview = generateCodeOverview(codeString, language);
   const [showOverview, setShowOverview] = useState(codeString.split('\n').length > 10);
-  const [isExpanded, setIsExpanded] = useState(!showOverview);
+  const [isExpanded, setIsExpanded] = useState(true); // Always expanded
   
-  const copyCode = useCallback(() => {
-    navigator.clipboard.writeText(codeString);
-    showSuccessToast("Code copied to clipboard");
+  const copyCode = useCallback(async () => {
+    try {
+      await navigator.clipboard.writeText(codeString);
+      showSuccessToast("Code copied to clipboard");
+    } catch (error) {
+      // Fallback for older browsers or when clipboard API is not available
+      const textArea = document.createElement('textarea');
+      textArea.value = codeString;
+      document.body.appendChild(textArea);
+      textArea.select();
+      document.execCommand('copy');
+      document.body.removeChild(textArea);
+      showSuccessToast("Code copied to clipboard");
+    }
   }, [codeString]);
 
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -363,7 +376,7 @@ const CodeBlock = memo(function CodeBlock({
 
   return (
     <ErrorBoundary>
-      <div className="not-prose my-2 sm:my-4 rounded-lg overflow-hidden border border-gray-700 group w-full max-w-full">
+      <div className="not-prose my-2 sm:my-4 rounded-lg overflow-hidden border border-gray-700 group w-full max-w-full min-w-0">
         <div className="flex items-center justify-between bg-gray-800 px-2 sm:px-3 py-2 border-b border-gray-700">
           <div className="flex items-center gap-1 sm:gap-2 min-w-0 flex-1">
             <span className="text-sm sm:text-base flex-shrink-0">{overview.icon}</span>
@@ -385,51 +398,26 @@ const CodeBlock = memo(function CodeBlock({
           <Button
             variant="ghost"
             size="sm"
-            className="h-6 w-6 sm:h-7 sm:w-auto sm:px-2 text-xs text-gray-300 hover:text-white hover:bg-gray-700 flex-shrink-0"
+            className="h-8 w-8 sm:h-7 sm:w-auto sm:px-2 text-xs text-gray-300 hover:text-white hover:bg-gray-700 active:bg-gray-600 transition-colors flex-shrink-0 min-w-[2rem] touch-manipulation"
             onClick={copyCode}
+            aria-label="Copy code to clipboard"
           >
-            <Copy className="w-3 h-3" />
+            <Copy className="w-3.5 h-3.5 sm:w-3 sm:h-3" />
+            <span className="sr-only">Copy</span>
           </Button>
         </div>
       
       {showOverview && (
         <div className="code-overview-section px-2 sm:px-3 py-2">
-          <div className="flex items-center justify-between mb-2 gap-2">
-            <div className="flex items-center gap-1 sm:gap-2 text-xs text-gray-400 min-w-0 flex-1">
-              <FileText className="w-3 h-3 flex-shrink-0" />
-              <span className="truncate">{overview.lines} lines • {overview.features}</span>
-            </div>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setIsExpanded(!isExpanded)}
-              className="h-6 px-1.5 sm:px-2 text-xs text-gray-400 hover:text-white hover:bg-gray-700 flex-shrink-0"
-            >
-              {isExpanded ? (
-                <>
-                  <ChevronUp className="w-3 h-3 mr-1" />
-                  <span className="hidden sm:inline">Collapse</span>
-                </>
-              ) : (
-                <>
-                  <ChevronDownIcon className="w-3 h-3 mr-1" />
-                  <span className="hidden sm:inline">Expand</span>
-                </>
-              )}
-            </Button>
+          <div className="flex items-center gap-1 sm:gap-2 text-xs text-gray-400 min-w-0 flex-1">
+            <FileText className="w-3 h-3 flex-shrink-0" />
+            <span className="truncate">{overview.lines} lines • {overview.features}</span>
           </div>
-          {!isExpanded && (
-            <div className="text-xs text-gray-500 font-mono bg-gray-800/50 px-2 py-1 rounded border border-gray-600 overflow-hidden">
-              <div className="truncate">
-                {codeString.split('\n').slice(0, 2).join(' ').substring(0, 80)}...
-              </div>
-            </div>
-          )}
         </div>
       )}
       
-      {(isExpanded || !showOverview) && (
-        <div className="relative">
+      {/* Always show code - no expand/collapse */}
+      <div className="relative">
           <div 
             ref={scrollRef}
             className="overflow-x-auto bg-gray-900 scrollbar-thin scrollbar-thumb-gray-600 scrollbar-track-gray-800"
@@ -473,7 +461,7 @@ const CodeBlock = memo(function CodeBlock({
             <Button
               variant="ghost"
               size="sm"
-              className="h-7 w-7 sm:h-6 sm:w-6 p-0 bg-gray-800/90 hover:bg-gray-700 text-gray-300 hover:text-white border border-gray-600 backdrop-blur-sm focus:ring-2 focus:ring-blue-500/50 rounded-md"
+              className="h-8 w-8 sm:h-7 sm:w-7 p-0 bg-gray-800/90 hover:bg-gray-700 active:bg-gray-600 text-gray-300 hover:text-white border border-gray-600 backdrop-blur-sm focus:ring-2 focus:ring-blue-500/50 rounded-md transition-colors touch-manipulation"
               onClick={() => {
                 const scrollContainer = scrollRef.current;
                 if (scrollContainer) {
@@ -484,12 +472,12 @@ const CodeBlock = memo(function CodeBlock({
               title="Scroll left"
               aria-label="Scroll code left"
             >
-              <ChevronLeft className="w-3.5 h-3.5 sm:w-3 sm:h-3" />
+              <ChevronLeft className="w-4 h-4 sm:w-3 sm:h-3" />
             </Button>
             <Button
               variant="ghost"
               size="sm"
-              className="h-7 w-7 sm:h-6 sm:w-6 p-0 bg-gray-800/90 hover:bg-gray-700 text-gray-300 hover:text-white border border-gray-600 backdrop-blur-sm focus:ring-2 focus:ring-blue-500/50 rounded-md"
+              className="h-8 w-8 sm:h-7 sm:w-7 p-0 bg-gray-800/90 hover:bg-gray-700 active:bg-gray-600 text-gray-300 hover:text-white border border-gray-600 backdrop-blur-sm focus:ring-2 focus:ring-blue-500/50 rounded-md transition-colors touch-manipulation"
               onClick={() => {
                 const scrollContainer = scrollRef.current;
                 if (scrollContainer) {
@@ -500,11 +488,10 @@ const CodeBlock = memo(function CodeBlock({
               title="Scroll right"
               aria-label="Scroll code right"
             >
-              <ChevronRight className="w-3.5 h-3.5 sm:w-3 sm:h-3" />
+              <ChevronRight className="w-4 h-4 sm:w-3 sm:h-3" />
             </Button>
           </div>
         </div>
-      )}
       </div>
     </ErrorBoundary>
   );
@@ -523,7 +510,25 @@ const MessageComponent = memo(function MessageComponent({ message }: MessageComp
       showSuccessToast("Copied to clipboard");
       setTimeout(() => setCopied(false), 2000);
     } catch (error) {
-      console.error('Failed to copy:', error);
+      // Fallback for older browsers
+      try {
+        const textArea = document.createElement('textarea');
+        textArea.value = message.content;
+        textArea.style.position = 'fixed';
+        textArea.style.opacity = '0';
+        document.body.appendChild(textArea);
+        textArea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textArea);
+        setCopied(true);
+        showSuccessToast("Copied to clipboard");
+        setTimeout(() => setCopied(false), 2000);
+      } catch (fallbackError) {
+        if (process.env.NODE_ENV === 'development') {
+          console.warn('Failed to copy message:', fallbackError);
+        }
+        showSuccessToast("Failed to copy message");
+      }
     }
   }, [message.content]);
 
@@ -548,16 +553,18 @@ const MessageComponent = memo(function MessageComponent({ message }: MessageComp
       )}
       
       <div className={cn(
-        "flex flex-col gap-2 w-full max-w-[95%] sm:max-w-[85%] md:max-w-[80%] lg:max-w-[75%]",
-        isUser ? "items-end" : "items-start"
+        "flex flex-col gap-2 w-full min-w-0",
+        isUser 
+          ? "max-w-[95%] sm:max-w-[85%] md:max-w-[80%] lg:max-w-[75%] items-end" 
+          : "max-w-full sm:max-w-[98%] md:max-w-[96%] lg:max-w-[94%] xl:max-w-[92%] items-start"
       )}>
         <div className={cn(
-          "px-2 sm:px-3 md:px-4 py-2 sm:py-3 rounded-2xl relative group shadow-sm border overflow-hidden",
+          "px-2 sm:px-3 md:px-4 py-2 sm:py-3 rounded-2xl relative group shadow-sm border overflow-hidden w-full min-w-0",
           isUser 
-            ? "bg-gradient-to-br from-blue-600 to-blue-700 text-white ml-4 sm:ml-8 md:ml-12 border-blue-600/20" 
+            ? "bg-gradient-to-br from-blue-600 to-blue-700 text-white ml-2 sm:ml-4 md:ml-8 border-blue-600/20" 
             : "bg-gradient-to-br from-gray-50 to-gray-100 border-gray-200/50 dark:from-gray-800 dark:to-gray-900 dark:border-gray-700/50"
         )}>
-          <div className="prose prose-sm max-w-none dark:prose-invert overflow-hidden break-words" style={{ width: '100%', minWidth: 0 }}>
+          <div className="prose prose-sm max-w-none dark:prose-invert break-words w-full" style={{ minWidth: 0, wordWrap: 'break-word', overflowWrap: 'anywhere' }}>
             <ReactMarkdown
               components={{
                 code: ({ inline, className, children, ...props }: any) => {
@@ -652,10 +659,11 @@ const MessageComponent = memo(function MessageComponent({ message }: MessageComp
             variant="ghost"
             size="sm"
             className={cn(
-              "absolute -top-2 -right-2 opacity-0 group-hover:opacity-100 transition-opacity",
-              "w-6 h-6 p-0"
+              "absolute -top-2 -right-2 opacity-0 group-hover:opacity-100 sm:opacity-0 transition-opacity touch-manipulation",
+              "w-8 h-8 sm:w-6 sm:h-6 p-0 bg-white/90 dark:bg-gray-800/90 shadow-sm border border-gray-200 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700"
             )}
             onClick={copyToClipboard}
+            aria-label="Copy message to clipboard"
           >
             {copied ? (
               <Badge variant="secondary" className="text-xs">Copied!</Badge>
@@ -721,8 +729,10 @@ const MessageSkeleton = memo(function MessageSkeleton({ isUser = false }: { isUs
       )}
       
       <div className={cn(
-        "flex flex-col gap-2 max-w-[85%] sm:max-w-[80%] lg:max-w-[75%]",
-        isUser ? "items-end" : "items-start"
+        "flex flex-col gap-2",
+        isUser 
+          ? "max-w-[95%] sm:max-w-[85%] md:max-w-[80%] lg:max-w-[75%] items-end" 
+          : "max-w-[98%] sm:max-w-[95%] md:max-w-[92%] lg:max-w-[90%] items-start"
       )}>
         <div className={cn(
           "px-3 sm:px-4 py-3 rounded-2xl animate-pulse",
@@ -780,7 +790,7 @@ export default function AIAssistantPage() {
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [isTyping, setIsTyping] = useState(false);
-  const [selectedModel, setSelectedModel] = useState<AIModel>(AI_MODELS[0]);
+  const [selectedModel, setSelectedModel] = useState<AIModel>(AI_MODELS[0]); // This will be Gemini 2.5 Flash
   
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -799,10 +809,17 @@ export default function AIAssistantPage() {
     scrollToBottom();
   }, [messages, isTyping, scrollToBottom]);
 
-  // Focus input on mount
+  // Focus input on mount and after sending messages
   useEffect(() => {
     inputRef.current?.focus();
   }, []);
+  
+  // Refocus input after message is sent
+  useEffect(() => {
+    if (!isLoading && !isTyping) {
+      inputRef.current?.focus();
+    }
+  }, [isLoading, isTyping]);
 
   // Initialize with welcome message
   useEffect(() => {
@@ -869,7 +886,10 @@ export default function AIAssistantPage() {
       setMessages(prev => [...prev, assistantMessage]);
 
     } catch (error: unknown) {
-      console.error('Error sending message:', error);
+      // Only log errors in development mode
+      if (process.env.NODE_ENV === 'development') {
+        console.warn('Error sending message:', error);
+      }
       
       const errorMessage = error instanceof Error 
         ? error.message 
@@ -878,7 +898,7 @@ export default function AIAssistantPage() {
       const errorChatMessage: Message = {
         id: generateMessageId(),
         role: 'assistant',
-        content: `Error: ${errorMessage}`,
+        content: `⚠️ ${errorMessage}`,
         timestamp: new Date(),
         model: selectedModel.name,
       };
@@ -997,7 +1017,7 @@ export default function AIAssistantPage() {
         ref={scrollAreaRef}
         className="flex-1 min-h-0"
       >
-        <div className="max-w-4xl mx-auto px-1 sm:px-2 md:px-4">
+        <div className="max-w-6xl mx-auto px-1 sm:px-2 md:px-4">
           <AnimatePresence>
             {messages.map((message) => (
               <ErrorBoundary key={message.id}>
@@ -1015,7 +1035,7 @@ export default function AIAssistantPage() {
 
       {/* Input */}
       <div className="p-2 sm:p-4 border-t bg-gradient-to-r from-white to-gray-50/50 dark:from-gray-900 dark:to-gray-800/50 backdrop-blur supports-[backdrop-filter]:bg-background/60 shadow-sm">
-        <div className="max-w-4xl mx-auto px-1 sm:px-2 md:px-4">
+        <div className="max-w-6xl mx-auto px-1 sm:px-2 md:px-4">
           <div className="flex items-center gap-2 sm:gap-3">
             <div className="relative flex-1">
               <Input
@@ -1023,7 +1043,7 @@ export default function AIAssistantPage() {
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 onKeyDown={handleKeyDown}
-                placeholder="Ask me anything..."
+                placeholder={isLoading ? "AI is responding..." : "Ask me anything..."}
                 disabled={isLoading}
                 className="h-10 sm:h-12 pr-10 sm:pr-12 rounded-xl sm:rounded-2xl border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 shadow-sm focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-sm sm:text-base"
               />
@@ -1036,11 +1056,12 @@ export default function AIAssistantPage() {
               disabled={!input.trim() || isLoading}
               size="icon"
               className={cn(
-                "w-10 h-10 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl font-medium transition-all transform hover:scale-105 active:scale-95 shadow-sm flex-shrink-0",
+                "w-12 h-12 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl font-medium transition-all transform hover:scale-105 active:scale-95 shadow-sm flex-shrink-0 touch-manipulation",
                 !input.trim() || isLoading
                   ? "bg-gray-200 dark:bg-gray-700 text-gray-400 cursor-not-allowed hover:scale-100"
-                  : "bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white shadow-blue-500/25 hover:shadow-blue-500/40"
+                  : "bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 active:from-blue-800 active:to-blue-900 text-white shadow-blue-500/25 hover:shadow-blue-500/40"
               )}
+              aria-label={isLoading ? "Sending message..." : "Send message"}
             >
               {isLoading ? (
                 <Loader2 className="w-4 h-4 animate-spin" />
