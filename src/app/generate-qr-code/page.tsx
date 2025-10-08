@@ -128,12 +128,13 @@ const GenerateQRCodePageComponent = function GenerateQRCodePage() {
 
   // Cleanup canvas on unmount
   useEffect(() => {
+    const canvas = canvasRef.current; // Capture current value
     return () => {
       // Clean up canvas context
-      if (canvasRef.current) {
-        const ctx = canvasRef.current.getContext('2d');
+      if (canvas) {
+        const ctx = canvas.getContext('2d');
         if (ctx) {
-          ctx.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
+          ctx.clearRect(0, 0, canvas.width, canvas.height);
         }
       }
     };

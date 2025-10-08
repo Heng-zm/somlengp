@@ -10,6 +10,24 @@
     "import/no-anonymous-default-export": "warn",
     "react-hooks/exhaustive-deps": "warn",
     "react/display-name": "warn",
-    "react-hooks/rules-of-hooks": "error"
-  }
+    "react-hooks/rules-of-hooks": "error",
+    "jsx-a11y/role-supports-aria-props": "warn",
+    "react/no-unescaped-entities": "warn"
+  },
+  "overrides": [
+    {
+      "files": ["src/**/*.test.ts", "src/**/*.test.tsx"],
+      "rules": {
+        "@typescript-eslint/no-explicit-any": "off",
+        "@typescript-eslint/no-unused-vars": "off"
+      }
+    },
+    {
+      "files": ["src/example/**/*", "src/**/*.example.tsx"],
+      "rules": {
+        "@typescript-eslint/no-unused-vars": "off",
+        "@typescript-eslint/no-explicit-any": "off"
+      }
+    }
+  ]
 }

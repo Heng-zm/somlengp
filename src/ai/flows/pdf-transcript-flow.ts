@@ -19,6 +19,7 @@ const TranscribePdfInputSchema = z.object({
     .describe(
       "A PDF file, as a data URI that must include a MIME type and use Base64 encoding. Expected format: 'data:application/pdf;base64,<encoded_data>'"
     ),
+  model: z.string().optional().describe('The AI model to use for transcription'),
 });
 export type TranscribePdfInput = z.infer<typeof TranscribePdfInputSchema>;
 
@@ -33,9 +34,9 @@ export async function transcribePdf(
   return pdfTranscriptFlow(input);
 }
 
-const prompt = ai.definePrompt({
+const createPdfTranscriptPrompt = (modelName: string) => ai.definePrompt({
   name: 'pdfTranscriptPrompt',
-  model: googleAI.model('gemini-1.5-flash-latest'),
+  model: googleAI.model(modelName),
   input: {schema: TranscribePdfInputSchema},
   output: {schema: TranscribePdfOutputSchema},
   prompt: `You are a meticulous digital archivist. Your one and only mission is to extract the text from the provided PDF document and replicate its layout and structure with perfect fidelity. Any deviation is a failure.
@@ -62,6 +63,8 @@ const pdfTranscriptFlow = ai.defineFlow(
     if (input.pdfDataUri.length > MAX_BASE64_SIZE_BYTES) {
         throw new Error('413: Payload Too Large. PDF file size exceeds the server limit.');
     }
+    const modelName = input.model || 'gemini-2.0-flash-exp';
+    const prompt = createPdfTranscriptPrompt(modelName);
     const {output} = await prompt(input);
     if (!output || !output.text) {
       throw new Error(

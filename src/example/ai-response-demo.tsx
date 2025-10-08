@@ -1,7 +1,7 @@
 "use client";
 
 import React from 'react';
-import AIResponseFormatter from '@/components/ai/AIResponseFormatter';
+import { AIResponseFormatter } from '@/components/features/ai/AIResponseFormatter';
 
 export default function AIResponseDemo() {
   // Sample AI response text with different styling

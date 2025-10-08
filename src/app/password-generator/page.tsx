@@ -3,9 +3,9 @@
 import { useState, useCallback, useEffect, useMemo, memo } from 'react';
 import { 
   Copy, RefreshCw, Shield, Check, Eye, EyeOff, History, Download, Trash2, 
-  Settings, Sparkles, Lock, Key, Zap, MoreHorizontal, ChevronDown,
+  Sparkles, MoreHorizontal, ChevronDown,
   Hash, Type, FileText, Activity, Timer, TrendingUp, AlertTriangle,
-  CheckCircle2, Target, Layers, MousePointer, RotateCcw, Info
+  CheckCircle2, Target, Layers, MousePointer, Info
 } from 'lucide-react';
 import { FeaturePageLayout } from '@/layouts/feature-page-layout';
 import { Button } from '@/components/ui/button';
@@ -15,13 +15,12 @@ import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { Separator } from '@/components/ui/separator';
 import { Progress } from '@/components/ui/progress';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from '@/components/ui/dropdown-menu';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Sheet, SheetTrigger, SheetContent, SheetHeader, SheetTitle, SheetDescription } from '@/components/ui/sheet';
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from '@/components/ui/sheet';
 import { toast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 // Memory leak prevention: Timers need cleanup
@@ -71,15 +70,15 @@ const PasswordGeneratorPageComponent = function PasswordGeneratorPage() {
   const [isGenerating, setIsGenerating] = useState(false);
   const [copied, setCopied] = useState(false);
 
-  // Character sets
-  const charSets = {
+  // Character sets - memoized to prevent re-creation on every render
+  const charSets = useMemo(() => ({
     uppercase: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ',
     lowercase: 'abcdefghijklmnopqrstuvwxyz',
     numbers: '0123456789',
     symbols: '!@#$%^&*()_+-=[]{}|;:,.<>?',
     similar: 'il1Lo0O',
     ambiguous: '{}[]()/\\\'"`~,;.<>',
-  };
+  }), []);
 
   // Generate secure password
   const generatePassword = useCallback(() => {
@@ -167,7 +166,7 @@ const PasswordGeneratorPageComponent = function PasswordGeneratorPage() {
       setHistory(prev => [newPassword, ...prev.slice(0, 19)]); // Keep last 20 passwords
       setIsGenerating(false);
     }, 300); // Small delay for UX
-  }, [options]);
+  }, [options, charSets.uppercase, charSets.lowercase, charSets.numbers, charSets.symbols, charSets.similar, charSets.ambiguous, calculatePasswordStrength]);
 
   // Calculate password strength
   const calculatePasswordStrength = useCallback((pwd: string) => {
@@ -271,7 +270,7 @@ const PasswordGeneratorPageComponent = function PasswordGeneratorPage() {
   // Generate initial password
   useEffect(() => {
     generatePassword();
-  }, []);
+  }, [generatePassword]);
 
   const strengthInfo = getStrengthLabel(passwordStrength);
 

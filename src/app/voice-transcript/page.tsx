@@ -6,7 +6,7 @@ import { FeaturePageLayout } from '@/layouts/feature-page-layout';
 
 export default function VoiceTranscript() {
   return (
-      <FeaturePageLayout title="Voice Transcript" showModelSelector={true}>
+      <FeaturePageLayout title="Voice Transcript">
         <SoundsPage />
       </FeaturePageLayout>
   );

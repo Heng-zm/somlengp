@@ -30,6 +30,7 @@ import { ExportSettingsDropdown } from '@/components/shared/export-settings-drop
 import { MAX_FILE_SIZE_BYTES, MAX_FILE_SIZE_MB } from '@/config';
 import { ThreeDotsLoader } from '@/components/shared/three-dots-loader';
 import { formatFileSize } from '@/lib/format-file-size';
+import { ModelSelector, DEFAULT_AI_MODELS, type AIModel } from '@/components/shared/model-selector';
 
 const blobToBase64 = (blob: Blob): Promise<string> => {
   return new Promise((resolve, reject) => {
@@ -58,6 +59,7 @@ export function SoundsPage() {
   const [customVocabulary, setCustomVocabulary] = useState<string[]>([]);
   const [vocabInput, setVocabInput] = useState('');
   const [isRatingOpen, setIsRatingOpen] = useState(false);
+  const [selectedModel, setSelectedModel] = useState<AIModel>(DEFAULT_AI_MODELS[1]); // Default to gemini-2.0-flash-exp
   const hasRated = useRef(false);
 
   const { toast } = useToast();
@@ -113,6 +115,7 @@ export function SoundsPage() {
       const result = await improveTranscriptionAccuracy({
         audioDataUri,
         customVocabulary,
+        model: selectedModel.name,
       });
   
       if (result && result.transcript) {
@@ -131,7 +134,7 @@ export function SoundsPage() {
     } finally {
       setIsTranscribing(false);
     }
-  }, [audioFile, customVocabulary, t, toast, handleError]);
+  }, [audioFile, customVocabulary, t, toast, handleError, selectedModel]);
   
   const processAudio = useCallback(async (file: File) => {
     setIsTranscribing(true);
@@ -140,7 +143,10 @@ export function SoundsPage() {
 
     try {
         const audioDataUri = await blobToBase64(file);
-        const result = await transcribeAudio({ audioDataUri });
+        const result = await transcribeAudio({ 
+          audioDataUri,
+          model: selectedModel.name
+        });
         
         if (result && result.transcript) {
             setStructuredTranscript(result.transcript);
@@ -157,7 +163,7 @@ export function SoundsPage() {
     } finally {
         setIsTranscribing(false);
     }
-  }, [t, toast, handleError]);
+  }, [t, toast, handleError, selectedModel]);
 
   const handleFileSelect = (file: File | null | undefined) => {
     if (!file) return;
@@ -283,6 +289,18 @@ export function SoundsPage() {
         onDrop={handleDrop}
     >
         <main className="flex-grow p-4 md:p-6 flex flex-col items-center">
+            <div className="w-full max-w-4xl flex flex-col mb-4">
+                <div className="flex items-center justify-between mb-4">
+                    <h2 className="text-2xl font-bold">{t.transcribeAudio}</h2>
+                    <ModelSelector
+                        selectedModel={selectedModel}
+                        onModelChange={setSelectedModel}
+                        label="Select AI Model"
+                        size="sm"
+                        disabled={isTranscribing}
+                    />
+                </div>
+            </div>
             <div className="w-full max-w-4xl flex-grow flex flex-col">
                 {!audioFile ? (
                     <Card 

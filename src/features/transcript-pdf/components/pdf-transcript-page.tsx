@@ -17,6 +17,7 @@ import { ExportSettingsDropdown } from '@/components/shared/export-settings-drop
 import { MAX_FILE_SIZE_BYTES, MAX_FILE_SIZE_MB } from '@/config';
 import { ThreeDotsLoader } from '@/components/shared/three-dots-loader';
 import { formatFileSize } from '@/lib/format-file-size';
+import { ModelSelector, DEFAULT_AI_MODELS, type AIModel } from '@/components/shared/model-selector';
 
 const blobToBase64 = (blob: Blob): Promise<string> => {
   return new Promise((resolve, reject) => {
@@ -40,6 +41,7 @@ export function PdfTranscriptPage() {
   const [isDragging, setIsDragging] = useState(false);
   const [isExportSheetOpen, setIsExportSheetOpen] = useState(false);
   const [exportFormat, setExportFormat] = useState('docx');
+  const [selectedModel, setSelectedModel] = useState<AIModel>(DEFAULT_AI_MODELS[1]); // Default to gemini-2.0-flash-exp
 
   const { toast } = useToast();
   const fileInputRef = useRef<HTMLInputElement | null>(null);
@@ -106,7 +108,10 @@ export function PdfTranscriptPage() {
 
     try {
       const pdfDataUri = await blobToBase64(file);
-      const result = await transcribePdf({ pdfDataUri });
+      const result = await transcribePdf({ 
+        pdfDataUri,
+        model: selectedModel.name
+      });
 
       if (result && result.text) {
         setTranscribedText(result.text);
@@ -123,7 +128,7 @@ export function PdfTranscriptPage() {
     } finally {
       setIsTranscribing(false);
     }
-  }, [t, toast, handleError]);
+  }, [t, toast, handleError, selectedModel]);
 
 
   const handleDragEvents = (e: React.DragEvent<HTMLDivElement>) => {
@@ -205,6 +210,18 @@ export function PdfTranscriptPage() {
         onDrop={handleDrop}
     >
         <main className="flex-grow p-4 md:p-6 flex flex-col items-center">
+            <div className="w-full max-w-4xl flex flex-col mb-4">
+                <div className="flex items-center justify-between mb-4">
+                    <h2 className="text-2xl font-bold">{t.pdfTranscript}</h2>
+                    <ModelSelector
+                        selectedModel={selectedModel}
+                        onModelChange={setSelectedModel}
+                        label="Select AI Model"
+                        size="sm"
+                        disabled={isTranscribing}
+                    />
+                </div>
+            </div>
             <div className="w-full max-w-4xl flex-grow flex flex-col">
                 {!pdfFile ? (
                     <Card

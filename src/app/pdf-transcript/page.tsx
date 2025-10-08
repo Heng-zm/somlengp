@@ -6,7 +6,7 @@ import { FeaturePageLayout } from '@/layouts/feature-page-layout';
 
 export default function PdfTranscript() {
   return (
-      <FeaturePageLayout title="PDF Transcript" showModelSelector={true}>
+      <FeaturePageLayout title="PDF Transcript">
         <PdfTranscriptPage />
       </FeaturePageLayout>
   );

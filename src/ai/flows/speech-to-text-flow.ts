@@ -20,6 +20,7 @@ const TranscribeAudioInputSchema = z.object({
     .describe(
       "A recording of spoken audio, as a data URI that must include a MIME type and use Base64 encoding. Expected format: 'data:<mimetype>;base64,<encoded_data>'."
     ),
+  model: z.string().optional().describe('The AI model to use for transcription'),
 });
 export type TranscribeAudioInput = z.infer<typeof TranscribeAudioInputSchema>;
 
@@ -28,9 +29,9 @@ export async function transcribeAudio(input: TranscribeAudioInput): Promise<Tran
   return transcribeAudioFlow(input);
 }
 
-const prompt = ai.definePrompt({
+const createTranscribeAudioPrompt = (modelName: string) => ai.definePrompt({
   name: 'transcribeAudioPrompt',
-  model: googleAI.model('gemini-1.5-flash-latest'),
+  model: googleAI.model(modelName),
   input: {schema: TranscribeAudioInputSchema},
   output: {schema: TranscribeAudioOutputSchema},
   prompt: `You are a highly accurate audio transcription service that can understand both English and Khmer.
@@ -51,6 +52,8 @@ const transcribeAudioFlow = ai.defineFlow(
     if (input.audioDataUri.length > MAX_BASE64_SIZE_BYTES) {
         throw new Error('413: Payload Too Large. Audio file size exceeds the server limit.');
     }
+    const modelName = input.model || 'gemini-2.0-flash-exp';
+    const prompt = createTranscribeAudioPrompt(modelName);
     const {output} = await prompt(input);
     if (!output) {
       throw new Error('Transcription failed: The model did not return any output.');

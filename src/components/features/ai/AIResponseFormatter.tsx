@@ -14,7 +14,7 @@ interface Props {
   onFormatted?: (formatted: string) => void;
 }
 
-export default function AIResponseFormatter({ value, onFormatted }: Props) {
+export function AIResponseFormatter({ value, onFormatted }: Props) {
   const [format, setFormat] = React.useState<AIFormat>('plain');
   const [language, setLanguage] = React.useState<string>('');
   const [headingLevel, setHeadingLevel] = React.useState<1 | 2 | 3 | 4 | 5 | 6 | undefined>(undefined);

@@ -31,12 +31,24 @@
 .prose {
   width: 100% !important;
   min-width: 0 !important;
+  max-width: 100% !important;
 }
 
 .prose > * {
   max-width: 100% !important;
+  width: 100% !important;
   word-wrap: break-word !important;
   overflow-wrap: anywhere !important;
+  box-sizing: border-box !important;
+}
+
+/* Ensure code blocks and other elements respect container width */
+.prose pre,
+.prose code,
+.prose .not-prose {
+  max-width: 100% !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
 }
 
 /* Code block width scaling */
@@ -44,18 +56,30 @@
   width: 100% !important;
   max-width: 100% !important;
   min-width: 0 !important;
+  box-sizing: border-box !important;
+  overflow: hidden !important;
 }
 
-/* Message container width improvements */
-.flex.flex-col.gap-2 {
-  width: 75% !important;
-  min-width: 0 !important;
+/* Message container width improvements - More flexible */
+.message-container {
+  max-width: 85%;
+  min-width: 0;
+  word-wrap: break-word;
+  overflow-wrap: anywhere;
 }
 
-/* Message bubble improvements */
-.rounded-2xl {
-  width: 70% !important;
-  min-width: 0 !important;
+.message-container.user-message {
+  max-width: 65%;
+  align-self: flex-end;
+  margin-left: auto;
+  margin-right: 1rem;
+}
+
+.message-container.ai-message {
+  max-width: 75%;
+  align-self: flex-start;
+  margin-right: auto;
+  margin-left: 1rem;
 }
 
 /* Fix code block alignment and width */
@@ -66,12 +90,24 @@
 
 /* Better mobile message widths */
 @media (max-width: 768px) {
-  .flex.flex-col.gap-2 {
-    width: 90% !important;
+  .message-container {
+    max-width: 90%;
   }
   
-  .rounded-2xl {
-    width: 95% !important;
+  .message-container.user-message {
+    max-width: 70%;
+    margin-right: 0.75rem;
+  }
+  
+  .message-container.ai-message {
+    max-width: 80%;
+    margin-left: 0.75rem;
+  }
+  
+  /* Improve touch targets */
+  .touch-manipulation {
+    min-height: 44px;
+    min-width: 44px;
   }
 }
 
@@ -95,7 +131,7 @@
   }
 }
 
-/* Mobile improvements */
+/* Enhanced Mobile Code Block Responsiveness */
 @media (max-width: 640px) {
   /* Ensure code blocks don't overflow on small screens */
   .not-prose {
@@ -104,37 +140,53 @@
     width: 100% !important;
     max-width: 100% !important;
     min-width: 0 !important;
+    box-sizing: border-box !important;
   }
   
   /* Better code block spacing */
   .code-overview-section {
-    padding-left: 0.5rem !important;
-    padding-right: 0.5rem !important;
+    padding-left: 0.75rem !important;
+    padding-right: 0.75rem !important;
   }
   
-  /* Improve code font size on very small screens */
+  /* Responsive code font scaling */
   .overflow-x-auto pre {
-    font-size: 11px !important;
-    line-height: 1.3 !important;
+    font-size: 12px !important;
+    line-height: 1.4 !important;
     padding: 0.75rem !important;
+    white-space: pre !important;
+    overflow-x: auto !important;
   }
   
-  /* Better message spacing on mobile */
+  /* Better message typography on mobile */
   .prose {
     font-size: 14px !important;
+    line-height: 1.5 !important;
   }
   
   .prose p {
+    margin-bottom: 0.75rem !important;
+  }
+  
+  .prose h1, .prose h2, .prose h3 {
+    font-size: 1.1em !important;
+    margin-top: 0.75rem !important;
     margin-bottom: 0.5rem !important;
   }
   
   /* Mobile message width adjustments */
-  .flex.flex-col.gap-2 {
-    width: 65% !important;
+  .message-container {
+    max-width: 85%;
   }
   
-  .rounded-2xl {
-    width: 98% !important;
+  .message-container.user-message {
+    max-width: 75%;
+    margin-right: 0.5rem;
+  }
+  
+  .message-container.ai-message {
+    max-width: 85%;
+    margin-left: 0.5rem;
   }
   
   /* Prevent horizontal scroll on the main container */
@@ -150,12 +202,23 @@
   
   /* Code block improvements for mobile */
   .group {
-    border-radius: 0.5rem !important;
+    border-radius: 0.75rem !important;
   }
   
-  /* Prevent text from overflowing */
+  /* Improved text truncation */
   .truncate {
-    max-width: 150px !important;
+    max-width: 120px !important;
+  }
+  
+  /* Better button spacing in code blocks */
+  .group .absolute {
+    top: 0.5rem !important;
+    right: 0.5rem !important;
+  }
+  
+  /* Improve code block scroll indicators */
+  .overflow-x-auto::-webkit-scrollbar {
+    height: 6px !important;
   }
 }
 
@@ -246,7 +309,396 @@
   transition: all 0.2s ease-in-out;
 }
 
-.rounded-2xl:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+@media (hover: hover) {
+  .rounded-2xl:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  }
+}
+
+/* Fix button alignment and sizing */
+.flex.items-center.justify-between {
+  min-height: 60px;
+}
+
+/* Better header spacing on mobile */
+@media (max-width: 640px) {
+  header {
+    padding: 0.75rem 1rem !important;
+  }
+  
+  header .flex.items-center.gap-3 {
+    gap: 0.5rem !important;
+  }
+  
+  header .w-8.h-8 {
+    width: 1.75rem !important;
+    height: 1.75rem !important;
+  }
+}
+
+/* Improve message bubble responsiveness */
+.message-bubble {
+  max-width: calc(100vw - 4rem);
+  word-wrap: break-word;
+  overflow-wrap: anywhere;
+  hyphens: auto;
+}
+
+/* Fix code block overflow on narrow screens */
+@media (max-width: 480px) {
+  .not-prose {
+    margin-left: -0.5rem !important;
+    margin-right: -0.5rem !important;
+    border-radius: 0.5rem !important;
+  }
+  
+  .overflow-x-auto {
+    font-size: 11px !important;
+  }
+}
+
+/* Responsive Typography System */
+.responsive-text-xs {
+  font-size: 0.75rem;
+  line-height: 1rem;
+}
+
+.responsive-text-sm {
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+}
+
+.responsive-text-base {
+  font-size: 1rem;
+  line-height: 1.5rem;
+}
+
+@media (max-width: 640px) {
+  .responsive-text-xs {
+    font-size: 0.7rem;
+    line-height: 0.9rem;
+  }
+  
+  .responsive-text-sm {
+    font-size: 0.8rem;
+    line-height: 1.1rem;
+  }
+  
+  .responsive-text-base {
+    font-size: 0.9rem;
+    line-height: 1.3rem;
+  }
+}
+
+/* Responsive Spacing System */
+.spacing-xs {
+  padding: 0.25rem;
+}
+
+.spacing-sm {
+  padding: 0.5rem;
+}
+
+.spacing-md {
+  padding: 0.75rem;
+}
+
+.spacing-lg {
+  padding: 1rem;
+}
+
+@media (max-width: 640px) {
+  .spacing-xs {
+    padding: 0.2rem;
+  }
+  
+  .spacing-sm {
+    padding: 0.4rem;
+  }
+  
+  .spacing-md {
+    padding: 0.6rem;
+  }
+  
+  .spacing-lg {
+    padding: 0.8rem;
+  }
+}
+
+/* Better input area spacing */
+.input-container {
+  padding: 1rem !important;
+}
+
+@media (max-width: 640px) {
+  .input-container {
+    padding: 0.75rem !important;
+  }
+}
+
+/* Prevent message overflow */
+.flex.gap-2.sm\:gap-3 {
+  max-width: 100%;
+  overflow: hidden;
+}
+
+/* Ensure messages container doesn't overflow */
+.max-w-6xl {
+  overflow-x: hidden;
+}
+
+/* Better message bubble constraints */
+.message-bubble {
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+@media (max-width: 480px) {
+  .message-container {
+    max-width: 95% !important;
+  }
+  
+  .message-container.user-message {
+    max-width: 85% !important;
+    margin-right: 0.5rem !important;
+  }
+  
+  .message-container.ai-message {
+    max-width: 90% !important;
+    margin-left: 0.5rem !important;
+  }
+  
+  .message-bubble {
+    padding: 0.75rem !important;
+    font-size: 14px !important;
+  }
+}
+
+/* Force all elements in messages to respect container width */
+.message-container * {
+  max-width: 100% !important;
+  box-sizing: border-box !important;
+}
+
+/* Specific fixes for code blocks in messages */
+.message-container .not-prose,
+.message-bubble .not-prose {
+  width: 100% !important;
+  max-width: 100% !important;
+  min-width: 0 !important;
+  margin-left: 0 !important;
+  margin-right: 0 !important;
+  box-sizing: border-box !important;
+  overflow: hidden !important;
+}
+
+.message-container .overflow-x-auto,
+.message-bubble .overflow-x-auto {
+  max-width: 100% !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
+}
+
+.message-container pre,
+.message-bubble pre {
+  max-width: 100% !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
+  white-space: pre !important;
+  overflow-x: auto !important;
+}
+
+/* Responsive Layout Utilities */
+.responsive-container {
+  max-width: 100%;
+  padding-left: 1rem;
+  padding-right: 1rem;
+}
+
+@media (min-width: 640px) {
+  .responsive-container {
+    padding-left: 1.5rem;
+    padding-right: 1.5rem;
+  }
+}
+
+@media (min-width: 768px) {
+  .responsive-container {
+    max-width: 768px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+}
+
+@media (min-width: 1024px) {
+  .responsive-container {
+    max-width: 1024px;
+  }
+}
+
+@media (min-width: 1280px) {
+  .responsive-container {
+    max-width: 1280px;
+  }
+}
+
+/* Responsive Flexbox Utilities */
+.flex-responsive {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+@media (min-width: 640px) {
+  .flex-responsive {
+    flex-direction: row;
+    gap: 1rem;
+  }
+}
+
+/* Special handling for viewport units */
+@media (max-width: 100vw) {
+  .message-container,
+  .message-bubble,
+  .prose,
+  .not-prose {
+    max-width: calc(100vw - 2rem) !important;
+  }
+}
+
+/* Improved mobile spacing */
+@media (max-width: 480px) {
+  .responsive-container {
+    padding-left: 0.75rem;
+    padding-right: 0.75rem;
+  }
+  
+  .message-container,
+  .message-bubble,
+  .prose,
+  .not-prose {
+    max-width: calc(100vw - 1.5rem) !important;
+  }
+  
+  /* Ultra-responsive code blocks for small screens */
+  .overflow-x-auto pre {
+    font-size: 11px !important;
+    line-height: 1.3 !important;
+    padding: 0.5rem !important;
+  }
+  
+  /* Better list spacing on small screens */
+  .prose ul, .prose ol {
+    margin-left: 1rem !important;
+    margin-bottom: 0.5rem !important;
+  }
+  
+  .prose li {
+    margin-bottom: 0.25rem !important;
+  }
+  
+  /* Improved blockquote responsiveness */
+  .prose blockquote {
+    padding-left: 0.75rem !important;
+    margin: 0.75rem 0 !important;
+    font-size: 0.9em !important;
+  }
+}
+
+/* Medium screen optimizations */
+@media (min-width: 481px) and (max-width: 768px) {
+  .message-container {
+    max-width: 75%;
+  }
+  
+  .message-container.user-message {
+    max-width: 70%;
+  }
+  
+  .message-container.ai-message {
+    max-width: 80%;
+  }
+  
+  .overflow-x-auto pre {
+    font-size: 13px !important;
+    line-height: 1.5 !important;
+  }
+}
+
+/* Large screen optimizations */
+@media (min-width: 1024px) {
+  .message-container.ai-message {
+    max-width: 70%;
+  }
+  
+  .message-container.user-message {
+    max-width: 60%;
+  }
+  
+  .overflow-x-auto pre {
+    font-size: 14px !important;
+    line-height: 1.6 !important;
+  }
+}
+
+/* Enhanced Layout Improvements */
+.message-bubble {
+  backdrop-filter: blur(8px);
+  transition: all 0.2s ease-in-out;
+}
+
+@media (hover: hover) {
+  .message-bubble:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+  }
+}
+
+/* Better visual hierarchy */
+.input-container {
+  border-top: 1px solid rgba(229, 231, 235, 0.8);
+  backdrop-filter: blur(12px);
+}
+
+.dark .input-container {
+  border-top-color: rgba(75, 85, 99, 0.8);
+}
+
+/* Improved spacing rhythm */
+.space-y-3 > * + * {
+  margin-top: 0.75rem;
+}
+
+.space-y-4 > * + * {
+  margin-top: 1rem;
+}
+
+@media (min-width: 640px) {
+  .space-y-3 > * + * {
+    margin-top: 1rem;
+  }
+  
+  .space-y-4 > * + * {
+    margin-top: 1.25rem;
+  }
+}
+
+/* Better button feedback */
+.touch-manipulation:active {
+  transform: scale(0.98);
+  transition: transform 0.1s ease;
+}
+
+/* Improved shadows */
+.shadow-sm {
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.08), 0 1px 2px 0 rgba(0, 0, 0, 0.04);
+}
+
+.shadow-md {
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.08), 0 2px 4px -1px rgba(0, 0, 0, 0.04);
+}
+
+.shadow-lg {
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -2px rgba(0, 0, 0, 0.04);
 }

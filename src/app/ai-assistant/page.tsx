@@ -1,12 +1,12 @@
 "use client";
 
-import { useState, useEffect, useRef, useCallback, memo, ErrorInfo, Component, Suspense, lazy } from 'react';
+import { useState, useEffect, useRef, useCallback, memo, ErrorInfo, Component, Suspense } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
-import { Card, CardContent } from '@/components/ui/card';
+import { Card } from '@/components/ui/card';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -17,25 +17,20 @@ import {
 } from '@/components/ui/dropdown-menu';
 import {
   Send, 
-  Bot, 
   User, 
   Sparkles, 
   Trash2, 
   Copy, 
-  RefreshCw,
   ArrowLeft,
-  Settings,
   ChevronDown,
   MessageSquare,
   Zap,
-  Star,
   Rocket,
   Clock,
   Hash,
   Activity,
   CheckCircle2,
   AlertCircle,
-  Info,
   Loader2,
   Brain,
   Lightbulb,
@@ -43,11 +38,8 @@ import {
   MessageCircle,
   FileText,
   Code2,
-  PlayCircle,
   ChevronLeft,
   ChevronRight,
-  ArrowLeft as ArrowLeftIcon,
-  ArrowRight,
   Code,
   Database,
   Terminal,
@@ -55,9 +47,7 @@ import {
   Cpu,
   Wrench,
   Diamond,
-  Gem,
   Coffee,
-  Gamepad2,
   Package
 } from 'lucide-react';
 import { showSuccessToast } from '@/lib/toast-utils';
@@ -376,11 +366,11 @@ const CodeBlock = memo(function CodeBlock({
 
   return (
     <ErrorBoundary>
-      <div className="not-prose my-2 sm:my-4 rounded-lg overflow-hidden border border-gray-700 group w-full max-w-full min-w-0">
-        <div className="flex items-center justify-between bg-gray-800 px-2 sm:px-3 py-2 border-b border-gray-700">
+      <div className="not-prose my-2 sm:my-4 rounded-lg overflow-hidden border border-gray-700 group" style={{ width: '100%', maxWidth: '100%', minWidth: 0, boxSizing: 'border-box' }}>
+        <div className="flex items-center justify-between bg-gray-800 px-2 sm:px-3 py-2 border-b border-gray-700" style={{ minWidth: 0 }}>
           <div className="flex items-center gap-1 sm:gap-2 min-w-0 flex-1">
             <span className="text-sm sm:text-base flex-shrink-0">{overview.icon}</span>
-            <span className="text-xs text-gray-300 font-mono truncate">
+            <span className="text-xs text-gray-300 font-mono truncate" style={{ maxWidth: '100px' }}>
               {language}
             </span>
             <Badge 
@@ -417,28 +407,33 @@ const CodeBlock = memo(function CodeBlock({
       )}
       
       {/* Always show code - no expand/collapse */}
-      <div className="relative">
+      <div className="relative" style={{ width: '100%', maxWidth: '100%', minWidth: 0, boxSizing: 'border-box' }}>
           <div 
             ref={scrollRef}
             className="overflow-x-auto bg-gray-900 scrollbar-thin scrollbar-thumb-gray-600 scrollbar-track-gray-800"
             style={{
               maxWidth: '100%',
+              width: '100%',
               fontSize: '12px',
-              lineHeight: '1.4'
+              lineHeight: '1.4',
+              boxSizing: 'border-box'
             }}
             role="region"
             aria-label={`Code block in ${language}`}
             tabIndex={0}
           >
             <pre 
-              className="p-4 text-gray-100 font-mono text-sm leading-relaxed"
+              className="p-3 sm:p-4 text-gray-100 font-mono text-sm leading-relaxed"
               style={{
                 margin: 0,
                 whiteSpace: 'pre',
                 overflowWrap: 'normal',
                 wordBreak: 'normal',
                 fontSize: '12px',
-                lineHeight: '1.4'
+                lineHeight: '1.4',
+                maxWidth: '100%',
+                width: '100%',
+                boxSizing: 'border-box'
               }}
             >
               <LazyCodeHighlighter
@@ -540,31 +535,34 @@ const MessageComponent = memo(function MessageComponent({ message }: MessageComp
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -20 }}
       className={cn(
-        "flex gap-2 sm:gap-3 p-2 sm:p-4",
+        "flex gap-3 sm:gap-4 px-2 py-3 sm:px-3 sm:py-4 w-full",
         isUser ? "justify-end" : "justify-start"
       )}
     >
       {!isUser && (
-        <Avatar className="w-8 h-8 flex-shrink-0">
+        <Avatar className="w-7 h-7 sm:w-8 sm:h-8 flex-shrink-0">
           <AvatarFallback className="bg-gradient-to-br from-blue-500/10 to-purple-500/10 border border-blue-200/20">
-            <Brain className="w-4 h-4 text-blue-600" />
+            <Brain className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-blue-600" />
           </AvatarFallback>
         </Avatar>
       )}
       
       <div className={cn(
-        "flex flex-col gap-2 w-full min-w-0",
+        "flex flex-col gap-2 w-full min-w-0 message-container",
         isUser 
-          ? "max-w-[95%] sm:max-w-[85%] md:max-w-[80%] lg:max-w-[75%] items-end" 
-          : "max-w-full sm:max-w-[98%] md:max-w-[96%] lg:max-w-[94%] xl:max-w-[92%] items-start"
+          ? "user-message items-end" 
+          : "ai-message items-start"
       )}>
-        <div className={cn(
-          "px-2 sm:px-3 md:px-4 py-2 sm:py-3 rounded-2xl relative group shadow-sm border overflow-hidden w-full min-w-0",
-          isUser 
-            ? "bg-gradient-to-br from-blue-600 to-blue-700 text-white ml-2 sm:ml-4 md:ml-8 border-blue-600/20" 
-            : "bg-gradient-to-br from-gray-50 to-gray-100 border-gray-200/50 dark:from-gray-800 dark:to-gray-900 dark:border-gray-700/50"
-        )}>
-          <div className="prose prose-sm max-w-none dark:prose-invert break-words w-full" style={{ minWidth: 0, wordWrap: 'break-word', overflowWrap: 'anywhere' }}>
+        <div 
+          className={cn(
+            "px-4 py-4 sm:px-5 sm:py-4 rounded-2xl relative group shadow-sm border overflow-hidden w-full min-w-0 message-bubble",
+            isUser 
+              ? "bg-gradient-to-br from-blue-600 to-blue-700 text-white border-blue-600/20 shadow-blue-500/10" 
+              : "bg-gradient-to-br from-gray-50 to-gray-100 border-gray-200/50 dark:from-gray-800 dark:to-gray-900 dark:border-gray-700/50 shadow-gray-900/5"
+          )}
+          style={{ maxWidth: '100%', width: '100%', minWidth: 0, boxSizing: 'border-box' }}
+        >
+          <div className="prose prose-sm max-w-none dark:prose-invert break-words w-full" style={{ minWidth: 0, maxWidth: '100%', wordWrap: 'break-word', overflowWrap: 'anywhere', boxSizing: 'border-box' }}>
             <ReactMarkdown
               components={{
                 code: ({ inline, className, children, ...props }: any) => {
@@ -674,26 +672,26 @@ const MessageComponent = memo(function MessageComponent({ message }: MessageComp
         </div>
         
         {/* Message metadata */}
-        <div className="flex items-center gap-2 text-xs text-muted-foreground">
+        <div className="flex items-center gap-2 text-xs text-muted-foreground mt-2 px-1">
           <div className="flex items-center gap-1">
-            <Clock className="w-3 h-3" />
-            <span>{message.timestamp.toLocaleTimeString()}</span>
+            <Clock className="w-3 h-3 opacity-60" />
+            <span className="opacity-80">{message.timestamp.toLocaleTimeString()}</span>
           </div>
           {message.model && (
             <>
-              <span>•</span>
+              <span className="opacity-40">•</span>
               <div className="flex items-center gap-1">
-                <Activity className="w-3 h-3" />
-                <span>{message.model}</span>
+                <Activity className="w-3 h-3 opacity-60" />
+                <span className="opacity-80">{message.model}</span>
               </div>
             </>
           )}
           {message.tokens && (
             <>
-              <span>•</span>
+              <span className="opacity-40">•</span>
               <div className="flex items-center gap-1">
-                <Hash className="w-3 h-3" />
-                <span>{message.tokens.total} tokens</span>
+                <Hash className="w-3 h-3 opacity-60" />
+                <span className="opacity-80">{message.tokens.total} tokens</span>
               </div>
             </>
           )}
@@ -701,9 +699,9 @@ const MessageComponent = memo(function MessageComponent({ message }: MessageComp
       </div>
       
       {isUser && (
-        <Avatar className="w-8 h-8 flex-shrink-0">
+        <Avatar className="w-7 h-7 sm:w-8 sm:h-8 flex-shrink-0">
           <AvatarFallback className="bg-gradient-to-br from-green-500/10 to-emerald-500/10 border border-green-200/20">
-            <User className="w-4 h-4 text-green-600" />
+            <User className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-green-600" />
           </AvatarFallback>
         </Avatar>
       )}
@@ -729,10 +727,10 @@ const MessageSkeleton = memo(function MessageSkeleton({ isUser = false }: { isUs
       )}
       
       <div className={cn(
-        "flex flex-col gap-2",
+        "flex flex-col gap-2 message-container",
         isUser 
-          ? "max-w-[95%] sm:max-w-[85%] md:max-w-[80%] lg:max-w-[75%] items-end" 
-          : "max-w-[98%] sm:max-w-[95%] md:max-w-[92%] lg:max-w-[90%] items-start"
+          ? "user-message items-end" 
+          : "ai-message items-start"
       )}>
         <div className={cn(
           "px-3 sm:px-4 py-3 rounded-2xl animate-pulse",
@@ -762,23 +760,23 @@ const TypingIndicator = memo(function TypingIndicator() {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="flex gap-3 p-4"
+      className="flex gap-3 sm:gap-4 px-2 py-3 sm:px-3 sm:py-4 w-full justify-start"
     >
-      <Avatar className="w-8 h-8 flex-shrink-0">
+      <Avatar className="w-7 h-7 sm:w-8 sm:h-8 flex-shrink-0">
         <AvatarFallback className="bg-gradient-to-br from-blue-500/10 to-purple-500/10 border border-blue-200/20">
-          <Brain className="w-4 h-4 text-blue-600 animate-pulse" />
+          <Brain className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-blue-600 animate-pulse" />
         </AvatarFallback>
       </Avatar>
       
-      <div className="flex items-center gap-3 px-4 py-3 bg-gradient-to-br from-gray-50 to-gray-100 border border-gray-200/50 dark:from-gray-800 dark:to-gray-900 dark:border-gray-700/50 rounded-2xl shadow-sm">
+      <div className="flex items-center gap-3 px-4 py-3 sm:px-5 sm:py-4 bg-gradient-to-br from-gray-50 to-gray-100 border border-gray-200/50 dark:from-gray-800 dark:to-gray-900 dark:border-gray-700/50 rounded-2xl shadow-sm backdrop-filter backdrop-blur-sm">
         <div className="flex gap-1">
           <div className="w-2 h-2 bg-blue-500/70 rounded-full animate-bounce [animation-delay:-0.3s]"></div>
           <div className="w-2 h-2 bg-blue-500/70 rounded-full animate-bounce [animation-delay:-0.15s]"></div>
           <div className="w-2 h-2 bg-blue-500/70 rounded-full animate-bounce"></div>
         </div>
-        <div className="flex items-center gap-1">
+        <div className="flex items-center gap-2">
           <Lightbulb className="w-4 h-4 text-blue-500 animate-pulse" />
-          <span className="text-sm text-muted-foreground">AI is thinking...</span>
+          <span className="text-sm text-muted-foreground font-medium">AI is thinking...</span>
         </div>
       </div>
     </motion.div>
@@ -930,32 +928,33 @@ export default function AIAssistantPage() {
   return (
     <div className="flex flex-col h-screen max-h-screen overflow-hidden">
       {/* Header */}
-      <header className="flex items-center justify-between p-4 border-b bg-gradient-to-r from-white to-gray-50/50 dark:from-gray-900 dark:to-gray-800/50 backdrop-blur supports-[backdrop-filter]:bg-background/60 shadow-sm">
-        <div className="flex items-center gap-3">
-          <Link href="/">
-            <Button variant="ghost" size="icon" className="hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl">
+      <header className="flex items-center justify-between px-3 py-2 sm:px-4 sm:py-3 border-b bg-gradient-to-r from-white to-gray-50/50 dark:from-gray-900 dark:to-gray-800/50 backdrop-blur supports-[backdrop-filter]:bg-background/60 shadow-sm min-h-[60px] sm:min-h-[64px]">
+        <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
+          <Link href="/" className="flex-shrink-0">
+            <Button variant="ghost" size="icon" className="w-9 h-9 sm:w-10 sm:h-10 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl transition-colors">
               <ArrowLeft className="w-4 h-4" />
             </Button>
           </Link>
-          <div className="flex items-center gap-3">
-            <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl flex items-center justify-center shadow-sm">
-              <Brain className="w-4 h-4 text-white" />
+          <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
+            <div className="w-7 h-7 sm:w-8 sm:h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl flex items-center justify-center shadow-sm flex-shrink-0">
+              <Brain className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-white" />
             </div>
-            <div>
-              <h1 className="text-xl font-semibold text-gray-900 dark:text-white">AI Assistant</h1>
-              <p className="text-xs text-gray-500 dark:text-gray-400">Powered by advanced AI</p>
+            <div className="min-w-0 flex-1">
+              <h1 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-white truncate leading-tight">AI Assistant</h1>
+              <p className="text-xs text-gray-500 dark:text-gray-400 hidden sm:block leading-tight">Powered by advanced AI</p>
             </div>
           </div>
         </div>
         
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
           {/* Model Selector */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="outline" className="gap-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl border-gray-200 dark:border-gray-700">
+              <Button variant="outline" className="gap-1 sm:gap-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl border-gray-200 dark:border-gray-700 text-xs sm:text-sm px-2 sm:px-3 h-8 sm:h-9 min-w-0">
                 {renderModelIcon(selectedModel.icon)}
-                <span className="hidden sm:inline font-medium">{selectedModel.displayName}</span>
-                <ChevronDown className="w-4 h-4 opacity-50" />
+                <span className="hidden md:inline font-medium truncate max-w-[100px]">{selectedModel.displayName}</span>
+                <span className="md:hidden text-xs truncate max-w-[50px]">{selectedModel.name.split('-')[0]}</span>
+                <ChevronDown className="w-3 h-3 sm:w-4 sm:h-4 opacity-50 flex-shrink-0" />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-80 rounded-xl border-gray-200 dark:border-gray-700 shadow-lg">
@@ -1004,10 +1003,10 @@ export default function AIAssistantPage() {
             variant="outline" 
             size="icon" 
             onClick={clearMessages}
-            className="hover:bg-red-50 hover:border-red-200 hover:text-red-600 dark:hover:bg-red-900/20 dark:hover:border-red-700 dark:hover:text-red-400 rounded-xl transition-colors"
+            className="w-8 h-8 sm:w-9 sm:h-9 hover:bg-red-50 hover:border-red-200 hover:text-red-600 dark:hover:bg-red-900/20 dark:hover:border-red-700 dark:hover:text-red-400 rounded-xl transition-colors flex-shrink-0"
             title="Clear conversation"
           >
-            <Trash2 className="w-4 h-4" />
+            <Trash2 className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
           </Button>
         </div>
       </header>
@@ -1017,27 +1016,29 @@ export default function AIAssistantPage() {
         ref={scrollAreaRef}
         className="flex-1 min-h-0"
       >
-        <div className="max-w-6xl mx-auto px-1 sm:px-2 md:px-4">
-          <AnimatePresence>
-            {messages.map((message) => (
-              <ErrorBoundary key={message.id}>
-                <MessageComponent message={message} />
-              </ErrorBoundary>
-            ))}
-            {isTyping && (
-              <ErrorBoundary>
-                <TypingIndicator />
-              </ErrorBoundary>
-            )}
-          </AnimatePresence>
+        <div className="max-w-5xl xl:max-w-6xl mx-auto px-3 sm:px-4 md:px-6 py-3 sm:py-4">
+          <div className="space-y-3 sm:space-y-4">
+            <AnimatePresence>
+              {messages.map((message) => (
+                <ErrorBoundary key={message.id}>
+                  <MessageComponent message={message} />
+                </ErrorBoundary>
+              ))}
+              {isTyping && (
+                <ErrorBoundary>
+                  <TypingIndicator />
+                </ErrorBoundary>
+              )}
+            </AnimatePresence>
+          </div>
         </div>
       </ScrollArea>
 
       {/* Input */}
-      <div className="p-2 sm:p-4 border-t bg-gradient-to-r from-white to-gray-50/50 dark:from-gray-900 dark:to-gray-800/50 backdrop-blur supports-[backdrop-filter]:bg-background/60 shadow-sm">
-        <div className="max-w-6xl mx-auto px-1 sm:px-2 md:px-4">
-          <div className="flex items-center gap-2 sm:gap-3">
-            <div className="relative flex-1">
+      <div className="px-4 py-4 sm:px-6 sm:py-5 border-t bg-gradient-to-r from-white to-gray-50/50 dark:from-gray-900 dark:to-gray-800/50 backdrop-blur supports-[backdrop-filter]:bg-background/60 shadow-lg input-container">
+        <div className="max-w-5xl xl:max-w-6xl mx-auto px-2 sm:px-3">
+          <div className="flex items-end gap-3 sm:gap-4">
+            <div className="relative flex-1 min-w-0">
               <Input
                 ref={inputRef}
                 value={input}
@@ -1045,10 +1046,10 @@ export default function AIAssistantPage() {
                 onKeyDown={handleKeyDown}
                 placeholder={isLoading ? "AI is responding..." : "Ask me anything..."}
                 disabled={isLoading}
-                className="h-10 sm:h-12 pr-10 sm:pr-12 rounded-xl sm:rounded-2xl border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 shadow-sm focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-sm sm:text-base"
+                className="h-12 sm:h-14 pr-12 sm:pr-14 rounded-2xl border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 shadow-sm focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-sm sm:text-base resize-none"
               />
-              <div className="absolute right-2 sm:right-3 top-1/2 transform -translate-y-1/2">
-                <MessageCircle className="w-3 h-3 sm:w-4 sm:h-4 text-gray-400" />
+              <div className="absolute right-3 sm:right-4 top-1/2 transform -translate-y-1/2">
+                <MessageCircle className="w-4 h-4 sm:w-5 sm:h-5 text-gray-400" />
               </div>
             </div>
             <Button
@@ -1056,35 +1057,36 @@ export default function AIAssistantPage() {
               disabled={!input.trim() || isLoading}
               size="icon"
               className={cn(
-                "w-12 h-12 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl font-medium transition-all transform hover:scale-105 active:scale-95 shadow-sm flex-shrink-0 touch-manipulation",
+                "w-12 h-12 sm:w-14 sm:h-14 rounded-2xl font-medium transition-all transform hover:scale-105 active:scale-95 shadow-md flex-shrink-0 touch-manipulation",
                 !input.trim() || isLoading
                   ? "bg-gray-200 dark:bg-gray-700 text-gray-400 cursor-not-allowed hover:scale-100"
-                  : "bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 active:from-blue-800 active:to-blue-900 text-white shadow-blue-500/25 hover:shadow-blue-500/40"
+                  : "bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 active:from-blue-800 active:to-blue-900 text-white shadow-blue-500/30 hover:shadow-blue-500/50"
               )}
               aria-label={isLoading ? "Sending message..." : "Send message"}
             >
               {isLoading ? (
-                <Loader2 className="w-4 h-4 animate-spin" />
+                <Loader2 className="w-4 h-4 sm:w-5 sm:h-5 animate-spin" />
               ) : (
-                <Send className="w-4 h-4" />
+                <Send className="w-4 h-4 sm:w-5 sm:h-5" />
               )}
             </Button>
           </div>
           
           {/* Token counter or status */}
-          <div className="flex items-center justify-between mt-3 text-xs text-muted-foreground">
-            <div className="flex items-center gap-1 sm:gap-2 min-w-0">
-              <div className="flex-shrink-0">{renderModelIcon(selectedModel.icon)}</div>
-              <span className="truncate">
+          <div className="flex items-center justify-between mt-3 sm:mt-4 text-xs text-muted-foreground">
+            <div className="flex items-center gap-2 min-w-0">
+              <div className="flex-shrink-0 opacity-70">{renderModelIcon(selectedModel.icon)}</div>
+              <span className="truncate text-xs opacity-80">
                 <span className="hidden sm:inline">Powered by </span>
-                {selectedModel.displayName}
+                <span className="hidden md:inline">{selectedModel.displayName}</span>
+                <span className="md:hidden">{selectedModel.name.split('-')[0]}</span>
               </span>
             </div>
             {messages.length > 1 && (
-              <div className="flex items-center gap-1 flex-shrink-0">
+              <div className="flex items-center gap-1 flex-shrink-0 opacity-70">
                 <MessageSquare className="w-3 h-3" />
-                <span className="hidden sm:inline">{messages.length - 1} messages</span>
-                <span className="sm:hidden">{messages.length - 1}</span>
+                <span className="hidden sm:inline text-xs">{messages.length - 1} messages</span>
+                <span className="sm:hidden text-xs">{messages.length - 1}</span>
               </div>
             )}
           </div>

@@ -512,7 +512,7 @@ const OptimizedQRScannerComponent = function OptimizedQRScanner({
           Camera permission was denied. To use the QR scanner, please:
         </p>
         <ul className="text-red-600 text-sm mb-4 space-y-1">
-          <li>• Click the camera icon in your browser's address bar</li>
+          <li>• Click the camera icon in your browser&apos;s address bar</li>
           <li>• Allow camera access for this site</li>
           <li>• Refresh the page and try again</li>
         </ul>

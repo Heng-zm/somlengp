@@ -12,6 +12,7 @@ import {
   Sparkles, 
   QrCode, 
   Shield,
+  User,
 } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useLanguage } from '@/hooks/use-language';
@@ -129,6 +130,8 @@ const HomePageComponent = function HomePage() {
     { href: '/combine-pdf', title: t('pdfMerger'), description: t('pdfMergerDesc'), icon: Combine },
     { href: '/image-to-pdf', title: t('imageToPdfTitle'), description: t('imageToPdfDesc'), icon: ImageIcon },
     { href: '/convert-image-format', title: t('imageConverter'), description: t('imageConverterDesc'), icon: Wand2 },
+    // User tools
+    { href: '/profile', title: 'Profile & Settings', description: 'Manage your profile and app preferences', icon: User },
     // New useful tools
     { href: '/password-generator', title: t('passwordGen'), description: t('passwordGenDesc'), icon: Shield },
   ], [t]);

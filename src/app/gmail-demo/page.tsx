@@ -4,10 +4,10 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 // Gmail Components
-import { GmailComponents } from '@/components/gmail/gmail-user-components';
-import { GmailUserProfiles } from '@/components/gmail/gmail-user-profiles';
-import { GmailNavigation } from '@/components/gmail/gmail-navigation';
-import { GmailTemplateGenerator, GmailEmailTemplate } from '@/components/gmail/gmail-template-generator';
+import { GmailComponents } from '@/components/features/gmail/gmail-user-components';
+import { GmailUserProfiles } from '@/components/features/gmail/gmail-user-profiles';
+import { GmailNavigation } from '@/components/features/gmail/gmail-navigation';
+import { GmailTemplateGenerator, GmailEmailTemplate } from '@/components/features/gmail/gmail-template-generator';
 // Sample Data
 const sampleUsers = [
   {

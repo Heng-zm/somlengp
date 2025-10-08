@@ -1,6 +1,6 @@
 'use client';
 
-import { OTPVerification } from '@/components/otp/otp-verification';
+import { OTPVerification } from '@/components/features/otp/otp-verification';
 import { useState, memo } from 'react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
