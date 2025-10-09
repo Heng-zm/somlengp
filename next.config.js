@@ -24,10 +24,19 @@ const nextConfig = {
   // Image optimization
   images: {
     // Enable image optimization for better performance
-    domains: ['localhost'],
+    domains: ['localhost', 'encrypted-tbn0.gstatic.com'],
     formats: ['image/webp', 'image/avif'],
     // Minimize layout shift
     minimumCacheTTL: 86400, // 1 day
+    // Allow external images from specific hosts
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'encrypted-tbn0.gstatic.com',
+        port: '',
+        pathname: '/**',
+      },
+    ],
   },
 
   // Bundle optimization

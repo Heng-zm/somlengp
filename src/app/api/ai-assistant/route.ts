@@ -1,8 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 
-// Initialize Gemini AI
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || '');
+// Gemini client is initialized per-request inside the handler to ensure fresh env values.
 
 interface Message {
   role: 'user' | 'assistant';
@@ -51,16 +50,20 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       );
     }
 
-    // Check if Gemini API key is available
-    if (!process.env.GEMINI_API_KEY) {
+    // Check if Gemini API key is available (prefer GOOGLE_API_KEY, fallback to GEMINI_API_KEY)
+    const apiKey = process.env.GOOGLE_API_KEY || process.env.GEMINI_API_KEY;
+    if (!apiKey) {
       return NextResponse.json(
         { 
-          error: 'AI service is not configured. Please set GEMINI_API_KEY environment variable.',
-          response: "I apologize, but the AI service is currently not available. The administrator needs to configure the GEMINI_API_KEY environment variable."
+          error: 'AI service is not configured. Please set GOOGLE_API_KEY (preferred) or GEMINI_API_KEY in .env.local.',
+          response: "I apologize, but the AI service is currently not available. The administrator needs to configure the AI API key."
         },
         { status: 503 }
       );
     }
+
+    // Initialize Gemini AI client with the resolved key per-request to avoid stale env issues
+    const genAI = new GoogleGenerativeAI(apiKey);
 
     // Get the Gemini model
     let geminiModel;

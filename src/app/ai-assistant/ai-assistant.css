@@ -1,11 +1,11 @@
 /* Code overview section */
 .code-overview-section {
-  background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
-  border-bottom: 1px solid #475569;
+  background: linear-gradient(135deg, #1A1A1A 0%, #404040 100%);
+  border-bottom: 1px solid #404040;
 }
 
 .code-overview-section:hover {
-  background: linear-gradient(135deg, #334155 0%, #475569 100%);
+  background: linear-gradient(135deg, #404040 0%, #666666 100%);
 }
 
 /* Ensure proper scrolling on all devices */
@@ -14,17 +14,17 @@
 }
 
 .overflow-x-auto::-webkit-scrollbar-track {
-  background: #2d3748;
+  background: #1f1f1f;
   border-radius: 4px;
 }
 
 .overflow-x-auto::-webkit-scrollbar-thumb {
-  background: #4a5568;
+  background: #404040;
   border-radius: 4px;
 }
 
 .overflow-x-auto::-webkit-scrollbar-thumb:hover {
-  background: #718096;
+  background: #666666;
 }
 
 /* Dynamic width scaling improvements */
@@ -156,9 +156,9 @@
 .message-bubble div[class*="bg-gray-900"] {
   border-radius: 12px !important;
   overflow: hidden !important;
-  margin: 0.75rem -1.25rem !important;
-  max-width: calc(100% + 2.5rem) !important;
-  width: calc(100% + 2.5rem) !important;
+  margin: 0.75rem 0 !important;
+  max-width: 100% !important;
+  width: 100% !important;
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15) !important;
 }
 
@@ -382,7 +382,7 @@
 
 /* Focus states for accessibility */
 .overflow-x-auto:focus {
-  outline: 2px solid #3b82f6;
+  outline: 2px solid #808080;
   outline-offset: 2px;
 }
 

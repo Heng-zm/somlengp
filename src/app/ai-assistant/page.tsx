@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback, memo, ErrorInfo, Component, Suspense } from 'react';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
@@ -49,7 +49,8 @@ import {
   Diamond,
   Coffee,
   Package,
-  Mic2
+  Mic2,
+  XCircle
 } from 'lucide-react';
 import { showSuccessToast } from '@/lib/toast-utils';
 import { cn } from '@/lib/utils';
@@ -58,7 +59,52 @@ import { motion, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
 import ReactMarkdown from 'react-markdown';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
-import { oneDark } from 'react-syntax-highlighter/dist/esm/styles/prism';
+
+// Monochrome Prism theme to enforce black/gray/white syntax highlighting
+const monochromePrism: any = {
+  'code[class*="language-"]': {
+    color: '#E5E5E5',
+    background: 'transparent',
+    textShadow: 'none',
+    fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace',
+    fontSize: '0.85rem',
+  },
+  'pre[class*="language-"]': {
+    color: '#E5E5E5',
+    background: 'transparent',
+    margin: 0,
+    padding: 0,
+    overflow: 'auto',
+  },
+  'token.comment': { color: '#A3A3A3' },
+  'token.prolog': { color: '#A3A3A3' },
+  'token.doctype': { color: '#A3A3A3' },
+  'token.cdata': { color: '#A3A3A3' },
+  'token.punctuation': { color: '#D4D4D4' },
+  'token.property': { color: '#D4D4D4' },
+  'token.tag': { color: '#D4D4D4' },
+  'token.boolean': { color: '#D4D4D4' },
+  'token.number': { color: '#D4D4D4' },
+  'token.constant': { color: '#D4D4D4' },
+  'token.symbol': { color: '#D4D4D4' },
+  'token.selector': { color: '#FFFFFF' },
+  'token.attr-name': { color: '#FFFFFF' },
+  'token.string': { color: '#E5E5E5' },
+  'token.char': { color: '#E5E5E5' },
+  'token.builtin': { color: '#E5E5E5' },
+  'token.inserted': { color: '#E5E5E5' },
+  'token.operator': { color: '#D4D4D4' },
+  'token.entity': { color: '#D4D4D4', cursor: 'help' },
+  'token.url': { color: '#D4D4D4' },
+  'token.atrule': { color: '#FFFFFF' },
+  'token.keyword': { color: '#FFFFFF' },
+  'token.function': { color: '#FFFFFF' },
+  'token.deleted': { color: '#BFBFBF' },
+  'token.regex': { color: '#BFBFBF' },
+  'token.important': { color: '#FFFFFF', fontWeight: 'bold' },
+  'token.bold': { fontWeight: 'bold' },
+  'token.italic': { fontStyle: 'italic' },
+};
 
 /**
  * Skeleton loader for code blocks
@@ -96,7 +142,7 @@ const LazyCodeHighlighter = memo(function LazyCodeHighlighter({
   return (
     <Suspense fallback={<CodeSkeleton lines={Math.min(lineCount, 10)} />}>
       <SyntaxHighlighter
-        style={oneDark}
+        style={monochromePrism}
         language={language}
         PreTag="div"
         customStyle={customStyle}
@@ -106,7 +152,6 @@ const LazyCodeHighlighter = memo(function LazyCodeHighlighter({
     </Suspense>
   );
 });
-import './ai-assistant.css';
 
 interface Message {
   id: string;
@@ -190,6 +235,14 @@ const AI_MODELS: AIModel[] = [
     description: 'Fast and efficient for most tasks',
     icon: 'Zap'
   }
+];
+
+// Gemini-like suggestion chips (monochrome)
+const SUGGESTIONS: string[] = [
+  'Summarize this text',
+  'Brainstorm ideas',
+  'Explain this code',
+  'Create an outline'
 ];
 
 // Helper function to render AI model icons
@@ -298,11 +351,11 @@ class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
       }
       
       return (
-        <div className="flex items-center justify-center p-4 bg-red-50 dark:bg-red-900/10 border border-red-200 dark:border-red-800 rounded-lg">
+        <div className="flex items-center justify-center p-4 bg-gray-50 dark:bg-gray-900/10 border border-gray-200 dark:border-gray-800 rounded-lg">
           <div className="text-center">
-            <AlertCircle className="w-8 h-8 text-red-500 mx-auto mb-2" />
-            <h3 className="text-sm font-medium text-red-800 dark:text-red-300 mb-1">Something went wrong</h3>
-            <p className="text-xs text-red-600 dark:text-red-400">
+            <AlertCircle className="w-8 h-8 text-gray-500 mx-auto mb-2" />
+            <h3 className="text-sm font-medium text-gray-800 dark:text-gray-300 mb-1">Something went wrong</h3>
+            <p className="text-xs text-gray-600 dark:text-gray-400">
               {this.state.error?.message || 'An unexpected error occurred'}
             </p>
             <Button
@@ -374,7 +427,7 @@ const CodeBlock = memo(function CodeBlock({
             <span className="text-xs text-gray-300 font-mono">{language}</span>
             <Badge 
               variant="secondary" 
-              className="text-xs px-1.5 py-0 h-4 bg-green-900/30 text-green-300 border-green-700"
+              className="text-xs px-1.5 py-0 h-4 bg-gray-800/30 text-gray-300 border-gray-600"
             >
               {overview.lines} lines
             </Badge>
@@ -443,27 +496,27 @@ const MessageComponent = memo(function MessageComponent({ message }: MessageComp
             transition={{ delay: 0.1, duration: 0.3, ease: "backOut" }}
             className="relative flex-shrink-0 mt-1"
           >
-            <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500 flex items-center justify-center shadow-lg">
+            <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-gray-700 via-gray-600 to-gray-500 flex items-center justify-center shadow-lg">
               <Sparkles className="w-5 h-5 text-white" />
             </div>
-            <div className="absolute -top-1 -right-1 w-4 h-4 bg-green-500 rounded-full border-2 border-white dark:border-gray-900 animate-pulse"></div>
+            <div className="absolute -top-1 -right-1 w-4 h-4 bg-gray-400 rounded-full border-2 border-white dark:border-gray-900 animate-pulse"></div>
           </motion.div>
         )}
         
-        <div className={cn(
-          "max-w-[85%] flex flex-col",
-          isUser ? "items-end" : "items-start"
-        )}>
+      <div className={cn(
+        "max-w-[90%] sm:max-w-[80%] md:max-w-[42rem] flex flex-col",
+        isUser ? "items-end self-end" : "items-start self-start"
+      )}>
           {/* Enhanced Message bubble */}
           <motion.div 
             initial={{ scale: 0.8, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             transition={{ delay: 0.2, duration: 0.3 }}
             className={cn(
-              "px-5 py-4 rounded-3xl break-words overflow-hidden shadow-lg border backdrop-blur-sm relative group",
+              "px-4 py-3 rounded-2xl break-words overflow-hidden border shadow-sm relative group",
               isUser 
-                ? "bg-gradient-to-br from-blue-500 to-blue-600 text-white border-blue-400/30 shadow-blue-500/25" 
-                : "bg-white/80 dark:bg-gray-800/80 text-gray-900 dark:text-gray-100 border-gray-200/50 dark:border-gray-700/50 shadow-gray-900/10"
+                ? "bg-gray-900 text-white border-gray-800" 
+                : "bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-100 border-gray-200 dark:border-gray-700"
             )}
           >
             <ReactMarkdown
@@ -475,7 +528,7 @@ const MessageComponent = memo(function MessageComponent({ message }: MessageComp
                   
                   if (!inline && match) {
                     return (
-                      <div className="my-2 -mx-4 rounded-lg overflow-hidden bg-gray-900 border border-gray-600">
+                      <div className="my-2 rounded-lg overflow-hidden bg-gray-900 border border-gray-600 w-full">
                         <div className="flex items-center justify-between bg-gray-800 px-3 py-1.5 text-xs">
                           <span className="text-gray-300 font-mono">{language}</span>
                           <button 
@@ -539,6 +592,33 @@ const MessageComponent = memo(function MessageComponent({ message }: MessageComp
             >
               {message.content}
             </ReactMarkdown>
+            {/* Copy entire assistant message */}
+            {!isUser && (
+              <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="w-8 h-8 rounded-lg bg-gray-100/60 dark:bg-gray-700/60 hover:bg-gray-200 dark:hover:bg-gray-600"
+                  aria-label="Copy message"
+                  onClick={async () => {
+                    try {
+                      await navigator.clipboard.writeText(message.content);
+                      showSuccessToast('Message copied');
+                    } catch {
+                      const ta = document.createElement('textarea');
+                      ta.value = message.content;
+                      document.body.appendChild(ta);
+                      ta.select();
+                      document.execCommand('copy');
+                      document.body.removeChild(ta);
+                      showSuccessToast('Message copied');
+                    }
+                  }}
+                >
+                  <Copy className="w-4 h-4" />
+                </Button>
+              </div>
+            )}
           </motion.div>
           
           {/* Enhanced timestamp and metadata */}
@@ -552,28 +632,9 @@ const MessageComponent = memo(function MessageComponent({ message }: MessageComp
             )}
           >
             <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-gray-100/50 dark:bg-gray-800/50 backdrop-blur-sm">
-              <Clock className="w-3 h-3 text-gray-400" />
               <span className="text-gray-500 dark:text-gray-400 font-medium">
                 {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
               </span>
-              {message.model && (
-                <>
-                  <span className="text-gray-300 dark:text-gray-600">•</span>
-                  <div className="flex items-center gap-1">
-                    <Activity className="w-3 h-3 text-blue-500" />
-                    <span className="text-blue-600 dark:text-blue-400 font-medium">{message.model}</span>
-                  </div>
-                </>
-              )}
-              {message.tokens && (
-                <>
-                  <span className="text-gray-300 dark:text-gray-600">•</span>
-                  <div className="flex items-center gap-1">
-                    <Hash className="w-3 h-3 text-green-500" />
-                    <span className="text-green-600 dark:text-green-400 font-medium">{message.tokens.total}</span>
-                  </div>
-                </>
-              )}
             </div>
           </motion.div>
         </div>
@@ -607,7 +668,7 @@ const MessageSkeleton = memo(function MessageSkeleton({ isUser = false }: { isUs
       )}>
         <div className={cn(
           "px-3 sm:px-4 py-3 rounded-2xl animate-pulse",
-          isUser ? "bg-blue-200 dark:bg-blue-800" : "bg-gray-200 dark:bg-gray-700"
+          isUser ? "bg-gray-300 dark:bg-gray-700" : "bg-gray-200 dark:bg-gray-700"
         )}>
           <div className="space-y-2">
             <div className="h-4 bg-gray-300 dark:bg-gray-600 rounded w-3/4" />
@@ -642,32 +703,32 @@ const TypingIndicator = memo(function TypingIndicator() {
           transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
           className="relative flex-shrink-0 mt-1"
         >
-          <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500 flex items-center justify-center shadow-lg">
+          <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-gray-700 via-gray-600 to-gray-500 flex items-center justify-center shadow-lg">
             <Brain className="w-5 h-5 text-white animate-pulse" />
           </div>
-          <div className="absolute -top-1 -right-1 w-4 h-4 bg-yellow-500 rounded-full border-2 border-white dark:border-gray-900 animate-pulse"></div>
+          <div className="absolute -top-1 -right-1 w-4 h-4 bg-gray-400 rounded-full border-2 border-white dark:border-gray-900 animate-pulse"></div>
         </motion.div>
         
         <div className="max-w-[85%] flex flex-col items-start">
           <motion.div 
             initial={{ scale: 0.8 }}
             animate={{ scale: 1 }}
-            className="px-6 py-4 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-3xl shadow-lg border border-gray-200/50 dark:border-gray-700/50"
+            className="px-5 py-3 bg-gray-100 dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-700"
           >
             <div className="flex items-center gap-3">
               <div className="flex gap-1">
                 <motion.div 
-                  className="w-2 h-2 bg-blue-500 rounded-full"
+                  className="w-2 h-2 bg-gray-500 rounded-full"
                   animate={{ y: [-2, 2, -2] }}
                   transition={{ duration: 1, repeat: Infinity, delay: 0 }}
                 />
                 <motion.div 
-                  className="w-2 h-2 bg-purple-500 rounded-full"
+                  className="w-2 h-2 bg-gray-400 rounded-full"
                   animate={{ y: [-2, 2, -2] }}
                   transition={{ duration: 1, repeat: Infinity, delay: 0.2 }}
                 />
                 <motion.div 
-                  className="w-2 h-2 bg-pink-500 rounded-full"
+                  className="w-2 h-2 bg-gray-300 rounded-full"
                   animate={{ y: [-2, 2, -2] }}
                   transition={{ duration: 1, repeat: Infinity, delay: 0.4 }}
                 />
@@ -687,9 +748,12 @@ export default function AIAssistantPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [isTyping, setIsTyping] = useState(false);
   const [selectedModel, setSelectedModel] = useState<AIModel>(AI_MODELS[0]); // This will be Gemini 2.5 Flash
+  const [showScrollToBottom, setShowScrollToBottom] = useState(false);
   
   const scrollAreaRef = useRef<HTMLDivElement>(null);
-  const inputRef = useRef<HTMLInputElement>(null);
+  const inputRef = useRef<HTMLTextAreaElement>(null);
+  const abortControllerRef = useRef<AbortController | null>(null);
+  const hasInitializedRef = useRef(false);
 
   // Auto-scroll to bottom
   const scrollToBottom = useCallback(() => {
@@ -699,6 +763,19 @@ export default function AIAssistantPage() {
         viewport.scrollTo({ top: viewport.scrollHeight, behavior: 'smooth' });
       }
     }
+  }, []);
+
+  // Track scroll position to show a floating "scroll to bottom" button
+  useEffect(() => {
+    const viewport = scrollAreaRef.current?.querySelector('[data-radix-scroll-area-viewport]') as HTMLDivElement | null;
+    if (!viewport) return;
+    const onScroll = () => {
+      const nearBottom = viewport.scrollHeight - viewport.scrollTop - viewport.clientHeight < 80;
+      setShowScrollToBottom(!nearBottom);
+    };
+    viewport.addEventListener('scroll', onScroll, { passive: true } as any);
+    onScroll();
+    return () => viewport.removeEventListener('scroll', onScroll);
   }, []);
 
   useEffect(() => {
@@ -717,18 +794,40 @@ export default function AIAssistantPage() {
     }
   }, [isLoading, isTyping]);
 
-  // Initialize with welcome message
+  // Initialize from localStorage or with welcome message (run once)
   useEffect(() => {
-    if (messages.length === 0) {
-      setMessages([{
-        id: generateMessageId(),
-        role: 'assistant',
-        content: `Hello! 👋 I'm your AI Assistant powered by ${selectedModel.displayName}. I'm here to help you with questions, creative tasks, problem-solving, and more. What would you like to discuss today?`,
-        timestamp: new Date(),
-        model: selectedModel.name,
-      }]);
+    if (hasInitializedRef.current) return;
+    hasInitializedRef.current = true;
+    try {
+      const raw = localStorage.getItem('aiAssistantMessages');
+      if (raw) {
+        const parsed = JSON.parse(raw) as Array<Omit<Message, 'timestamp'> & { timestamp: string }>;
+        const revived: Message[] = parsed.map(m => ({ ...m, timestamp: new Date(m.timestamp) }));
+        setMessages(revived);
+        return;
+      }
+    } catch (e) {
+      // ignore and fall back to welcome
     }
-  }, [messages.length, selectedModel.displayName, selectedModel.name]);
+    setMessages([{
+      id: generateMessageId(),
+      role: 'assistant',
+      content: `Hello! 👋 I'm your AI Assistant powered by ${selectedModel.displayName}. I'm here to help you with questions, creative tasks, problem-solving, and more. What would you like to discuss today?`,
+      timestamp: new Date(),
+      model: selectedModel.name,
+    }]);
+  }, [selectedModel.displayName, selectedModel.name]);
+
+  // Persist messages to localStorage
+  useEffect(() => {
+    try {
+      if (messages.length === 0) return;
+      const serializable = messages.map(m => ({ ...m, timestamp: m.timestamp.toISOString() }));
+      localStorage.setItem('aiAssistantMessages', JSON.stringify(serializable));
+    } catch {
+      // ignore storage errors
+    }
+  }, [messages]);
 
   const sendMessage = useCallback(async () => {
     if (!input.trim() || isLoading) return;
@@ -742,6 +841,10 @@ export default function AIAssistantPage() {
 
     setMessages(prev => [...prev, userMessage]);
     setInput('');
+    // reset textarea height after sending
+    if (inputRef.current) {
+      inputRef.current.style.height = '56px';
+    }
     setIsLoading(true);
     setIsTyping(true);
 
@@ -755,12 +858,16 @@ export default function AIAssistantPage() {
         model: selectedModel.name,
       };
 
+      // Create abort controller for this request
+      abortControllerRef.current = new AbortController();
+
       const response = await fetch('/api/ai-assistant', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify(requestData),
+        signal: abortControllerRef.current.signal,
       });
 
       if (!response.ok) {
@@ -781,28 +888,40 @@ export default function AIAssistantPage() {
 
       setMessages(prev => [...prev, assistantMessage]);
 
-    } catch (error: unknown) {
-      // Only log errors in development mode
-      if (process.env.NODE_ENV === 'development') {
-        console.warn('Error sending message:', error);
+    } catch (error: any) {
+      if (error?.name === 'AbortError') {
+        const canceledMessage: Message = {
+          id: generateMessageId(),
+          role: 'assistant',
+          content: '⛔ Generation canceled.',
+          timestamp: new Date(),
+          model: selectedModel.name,
+        };
+        setMessages(prev => [...prev, canceledMessage]);
+      } else {
+        // Only log errors in development mode
+        if (process.env.NODE_ENV === 'development') {
+          console.warn('Error sending message:', error);
+        }
+        
+        const errorMessage = error instanceof Error 
+          ? error.message 
+          : "I apologize, but I encountered an error. Please try again.";
+        
+        const errorChatMessage: Message = {
+          id: generateMessageId(),
+          role: 'assistant',
+          content: `⚠️ ${errorMessage}`,
+          timestamp: new Date(),
+          model: selectedModel.name,
+        };
+        
+        setMessages(prev => [...prev, errorChatMessage]);
       }
-      
-      const errorMessage = error instanceof Error 
-        ? error.message 
-        : "I apologize, but I encountered an error. Please try again.";
-      
-      const errorChatMessage: Message = {
-        id: generateMessageId(),
-        role: 'assistant',
-        content: `⚠️ ${errorMessage}`,
-        timestamp: new Date(),
-        model: selectedModel.name,
-      };
-      
-      setMessages(prev => [...prev, errorChatMessage]);
     } finally {
       setIsLoading(false);
       setIsTyping(false);
+      abortControllerRef.current = null;
     }
   }, [input, messages, selectedModel, isLoading]);
 
@@ -815,6 +934,12 @@ export default function AIAssistantPage() {
       model: selectedModel.name,
     }]);
   }, [selectedModel.displayName, selectedModel.name]);
+
+  const cancelRequest = useCallback(() => {
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+    }
+  }, []);
 
   const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !e.shiftKey) {
@@ -837,7 +962,7 @@ export default function AIAssistantPage() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4, delay: 0.1 }}
       >
-        <div className="max-w-3xl mx-auto px-4 py-4">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <Link href="/">
@@ -847,14 +972,13 @@ export default function AIAssistantPage() {
               </Link>
               <div className="flex items-center gap-3">
                 <div className="relative">
-                  <div className="w-9 h-9 bg-gradient-to-r from-blue-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg">
+                  <div className="w-9 h-9 bg-gradient-to-r from-gray-700 to-gray-500 rounded-xl flex items-center justify-center shadow-lg">
                     <Sparkles className="w-5 h-5 text-white" />
                   </div>
-                  <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-400 rounded-full border-2 border-white dark:border-gray-900 animate-pulse"></div>
+                  <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-gray-400 rounded-full border-2 border-white dark:border-gray-900 animate-pulse"></div>
                 </div>
                 <div>
                   <h1 className="text-lg font-semibold text-gray-900 dark:text-white">AI Assistant</h1>
-                  <p className="text-xs text-gray-500 dark:text-gray-400">Online • Ready to help</p>
                 </div>
               </div>
             </div>
@@ -905,7 +1029,7 @@ export default function AIAssistantPage() {
         transition={{ duration: 0.4, delay: 0.2 }}
       >
         <ScrollArea ref={scrollAreaRef} className="h-full">
-          <div className="max-w-3xl mx-auto px-4 py-6">
+          <div className="max-w-5xl mx-auto px-4 sm:px-6 py-6">
             {/* Date header */}
             <div className="flex justify-center mb-8">
               <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm px-4 py-2 rounded-full text-xs font-medium text-gray-500 dark:text-gray-400 shadow-sm border border-gray-200/50 dark:border-gray-700/50">
@@ -933,30 +1057,83 @@ export default function AIAssistantPage() {
             <div className="h-4"></div>
           </div>
         </ScrollArea>
+
+        {/* Scroll to bottom floating button */}
+        <AnimatePresence>
+          {showScrollToBottom && (
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 10 }}
+              className="fixed right-6 bottom-36 sm:bottom-28 md:bottom-24 z-40"
+            >
+              <Button
+                size="icon"
+                className="rounded-full shadow-lg"
+                aria-label="Scroll to bottom"
+                onClick={scrollToBottom}
+              >
+                <ChevronDown className="w-5 h-5" />
+              </Button>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </motion.div>
 
       {/* Input Area */}
       <motion.div 
-        className="flex-none bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl border-t border-gray-200/80 dark:border-gray-700/80 shadow-lg"
+        className="flex-none bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl border-t border-gray-200/80 dark:border-gray-700/80 shadow-lg pb-[env(safe-area-inset-bottom)]"
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4, delay: 0.3 }}
       >
-        <div className="max-w-3xl mx-auto p-4">
+        <div className="max-w-5xl mx-auto p-4 sm:p-5">
           <div className="relative">
-            <div className="relative overflow-hidden rounded-2xl bg-white dark:bg-gray-800 shadow-xl border border-gray-200/50 dark:border-gray-700/50 transition-all duration-200 hover:shadow-2xl focus-within:shadow-2xl focus-within:border-blue-400 dark:focus-within:border-blue-500">
-              <Input
+            <div className="relative overflow-hidden rounded-2xl bg-white dark:bg-gray-800 shadow-xl border border-gray-200/50 dark:border-gray-700/50 transition-all duration-200 hover:shadow-2xl focus-within:shadow-2xl focus-within:border-gray-500 dark:focus-within:border-gray-400">
+              {/* Gemini-like suggestion chips */}
+              <div className="px-3 pt-3 pb-2">
+                <div className="flex gap-2 overflow-x-auto no-scrollbar">
+                  {SUGGESTIONS.map((s) => (
+                    <button
+                      key={s}
+                      type="button"
+                      className="shrink-0 rounded-full border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 px-3 py-1.5 text-sm hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                      onClick={() => setInput(s)}
+                    >
+                      {s}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              <Textarea
                 ref={inputRef}
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 onKeyDown={handleKeyDown}
+                onInput={(e) => {
+                  const t = e.currentTarget;
+                  t.style.height = '56px';
+                  t.style.height = Math.min(t.scrollHeight, 200) + 'px';
+                }}
+                rows={1}
                 placeholder={isLoading ? "AI is crafting a response..." : "Ask me anything..."}
                 disabled={isLoading}
-                className="h-14 px-5 pr-16 text-base bg-transparent border-0 focus:ring-0 focus:outline-none placeholder:text-gray-400 dark:placeholder:text-gray-500 resize-none"
+className="min-h-[56px] max-h-[200px] px-5 pr-24 text-base bg-transparent border-0 focus:ring-0 focus:outline-none placeholder:text-gray-400 dark:placeholder:text-gray-500 resize-none"
               />
               
               {/* Input actions */}
               <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-2">
+                {isLoading && (
+                  <Button
+                    onClick={cancelRequest}
+                    variant="outline"
+                    size="icon"
+                    className="w-9 h-9 rounded-xl"
+                    aria-label="Stop generating"
+                  >
+                    <XCircle className="w-5 h-5" />
+                  </Button>
+                )}
                 {input.trim() ? (
                   <motion.div
                     initial={{ scale: 0.8, opacity: 0 }}
@@ -968,7 +1145,7 @@ export default function AIAssistantPage() {
                       onClick={sendMessage}
                       disabled={isLoading}
                       size="icon"
-                      className="w-10 h-10 rounded-xl bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105 active:scale-95"
+                      className="w-10 h-10 rounded-xl bg-black hover:bg-gray-900 text-white shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105 active:scale-95"
                       aria-label="Send message"
                     >
                       {isLoading ? (
@@ -999,14 +1176,7 @@ export default function AIAssistantPage() {
             </div>
             
             {/* Bottom indicator */}
-            <div className="flex items-center justify-between mt-3 px-1">
-              <div className="flex items-center gap-2 text-xs text-gray-400 dark:text-gray-500">
-                <div className="flex items-center gap-1">
-                  <div className="w-2 h-2 rounded-full bg-green-400 animate-pulse"></div>
-                  <span>Gemini 2.5 Flash</span>
-                </div>
-              </div>
-              
+            <div className="flex items-center justify-end mt-3 px-1">
               {input.length > 0 && (
                 <motion.div
                   initial={{ opacity: 0 }}
