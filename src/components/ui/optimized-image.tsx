@@ -101,8 +101,8 @@ export function LegacyImageWrapper({
       src={src || ''}
       alt={alt || 'Image'}
       className={className}
-      width={500}
-      height={300}
+      width="500"
+      height="300"
       style={{ width: 'auto', height: 'auto' }}
       {...props}
     />

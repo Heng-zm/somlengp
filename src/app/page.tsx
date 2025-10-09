@@ -4,6 +4,7 @@
 import { useEffect, Suspense, memo } from 'react';
 import { useRouter } from 'next/navigation';
 import { ThreeDotsLoader } from '@/components/shared/three-dots-loader';
+import { useFontLoadingOptimization } from '@/lib/font-optimization';
 // Memory leak prevention: Timers need cleanup
 // Add cleanup in useEffect return function
 
@@ -21,12 +22,18 @@ function LoadingFallback() {
 
 const RootPageComponent = function RootPage() {
   const router = useRouter();
+  
+  // Initialize font loading optimization
+  useFontLoadingOptimization();
 
   useEffect(() => {
-    // Use a small delay to prevent flash
+    // Preload critical route
+    router.prefetch('/home');
+    
+    // Use a small delay to prevent flash and allow fonts to load
     const timer = setTimeout(() => {
       router.replace('/home');
-    }, 100);
+    }, 150);
     
     return () => clearTimeout(timer);
   }, [router]);

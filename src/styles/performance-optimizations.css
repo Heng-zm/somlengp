@@ -1,0 +1,249 @@
+/* Performance-focused CSS optimizations */
+
+/* 1. Optimize rendering with contain property */
+.page-container {
+  contain: layout style paint;
+}
+
+.component-container {
+  contain: layout style;
+}
+
+/* 2. Use transform3d to trigger hardware acceleration */
+.optimized-animation {
+  transform: translate3d(0, 0, 0);
+  backface-visibility: hidden;
+  perspective: 1000px;
+}
+
+/* 3. Optimize repaints with will-change */
+.loading-spinner {
+  will-change: transform;
+  animation: spin 1s linear infinite;
+}
+
+.fade-transition {
+  will-change: opacity;
+  transition: opacity 0.3s ease;
+}
+
+.slide-transition {
+  will-change: transform;
+  transition: transform 0.3s ease;
+}
+
+/* Remove will-change after animations */
+.animation-complete {
+  will-change: auto;
+}
+
+/* 4. Optimize font loading */
+.font-optimized {
+  font-display: swap;
+  font-synthesis: none;
+  text-rendering: optimizeSpeed;
+}
+
+/* Critical fonts should use font-display: swap */
+@font-face {
+  font-family: 'Kantumruy Pro';
+  font-display: swap;
+  font-weight: 400;
+  src: local('Kantumruy Pro Regular'), local('KantumruyPro-Regular');
+}
+
+/* 5. Optimize images with aspect-ratio */
+.aspect-ratio-16-9 {
+  aspect-ratio: 16 / 9;
+}
+
+.aspect-ratio-1-1 {
+  aspect-ratio: 1 / 1;
+}
+
+.aspect-ratio-4-3 {
+  aspect-ratio: 4 / 3;
+}
+
+/* 6. Minimize layout thrashing */
+.no-layout-thrash {
+  position: absolute;
+  top: 0;
+  left: 0;
+  transform: translateZ(0); /* Force layer creation */
+}
+
+/* 7. Optimize scrolling performance */
+.smooth-scroll {
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* For infinite scroll containers */
+.infinite-scroll {
+  contain: layout style paint;
+  overflow-anchor: auto;
+}
+
+/* 8. Reduce paint complexity */
+.simple-background {
+  background: solid color instead of gradients where possible;
+}
+
+.optimized-shadow {
+  /* Use box-shadow instead of multiple borders */
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  /* Avoid inset shadows when possible */
+}
+
+/* 9. Content visibility for performance */
+.lazy-content {
+  content-visibility: auto;
+  contain-intrinsic-size: 300px; /* Reserve space */
+}
+
+.off-screen {
+  content-visibility: hidden;
+}
+
+/* 10. Optimize animations */
+@keyframes optimized-fade {
+  from { opacity: 0; transform: translate3d(0, 20px, 0); }
+  to { opacity: 1; transform: translate3d(0, 0, 0); }
+}
+
+@keyframes optimized-slide {
+  from { transform: translate3d(-100%, 0, 0); }
+  to { transform: translate3d(0, 0, 0); }
+}
+
+@keyframes optimized-spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* 11. Critical CSS for above-the-fold content */
+.critical-hero {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.critical-nav {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 50;
+  backdrop-filter: blur(8px);
+  background: rgba(255, 255, 255, 0.9);
+}
+
+/* 12. Optimize for mobile performance */
+@media (max-width: 768px) {
+  .mobile-optimized {
+    /* Reduce visual complexity on mobile */
+    box-shadow: none;
+    border-radius: 8px; /* Smaller radius */
+    backdrop-filter: none; /* Expensive on mobile */
+  }
+  
+  .mobile-text {
+    /* Optimize text rendering on mobile */
+    text-rendering: optimizeSpeed;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+}
+
+/* 13. Reduce CLS (Cumulative Layout Shift) */
+.no-cls img {
+  aspect-ratio: attr(width) / attr(height);
+}
+
+.skeleton-loader {
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  animation: skeleton-loading 1.5s infinite;
+}
+
+@keyframes skeleton-loading {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+/* 14. Performance-focused grid system */
+.perf-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 1rem;
+  contain: layout;
+}
+
+/* 15. Optimized modal/overlay */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  contain: layout style paint;
+}
+
+.modal-content {
+  max-width: 90vw;
+  max-height: 90vh;
+  overflow-y: auto;
+  contain: layout style;
+}
+
+/* 16. High performance loading states */
+.loading-shimmer {
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
+
+@keyframes shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+/* 17. Optimize for reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .animation-optional {
+    animation: none;
+    transition: none;
+  }
+}
+
+/* 18. Layer management for complex layouts */
+.complex-layout {
+  /* Create new stacking context */
+  transform: translateZ(0);
+  isolation: isolate;
+}
+
+/* 19. Optimize third-party content */
+.third-party-container {
+  contain: layout style paint;
+  /* Isolate third-party content */
+}
+
+/* 20. CSS containment for dynamic content */
+.dynamic-list-item {
+  contain: layout style;
+  /* Prevent layout recalculation of siblings */
+}
+
+/* Performance monitoring classes */
+.perf-marker::before {
+  content: '';
+  /* Used for performance measurement points */
+}

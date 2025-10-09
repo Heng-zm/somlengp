@@ -28,9 +28,17 @@
     "fix:performance": "node scripts/repair-useeffect-syntax.js && node scripts/remove-console-logs.js",
     "optimize:advanced": "node scripts/final-performance-optimization.js",
     "optimize:full": "npm run fix:performance && npm run optimize:advanced && npm run cleanup && npm run perf:check && npm run lint:fix",
-    "supabase:status": "node -e \"console.log('Supabase is configured and ready')\""
+    "supabase:status": "node -e \"console.log('Supabase is configured and ready')\"",
+    "analyze:bundle": "cross-env ANALYZE=true npm run build",
+    "analyze:deps": "npx depcheck",
+    "analyze:size": "npx next-bundle-analyzer",
+    "perf:measure": "lighthouse http://localhost:3000 --output=html --output-path=./lighthouse-report.html",
+    "perf:ci": "lhci autorun",
+    "optimize:images": "next-optimized-images",
+    "preload:critical": "node scripts/preload-critical-resources.js"
   },
   "dependencies": {
+    "@genkit-ai/firebase": "^1.16.1",
     "@genkit-ai/googleai": "^1.15.5",
     "@genkit-ai/next": "^1.15.5",
     "@google/generative-ai": "^0.24.1",

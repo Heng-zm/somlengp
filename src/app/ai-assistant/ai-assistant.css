@@ -42,6 +42,35 @@
   box-sizing: border-box !important;
 }
 
+/* Constrain prose content within message bubbles */
+.message-bubble .prose {
+  max-width: 100% !important;
+  overflow-wrap: break-word !important;
+  word-break: break-word !important;
+}
+
+.message-bubble .prose p {
+  margin: 0.25rem 0 !important;
+  line-height: 1.5 !important;
+  overflow-wrap: break-word !important;
+}
+
+.message-bubble .prose ul,
+.message-bubble .prose ol {
+  margin: 0.5rem 0 !important;
+  padding-left: 1.5rem !important;
+}
+
+.message-bubble .prose li {
+  margin: 0.25rem 0 !important;
+  line-height: 1.4 !important;
+  overflow-wrap: break-word !important;
+}
+
+.message-bubble .prose strong {
+  font-weight: 600 !important;
+}
+
 /* Ensure code blocks and other elements respect container width */
 .prose pre,
 .prose code,
@@ -60,26 +89,123 @@
   overflow: hidden !important;
 }
 
-/* Message container width improvements - More flexible */
-.message-container {
-  max-width: 85%;
-  min-width: 0;
+/* Ensure code blocks fit within message bubbles */
+.message-bubble .not-prose,
+.message-bubble div[class*="bg-gray-900"] {
+  max-width: 100% !important;
+  width: 100% !important;
+  margin: 0.5rem 0 !important;
+  border-radius: 0.5rem !important;
+  overflow: hidden !important;
+  box-sizing: border-box !important;
+}
+
+/* Layout fixes */
+.h-screen {
+  height: 100vh !important;
+  height: 100dvh !important;
+}
+
+.flex-none {
+  flex: none !important;
+}
+
+.flex-1 {
+  flex: 1 1 0% !important;
+}
+
+/* Modern messaging styles */
+.message-bubble {
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08), 0 2px 8px rgba(0, 0, 0, 0.04);
   word-wrap: break-word;
   overflow-wrap: anywhere;
+  overflow: hidden;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
-.message-container.user-message {
-  max-width: 65%;
-  align-self: flex-end;
-  margin-left: auto;
-  margin-right: 1rem;
+.message-bubble:hover {
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12), 0 4px 16px rgba(0, 0, 0, 0.08);
+  transform: translateY(-2px);
 }
 
-.message-container.ai-message {
-  max-width: 75%;
-  align-self: flex-start;
-  margin-right: auto;
-  margin-left: 1rem;
+/* Glassmorphism effects */
+.backdrop-blur-xl {
+  backdrop-filter: blur(24px);
+}
+
+.backdrop-blur-sm {
+  backdrop-filter: blur(8px);
+}
+
+/* Force all elements within message bubbles to respect container width */
+.message-bubble * {
+  max-width: 100% !important;
+  box-sizing: border-box !important;
+}
+
+.message-bubble pre {
+  white-space: pre !important;
+  overflow-x: auto !important;
+  max-width: 100% !important;
+  word-wrap: normal !important;
+}
+
+/* Specific styling for code blocks within message bubbles */
+.message-bubble div[class*="bg-gray-900"] {
+  border-radius: 12px !important;
+  overflow: hidden !important;
+  margin: 0.75rem -1.25rem !important;
+  max-width: calc(100% + 2.5rem) !important;
+  width: calc(100% + 2.5rem) !important;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15) !important;
+}
+
+/* Modern button styles */
+.modern-button {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transform-origin: center;
+}
+
+.modern-button:hover {
+  transform: scale(1.05);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+}
+
+.modern-button:active {
+  transform: scale(0.95);
+  transition-duration: 0.1s;
+}
+
+/* Gradient animations */
+@keyframes gradient-shift {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+}
+
+.gradient-animated {
+  background-size: 200% 200%;
+  animation: gradient-shift 3s ease infinite;
+}
+
+.message-bubble .overflow-x-auto {
+  max-width: 100% !important;
+  scrollbar-width: thin !important;
+  scrollbar-color: rgba(156, 163, 175, 0.5) transparent !important;
+}
+
+.message-bubble .overflow-x-auto::-webkit-scrollbar {
+  height: 6px !important;
+}
+
+.message-bubble .overflow-x-auto::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.1) !important;
+}
+
+.message-bubble .overflow-x-auto::-webkit-scrollbar-thumb {
+  background: rgba(156, 163, 175, 0.5) !important;
+  border-radius: 3px !important;
 }
 
 /* Fix code block alignment and width */
@@ -88,23 +214,14 @@
   max-width: none !important;
 }
 
-/* Better mobile message widths */
+/* Mobile responsive styles */
 @media (max-width: 768px) {
-  .message-container {
-    max-width: 90%;
+  .message-bubble {
+    max-width: 85%;
+    border-radius: 16px;
   }
   
-  .message-container.user-message {
-    max-width: 70%;
-    margin-right: 0.75rem;
-  }
-  
-  .message-container.ai-message {
-    max-width: 80%;
-    margin-left: 0.75rem;
-  }
-  
-  /* Improve touch targets */
+  /* Better touch targets */
   .touch-manipulation {
     min-height: 44px;
     min-width: 44px;
@@ -446,7 +563,7 @@
 
 /* Prevent message overflow */
 .flex.gap-2.sm\:gap-3 {
-  max-width: 100%;
+  max-width: 85%;
   overflow: hidden;
 }
 
@@ -710,14 +827,53 @@
 
 /* Enhanced Layout Improvements */
 .message-bubble {
-  backdrop-filter: blur(8px);
-  transition: all 0.2s ease-in-out;
+  backdrop-filter: blur(12px);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  border-radius: 24px;
+  overflow: hidden;
+}
+
+.message-bubble::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.05));
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.3s ease;
 }
 
 @media (hover: hover) {
   .message-bubble:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+    transform: translateY(-2px) scale(1.02);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+  }
+  
+  .message-bubble:hover::before {
+    opacity: 1;
+  }
+}
+
+/* Enhanced message spacing and rhythm */
+.space-y-6 > * + * {
+  margin-top: 1.5rem;
+}
+
+.space-y-8 > * + * {
+  margin-top: 2rem;
+}
+
+@media (min-width: 640px) {
+  .space-y-6 > * + * {
+    margin-top: 2rem;
+  }
+  
+  .space-y-8 > * + * {
+    margin-top: 2.5rem;
   }
 }
 
@@ -756,15 +912,33 @@
   transition: transform 0.1s ease;
 }
 
-/* Improved shadows */
+/* Modern enhanced shadows with depth */
 .shadow-sm {
-  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.08), 0 1px 2px 0 rgba(0, 0, 0, 0.04);
+  box-shadow: 
+    0 1px 2px 0 rgba(0, 0, 0, 0.05),
+    0 1px 3px 1px rgba(0, 0, 0, 0.05);
 }
 
 .shadow-md {
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.08), 0 2px 4px -1px rgba(0, 0, 0, 0.04);
+  box-shadow: 
+    0 4px 6px -1px rgba(0, 0, 0, 0.08),
+    0 2px 4px -1px rgba(0, 0, 0, 0.06),
+    0 0 0 1px rgba(255, 255, 255, 0.05);
 }
 
 .shadow-lg {
-  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -2px rgba(0, 0, 0, 0.04);
+  box-shadow: 
+    0 20px 25px -5px rgba(0, 0, 0, 0.1),
+    0 10px 10px -5px rgba(0, 0, 0, 0.04),
+    0 0 0 1px rgba(255, 255, 255, 0.05);
+}
+
+/* Simple message bubble styles */
+.message-bubble {
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+  border: none;
+}
+
+.dark .message-bubble {
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
 }

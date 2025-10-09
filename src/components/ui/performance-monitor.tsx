@@ -55,7 +55,7 @@ export function PerformanceMonitor({
     
     frameCountRef.current++;
     return null;
-  }, [intervalMs]);
+  });
 
   const getMemoryInfo = useStableCallback((): { used: number; limit: number } => {
     if ('memory' in performance) {
@@ -66,7 +66,7 @@ export function PerformanceMonitor({
       };
     }
     return { used: 0, limit: 0 };
-  }, []);
+  });
 
   const getTimingMetrics = useStableCallback(() => {
     const navigation = performance.getEntriesByType('navigation')[0] as PerformanceNavigationTiming;
@@ -76,12 +76,12 @@ export function PerformanceMonitor({
     const firstContentfulPaint = paintEntries.find(entry => entry.name === 'first-contentful-paint')?.startTime || 0;
 
     return {
-      domContentLoaded: navigation?.domContentLoadedEventEnd - navigation?.navigationStart || 0,
-      loadComplete: navigation?.loadEventEnd - navigation?.navigationStart || 0,
+      domContentLoaded: navigation?.domContentLoadedEventEnd - navigation?.startTime || 0,
+      loadComplete: navigation?.loadEventEnd - navigation?.startTime || 0,
       firstPaint,
       firstContentfulPaint,
     };
-  }, []);
+  });
 
   const getNetworkInfo = useStableCallback(() => {
     const networkStatus = navigator.onLine ? 'online' : 'offline';

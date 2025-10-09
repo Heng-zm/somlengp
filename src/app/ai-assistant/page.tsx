@@ -48,7 +48,8 @@ import {
   Wrench,
   Diamond,
   Coffee,
-  Package
+  Package,
+  Mic2
 } from 'lucide-react';
 import { showSuccessToast } from '@/lib/toast-utils';
 import { cn } from '@/lib/utils';
@@ -366,125 +367,50 @@ const CodeBlock = memo(function CodeBlock({
 
   return (
     <ErrorBoundary>
-      <div className="not-prose my-2 sm:my-4 rounded-lg overflow-hidden border border-gray-700 group" style={{ width: '100%', maxWidth: '100%', minWidth: 0, boxSizing: 'border-box', position: 'relative' }}>
-        <div className="flex items-center justify-between bg-gray-800 px-2 sm:px-3 py-2 border-b border-gray-700" style={{ minWidth: 0 }}>
-          <div className="flex items-center gap-1 sm:gap-2 min-w-0 flex-1">
-            <span className="text-sm sm:text-base flex-shrink-0">{overview.icon}</span>
-            <span className="text-xs text-gray-300 font-mono truncate" style={{ maxWidth: '100px' }}>
-              {language}
-            </span>
+      <div className="my-2 rounded-lg overflow-hidden bg-gray-900 border border-gray-700 w-full max-w-full">
+        {/* Simplified header */}
+        <div className="flex items-center justify-between bg-gray-800 px-3 py-1.5 border-b border-gray-700">
+          <div className="flex items-center gap-2">
+            <span className="text-xs text-gray-300 font-mono">{language}</span>
             <Badge 
               variant="secondary" 
-              className={cn(
-                "text-xs px-1.5 sm:px-2 py-0 h-4 sm:h-5 flex-shrink-0",
-                overview.complexity === 'Complex' ? "bg-red-900/30 text-red-300 border-red-700" :
-                overview.complexity === 'Moderate' ? "bg-yellow-900/30 text-yellow-300 border-yellow-700" :
-                "bg-green-900/30 text-green-300 border-green-700"
-              )}
+              className="text-xs px-1.5 py-0 h-4 bg-green-900/30 text-green-300 border-green-700"
             >
-              {overview.complexity}
+              {overview.lines} lines
             </Badge>
           </div>
           <Button
             variant="ghost"
             size="sm"
-            className="h-8 w-8 sm:h-7 sm:w-auto sm:px-2 text-xs text-gray-300 hover:text-white hover:bg-gray-700 active:bg-gray-600 transition-colors flex-shrink-0 min-w-[2rem] touch-manipulation"
+            className="h-6 w-6 p-0 text-xs text-gray-300 hover:text-white hover:bg-gray-700"
             onClick={copyCode}
-            aria-label="Copy code to clipboard"
+            aria-label="Copy code"
           >
-            <Copy className="w-3.5 h-3.5 sm:w-3 sm:h-3" />
-            <span className="sr-only">Copy</span>
+            <Copy className="w-3 h-3" />
           </Button>
         </div>
-      
-      {showOverview && (
-        <div className="code-overview-section px-2 sm:px-3 py-2">
-          <div className="flex items-center gap-1 sm:gap-2 text-xs text-gray-400 min-w-0 flex-1">
-            <FileText className="w-3 h-3 flex-shrink-0" />
-            <span className="truncate">{overview.lines} lines • {overview.features}</span>
-          </div>
-        </div>
-      )}
-      
-      {/* Always show code - no expand/collapse */}
-      <div className="relative" style={{ width: '100%', maxWidth: '100%', minWidth: 0, boxSizing: 'border-box' }}>
+        
+        {/* Code content */}
+        <div className="relative">
           <div 
             ref={scrollRef}
-            className="overflow-x-auto bg-gray-900 scrollbar-thin scrollbar-thumb-gray-600 scrollbar-track-gray-800"
-            style={{
-              maxWidth: '100%',
-              width: '100%',
-              fontSize: '12px',
-              lineHeight: '1.4',
-              boxSizing: 'border-box'
-            }}
-            role="region"
-            aria-label={`Code block in ${language}`}
-            tabIndex={0}
+            className="overflow-x-auto bg-gray-900 max-w-full"
+            style={{ maxHeight: '300px' }}
           >
-            <pre 
-              className="p-3 sm:p-4 text-gray-100 font-mono text-sm leading-relaxed"
-              style={{
-                margin: 0,
-                whiteSpace: 'pre',
-                overflowWrap: 'normal',
-                wordBreak: 'normal',
-                fontSize: '12px',
-                lineHeight: '1.4',
-                maxWidth: '100%',
-                width: '100%',
-                boxSizing: 'border-box'
-              }}
-            >
+            <pre className="p-3 text-gray-100 font-mono text-xs leading-tight m-0">
               <LazyCodeHighlighter
                 language={language}
                 customStyle={{
                   margin: 0,
                   padding: 0,
                   background: 'transparent',
-                  fontSize: 'inherit',
-                  lineHeight: 'inherit'
+                  fontSize: '11px',
+                  lineHeight: '1.3'
                 }}
               >
                 {codeString}
               </LazyCodeHighlighter>
             </pre>
-          </div>
-          
-          {/* Scroll Navigation Buttons */}
-          <div className="absolute top-1 right-1 sm:top-2 sm:right-2 flex items-center gap-0.5 sm:gap-1 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity duration-200">
-            <Button
-              variant="ghost"
-              size="sm"
-              className="h-8 w-8 sm:h-7 sm:w-7 p-0 bg-gray-800/90 hover:bg-gray-700 active:bg-gray-600 text-gray-300 hover:text-white border border-gray-600 backdrop-blur-sm focus:ring-2 focus:ring-blue-500/50 rounded-md transition-colors touch-manipulation"
-              onClick={() => {
-                const scrollContainer = scrollRef.current;
-                if (scrollContainer) {
-                  scrollContainer.scrollBy({ left: -200, behavior: 'smooth' });
-                }
-              }}
-              onKeyDown={(e) => handleKeyNavigation(e, 'left')}
-              title="Scroll left"
-              aria-label="Scroll code left"
-            >
-              <ChevronLeft className="w-4 h-4 sm:w-3 sm:h-3" />
-            </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              className="h-8 w-8 sm:h-7 sm:w-7 p-0 bg-gray-800/90 hover:bg-gray-700 active:bg-gray-600 text-gray-300 hover:text-white border border-gray-600 backdrop-blur-sm focus:ring-2 focus:ring-blue-500/50 rounded-md transition-colors touch-manipulation"
-              onClick={() => {
-                const scrollContainer = scrollRef.current;
-                if (scrollContainer) {
-                  scrollContainer.scrollBy({ left: 200, behavior: 'smooth' });
-                }
-              }}
-              onKeyDown={(e) => handleKeyNavigation(e, 'right')}
-              title="Scroll right"
-              aria-label="Scroll code right"
-            >
-              <ChevronRight className="w-4 h-4 sm:w-3 sm:h-3" />
-            </Button>
           </div>
         </div>
       </div>
@@ -496,73 +422,50 @@ const CodeBlock = memo(function CodeBlock({
  * Message Component with markdown rendering and copy functionality
  */
 const MessageComponent = memo(function MessageComponent({ message }: MessageComponentProps) {
-  const [copied, setCopied] = useState(false);
-
-  const copyToClipboard = useCallback(async () => {
-    try {
-      await navigator.clipboard.writeText(message.content);
-      setCopied(true);
-      showSuccessToast("Copied to clipboard");
-      setTimeout(() => setCopied(false), 2000);
-    } catch (error) {
-      // Fallback for older browsers
-      try {
-        const textArea = document.createElement('textarea');
-        textArea.value = message.content;
-        textArea.style.position = 'fixed';
-        textArea.style.opacity = '0';
-        document.body.appendChild(textArea);
-        textArea.select();
-        document.execCommand('copy');
-        document.body.removeChild(textArea);
-        setCopied(true);
-        showSuccessToast("Copied to clipboard");
-        setTimeout(() => setCopied(false), 2000);
-      } catch (fallbackError) {
-        if (process.env.NODE_ENV === 'development') {
-          console.warn('Failed to copy message:', fallbackError);
-        }
-        showSuccessToast("Failed to copy message");
-      }
-    }
-  }, [message.content]);
-
   const isUser = message.role === 'user';
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: -20 }}
-      className={cn(
-        "flex gap-3 sm:gap-4 px-2 py-3 sm:px-3 sm:py-4 w-full",
-        isUser ? "justify-end" : "justify-start"
-      )}
+    <motion.div 
+      initial={{ opacity: 0, y: 20, scale: 0.95 }}
+      animate={{ opacity: 1, y: 0, scale: 1 }}
+      transition={{ duration: 0.4, ease: "easeOut" }}
+      className="mb-8 px-4"
     >
-      {!isUser && (
-        <Avatar className="w-7 h-7 sm:w-8 sm:h-8 flex-shrink-0">
-          <AvatarFallback className="bg-gradient-to-br from-blue-500/10 to-purple-500/10 border border-blue-200/20">
-            <Brain className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-blue-600" />
-          </AvatarFallback>
-        </Avatar>
-      )}
-      
       <div className={cn(
-        "flex flex-col gap-2 w-full min-w-0 message-container",
-        isUser 
-          ? "user-message items-end" 
-          : "ai-message items-start"
+        "flex items-start gap-4",
+        isUser ? "justify-end" : "justify-start"
       )}>
-        <div 
-          className={cn(
-            "px-4 py-4 sm:px-5 sm:py-4 rounded-2xl relative group shadow-sm border overflow-hidden w-full min-w-0 message-bubble",
-            isUser 
-              ? "bg-gradient-to-br from-blue-600 to-blue-700 text-white border-blue-600/20 shadow-blue-500/10" 
-              : "bg-gradient-to-br from-gray-50 to-gray-100 border-gray-200/50 dark:from-gray-800 dark:to-gray-900 dark:border-gray-700/50 shadow-gray-900/5"
-          )}
-          style={{ maxWidth: '100%', width: '100%', minWidth: 0, boxSizing: 'border-box' }}
-        >
-          <div className="prose prose-sm max-w-none dark:prose-invert break-words w-full" style={{ minWidth: 0, maxWidth: '100%', wordWrap: 'break-word', overflowWrap: 'anywhere', boxSizing: 'border-box' }}>
+        {/* AI Avatar - Enhanced */}
+        {!isUser && (
+          <motion.div 
+            initial={{ scale: 0 }}
+            animate={{ scale: 1 }}
+            transition={{ delay: 0.1, duration: 0.3, ease: "backOut" }}
+            className="relative flex-shrink-0 mt-1"
+          >
+            <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500 flex items-center justify-center shadow-lg">
+              <Sparkles className="w-5 h-5 text-white" />
+            </div>
+            <div className="absolute -top-1 -right-1 w-4 h-4 bg-green-500 rounded-full border-2 border-white dark:border-gray-900 animate-pulse"></div>
+          </motion.div>
+        )}
+        
+        <div className={cn(
+          "max-w-[85%] flex flex-col",
+          isUser ? "items-end" : "items-start"
+        )}>
+          {/* Enhanced Message bubble */}
+          <motion.div 
+            initial={{ scale: 0.8, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={{ delay: 0.2, duration: 0.3 }}
+            className={cn(
+              "px-5 py-4 rounded-3xl break-words overflow-hidden shadow-lg border backdrop-blur-sm relative group",
+              isUser 
+                ? "bg-gradient-to-br from-blue-500 to-blue-600 text-white border-blue-400/30 shadow-blue-500/25" 
+                : "bg-white/80 dark:bg-gray-800/80 text-gray-900 dark:text-gray-100 border-gray-200/50 dark:border-gray-700/50 shadow-gray-900/10"
+            )}
+          >
             <ReactMarkdown
               components={{
                 code: ({ inline, className, children, ...props }: any) => {
@@ -572,21 +475,44 @@ const MessageComponent = memo(function MessageComponent({ message }: MessageComp
                   
                   if (!inline && match) {
                     return (
-                      <CodeBlock 
-                        codeString={codeString} 
-                        language={language} 
-                        isUser={isUser}
-                      />
+                      <div className="my-2 -mx-4 rounded-lg overflow-hidden bg-gray-900 border border-gray-600">
+                        <div className="flex items-center justify-between bg-gray-800 px-3 py-1.5 text-xs">
+                          <span className="text-gray-300 font-mono">{language}</span>
+                          <button 
+                            className="text-gray-400 hover:text-white transition-colors"
+                            onClick={async () => {
+                              try {
+                                await navigator.clipboard.writeText(codeString);
+                              } catch (error) {
+                                // Fallback for older browsers
+                                const textArea = document.createElement('textarea');
+                                textArea.value = codeString;
+                                document.body.appendChild(textArea);
+                                textArea.select();
+                                document.execCommand('copy');
+                                document.body.removeChild(textArea);
+                              }
+                            }}
+                          >
+                            <Copy className="w-3 h-3" />
+                          </button>
+                        </div>
+                        <div className="overflow-x-auto">
+                          <pre className="p-3 text-sm text-gray-100 font-mono leading-relaxed whitespace-pre">
+                            <code>{codeString}</code>
+                          </pre>
+                        </div>
+                      </div>
                     );
                   }
                   
                   return (
                     <code
                       className={cn(
-                        "px-1.5 py-0.5 rounded-md text-sm font-mono",
+                        "px-1 py-0.5 rounded text-sm font-mono",
                         isUser 
                           ? "bg-white/20 text-white" 
-                          : "bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200"
+                          : "bg-gray-300 dark:bg-gray-600 text-gray-800 dark:text-gray-200"
                       )}
                       {...props}
                     >
@@ -597,15 +523,6 @@ const MessageComponent = memo(function MessageComponent({ message }: MessageComp
                 p: ({ children }) => (
                   <p className="mb-2 last:mb-0 leading-relaxed">{children}</p>
                 ),
-                h1: ({ children }) => (
-                  <h1 className="text-xl font-bold mb-2 mt-4 first:mt-0">{children}</h1>
-                ),
-                h2: ({ children }) => (
-                  <h2 className="text-lg font-bold mb-2 mt-3 first:mt-0">{children}</h2>
-                ),
-                h3: ({ children }) => (
-                  <h3 className="text-base font-bold mb-2 mt-3 first:mt-0">{children}</h3>
-                ),
                 ul: ({ children }) => (
                   <ul className="list-disc list-inside mb-2 space-y-1">{children}</ul>
                 ),
@@ -613,98 +530,54 @@ const MessageComponent = memo(function MessageComponent({ message }: MessageComp
                   <ol className="list-decimal list-inside mb-2 space-y-1">{children}</ol>
                 ),
                 li: ({ children }) => (
-                  <li className="ml-2">{children}</li>
-                ),
-                blockquote: ({ children }) => (
-                  <blockquote className={cn(
-                    "border-l-4 pl-4 py-2 my-2 italic",
-                    isUser 
-                      ? "border-white/30 bg-white/10" 
-                      : "border-gray-300 dark:border-gray-600 bg-gray-100 dark:bg-gray-800"
-                  )}>
-                    {children}
-                  </blockquote>
+                  <li className="ml-0 break-words">{children}</li>
                 ),
                 strong: ({ children }) => (
-                  <strong className="font-bold">{children}</strong>
-                ),
-                em: ({ children }) => (
-                  <em className="italic">{children}</em>
-                ),
-                a: ({ href, children }) => (
-                  <a
-                    href={href}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className={cn(
-                      "underline hover:no-underline transition-colors",
-                      isUser 
-                        ? "text-white hover:text-white/80" 
-                        : "text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300"
-                    )}
-                  >
-                    {children}
-                  </a>
+                  <strong className="font-semibold">{children}</strong>
                 ),
               }}
             >
               {message.content}
             </ReactMarkdown>
-          </div>
+          </motion.div>
           
-          {/* Copy button */}
-          <Button
-            variant="ghost"
-            size="sm"
+          {/* Enhanced timestamp and metadata */}
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.4, duration: 0.3 }}
             className={cn(
-              "absolute -top-2 -right-2 opacity-0 group-hover:opacity-100 sm:opacity-0 transition-opacity touch-manipulation",
-              "w-8 h-8 sm:w-6 sm:h-6 p-0 bg-white/90 dark:bg-gray-800/90 shadow-sm border border-gray-200 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700"
+              "mt-3 flex items-center gap-2 text-xs",
+              isUser ? "justify-end" : "justify-start"
             )}
-            onClick={copyToClipboard}
-            aria-label="Copy message to clipboard"
           >
-            {copied ? (
-              <Badge variant="secondary" className="text-xs">Copied!</Badge>
-            ) : (
-              <Copy className="w-3 h-3" />
-            )}
-          </Button>
-        </div>
-        
-        {/* Message metadata */}
-        <div className="flex items-center gap-2 text-xs text-muted-foreground mt-2 px-1">
-          <div className="flex items-center gap-1">
-            <Clock className="w-3 h-3 opacity-60" />
-            <span className="opacity-80">{message.timestamp.toLocaleTimeString()}</span>
-          </div>
-          {message.model && (
-            <>
-              <span className="opacity-40">•</span>
-              <div className="flex items-center gap-1">
-                <Activity className="w-3 h-3 opacity-60" />
-                <span className="opacity-80">{message.model}</span>
-              </div>
-            </>
-          )}
-          {message.tokens && (
-            <>
-              <span className="opacity-40">•</span>
-              <div className="flex items-center gap-1">
-                <Hash className="w-3 h-3 opacity-60" />
-                <span className="opacity-80">{message.tokens.total} tokens</span>
-              </div>
-            </>
-          )}
+            <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-gray-100/50 dark:bg-gray-800/50 backdrop-blur-sm">
+              <Clock className="w-3 h-3 text-gray-400" />
+              <span className="text-gray-500 dark:text-gray-400 font-medium">
+                {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+              </span>
+              {message.model && (
+                <>
+                  <span className="text-gray-300 dark:text-gray-600">•</span>
+                  <div className="flex items-center gap-1">
+                    <Activity className="w-3 h-3 text-blue-500" />
+                    <span className="text-blue-600 dark:text-blue-400 font-medium">{message.model}</span>
+                  </div>
+                </>
+              )}
+              {message.tokens && (
+                <>
+                  <span className="text-gray-300 dark:text-gray-600">•</span>
+                  <div className="flex items-center gap-1">
+                    <Hash className="w-3 h-3 text-green-500" />
+                    <span className="text-green-600 dark:text-green-400 font-medium">{message.tokens.total}</span>
+                  </div>
+                </>
+              )}
+            </div>
+          </motion.div>
         </div>
       </div>
-      
-      {isUser && (
-        <Avatar className="w-7 h-7 sm:w-8 sm:h-8 flex-shrink-0">
-          <AvatarFallback className="bg-gradient-to-br from-green-500/10 to-emerald-500/10 border border-green-200/20">
-            <User className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-green-600" />
-          </AvatarFallback>
-        </Avatar>
-      )}
     </motion.div>
   );
 });
@@ -757,26 +630,51 @@ const MessageSkeleton = memo(function MessageSkeleton({ isUser = false }: { isUs
 const TypingIndicator = memo(function TypingIndicator() {
   return (
     <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      className="flex gap-3 sm:gap-4 px-2 py-3 sm:px-3 sm:py-4 w-full justify-start"
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -20 }}
+      className="mb-8 px-4"
     >
-      <Avatar className="w-7 h-7 sm:w-8 sm:h-8 flex-shrink-0">
-        <AvatarFallback className="bg-gradient-to-br from-blue-500/10 to-purple-500/10 border border-blue-200/20">
-          <Brain className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-blue-600 animate-pulse" />
-        </AvatarFallback>
-      </Avatar>
-      
-      <div className="flex items-center gap-3 px-4 py-3 sm:px-5 sm:py-4 bg-gradient-to-br from-gray-50 to-gray-100 border border-gray-200/50 dark:from-gray-800 dark:to-gray-900 dark:border-gray-700/50 rounded-2xl shadow-sm backdrop-filter backdrop-blur-sm">
-        <div className="flex gap-1">
-          <div className="w-2 h-2 bg-blue-500/70 rounded-full animate-bounce [animation-delay:-0.3s]"></div>
-          <div className="w-2 h-2 bg-blue-500/70 rounded-full animate-bounce [animation-delay:-0.15s]"></div>
-          <div className="w-2 h-2 bg-blue-500/70 rounded-full animate-bounce"></div>
-        </div>
-        <div className="flex items-center gap-2">
-          <Lightbulb className="w-4 h-4 text-blue-500 animate-pulse" />
-          <span className="text-sm text-muted-foreground font-medium">AI is thinking...</span>
+      <div className="flex items-start gap-4 justify-start">
+        {/* Enhanced AI Avatar */}
+        <motion.div 
+          animate={{ scale: [1, 1.1, 1] }}
+          transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+          className="relative flex-shrink-0 mt-1"
+        >
+          <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500 flex items-center justify-center shadow-lg">
+            <Brain className="w-5 h-5 text-white animate-pulse" />
+          </div>
+          <div className="absolute -top-1 -right-1 w-4 h-4 bg-yellow-500 rounded-full border-2 border-white dark:border-gray-900 animate-pulse"></div>
+        </motion.div>
+        
+        <div className="max-w-[85%] flex flex-col items-start">
+          <motion.div 
+            initial={{ scale: 0.8 }}
+            animate={{ scale: 1 }}
+            className="px-6 py-4 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-3xl shadow-lg border border-gray-200/50 dark:border-gray-700/50"
+          >
+            <div className="flex items-center gap-3">
+              <div className="flex gap-1">
+                <motion.div 
+                  className="w-2 h-2 bg-blue-500 rounded-full"
+                  animate={{ y: [-2, 2, -2] }}
+                  transition={{ duration: 1, repeat: Infinity, delay: 0 }}
+                />
+                <motion.div 
+                  className="w-2 h-2 bg-purple-500 rounded-full"
+                  animate={{ y: [-2, 2, -2] }}
+                  transition={{ duration: 1, repeat: Infinity, delay: 0.2 }}
+                />
+                <motion.div 
+                  className="w-2 h-2 bg-pink-500 rounded-full"
+                  animate={{ y: [-2, 2, -2] }}
+                  transition={{ duration: 1, repeat: Infinity, delay: 0.4 }}
+                />
+              </div>
+              <span className="text-sm text-gray-500 dark:text-gray-400 font-medium">AI is thinking...</span>
+            </div>
+          </motion.div>
         </div>
       </div>
     </motion.div>
@@ -926,172 +824,202 @@ export default function AIAssistantPage() {
   }, [sendMessage]);
 
   return (
-    <div className="flex flex-col h-screen max-h-screen overflow-hidden">
+    <motion.div 
+      className="flex flex-col h-screen bg-gray-50 dark:bg-gray-900"
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5, ease: "easeOut" }}
+    >
       {/* Header */}
-      <header className="flex items-center justify-between px-3 py-2 sm:px-4 sm:py-3 border-b bg-gradient-to-r from-white to-gray-50/50 dark:from-gray-900 dark:to-gray-800/50 backdrop-blur supports-[backdrop-filter]:bg-background/60 shadow-sm min-h-[60px] sm:min-h-[64px]">
-        <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
-          <Link href="/" className="flex-shrink-0">
-            <Button variant="ghost" size="icon" className="w-9 h-9 sm:w-10 sm:h-10 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl transition-colors">
-              <ArrowLeft className="w-4 h-4" />
-            </Button>
-          </Link>
-          <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
-            <div className="w-7 h-7 sm:w-8 sm:h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl flex items-center justify-center shadow-sm flex-shrink-0">
-              <Brain className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-white" />
+      <motion.header 
+        className="flex-shrink-0 bg-white/95 dark:bg-gray-900/95 backdrop-blur-md border-b border-gray-200/50 dark:border-gray-700/50 shadow-sm"
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4, delay: 0.1 }}
+      >
+        <div className="max-w-3xl mx-auto px-4 py-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <Link href="/">
+                <Button variant="ghost" size="icon" className="w-9 h-9 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">
+                  <ArrowLeft className="w-4 h-4" />
+                </Button>
+              </Link>
+              <div className="flex items-center gap-3">
+                <div className="relative">
+                  <div className="w-9 h-9 bg-gradient-to-r from-blue-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg">
+                    <Sparkles className="w-5 h-5 text-white" />
+                  </div>
+                  <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-400 rounded-full border-2 border-white dark:border-gray-900 animate-pulse"></div>
+                </div>
+                <div>
+                  <h1 className="text-lg font-semibold text-gray-900 dark:text-white">AI Assistant</h1>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">Online • Ready to help</p>
+                </div>
+              </div>
             </div>
-            <div className="min-w-0 flex-1">
-              <h1 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-white truncate leading-tight">AI Assistant</h1>
-              <p className="text-xs text-gray-500 dark:text-gray-400 hidden sm:block leading-tight">Powered by advanced AI</p>
+            
+            <div className="flex items-center gap-2">
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" size="sm" className="rounded-xl border-gray-200/50 dark:border-gray-700/50 hover:bg-gray-50 dark:hover:bg-gray-800">
+                    {renderModelIcon(selectedModel.icon)}
+                    <span className="ml-2 hidden sm:inline text-sm">{selectedModel.name}</span>
+                    <ChevronDown className="w-3 h-3 ml-1" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-64">
+                  <DropdownMenuLabel>Select Model</DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  {AI_MODELS.map((model) => (
+                    <DropdownMenuItem
+                      key={model.id}
+                      onClick={() => setSelectedModel(model)}
+                    >
+                      <div className="flex items-center gap-2 w-full">
+                        {renderModelIcon(model.icon)}
+                        <div className="flex-1">
+                          <div className="font-medium">{model.displayName}</div>
+                          <div className="text-xs text-muted-foreground">{model.description}</div>
+                        </div>
+                        {selectedModel.id === model.id && <CheckCircle2 className="w-4 h-4" />}
+                      </div>
+                    </DropdownMenuItem>
+                  ))}
+                </DropdownMenuContent>
+              </DropdownMenu>
+              
+              <Button variant="outline" size="icon" onClick={clearMessages} className="w-9 h-9 rounded-xl border-gray-200/50 dark:border-gray-700/50 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
+                <Trash2 className="w-4 h-4" />
+              </Button>
             </div>
           </div>
         </div>
-        
-        <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
-          {/* Model Selector */}
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="outline" className="gap-1 sm:gap-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl border-gray-200 dark:border-gray-700 text-xs sm:text-sm px-2 sm:px-3 h-8 sm:h-9 min-w-0">
-                {renderModelIcon(selectedModel.icon)}
-                <span className="hidden md:inline font-medium truncate max-w-[100px]">{selectedModel.displayName}</span>
-                <span className="md:hidden text-xs truncate max-w-[50px]">{selectedModel.name.split('-')[0]}</span>
-                <ChevronDown className="w-3 h-3 sm:w-4 sm:h-4 opacity-50 flex-shrink-0" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-80 rounded-xl border-gray-200 dark:border-gray-700 shadow-lg">
-              <DropdownMenuLabel className="flex items-center gap-2 text-gray-700 dark:text-gray-300">
-                <Target className="w-4 h-4" />
-                AI Model Selection
-              </DropdownMenuLabel>
-              <DropdownMenuSeparator className="bg-gray-100 dark:bg-gray-800" />
-              {AI_MODELS.map((model) => (
-                <DropdownMenuItem
-                  key={model.id}
-                  onClick={() => setSelectedModel(model)}
-                  className={cn(
-                    "cursor-pointer rounded-lg m-1 p-3 transition-colors",
-                    selectedModel.id === model.id 
-                      ? "bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-700" 
-                      : "hover:bg-gray-50 dark:hover:bg-gray-800"
-                  )}
-                >
-                  <div className="flex items-start gap-3 w-full">
-                    <div className={cn(
-                      "w-8 h-8 rounded-lg flex items-center justify-center",
-                      selectedModel.id === model.id 
-                        ? "bg-blue-100 dark:bg-blue-800" 
-                        : "bg-gray-100 dark:bg-gray-700"
-                    )}>
-                      {renderModelIcon(model.icon)}
-                    </div>
-                    <div className="flex-1">
-                      <div className="font-medium text-gray-900 dark:text-white">{model.displayName}</div>
-                      <div className="text-xs text-gray-500 dark:text-gray-400">{model.description}</div>
-                    </div>
-                    {selectedModel.id === model.id && (
-                      <div className="flex items-center gap-1">
-                        <CheckCircle2 className="w-4 h-4 text-blue-600" />
-                        <Badge variant="secondary" className="bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300">Active</Badge>
-                      </div>
-                    )}
-                  </div>
-                </DropdownMenuItem>
-              ))}
-            </DropdownMenuContent>
-          </DropdownMenu>
-
-          <Button 
-            variant="outline" 
-            size="icon" 
-            onClick={clearMessages}
-            className="w-8 h-8 sm:w-9 sm:h-9 hover:bg-red-50 hover:border-red-200 hover:text-red-600 dark:hover:bg-red-900/20 dark:hover:border-red-700 dark:hover:text-red-400 rounded-xl transition-colors flex-shrink-0"
-            title="Clear conversation"
-          >
-            <Trash2 className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-          </Button>
-        </div>
-      </header>
+      </motion.header>
 
       {/* Messages */}
-      <ScrollArea 
-        ref={scrollAreaRef}
-        className="flex-1 min-h-0"
+      <motion.div 
+        className="flex-1 overflow-hidden bg-gradient-to-b from-gray-50/50 to-white dark:from-gray-900/50 dark:to-gray-900"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.4, delay: 0.2 }}
       >
-        <div className="max-w-5xl xl:max-w-6xl mx-auto px-3 sm:px-4 md:px-6 py-3 sm:py-4">
-          <div className="space-y-3 sm:space-y-4">
-            <AnimatePresence>
-              {messages.map((message) => (
-                <ErrorBoundary key={message.id}>
-                  <MessageComponent message={message} />
-                </ErrorBoundary>
-              ))}
-              {isTyping && (
-                <ErrorBoundary>
-                  <TypingIndicator />
-                </ErrorBoundary>
-              )}
-            </AnimatePresence>
+        <ScrollArea ref={scrollAreaRef} className="h-full">
+          <div className="max-w-3xl mx-auto px-4 py-6">
+            {/* Date header */}
+            <div className="flex justify-center mb-8">
+              <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm px-4 py-2 rounded-full text-xs font-medium text-gray-500 dark:text-gray-400 shadow-sm border border-gray-200/50 dark:border-gray-700/50">
+                Today
+              </div>
+            </div>
+            
+            {/* Messages */}
+            <div className="space-y-6">
+              <AnimatePresence>
+                {messages.map((message) => (
+                  <ErrorBoundary key={message.id}>
+                    <MessageComponent message={message} />
+                  </ErrorBoundary>
+                ))}
+                {isTyping && (
+                  <ErrorBoundary>
+                    <TypingIndicator />
+                  </ErrorBoundary>
+                )}
+              </AnimatePresence>
+            </div>
+            
+            {/* Bottom spacing to prevent messages from being hidden behind input */}
+            <div className="h-4"></div>
           </div>
-        </div>
-      </ScrollArea>
+        </ScrollArea>
+      </motion.div>
 
-      {/* Input */}
-      <div className="px-4 py-4 sm:px-6 sm:py-5 border-t bg-gradient-to-r from-white to-gray-50/50 dark:from-gray-900 dark:to-gray-800/50 backdrop-blur supports-[backdrop-filter]:bg-background/60 shadow-lg input-container">
-        <div className="max-w-5xl xl:max-w-6xl mx-auto px-2 sm:px-3">
-          <div className="flex items-end gap-3 sm:gap-4">
-            <div className="relative flex-1 min-w-0">
+      {/* Input Area */}
+      <motion.div 
+        className="flex-none bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl border-t border-gray-200/80 dark:border-gray-700/80 shadow-lg"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4, delay: 0.3 }}
+      >
+        <div className="max-w-3xl mx-auto p-4">
+          <div className="relative">
+            <div className="relative overflow-hidden rounded-2xl bg-white dark:bg-gray-800 shadow-xl border border-gray-200/50 dark:border-gray-700/50 transition-all duration-200 hover:shadow-2xl focus-within:shadow-2xl focus-within:border-blue-400 dark:focus-within:border-blue-500">
               <Input
                 ref={inputRef}
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 onKeyDown={handleKeyDown}
-                placeholder={isLoading ? "AI is responding..." : "Ask me anything..."}
+                placeholder={isLoading ? "AI is crafting a response..." : "Ask me anything..."}
                 disabled={isLoading}
-                className="h-12 sm:h-14 pr-12 sm:pr-14 rounded-2xl border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 shadow-sm focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-sm sm:text-base resize-none"
+                className="h-14 px-5 pr-16 text-base bg-transparent border-0 focus:ring-0 focus:outline-none placeholder:text-gray-400 dark:placeholder:text-gray-500 resize-none"
               />
-              <div className="absolute right-3 sm:right-4 top-1/2 transform -translate-y-1/2">
-                <MessageCircle className="w-4 h-4 sm:w-5 sm:h-5 text-gray-400" />
+              
+              {/* Input actions */}
+              <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-2">
+                {input.trim() ? (
+                  <motion.div
+                    initial={{ scale: 0.8, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    exit={{ scale: 0.8, opacity: 0 }}
+                    transition={{ duration: 0.2 }}
+                  >
+                    <Button
+                      onClick={sendMessage}
+                      disabled={isLoading}
+                      size="icon"
+                      className="w-10 h-10 rounded-xl bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105 active:scale-95"
+                      aria-label="Send message"
+                    >
+                      {isLoading ? (
+                        <Loader2 className="w-5 h-5 animate-spin" />
+                      ) : (
+                        <Send className="w-5 h-5" />
+                      )}
+                    </Button>
+                  </motion.div>
+                ) : (
+                  <motion.div
+                    initial={{ scale: 0.8, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    exit={{ scale: 0.8, opacity: 0 }}
+                    transition={{ duration: 0.2 }}
+                  >
+                    <Button
+                      size="icon"
+                      variant="ghost"
+                      className="w-10 h-10 rounded-xl bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-500 dark:text-gray-400 transition-all duration-200 hover:scale-105 active:scale-95"
+                      aria-label="Voice message"
+                    >
+                      <Mic2 className="w-5 h-5" />
+                    </Button>
+                  </motion.div>
+                )}
               </div>
             </div>
-            <Button
-              onClick={sendMessage}
-              disabled={!input.trim() || isLoading}
-              size="icon"
-              className={cn(
-                "w-12 h-12 sm:w-14 sm:h-14 rounded-2xl font-medium transition-all transform hover:scale-105 active:scale-95 shadow-md flex-shrink-0 touch-manipulation",
-                !input.trim() || isLoading
-                  ? "bg-gray-200 dark:bg-gray-700 text-gray-400 cursor-not-allowed hover:scale-100"
-                  : "bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 active:from-blue-800 active:to-blue-900 text-white shadow-blue-500/30 hover:shadow-blue-500/50"
-              )}
-              aria-label={isLoading ? "Sending message..." : "Send message"}
-            >
-              {isLoading ? (
-                <Loader2 className="w-4 h-4 sm:w-5 sm:h-5 animate-spin" />
-              ) : (
-                <Send className="w-4 h-4 sm:w-5 sm:h-5" />
-              )}
-            </Button>
-          </div>
-          
-          {/* Token counter or status */}
-          <div className="flex items-center justify-between mt-3 sm:mt-4 text-xs text-muted-foreground">
-            <div className="flex items-center gap-2 min-w-0">
-              <div className="flex-shrink-0 opacity-70">{renderModelIcon(selectedModel.icon)}</div>
-              <span className="truncate text-xs opacity-80">
-                <span className="hidden sm:inline">Powered by </span>
-                <span className="hidden md:inline">{selectedModel.displayName}</span>
-                <span className="md:hidden">{selectedModel.name.split('-')[0]}</span>
-              </span>
-            </div>
-            {messages.length > 1 && (
-              <div className="flex items-center gap-1 flex-shrink-0 opacity-70">
-                <MessageSquare className="w-3 h-3" />
-                <span className="hidden sm:inline text-xs">{messages.length - 1} messages</span>
-                <span className="sm:hidden text-xs">{messages.length - 1}</span>
+            
+            {/* Bottom indicator */}
+            <div className="flex items-center justify-between mt-3 px-1">
+              <div className="flex items-center gap-2 text-xs text-gray-400 dark:text-gray-500">
+                <div className="flex items-center gap-1">
+                  <div className="w-2 h-2 rounded-full bg-green-400 animate-pulse"></div>
+                  <span>Gemini 2.5 Flash</span>
+                </div>
               </div>
-            )}
+              
+              {input.length > 0 && (
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  className="text-xs text-gray-400 dark:text-gray-500"
+                >
+                  {input.length} characters
+                </motion.div>
+              )}
+            </div>
           </div>
         </div>
-      </div>
-    </div>
+      </motion.div>
+    </motion.div>
   );
 }

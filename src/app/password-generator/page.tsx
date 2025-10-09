@@ -5,7 +5,7 @@ import {
   Copy, RefreshCw, Shield, Check, Eye, EyeOff, History, Download, Trash2, 
   Sparkles, MoreHorizontal, ChevronDown,
   Hash, Type, FileText, Activity, Timer, TrendingUp, AlertTriangle,
-  CheckCircle2, Target, Layers, MousePointer, Info
+  CheckCircle2, Target, Layers, MousePointer, Info, Key, Settings
 } from 'lucide-react';
 import { FeaturePageLayout } from '@/layouts/feature-page-layout';
 import { Button } from '@/components/ui/button';
@@ -79,6 +79,26 @@ const PasswordGeneratorPageComponent = function PasswordGeneratorPage() {
     similar: 'il1Lo0O',
     ambiguous: '{}[]()/\\\'"`~,;.<>',
   }), []);
+
+  // Calculate password strength
+  const calculatePasswordStrength = useCallback((pwd: string) => {
+    let score = 0;
+    
+    // Length bonus
+    score += Math.min(pwd.length * 2, 50);
+    
+    // Character variety bonus
+    if (/[a-z]/.test(pwd)) score += 10;
+    if (/[A-Z]/.test(pwd)) score += 10;
+    if (/[0-9]/.test(pwd)) score += 10;
+    if (/[^a-zA-Z0-9]/.test(pwd)) score += 15;
+    
+    // Pattern penalties
+    if (/(.)\1{2,}/.test(pwd)) score -= 10; // Repeated characters
+    if (/012|123|234|345|456|567|678|789|890|abc|bcd|cde|def/.test(pwd.toLowerCase())) score -= 10; // Sequential
+    
+    return Math.min(Math.max(score, 0), 100);
+  }, []);
 
   // Generate secure password
   const generatePassword = useCallback(() => {
@@ -168,25 +188,6 @@ const PasswordGeneratorPageComponent = function PasswordGeneratorPage() {
     }, 300); // Small delay for UX
   }, [options, charSets.uppercase, charSets.lowercase, charSets.numbers, charSets.symbols, charSets.similar, charSets.ambiguous, calculatePasswordStrength]);
 
-  // Calculate password strength
-  const calculatePasswordStrength = useCallback((pwd: string) => {
-    let score = 0;
-    
-    // Length bonus
-    score += Math.min(pwd.length * 2, 50);
-    
-    // Character variety bonus
-    if (/[a-z]/.test(pwd)) score += 10;
-    if (/[A-Z]/.test(pwd)) score += 10;
-    if (/[0-9]/.test(pwd)) score += 10;
-    if (/[^a-zA-Z0-9]/.test(pwd)) score += 15;
-    
-    // Pattern penalties
-    if (/(.)\1{2,}/.test(pwd)) score -= 10; // Repeated characters
-    if (/012|123|234|345|456|567|678|789|890|abc|bcd|cde|def/.test(pwd.toLowerCase())) score -= 10; // Sequential
-    
-    return Math.min(Math.max(score, 0), 100);
-  }, []);
 
   const passwordStrength = useMemo(() => calculatePasswordStrength(password), [password, calculatePasswordStrength]);
 
