@@ -271,7 +271,7 @@ export function getPreferenceDisplayValue(key: string, value: any): string {
     case 'fontSize':
       return value.charAt(0).toUpperCase() + value.slice(1);
     case 'model':
-      return value.includes('2.0') ? 'Gemini 2.0 Flash (Experimental)' : 'Gemini 1.5 Flash';
+      return value.includes('2.0') ? 'Gemini 2.0 Flash' : 'Gemini 1.5 Flash';
     case 'responseFormat':
       return value === 'markdown' ? 'Markdown' : 'Plain Text';
     default:

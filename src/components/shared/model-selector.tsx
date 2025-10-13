@@ -35,7 +35,7 @@ const DEFAULT_AI_MODELS: AIModel[] = [
   {
     id: 'gemini-2.0-flash-exp',
     name: 'gemini-2.0-flash-exp',
-    displayName: 'Gemini 2.0 Flash (Experimental)',
+    displayName: 'Gemini 2.0 Flash',
     description: 'Latest experimental model with enhanced capabilities',
     icon: '✨'
   },

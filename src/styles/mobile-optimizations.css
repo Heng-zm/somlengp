@@ -102,11 +102,48 @@
     word-break: break-word;
   }
   
-  /* Input improvements */
+  /* Input improvements - Comprehensive zoom prevention */
   .mobile-input {
-    font-size: 16px; /* Prevents zoom on iOS */
+    font-size: 16px !important; /* Prevents zoom on iOS */
     -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
     border-radius: 0.5rem;
+    transform: scale(1);
+    -webkit-text-size-adjust: 100%;
+    zoom: 1;
+  }
+  
+  /* Prevent zoom on all input types */
+  input[type="text"],
+  input[type="email"], 
+  input[type="password"],
+  input[type="search"],
+  input[type="tel"],
+  input[type="url"],
+  input[type="number"],
+  textarea,
+  select {
+    font-size: 16px !important;
+    line-height: 1.5;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    transform: scale(1);
+    -webkit-text-size-adjust: none;
+    -moz-text-size-adjust: none;
+    -ms-text-size-adjust: none;
+    text-size-adjust: none;
+    zoom: 1;
+  }
+  
+  /* Prevent zoom on focus */
+  input:focus,
+  textarea:focus,
+  select:focus {
+    font-size: 16px !important;
+    transform: scale(1);
+    zoom: 1;
   }
 }
 

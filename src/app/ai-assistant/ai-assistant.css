@@ -255,7 +255,7 @@
     margin-left: 0 !important;
     margin-right: 0 !important;
     width: 100% !important;
-    max-width: 100% !important;
+    max-width: calc(100vw - 2rem) !important;
     min-width: 0 !important;
     box-sizing: border-box !important;
     position: relative !important;
@@ -277,9 +277,10 @@
   .overflow-x-auto pre {
     font-size: 12px !important;
     line-height: 1.4 !important;
-    padding: 0.75rem !important;
+    padding: 0.75rem 0.5rem !important;
     white-space: pre !important;
     overflow-x: auto !important;
+    max-width: 100% !important;
   }
   
   /* Better message typography on mobile */
@@ -941,4 +942,386 @@
 
 .dark .message-bubble {
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+}
+
+/* Enhanced Code Block Responsiveness */
+.prose pre {
+  max-width: 100% !important;
+  width: 100% !important;
+  overflow-x: auto !important;
+  white-space: pre !important;
+  word-wrap: normal !important;
+  box-sizing: border-box !important;
+}
+
+.prose code {
+  max-width: 100% !important;
+  word-break: break-all !important;
+  overflow-wrap: anywhere !important;
+}
+
+/* Fix code block container overflow */
+.prose > div {
+  max-width: 100% !important;
+  overflow: hidden !important;
+}
+
+/* Responsive code blocks for all screen sizes */
+@media (max-width: 768px) {
+  .prose pre {
+    font-size: 11px !important;
+    line-height: 1.4 !important;
+    padding: 0.75rem !important;
+  }
+  
+  .prose pre code {
+    font-size: 11px !important;
+    line-height: 1.4 !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .prose pre {
+    font-size: 10px !important;
+    line-height: 1.3 !important;
+    padding: 0.5rem !important;
+    margin: 0.5rem 0 !important;
+  }
+  
+  .prose pre code {
+    font-size: 10px !important;
+    line-height: 1.3 !important;
+  }
+  
+  /* Ensure code blocks don't break mobile layout */
+  .prose > div {
+    margin-left: -0.5rem !important;
+    margin-right: -0.5rem !important;
+    border-radius: 0.5rem !important;
+  }
+}
+
+/* iPhone 12/13/14 (390px) and similar ultra-narrow screens */
+@media (max-width: 395px) {
+  /* Ultra-compact code blocks for very narrow screens */
+  .prose pre {
+    font-size: 9px !important;
+    line-height: 1.2 !important;
+    padding: 0.375rem !important;
+    margin: 0.375rem 0 !important;
+    white-space: pre !important;
+    overflow-x: auto !important;
+  }
+  
+  .prose pre code {
+    font-size: 9px !important;
+    line-height: 1.2 !important;
+    word-break: normal !important;
+    white-space: pre !important;
+  }
+  
+  /* Code block containers - extend full width on narrow screens */
+  .prose > div {
+    margin-left: -0.75rem !important;
+    margin-right: -0.75rem !important;
+    border-radius: 0.375rem !important;
+    max-width: calc(100vw - 0.5rem) !important;
+    width: calc(100vw - 0.5rem) !important;
+  }
+  
+  /* Message container adjustments */
+  .max-w-3xl {
+    max-width: calc(100vw - 0.5rem) !important;
+    padding-left: 0.25rem !important;
+    padding-right: 0.25rem !important;
+  }
+  
+  /* Ultra-compact message spacing */
+  .group.relative.w-full {
+    margin-bottom: 0 !important;
+  }
+  
+  .flex.items-start.gap-3 {
+    gap: 0.5rem !important;
+  }
+  
+  /* Smaller avatars on ultra-narrow screens */
+  .flex-shrink-0 > div {
+    width: 1.5rem !important;
+    height: 1.5rem !important;
+  }
+  
+  .flex-shrink-0 svg {
+    width: 0.875rem !important;
+    height: 0.875rem !important;
+  }
+  
+  /* Compact header for code blocks */
+  .prose > div > div:first-child {
+    padding: 0.375rem 0.5rem !important;
+    font-size: 10px !important;
+  }
+  
+  /* Better scrollbar for ultra-narrow screens */
+  .prose pre::-webkit-scrollbar {
+    height: 4px !important;
+    background: rgba(0, 0, 0, 0.1) !important;
+  }
+  
+  .prose pre::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.4) !important;
+    border-radius: 2px !important;
+  }
+}
+
+/* Enhanced scrollbar for code blocks */
+.prose pre::-webkit-scrollbar {
+  height: 6px;
+  background: rgba(0, 0, 0, 0.1);
+}
+
+.prose pre::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: 3px;
+}
+
+.prose pre::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.5);
+}
+
+/* Touch-friendly scrolling for mobile */
+@media (pointer: coarse) {
+  .prose pre {
+    -webkit-overflow-scrolling: touch;
+    scroll-behavior: smooth;
+  }
+}
+
+/* Prevent horizontal overflow in message containers */
+.max-w-3xl {
+  overflow-x: hidden;
+}
+
+/* Force proper containment */
+.prose {
+  overflow-wrap: break-word;
+  word-break: break-word;
+  hyphens: auto;
+}
+
+/* Enhanced mobile layout fixes */
+@media (max-width: 640px) {
+  .max-w-3xl {
+    max-width: calc(100vw - 1rem) !important;
+    padding-left: 0.5rem !important;
+    padding-right: 0.5rem !important;
+  }
+  
+  .prose {
+    max-width: 100% !important;
+    width: 100% !important;
+  }
+  
+  /* Better spacing for mobile messages */
+  .group.relative.w-full {
+    margin-bottom: 0 !important;
+  }
+  
+  /* Improved avatar sizing on mobile */
+  .flex-shrink-0 > div {
+    width: 1.75rem !important;
+    height: 1.75rem !important;
+  }
+  
+  .flex-shrink-0 svg {
+    width: 1rem !important;
+    height: 1rem !important;
+  }
+}
+
+/* Enhanced Input Area Styling */
+.input-enhanced {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(248, 250, 252, 0.95) 100%);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 2px solid rgba(229, 231, 235, 0.6);
+  box-shadow: 
+    0 20px 25px -5px rgba(0, 0, 0, 0.1),
+    0 10px 10px -5px rgba(0, 0, 0, 0.04),
+    inset 0 1px 0 rgba(255, 255, 255, 0.6);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.dark .input-enhanced {
+  background: linear-gradient(135deg, rgba(31, 41, 55, 0.95) 0%, rgba(17, 24, 39, 0.95) 100%);
+  border-color: rgba(75, 85, 99, 0.6);
+  box-shadow: 
+    0 20px 25px -5px rgba(0, 0, 0, 0.3),
+    0 10px 10px -5px rgba(0, 0, 0, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+.input-enhanced:focus-within {
+  transform: scale(1.02);
+  box-shadow: 
+    0 25px 50px -12px rgba(0, 0, 0, 0.15),
+    0 0 0 3px rgba(59, 130, 246, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.8);
+  border-color: rgba(59, 130, 246, 0.7);
+}
+
+.dark .input-enhanced:focus-within {
+  box-shadow: 
+    0 25px 50px -12px rgba(0, 0, 0, 0.4),
+    0 0 0 3px rgba(59, 130, 246, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.15);
+  border-color: rgba(59, 130, 246, 0.7);
+}
+
+/* Enhanced Button Styling */
+.btn-enhanced {
+  background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+  border: 2px solid rgba(59, 130, 246, 0.3);
+  box-shadow: 
+    0 10px 20px rgba(59, 130, 246, 0.3),
+    0 4px 8px rgba(59, 130, 246, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.btn-enhanced:hover {
+  background: linear-gradient(135deg, #1d4ed8 0%, #1e40af 100%);
+  box-shadow: 
+    0 15px 30px rgba(59, 130, 246, 0.4),
+    0 6px 12px rgba(59, 130, 246, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.3);
+  transform: scale(1.1);
+}
+
+/* Enhanced Suggestion Chips */
+.chip-enhanced {
+  background: linear-gradient(135deg, rgba(249, 250, 251, 0.95) 0%, rgba(255, 255, 255, 0.95) 100%);
+  border: 2px solid rgba(229, 231, 235, 0.7);
+  box-shadow: 
+    0 4px 6px rgba(0, 0, 0, 0.07),
+    0 1px 3px rgba(0, 0, 0, 0.06),
+    inset 0 1px 0 rgba(255, 255, 255, 0.7);
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.dark .chip-enhanced {
+  background: linear-gradient(135deg, rgba(55, 65, 81, 0.95) 0%, rgba(31, 41, 55, 0.95) 100%);
+  border-color: rgba(107, 114, 128, 0.7);
+  box-shadow: 
+    0 4px 6px rgba(0, 0, 0, 0.2),
+    0 1px 3px rgba(0, 0, 0, 0.15),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+.chip-enhanced:hover {
+  background: linear-gradient(135deg, rgba(239, 246, 255, 0.95) 0%, rgba(219, 234, 254, 0.95) 100%);
+  border-color: rgba(59, 130, 246, 0.7);
+  box-shadow: 
+    0 6px 12px rgba(59, 130, 246, 0.15),
+    0 2px 4px rgba(59, 130, 246, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.8);
+  transform: scale(1.05);
+}
+
+.dark .chip-enhanced:hover {
+  background: linear-gradient(135deg, rgba(30, 58, 138, 0.3) 0%, rgba(30, 64, 175, 0.3) 100%);
+  border-color: rgba(59, 130, 246, 0.7);
+}
+
+/* Glassmorphism effects */
+.glass-effect {
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  background: rgba(255, 255, 255, 0.8);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.dark .glass-effect {
+  background: rgba(31, 41, 55, 0.8);
+  border-color: rgba(75, 85, 99, 0.2);
+}
+
+/* Premium shadows */
+.shadow-premium {
+  box-shadow: 
+    0 20px 25px -5px rgba(0, 0, 0, 0.1),
+    0 10px 10px -5px rgba(0, 0, 0, 0.04),
+    0 0 0 1px rgba(255, 255, 255, 0.05);
+}
+
+.shadow-premium-lg {
+  box-shadow: 
+    0 25px 50px -12px rgba(0, 0, 0, 0.25),
+    0 0 0 1px rgba(255, 255, 255, 0.05);
+}
+
+/* Enhanced Mobile Code Block Width Optimization */
+@media (max-width: 480px) {
+  /* Ultra-compact code blocks for very small screens */
+  .message-bubble div[class*="bg-gray-900"],
+  .not-prose {
+    margin-left: -0.25rem !important;
+    margin-right: -0.25rem !important;
+    border-radius: 0.5rem !important;
+    max-width: calc(100vw - 1rem) !important;
+  }
+  
+  .overflow-x-auto pre {
+    font-size: 10px !important;
+    line-height: 1.3 !important;
+    padding: 0.5rem 0.25rem !important;
+  }
+  
+  /* Better code header on mobile */
+  .bg-gray-800 {
+    padding: 0.5rem 0.75rem !important;
+  }
+  
+  /* Smaller copy buttons */
+  .bg-gray-800 button {
+    width: 1.5rem !important;
+    height: 1.5rem !important;
+  }
+}
+
+@media (max-width: 375px) {
+  /* Extra small screens - iPhone SE, etc */
+  .message-bubble div[class*="bg-gray-900"],
+  .not-prose {
+    margin-left: -0.5rem !important;
+    margin-right: -0.5rem !important;
+    max-width: calc(100vw - 0.5rem) !important;
+  }
+  
+  .overflow-x-auto pre {
+    font-size: 9px !important;
+    line-height: 1.2 !important;
+    padding: 0.375rem 0.25rem !important;
+  }
+}
+
+/* Code block container improvements for all mobile sizes */
+@media (max-width: 768px) {
+  .message-bubble .not-prose {
+    /* Ensure code blocks use full available width */
+    width: calc(100% + 0.5rem) !important;
+    margin-left: -0.25rem !important;
+    margin-right: -0.25rem !important;
+    max-width: none !important;
+  }
+  
+  /* Better scrollbar for mobile code blocks */
+  .message-bubble .overflow-x-auto::-webkit-scrollbar {
+    height: 4px !important;
+  }
+  
+  .message-bubble .overflow-x-auto::-webkit-scrollbar-thumb {
+    background: rgba(156, 163, 175, 0.7) !important;
+    border-radius: 2px !important;
+  }
 }

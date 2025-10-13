@@ -39,37 +39,28 @@ const nextConfig = {
     ],
   },
 
-  // Bundle optimization
+  // Bundle optimization (simplified for memory efficiency)
   webpack: (config, { dev, isServer }) => {
-    // Optimize bundle size
-    if (!dev && !isServer) {
-      // Split chunks more efficiently
-      config.optimization = {
-        ...config.optimization,
-        splitChunks: {
+    // Reduce memory usage during build
+    if (!dev) {
+      // Disable source maps to save memory
+      config.devtool = false;
+      
+      // Simplify chunk splitting
+      if (!isServer && config.optimization) {
+        config.optimization.splitChunks = {
           chunks: 'all',
+          maxInitialRequests: 20,
+          maxAsyncRequests: 20,
           cacheGroups: {
             vendor: {
               test: /[\\/]node_modules[\\/]/,
               name: 'vendors',
-              priority: 10,
-              chunks: 'all',
-            },
-            ui: {
-              test: /[\\/]src[\\/]components[\\/]ui[\\/]/,
-              name: 'ui',
-              priority: 20,
-              chunks: 'all',
-            },
-            features: {
-              test: /[\\/]src[\\/](features|components\/features)[\\/]/,
-              name: 'features',
-              priority: 15,
               chunks: 'all',
             },
           },
-        },
-      };
+        };
+      }
     }
 
     // Handle handlebars issue with Genkit

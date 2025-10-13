@@ -198,6 +198,28 @@ body {
         /* Improved touch targets */
         min-height: 44px;
         /* Prevent zoom on iOS */
+        font-size: 16px;
+    }
+    
+    /* Prevent zoom on all input fields for mobile devices */
+    input, textarea, select {
+        font-size: 16px !important;
+        -webkit-appearance: none;
+        -moz-appearance: none;
+        appearance: none;
+    }
+    
+    /* Additional zoom prevention for specific input types */
+    input[type="text"],
+    input[type="email"],
+    input[type="password"],
+    input[type="search"],
+    input[type="tel"],
+    input[type="url"],
+    input[type="number"],
+    textarea {
+        font-size: 16px !important;
+        /* Prevent iOS zoom on focus */
         font-size: max(16px, 1rem);
     }
 

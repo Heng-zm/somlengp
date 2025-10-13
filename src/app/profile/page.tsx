@@ -433,7 +433,7 @@ export default function ProfilePage() {
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="gemini-1.5-flash">Gemini 1.5 Flash</SelectItem>
-                        <SelectItem value="gemini-2.0-flash-exp">Gemini 2.0 Flash (Experimental)</SelectItem>
+                        <SelectItem value="gemini-2.0-flash-exp">Gemini 2.0 Flash</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
