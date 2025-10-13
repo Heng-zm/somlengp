@@ -705,11 +705,11 @@
 }
 
 .text-glow {
-  transition: text-shadow var(--motion-duration-normal) var(--motion-ease-smooth);
+  transition: opacity var(--motion-duration-normal) var(--motion-ease-smooth);
 }
 
 .text-glow:hover {
-  text-shadow: 0 0 8px rgba(0, 0, 0, 0.3);
+  opacity: 0.8;
 }
 
 /* === SCROLL-TRIGGERED ANIMATIONS === */
@@ -810,7 +810,7 @@
   }
   
   .text-glow:hover {
-    text-shadow: none;
+    opacity: 1;
   }
 }
 
@@ -866,7 +866,7 @@
 /* Dark mode optimizations */
 @media (prefers-color-scheme: dark) {
   .text-glow:hover {
-    text-shadow: 0 0 8px rgba(255, 255, 255, 0.3);
+    opacity: 0.8;
   }
 }
 

@@ -2,10 +2,7 @@
 import { 
   useState, 
   useRef, 
-  useEffect, 
-  useCallback, 
-  useMemo,
-  memo, 
+  useEffect,
   CSSProperties,
   ImgHTMLAttributes
 } from 'react';
@@ -152,7 +149,7 @@ function useIntersectionObserver(
   }, [ref, options, hasIntersected]);
   return { isIntersecting, hasIntersected };
 }
-const SmartImage = memo(function SmartImage({
+const SmartImage = function SmartImage({
   src,
   alt,
   width,
@@ -195,14 +192,14 @@ const SmartImage = memo(function SmartImage({
     onError
   } = optimization;
   // Generate optimized image URL
-  const optimizedSrc = useCallback(() => {
+  const optimizedSrc = () => {
     if (cachedUrl) return cachedUrl;
     const optimizedUrl = generateOptimizedUrl(src, optimization);
     setCachedUrl(optimizedUrl);
     return optimizedUrl;
-  }, [src, optimization, cachedUrl]);
+  };
   // Handle image load success
-  const handleLoad = useCallback((event: React.SyntheticEvent<HTMLImageElement>) => {
+  const handleLoad = (event: React.SyntheticEvent<HTMLImageElement>) => {
     const loadEndTime = performance.now();
     const loadTime = loadEndTime - loadStartTime.current;
     const img = event.currentTarget;
@@ -229,9 +226,9 @@ const SmartImage = memo(function SmartImage({
     onOptimizationComplete?.(metrics);
     onLoadComplete?.(metrics);
     // Log performance data
-  }, [src, format, retryCount, performanceMonitor, onOptimizationComplete, onLoadComplete]);
+  };
   // Handle image load error
-  const handleError = useCallback((event: React.SyntheticEvent<HTMLImageElement>) => {
+  const handleError = (event: React.SyntheticEvent<HTMLImageElement>) => {
     const error = new Error(`Failed to load image: ${src}`);
     if (retryCount < retryAttempts) {
       console.warn(`Retrying image load for ${src}, attempt ${retryCount + 1}`);
@@ -248,7 +245,7 @@ const SmartImage = memo(function SmartImage({
     // Call error callback
     onError?.(error);
     console.error('Image optimization failed:', { src, error, retryCount });
-  }, [src, retryCount, retryAttempts, performanceMonitor, onError]);
+  };
   // Start load timer when component mounts or retry occurs
   useEffect(() => {
     if ((!lazy || hasIntersected) && !hasError) {
@@ -260,7 +257,7 @@ const SmartImage = memo(function SmartImage({
     ? generateResponsiveSources(src, optimization)
     : optimization.sizes || '100vw';
   // Generate placeholder
-  const placeholderSrc = useMemo(() => {
+  const placeholderSrc = (() => {
     if (placeholder === 'shimmer' && width && height) {
       return createShimmerPlaceholder(width, height);
     }
@@ -268,7 +265,7 @@ const SmartImage = memo(function SmartImage({
       return placeholder;
     }
     return undefined;
-  }, [placeholder, width, height]);
+  })();
   // Don't render anything if lazy loading and not intersected
   if (lazy && !hasIntersected) {
     return (
@@ -376,5 +373,5 @@ const SmartImage = memo(function SmartImage({
       )}
     </div>
   );
-});
+};
 export { SmartImage, type SmartImageProps, type ImageOptimizationOptions, type ImageLoadMetrics };

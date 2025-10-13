@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback, memo, ErrorInfo, Component, Suspense } from 'react';
+import dynamic from 'next/dynamic';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -49,8 +50,16 @@ import { showSuccessToast } from '@/lib/toast-utils';
 import { cn } from '@/lib/utils';
 import { generateMessageId } from '@/lib/id-utils';
 import Link from 'next/link';
-import ReactMarkdown from 'react-markdown';
-import { AdvancedLazyCodeHighlighter } from '@/components/shared/advanced-lazy-loader';
+
+// Lazy load heavy components
+const ReactMarkdown = dynamic(() => import('react-markdown'), {
+  loading: () => <div className="animate-pulse bg-gray-200 h-4 rounded" />
+});
+
+const AdvancedLazyCodeHighlighter = dynamic(
+  () => import('@/components/shared/advanced-lazy-loader').then(mod => ({ default: mod.AdvancedLazyCodeHighlighter })),
+  { loading: () => <div className="animate-pulse bg-gray-800 h-24 rounded" /> }
+);
 
 interface Message {
   id: string;

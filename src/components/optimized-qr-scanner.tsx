@@ -82,8 +82,7 @@ const OptimizedQRScannerComponent = function OptimizedQRScanner({
 
   const scanBeamStyle = useMemo(() => ({
     top: '50%',
-    background: 'linear-gradient(90deg, transparent, rgba(156,163,175,0.8), transparent)',
-    boxShadow: '0 0 10px rgba(156,163,175,0.3)'
+    background: 'linear-gradient(90deg, transparent, rgba(156,163,175,0.8), transparent)'
   }), []);
 
   const videoStyle = useMemo(() => ({

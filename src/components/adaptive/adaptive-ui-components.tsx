@@ -183,7 +183,6 @@ const AdaptiveText: React.FC<AdaptiveTextProps> = ({
         .adaptive-text.contrast-high {
           color: #000;
           font-weight: 600;
-          text-shadow: none;
         }
         
         .adaptive-text.screen-reader-optimized {

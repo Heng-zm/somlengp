@@ -195,7 +195,7 @@ export function VisualDimensionControl({
                 {/* Inner glow effect */}
                 <div className="absolute inset-0 bg-gradient-to-br from-white/20 via-transparent to-blue-500/20 rounded-lg" />
                 
-                <div className="relative z-10 text-xs text-blue-800 dark:text-blue-200 font-bold text-center drop-shadow-sm">
+                <div className="relative z-10 text-xs text-blue-800 dark:text-blue-200 font-bold text-center">
                   {width}×{height}
                 </div>
                 

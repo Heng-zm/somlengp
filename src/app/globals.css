@@ -8,6 +8,9 @@
 /* Import monochrome color system utilities */
 @import '../styles/monochrome-utilities.css';
 
+/* Import shadow removal styles */
+@import '../styles/no-shadows.css';
+
 /* Improve rendering performance */
 * {
   box-sizing: border-box;

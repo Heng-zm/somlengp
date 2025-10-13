@@ -1,0 +1,180 @@
+/**
+ * Complete Shadow Removal CSS
+ * This file removes all types of shadows from the application
+ */
+
+/* Remove all text shadows */
+* {
+  text-shadow: none !important;
+}
+
+/* Remove all box shadows */
+*,
+*::before,
+*::after {
+  box-shadow: none !important;
+  -webkit-box-shadow: none !important;
+  -moz-box-shadow: none !important;
+}
+
+/* Remove drop shadows from SVG filters */
+.drop-shadow,
+.drop-shadow-sm,
+.drop-shadow-md,
+.drop-shadow-lg,
+.drop-shadow-xl,
+.drop-shadow-2xl,
+.drop-shadow-none {
+  filter: none !important;
+  -webkit-filter: none !important;
+}
+
+/* Remove specific shadow utility classes */
+.shadow,
+.shadow-sm,
+.shadow-md,
+.shadow-lg,
+.shadow-xl,
+.shadow-2xl,
+.shadow-3xl,
+.shadow-inner,
+.shadow-none {
+  box-shadow: none !important;
+}
+
+/* Remove focus ring shadows */
+.focus\:shadow-outline:focus,
+.focus\:shadow-lg:focus,
+.focus\:shadow-xl:focus {
+  box-shadow: none !important;
+}
+
+/* Remove hover shadows */
+.hover\:shadow-lg:hover,
+.hover\:shadow-xl:hover,
+.hover\:shadow-2xl:hover {
+  box-shadow: none !important;
+}
+
+/* Remove glow effects */
+.shadow-glow-blue,
+.shadow-glow-purple,
+.shadow-glow-green,
+.shadow-glow-red,
+.shadow-glow-yellow {
+  box-shadow: none !important;
+}
+
+/* Remove card shadows */
+.card-hover-lift:hover {
+  box-shadow: none !important;
+}
+
+/* Remove button shadows */
+.btn-ripple::before {
+  box-shadow: none !important;
+}
+
+/* Remove glass morphism shadows */
+.glass-card,
+.glass-button,
+.glass-enhanced,
+.glass-card-enhanced {
+  box-shadow: none !important;
+}
+
+/* Remove toast/notification shadows */
+.toast,
+.notification,
+.alert {
+  box-shadow: none !important;
+}
+
+/* Remove modal/dialog shadows */
+.modal,
+.dialog,
+.popover,
+.tooltip {
+  box-shadow: none !important;
+}
+
+/* Remove input/form shadows */
+.field-focus-glow:focus-within {
+  box-shadow: none !important;
+}
+
+/* Remove specific component shadows */
+.message-bubble,
+.message-bubble:hover {
+  box-shadow: none !important;
+}
+
+/* Remove code block shadows */
+.prose pre,
+.code-block,
+pre[class*="language-"],
+code[class*="language-"] {
+  box-shadow: none !important;
+  text-shadow: none !important;
+}
+
+/* Remove avatar shadows */
+.avatar-border,
+.avatar-border-highlight,
+.avatar-online {
+  box-shadow: none !important;
+}
+
+/* Remove enhanced focus styles */
+.focus-ring-modern:focus-visible,
+.focus\:ring:focus {
+  box-shadow: none !important;
+}
+
+/* Remove qr scanner shadows */
+.qr-scanning-pulse {
+  box-shadow: none !important;
+}
+
+/* Remove any remaining shadow animations */
+@keyframes no-shadow-pulse {
+  0%, 100% { box-shadow: none !important; }
+  50% { box-shadow: none !important; }
+}
+
+/* Override all shadow keyframes */
+.animate-pulse,
+.animate-bounce {
+  box-shadow: none !important;
+}
+
+/* Remove outline shadows (focus rings) */
+*:focus,
+*:focus-visible {
+  box-shadow: none !important;
+}
+
+/* Remove webkit specific shadows */
+input:focus,
+textarea:focus,
+select:focus,
+button:focus {
+  -webkit-box-shadow: none !important;
+  box-shadow: none !important;
+}
+
+/* Remove any filter drop-shadow effects */
+img,
+svg,
+.icon {
+  filter: none !important;
+  -webkit-filter: none !important;
+}
+
+/* Ensure no shadows on pseudo elements */
+*::before,
+*::after {
+  text-shadow: none !important;
+  box-shadow: none !important;
+  filter: none !important;
+}

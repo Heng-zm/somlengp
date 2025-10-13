@@ -197,10 +197,10 @@ export default {
         },
         'glow': {
           '0%, 100%': {
-            boxShadow: '0 0 5px rgba(128, 128, 128, 0.5)',
+            opacity: '0.7',
           },
           '50%': {
-            boxShadow: '0 0 20px rgba(128, 128, 128, 0.8), 0 0 30px rgba(128, 128, 128, 0.6)',
+            opacity: '1',
           },
         },
       },
@@ -223,5 +223,8 @@ export default {
       },
     },
   },
-  plugins: [require('tailwindcss-animate')],
+  plugins: [
+    require('tailwindcss-animate'),
+    require('./tailwind-no-shadows.js'),
+  ],
 } satisfies Config;

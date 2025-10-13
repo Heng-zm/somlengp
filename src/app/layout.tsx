@@ -116,6 +116,84 @@ export default function RootLayout({
         <Analytics />
         <PerformanceOverlay />
 
+        {/* Performance optimization scripts */}
+        <Script
+          id="performance-init"
+          strategy="afterInteractive"
+          dangerouslySetInnerHTML={{
+            __html: `
+              // Initialize performance optimizations
+              if (typeof window !== 'undefined') {
+                // Preload critical resources
+                const preloadCriticalResources = function() {
+                  if (typeof document === 'undefined') return;
+                  
+                  // Preload critical fonts
+                  const criticalFonts = [
+                    '/fonts/inter-var.woff2',
+                    '/fonts/cal-sans.woff2'
+                  ];
+                  
+                  criticalFonts.forEach(font => {
+                    const link = document.createElement('link');
+                    link.rel = 'preload';
+                    link.as = 'font';
+                    link.type = 'font/woff2';
+                    link.href = font;
+                    link.crossOrigin = 'anonymous';
+                    document.head.appendChild(link);
+                  });
+                  
+                  // Preload critical images
+                  const criticalImages = [
+                    '/images/logo.webp',
+                    '/images/hero-bg.webp'
+                  ];
+                  
+                  criticalImages.forEach(image => {
+                    const link = document.createElement('link');
+                    link.rel = 'preload';
+                    link.as = 'image';
+                    link.href = image;
+                    document.head.appendChild(link);
+                  });
+                };
+                
+                // Register service worker
+                const registerServiceWorker = async function() {
+                  if (
+                    typeof window !== 'undefined' &&
+                    'serviceWorker' in navigator &&
+                    '${process.env.NODE_ENV}' === 'production'
+                  ) {
+                    try {
+                      const registration = await navigator.serviceWorker.register('/sw.js');
+                      console.log('SW registered: ', registration);
+                    } catch (registrationError) {
+                      console.log('SW registration failed: ', registrationError);
+                    }
+                  }
+                };
+                
+                // Initialize optimizations
+                preloadCriticalResources();
+                registerServiceWorker();
+                
+                // Initialize Web Vitals reporting
+                if (typeof window.webVitals === 'undefined') {
+                  import('/web-vitals').then(({ getCLS, getFID, getFCP, getLCP, getTTFB }) => {
+                    getCLS(console.log);
+                    getFID(console.log);
+                    getFCP(console.log);
+                    getLCP(console.log);
+                    getTTFB(console.log);
+                  }).catch(() => {});
+                }
+              }
+            `
+          }}
+        />
+
         {/* This is the correct way to add Google Analytics in Next.js App Router */}
         {/* Only render if GA_ID is set, for development environments or conditional loading */}
         {process.env.NEXT_PUBLIC_GA_ID && (

@@ -1,7 +1,6 @@
 "use client";
 
-import { memo } from 'react';
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useEffect } from 'react';
 import { cn } from '@/lib/utils';
 import { AlertContainerAlert } from './alert-utils';
 import {
@@ -59,32 +58,28 @@ export function VirtualizedAlertContainer({
   const [scrollTop, setScrollTop] = useState(0);
   const [containerHeight, setContainerHeight] = useState(height);
 
-  // Performance optimization: Memoize sorted alerts
-  const sortedAlerts = useMemo(() => {
-    return alerts
-      .slice(0, maxVisible)
-      .sort((a, b) => {
-        const priorityOrder = { critical: 4, high: 3, medium: 2, low: 1 };
-        const aPriority = priorityOrder[a.priority || 'medium'];
-        const bPriority = priorityOrder[b.priority || 'medium'];
-        return bPriority - aPriority;
-      });
-  }, [alerts, maxVisible]);
+  // Sorted alerts
+  const sortedAlerts = alerts
+    .slice(0, maxVisible)
+    .sort((a, b) => {
+      const priorityOrder = { critical: 4, high: 3, medium: 2, low: 1 };
+      const aPriority = priorityOrder[a.priority || 'medium'];
+      const bPriority = priorityOrder[b.priority || 'medium'];
+      return bPriority - aPriority;
+    });
 
-  // Calculate virtual items with memoization
-  const virtualItems: VirtualItem[] = useMemo(() => {
-    return sortedAlerts.map((alert, index) => ({
-      index,
-      alert,
-      top: index * ALERT_HEIGHT,
-      height: ALERT_HEIGHT,
-    }));
-  }, [sortedAlerts]);
+  // Calculate virtual items
+  const virtualItems: VirtualItem[] = sortedAlerts.map((alert, index) => ({
+    index,
+    alert,
+    top: index * ALERT_HEIGHT,
+    height: ALERT_HEIGHT,
+  }));
 
   const totalHeight = virtualItems.length * ALERT_HEIGHT;
 
   // Calculate visible range with padding
-  const visibleRange = useMemo(() => {
+  const visibleRange = (() => {
     const startIndex = Math.max(
       0,
       Math.floor(scrollTop / ALERT_HEIGHT) - VISIBLE_RANGE_PADDING
@@ -95,29 +90,21 @@ export function VirtualizedAlertContainer({
     );
 
     return { startIndex, endIndex };
-  }, [scrollTop, containerHeight, virtualItems.length]);
+  })();
 
   // Get visible items for rendering
-  const visibleItems = useMemo(() => {
-    const { startIndex, endIndex } = visibleRange;
-    return virtualItems.slice(startIndex, endIndex + 1);
-  }, [virtualItems, visibleRange]);
+  const { startIndex, endIndex } = visibleRange;
+  const visibleItems = virtualItems.slice(startIndex, endIndex + 1);
 
   // Debounced scroll handler
-  const handleScroll = useCallback(
-    debounce((target: HTMLElement) => {
-      setScrollTop(target.scrollTop);
-    }, SCROLL_DEBOUNCE_MS),
-    []
-  );
+  const handleScroll = debounce((target: HTMLElement) => {
+    setScrollTop(target.scrollTop);
+  }, SCROLL_DEBOUNCE_MS);
 
   // Handle scroll events
-  const onScroll = useCallback(
-    (e: React.UIEvent<HTMLDivElement>) => {
-      handleScroll(e.currentTarget);
-    },
-    [handleScroll]
-  );
+  const onScroll = (e: React.UIEvent<HTMLDivElement>) => {
+    handleScroll(e.currentTarget);
+  };
 
   // Handle resize events
   useEffect(() => {
@@ -137,53 +124,50 @@ export function VirtualizedAlertContainer({
   }, [containerRef]);
 
   // Render alert component based on type
-  const renderAlert = useCallback(
-    (alert: AlertContainerAlert) => {
-      const baseProps = {
-        title: alert.title,
-        description: alert.description,
-        dismissible: alert.dismissible,
-        onDismiss: alert.onDismiss,
-        ariaLabel: alert.ariaLabel,
-        id: alert.id,
-      };
+  const renderAlert = (alert: AlertContainerAlert) => {
+    const baseProps = {
+      title: alert.title,
+      description: alert.description,
+      dismissible: alert.dismissible,
+      onDismiss: alert.onDismiss,
+      ariaLabel: alert.ariaLabel,
+      id: alert.id,
+    };
 
-      try {
-        switch (alert.type) {
-          case 'success':
-            return <SuccessAlert key={alert.id} {...baseProps} />;
-          case 'error':
-            return <ErrorAlert key={alert.id} {...baseProps} />;
-          case 'warning':
-            return <WarningAlert key={alert.id} {...baseProps} />;
-          case 'info':
-            return <InfoAlert key={alert.id} {...baseProps} />;
-          case 'loading':
-            return <LoadingAlert key={alert.id} {...baseProps} />;
-          case 'security':
-            return <SecurityAlert key={alert.id} {...baseProps} />;
-          case 'maintenance':
-            return <MaintenanceAlert key={alert.id} {...baseProps} />;
-          case 'premium':
-            return <PremiumAlert key={alert.id} {...baseProps} />;
-          default:
-            return <InfoAlert key={alert.id} {...baseProps} />;
-        }
-      } catch (error) {
-        console.error(`Failed to render alert ${alert.id}:`, error);
-        onError?.(error as Error, alert.id);
-
-        return (
-          <ErrorAlert
-            key={`error-${alert.id}`}
-            title="Alert Render Error"
-            description={`Failed to render alert: ${alert.description.substring(0, 50)}...`}
-          />
-        );
+    try {
+      switch (alert.type) {
+        case 'success':
+          return <SuccessAlert key={alert.id} {...baseProps} />;
+        case 'error':
+          return <ErrorAlert key={alert.id} {...baseProps} />;
+        case 'warning':
+          return <WarningAlert key={alert.id} {...baseProps} />;
+        case 'info':
+          return <InfoAlert key={alert.id} {...baseProps} />;
+        case 'loading':
+          return <LoadingAlert key={alert.id} {...baseProps} />;
+        case 'security':
+          return <SecurityAlert key={alert.id} {...baseProps} />;
+        case 'maintenance':
+          return <MaintenanceAlert key={alert.id} {...baseProps} />;
+        case 'premium':
+          return <PremiumAlert key={alert.id} {...baseProps} />;
+        default:
+          return <InfoAlert key={alert.id} {...baseProps} />;
       }
-    },
-    [onError]
-  );
+    } catch (error) {
+      console.error(`Failed to render alert ${alert.id}:`, error);
+      onError?.(error as Error, alert.id);
+
+      return (
+        <ErrorAlert
+          key={`error-${alert.id}`}
+          title="Alert Render Error"
+          description={`Failed to render alert: ${alert.description.substring(0, 50)}...`}
+        />
+      );
+    }
+  };
 
   // Accessibility: Announce changes to screen readers
   const [liveRegionContent, setLiveRegionContent] = useState('');
@@ -201,8 +185,8 @@ export function VirtualizedAlertContainer({
     }
   }, [alerts]);
 
-  // Performance: Optimize rendering with React.memo
-  const VirtualizedItem = React.memo(({ item }: { item: VirtualItem }) => (
+  // Virtualized item component
+  const VirtualizedItem = ({ item }: { item: VirtualItem }) => (
     <div
       key={item.alert.id}
       style={{
@@ -218,7 +202,7 @@ export function VirtualizedAlertContainer({
     >
       {renderAlert(item.alert)}
     </div>
-  ));
+  );
 
   VirtualizedItem.displayName = 'VirtualizedItem';
 
@@ -326,70 +310,62 @@ export function useVirtualizedAlerts() {
   const [alerts, setAlerts] = useState<AlertContainerAlert[]>([]);
   const [timeouts, setTimeouts] = useState<Map<string, NodeJS.Timeout>>(new Map());
 
-  // Performance: Batch alert operations
-  const batchedOperations = useMemo(() => {
-    const operations: (() => void)[] = [];
-    let isScheduled = false;
+  // Batch alert operations
+  const operations: (() => void)[] = [];
+  let isScheduled = false;
 
-    const flush = () => {
-      operations.forEach(op => op());
-      operations.length = 0;
-      isScheduled = false;
+  const flush = () => {
+    operations.forEach(op => op());
+    operations.length = 0;
+    isScheduled = false;
+  };
+
+  const schedule = (operation: () => void) => {
+    operations.push(operation);
+    if (!isScheduled) {
+      isScheduled = true;
+      requestAnimationFrame(flush);
+    }
+  };
+
+  const batchedOperations = { schedule };
+
+  const removeAlert = (id: string) => {
+    batchedOperations.schedule(() => {
+      setAlerts(prev => prev.filter(alert => alert.id !== id));
+
+      setTimeouts(prev => {
+        const newTimeouts = new Map(prev);
+        const timeout = newTimeouts.get(id);
+        if (timeout) {
+          clearTimeout(timeout);
+          newTimeouts.delete(id);
+        }
+        return newTimeouts;
+      });
+    });
+  };
+
+  const addAlert = (alert: Omit<AlertContainerAlert, 'id'>) => {
+    const id = `alert-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+    const newAlert: AlertContainerAlert = {
+      id,
+      ...alert,
+      priority: alert.priority || 'medium',
     };
 
-    const schedule = (operation: () => void) => {
-      operations.push(operation);
-      if (!isScheduled) {
-        isScheduled = true;
-        requestAnimationFrame(flush);
-      }
-    };
+    batchedOperations.schedule(() => {
+      setAlerts(prev => [...prev, newAlert]);
+    });
 
-    return { schedule };
-  }, []);
+    // Set up auto-dismiss if timeout is specified
+    if (alert.timeout && alert.timeout > 0) {
+      const timeoutId = setTimeout(() => removeAlert(id), alert.timeout);
+      setTimeouts(prev => new Map(prev.set(id, timeoutId)));
+    }
+  };
 
-  const removeAlert = useCallback(
-    (id: string) => {
-      batchedOperations.schedule(() => {
-        setAlerts(prev => prev.filter(alert => alert.id !== id));
-
-        setTimeouts(prev => {
-          const newTimeouts = new Map(prev);
-          const timeout = newTimeouts.get(id);
-          if (timeout) {
-            clearTimeout(timeout);
-            newTimeouts.delete(id);
-          }
-          return newTimeouts;
-        });
-      });
-    },
-    [batchedOperations]
-  );
-
-  const addAlert = useCallback(
-    (alert: Omit<AlertContainerAlert, 'id'>) => {
-      const id = `alert-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-      const newAlert: AlertContainerAlert = {
-        id,
-        ...alert,
-        priority: alert.priority || 'medium',
-      };
-
-      batchedOperations.schedule(() => {
-        setAlerts(prev => [...prev, newAlert]);
-      });
-
-      // Set up auto-dismiss if timeout is specified
-      if (alert.timeout && alert.timeout > 0) {
-        const timeoutId = setTimeout(() => removeAlert(id), alert.timeout);
-        setTimeouts(prev => new Map(prev.set(id, timeoutId)));
-      }
-    },
-    [batchedOperations, removeAlert]
-  );
-
-  const clearAllAlerts = useCallback(() => {
+  const clearAllAlerts = () => {
     batchedOperations.schedule(() => {
       // Clear all timeouts
       timeouts.forEach(timeout => clearTimeout(timeout));
@@ -398,7 +374,7 @@ export function useVirtualizedAlerts() {
       // Clear alerts
       setAlerts([]);
     });
-  }, [batchedOperations, timeouts]);
+  };
 
   // Cleanup on unmount
   useEffect(() => {

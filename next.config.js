@@ -4,7 +4,12 @@ const nextConfig = {
   experimental: {
     // Optimize CSS handling
     optimizeCss: true,
+    // Enable modern bundling optimizations
+    optimizePackageImports: ['lucide-react', '@radix-ui/react-icons'],
   },
+  
+  // Server external packages (moved from experimental)
+  serverExternalPackages: ['pdf-lib', 'jszip', 'qrcode'],
 
   // Turbopack configuration (modern approach)
   turbopack: {
@@ -39,24 +44,64 @@ const nextConfig = {
     ],
   },
 
-  // Bundle optimization (simplified for memory efficiency)
+  // Bundle optimization (enhanced for better performance)
   webpack: (config, { dev, isServer }) => {
     // Reduce memory usage during build
     if (!dev) {
       // Disable source maps to save memory
       config.devtool = false;
       
-      // Simplify chunk splitting
+      // Enhanced chunk splitting for better caching
       if (!isServer && config.optimization) {
         config.optimization.splitChunks = {
           chunks: 'all',
-          maxInitialRequests: 20,
-          maxAsyncRequests: 20,
+          minSize: 20000,
+          maxSize: 244000,
+          maxInitialRequests: 30,
+          maxAsyncRequests: 30,
           cacheGroups: {
+            // Framework chunks
+            framework: {
+              test: /[\\/]node_modules[\\/](react|react-dom)[\\/]/,
+              name: 'framework',
+              chunks: 'all',
+              priority: 40,
+              enforce: true,
+            },
+            // UI library chunks
+            ui: {
+              test: /[\\/]node_modules[\\/](@radix-ui|lucide-react|framer-motion)[\\/]/,
+              name: 'ui',
+              chunks: 'all',
+              priority: 30,
+            },
+            // PDF and file processing
+            fileProcessing: {
+              test: /[\\/]node_modules[\\/](pdf-lib|jszip|docx|qrcode)[\\/]/,
+              name: 'file-processing',
+              chunks: 'all',
+              priority: 25,
+            },
+            // Analytics and AI
+            analytics: {
+              test: /[\\/]node_modules[\\/](@genkit-ai|@google\/generative-ai|@vercel\/analytics)[\\/]/,
+              name: 'analytics',
+              chunks: 'all',
+              priority: 20,
+            },
+            // Other vendor libraries
             vendor: {
               test: /[\\/]node_modules[\\/]/,
               name: 'vendors',
               chunks: 'all',
+              priority: 10,
+            },
+            // Common modules used across pages
+            commons: {
+              name: 'commons',
+              minChunks: 2,
+              chunks: 'all',
+              priority: 5,
             },
           },
         };
@@ -82,6 +127,10 @@ const nextConfig = {
   // Performance optimizations
   poweredByHeader: false, // Remove X-Powered-By header
   compress: true, // Enable gzip compression
+  generateEtags: false, // Disable ETags for better caching
+  
+  // Output configuration for better performance
+  output: 'standalone', // Enable standalone output for deployment optimization
 
   // ESLint configuration
   eslint: {

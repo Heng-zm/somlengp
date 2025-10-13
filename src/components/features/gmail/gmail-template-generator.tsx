@@ -139,7 +139,6 @@ export function generateGmailHTML(
             margin: 0;
             font-size: 28px;
             font-weight: 300;
-            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
         }
         
         .company-logo {

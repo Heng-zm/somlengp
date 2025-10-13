@@ -74,7 +74,7 @@ const StatusNotification = React.memo(function StatusNotification({
           <Icon className="h-4 w-4 text-white" />
         </span>
       )}
-      <span className="text-white drop-shadow-[0_1px_0_rgba(0,0,0,0.25)]">
+      <span className="text-white">
         {children || statusLabels[status]}
       </span>
     </div>
