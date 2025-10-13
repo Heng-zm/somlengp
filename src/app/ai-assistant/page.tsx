@@ -15,31 +15,22 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+// Optimized icon imports - only load what's actually used
 import {
   Send, 
-  User, 
   Sparkles, 
   Trash2, 
   Copy, 
   ArrowLeft,
   ChevronDown,
-  MessageSquare,
   Zap,
   Rocket,
-  Clock,
-  Hash,
-  Activity,
   CheckCircle2,
   AlertCircle,
   Loader2,
   Brain,
-  Lightbulb,
-  Target,
-  MessageCircle,
   FileText,
   Code2,
-  ChevronLeft,
-  ChevronRight,
   Code,
   Database,
   Terminal,
@@ -50,12 +41,12 @@ import {
   Coffee,
   Package,
   Mic2,
-  XCircle
+  XCircle,
+  Target
 } from 'lucide-react';
 import { showSuccessToast } from '@/lib/toast-utils';
 import { cn } from '@/lib/utils';
 import { generateMessageId } from '@/lib/id-utils';
-import { motion, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
 import ReactMarkdown from 'react-markdown';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
@@ -478,29 +469,19 @@ const MessageComponent = memo(function MessageComponent({ message }: MessageComp
   const isUser = message.role === 'user';
 
   return (
-    <motion.div 
-      initial={{ opacity: 0, y: 20, scale: 0.95 }}
-      animate={{ opacity: 1, y: 0, scale: 1 }}
-      transition={{ duration: 0.4, ease: "easeOut" }}
-      className="mb-8 px-4"
-    >
+    <div className="mb-4 sm:mb-8 px-2 sm:px-4">
       <div className={cn(
-        "flex items-start gap-4",
+        "flex items-start gap-2 sm:gap-4",
         isUser ? "justify-end" : "justify-start"
       )}>
         {/* AI Avatar - Enhanced */}
         {!isUser && (
-          <motion.div 
-            initial={{ scale: 0 }}
-            animate={{ scale: 1 }}
-            transition={{ delay: 0.1, duration: 0.3, ease: "backOut" }}
-            className="relative flex-shrink-0 mt-1"
-          >
-            <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-gray-700 via-gray-600 to-gray-500 flex items-center justify-center shadow-lg">
-              <Sparkles className="w-5 h-5 text-white" />
+          <div className="relative flex-shrink-0 mt-1">
+            <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-2xl bg-gradient-to-br from-gray-700 via-gray-600 to-gray-500 flex items-center justify-center shadow-lg">
+              <Sparkles className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
             </div>
-            <div className="absolute -top-1 -right-1 w-4 h-4 bg-gray-400 rounded-full border-2 border-white dark:border-gray-900 animate-pulse"></div>
-          </motion.div>
+            <div className="absolute -top-0.5 -right-0.5 w-3 h-3 sm:w-4 sm:h-4 bg-gray-400 rounded-full border-2 border-white dark:border-gray-900 animate-pulse"></div>
+          </div>
         )}
         
       <div className={cn(
@@ -508,17 +489,12 @@ const MessageComponent = memo(function MessageComponent({ message }: MessageComp
         isUser ? "items-end self-end" : "items-start self-start"
       )}>
           {/* Enhanced Message bubble */}
-          <motion.div 
-            initial={{ scale: 0.8, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            transition={{ delay: 0.2, duration: 0.3 }}
-            className={cn(
-              "px-4 py-3 rounded-2xl break-words overflow-hidden border shadow-sm relative group",
+          <div className={cn(
+              "px-3 sm:px-4 py-2 sm:py-3 rounded-2xl break-words overflow-hidden border shadow-sm relative group mobile-message-bubble",
               isUser 
                 ? "bg-gray-900 text-white border-gray-800" 
                 : "bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-100 border-gray-200 dark:border-gray-700"
-            )}
-          >
+            )}>
             <ReactMarkdown
               components={{
                 code: ({ inline, className, children, ...props }: any) => {
@@ -619,27 +595,22 @@ const MessageComponent = memo(function MessageComponent({ message }: MessageComp
                 </Button>
               </div>
             )}
-          </motion.div>
+          </div>
           
           {/* Enhanced timestamp and metadata */}
-          <motion.div 
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.4, duration: 0.3 }}
-            className={cn(
-              "mt-3 flex items-center gap-2 text-xs",
+          <div className={cn(
+              "mt-2 sm:mt-3 flex items-center gap-2 text-xs",
               isUser ? "justify-end" : "justify-start"
-            )}
-          >
-            <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-gray-100/50 dark:bg-gray-800/50 backdrop-blur-sm">
+            )}>
+            <div className="flex items-center gap-2 px-2 sm:px-3 py-1 rounded-full bg-gray-100/50 dark:bg-gray-800/50 backdrop-blur-sm">
               <span className="text-gray-500 dark:text-gray-400 font-medium">
                 {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
               </span>
             </div>
-          </motion.div>
+          </div>
         </div>
       </div>
-    </motion.div>
+    </div>
   );
 });
 
@@ -648,14 +619,10 @@ const MessageComponent = memo(function MessageComponent({ message }: MessageComp
  */
 const MessageSkeleton = memo(function MessageSkeleton({ isUser = false }: { isUser?: boolean }) {
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      className={cn(
+    <div className={cn(
         "flex gap-3 p-4",
         isUser ? "justify-end" : "justify-start"
-      )}
-    >
+      )}>
       {!isUser && (
         <div className="w-8 h-8 bg-gray-200 dark:bg-gray-700 rounded-full animate-pulse flex-shrink-0" />
       )}
@@ -681,7 +648,7 @@ const MessageSkeleton = memo(function MessageSkeleton({ isUser = false }: { isUs
       {isUser && (
         <div className="w-8 h-8 bg-gray-200 dark:bg-gray-700 rounded-full animate-pulse flex-shrink-0" />
       )}
-    </motion.div>
+    </div>
   );
 });
 
@@ -690,55 +657,30 @@ const MessageSkeleton = memo(function MessageSkeleton({ isUser = false }: { isUs
  */
 const TypingIndicator = memo(function TypingIndicator() {
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: -20 }}
-      className="mb-8 px-4"
-    >
-      <div className="flex items-start gap-4 justify-start">
+    <div className="mb-4 sm:mb-8 px-2 sm:px-4">
+      <div className="flex items-start gap-2 sm:gap-4 justify-start">
         {/* Enhanced AI Avatar */}
-        <motion.div 
-          animate={{ scale: [1, 1.1, 1] }}
-          transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
-          className="relative flex-shrink-0 mt-1"
-        >
-          <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-gray-700 via-gray-600 to-gray-500 flex items-center justify-center shadow-lg">
-            <Brain className="w-5 h-5 text-white animate-pulse" />
+        <div className="relative flex-shrink-0 mt-1 animate-pulse">
+          <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-2xl bg-gradient-to-br from-gray-700 via-gray-600 to-gray-500 flex items-center justify-center shadow-lg">
+            <Brain className="w-4 h-4 sm:w-5 sm:h-5 text-white animate-pulse" />
           </div>
-          <div className="absolute -top-1 -right-1 w-4 h-4 bg-gray-400 rounded-full border-2 border-white dark:border-gray-900 animate-pulse"></div>
-        </motion.div>
+          <div className="absolute -top-0.5 -right-0.5 w-3 h-3 sm:w-4 sm:h-4 bg-gray-400 rounded-full border-2 border-white dark:border-gray-900 animate-pulse"></div>
+        </div>
         
         <div className="max-w-[85%] flex flex-col items-start">
-          <motion.div 
-            initial={{ scale: 0.8 }}
-            animate={{ scale: 1 }}
-            className="px-5 py-3 bg-gray-100 dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-700"
-          >
+          <div className="px-3 sm:px-5 py-2 sm:py-3 bg-gray-100 dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-700">
             <div className="flex items-center gap-3">
               <div className="flex gap-1">
-                <motion.div 
-                  className="w-2 h-2 bg-gray-500 rounded-full"
-                  animate={{ y: [-2, 2, -2] }}
-                  transition={{ duration: 1, repeat: Infinity, delay: 0 }}
-                />
-                <motion.div 
-                  className="w-2 h-2 bg-gray-400 rounded-full"
-                  animate={{ y: [-2, 2, -2] }}
-                  transition={{ duration: 1, repeat: Infinity, delay: 0.2 }}
-                />
-                <motion.div 
-                  className="w-2 h-2 bg-gray-300 rounded-full"
-                  animate={{ y: [-2, 2, -2] }}
-                  transition={{ duration: 1, repeat: Infinity, delay: 0.4 }}
-                />
+                <div className="w-2 h-2 bg-gray-500 rounded-full animate-bounce" style={{ animationDelay: '0s' }} />
+                <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }} />
+                <div className="w-2 h-2 bg-gray-300 rounded-full animate-bounce" style={{ animationDelay: '0.4s' }} />
               </div>
               <span className="text-sm text-gray-500 dark:text-gray-400 font-medium">AI is thinking...</span>
             </div>
-          </motion.div>
+          </div>
         </div>
       </div>
-    </motion.div>
+    </div>
   );
 });
 
@@ -949,156 +891,160 @@ export default function AIAssistantPage() {
   }, [sendMessage]);
 
   return (
-    <motion.div 
-      className="flex flex-col h-screen bg-gray-50 dark:bg-gray-900"
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5, ease: "easeOut" }}
-    >
-      {/* Header */}
-      <motion.header 
-        className="flex-shrink-0 bg-white/95 dark:bg-gray-900/95 backdrop-blur-md border-b border-gray-200/50 dark:border-gray-700/50 shadow-sm"
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.4, delay: 0.1 }}
-      >
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 py-4">
+    <div className="flex flex-col h-screen bg-gray-50 dark:bg-gray-900 relative">
+      {/* Mobile-optimized Header */}
+      <header className="flex-shrink-0 bg-white/95 dark:bg-gray-900/95 backdrop-blur-md border-b border-gray-200/50 dark:border-gray-700/50 shadow-sm sticky top-0 z-50">
+        <div className="px-3 sm:px-4 lg:px-6 py-3 sm:py-4">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
+            {/* Left section - Back button and title */}
+            <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
               <Link href="/">
-                <Button variant="ghost" size="icon" className="w-9 h-9 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">
+                <Button 
+                  variant="ghost" 
+                  size="icon" 
+                  className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors touch-manipulation"
+                  aria-label="Go back"
+                >
                   <ArrowLeft className="w-4 h-4" />
                 </Button>
               </Link>
-              <div className="flex items-center gap-3">
-                <div className="relative">
-                  <div className="w-9 h-9 bg-gradient-to-r from-gray-700 to-gray-500 rounded-xl flex items-center justify-center shadow-lg">
-                    <Sparkles className="w-5 h-5 text-white" />
+              
+              <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+                <div className="relative flex-shrink-0">
+                  <div className="w-7 h-7 sm:w-9 sm:h-9 bg-gradient-to-r from-gray-700 to-gray-500 rounded-xl flex items-center justify-center shadow-lg">
+                    <Sparkles className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
                   </div>
-                  <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-gray-400 rounded-full border-2 border-white dark:border-gray-900 animate-pulse"></div>
+                  <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 sm:w-4 sm:h-4 bg-gray-400 rounded-full border-2 border-white dark:border-gray-900 animate-pulse"></div>
                 </div>
-                <div>
-                  <h1 className="text-lg font-semibold text-gray-900 dark:text-white">AI Assistant</h1>
+                <div className="min-w-0">
+                  <h1 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-white truncate">
+                    AI Assistant
+                  </h1>
                 </div>
               </div>
             </div>
             
-            <div className="flex items-center gap-2">
+            {/* Right section - Model selector and clear button */}
+            <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="outline" size="sm" className="rounded-xl border-gray-200/50 dark:border-gray-700/50 hover:bg-gray-50 dark:hover:bg-gray-800">
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    className="h-8 sm:h-9 px-2 sm:px-3 rounded-xl border-gray-200/50 dark:border-gray-700/50 hover:bg-gray-50 dark:hover:bg-gray-800 touch-manipulation"
+                  >
                     {renderModelIcon(selectedModel.icon)}
-                    <span className="ml-2 hidden sm:inline text-sm">{selectedModel.name}</span>
-                    <ChevronDown className="w-3 h-3 ml-1" />
+                    <span className="ml-1 sm:ml-2 hidden sm:inline text-xs sm:text-sm truncate max-w-20">
+                      {selectedModel.name.replace('gemini-', '')}
+                    </span>
+                    <ChevronDown className="w-3 h-3 ml-0.5 sm:ml-1 flex-shrink-0" />
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-64">
+                <DropdownMenuContent align="end" className="w-64 sm:w-72">
                   <DropdownMenuLabel>Select Model</DropdownMenuLabel>
                   <DropdownMenuSeparator />
                   {AI_MODELS.map((model) => (
                     <DropdownMenuItem
                       key={model.id}
                       onClick={() => setSelectedModel(model)}
+                      className="touch-manipulation"
                     >
                       <div className="flex items-center gap-2 w-full">
                         {renderModelIcon(model.icon)}
-                        <div className="flex-1">
-                          <div className="font-medium">{model.displayName}</div>
-                          <div className="text-xs text-muted-foreground">{model.description}</div>
+                        <div className="flex-1 min-w-0">
+                          <div className="font-medium truncate">{model.displayName}</div>
+                          <div className="text-xs text-muted-foreground line-clamp-2">{model.description}</div>
                         </div>
-                        {selectedModel.id === model.id && <CheckCircle2 className="w-4 h-4" />}
+                        {selectedModel.id === model.id && <CheckCircle2 className="w-4 h-4 flex-shrink-0" />}
                       </div>
                     </DropdownMenuItem>
                   ))}
                 </DropdownMenuContent>
               </DropdownMenu>
               
-              <Button variant="outline" size="icon" onClick={clearMessages} className="w-9 h-9 rounded-xl border-gray-200/50 dark:border-gray-700/50 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
+              <Button 
+                variant="outline" 
+                size="icon" 
+                onClick={clearMessages} 
+                className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl border-gray-200/50 dark:border-gray-700/50 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors touch-manipulation"
+                aria-label="Clear messages"
+              >
                 <Trash2 className="w-4 h-4" />
               </Button>
             </div>
           </div>
         </div>
-      </motion.header>
+      </header>
 
-      {/* Messages */}
-      <motion.div 
-        className="flex-1 overflow-hidden bg-gradient-to-b from-gray-50/50 to-white dark:from-gray-900/50 dark:to-gray-900"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ duration: 0.4, delay: 0.2 }}
-      >
+      {/* Mobile-optimized Messages Area */}
+      <div className="flex-1 overflow-hidden bg-gradient-to-b from-gray-50/50 to-white dark:from-gray-900/50 dark:to-gray-900">
         <ScrollArea ref={scrollAreaRef} className="h-full">
-          <div className="max-w-5xl mx-auto px-4 sm:px-6 py-6">
+          <div className="px-2 sm:px-4 lg:px-6 py-4 sm:py-6">
             {/* Date header */}
-            <div className="flex justify-center mb-8">
-              <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm px-4 py-2 rounded-full text-xs font-medium text-gray-500 dark:text-gray-400 shadow-sm border border-gray-200/50 dark:border-gray-700/50">
+            <div className="flex justify-center mb-4 sm:mb-8">
+              <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm px-3 sm:px-4 py-1.5 sm:py-2 rounded-full text-xs font-medium text-gray-500 dark:text-gray-400 shadow-sm border border-gray-200/50 dark:border-gray-700/50">
                 Today
               </div>
             </div>
             
-            {/* Messages */}
-            <div className="space-y-6">
-              <AnimatePresence>
-                {messages.map((message) => (
-                  <ErrorBoundary key={message.id}>
-                    <MessageComponent message={message} />
-                  </ErrorBoundary>
-                ))}
-                {isTyping && (
-                  <ErrorBoundary>
-                    <TypingIndicator />
-                  </ErrorBoundary>
-                )}
-              </AnimatePresence>
+            {/* Messages with mobile-optimized spacing */}
+            <div className="space-y-3 sm:space-y-6 max-w-4xl mx-auto">
+              {messages.map((message) => (
+                <ErrorBoundary key={message.id}>
+                  <MessageComponent message={message} />
+                </ErrorBoundary>
+              ))}
+              {isTyping && (
+                <ErrorBoundary>
+                  <TypingIndicator />
+                </ErrorBoundary>
+              )}
             </div>
             
-            {/* Bottom spacing to prevent messages from being hidden behind input */}
-            <div className="h-4"></div>
+            {/* Bottom spacing for mobile input area */}
+            <div className="h-4 sm:h-6"></div>
           </div>
         </ScrollArea>
 
-        {/* Scroll to bottom floating button */}
-        <AnimatePresence>
-          {showScrollToBottom && (
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: 10 }}
-              className="fixed right-6 bottom-36 sm:bottom-28 md:bottom-24 z-40"
+        {/* Mobile-optimized Scroll to bottom button */}
+        {showScrollToBottom && (
+          <div className="fixed right-3 sm:right-6 bottom-24 sm:bottom-28 md:bottom-24 z-40">
+            <Button
+              size="icon"
+              className="w-10 h-10 sm:w-12 sm:h-12 rounded-full shadow-lg touch-manipulation bg-primary hover:bg-primary/90"
+              aria-label="Scroll to bottom"
+              onClick={scrollToBottom}
             >
-              <Button
-                size="icon"
-                className="rounded-full shadow-lg"
-                aria-label="Scroll to bottom"
-                onClick={scrollToBottom}
-              >
-                <ChevronDown className="w-5 h-5" />
-              </Button>
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </motion.div>
+              <ChevronDown className="w-4 h-4 sm:w-5 sm:h-5" />
+            </Button>
+          </div>
+        )}
+      </div>
 
-      {/* Input Area */}
-      <motion.div 
-        className="flex-none bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl border-t border-gray-200/80 dark:border-gray-700/80 shadow-lg pb-[env(safe-area-inset-bottom)]"
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.4, delay: 0.3 }}
-      >
-        <div className="max-w-5xl mx-auto p-4 sm:p-5">
-          <div className="relative">
-            <div className="relative overflow-hidden rounded-2xl bg-white dark:bg-gray-800 shadow-xl border border-gray-200/50 dark:border-gray-700/50 transition-all duration-200 hover:shadow-2xl focus-within:shadow-2xl focus-within:border-gray-500 dark:focus-within:border-gray-400">
-              {/* Gemini-like suggestion chips */}
-              <div className="px-3 pt-3 pb-2">
-                <div className="flex gap-2 overflow-x-auto no-scrollbar">
-                  {SUGGESTIONS.map((s) => (
+      {/* Mobile-optimized Input Area */}
+      <div className="flex-none bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl border-t border-gray-200/80 dark:border-gray-700/80 shadow-lg pb-[env(safe-area-inset-bottom)] safe-area-bottom">
+        <div className="px-2 sm:px-4 lg:px-6 py-3 sm:py-4">
+          <div className="max-w-4xl mx-auto">
+            <div className="relative overflow-hidden rounded-2xl bg-white dark:bg-gray-800 shadow-xl border border-gray-200/50 dark:border-gray-700/50 transition-all duration-200 focus-within:shadow-2xl focus-within:border-gray-500 dark:focus-within:border-gray-400">
+              {/* Mobile-optimized suggestion chips */}
+              <div className="px-2 sm:px-3 pt-2 sm:pt-3 pb-1 sm:pb-2">
+                <div className="flex gap-1.5 sm:gap-2 overflow-x-auto no-scrollbar" role="group" aria-label="Suggestion prompts">
+                  {SUGGESTIONS.map((s, index) => (
                     <button
                       key={s}
                       type="button"
-                      className="shrink-0 rounded-full border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 px-3 py-1.5 text-sm hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                      className="shrink-0 rounded-full border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 px-2.5 sm:px-3 py-1 sm:py-1.5 text-xs sm:text-sm hover:bg-gray-100 dark:hover:bg-gray-700 focus:ring-2 focus:ring-primary focus:ring-offset-1 transition-colors touch-manipulation"
                       onClick={() => setInput(s)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'ArrowRight' && index < SUGGESTIONS.length - 1) {
+                          const nextButton = e.currentTarget.nextElementSibling as HTMLButtonElement;
+                          nextButton?.focus();
+                        } else if (e.key === 'ArrowLeft' && index > 0) {
+                          const prevButton = e.currentTarget.previousElementSibling as HTMLButtonElement;
+                          prevButton?.focus();
+                        }
+                      }}
+                      aria-label={`Use suggestion: ${s}`}
                     >
                       {s}
                     </button>
@@ -1112,84 +1058,78 @@ export default function AIAssistantPage() {
                 onKeyDown={handleKeyDown}
                 onInput={(e) => {
                   const t = e.currentTarget;
-                  t.style.height = '56px';
-                  t.style.height = Math.min(t.scrollHeight, 200) + 'px';
+                  const minHeight = window.innerWidth < 640 ? 48 : 56; // Smaller on mobile
+                  const maxHeight = window.innerWidth < 640 ? 120 : 200; // Smaller on mobile
+                  t.style.height = minHeight + 'px';
+                  t.style.height = Math.min(t.scrollHeight, maxHeight) + 'px';
                 }}
                 rows={1}
                 placeholder={isLoading ? "AI is crafting a response..." : "Ask me anything..."}
                 disabled={isLoading}
-className="min-h-[56px] max-h-[200px] px-5 pr-24 text-base bg-transparent border-0 focus:ring-0 focus:outline-none placeholder:text-gray-400 dark:placeholder:text-gray-500 resize-none"
+                aria-label="Chat message input"
+                aria-describedby={input.length > 0 ? "char-count" : undefined}
+                className="min-h-[48px] sm:min-h-[56px] max-h-[120px] sm:max-h-[200px] px-3 sm:px-5 pr-20 sm:pr-24 text-sm sm:text-base bg-transparent border-0 focus:ring-0 focus:outline-none placeholder:text-gray-400 dark:placeholder:text-gray-500 resize-none touch-manipulation"
               />
               
-              {/* Input actions */}
-              <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-2">
+              {/* Mobile-optimized Input actions */}
+              <div className="absolute right-2 sm:right-3 top-1/2 -translate-y-1/2 flex items-center gap-1 sm:gap-2">
                 {isLoading && (
                   <Button
                     onClick={cancelRequest}
                     variant="outline"
                     size="icon"
-                    className="w-9 h-9 rounded-xl"
+                    className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl touch-manipulation"
                     aria-label="Stop generating"
                   >
-                    <XCircle className="w-5 h-5" />
+                    <XCircle className="w-4 h-4 sm:w-5 sm:h-5" />
                   </Button>
                 )}
                 {input.trim() ? (
-                  <motion.div
-                    initial={{ scale: 0.8, opacity: 0 }}
-                    animate={{ scale: 1, opacity: 1 }}
-                    exit={{ scale: 0.8, opacity: 0 }}
-                    transition={{ duration: 0.2 }}
-                  >
+                  <div className="transition-all duration-200">
                     <Button
                       onClick={sendMessage}
                       disabled={isLoading}
                       size="icon"
-                      className="w-10 h-10 rounded-xl bg-black hover:bg-gray-900 text-white shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105 active:scale-95"
+                      className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-black hover:bg-gray-900 text-white shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105 active:scale-95 touch-manipulation"
                       aria-label="Send message"
                     >
                       {isLoading ? (
-                        <Loader2 className="w-5 h-5 animate-spin" />
+                        <Loader2 className="w-4 h-4 sm:w-5 sm:h-5 animate-spin" />
                       ) : (
-                        <Send className="w-5 h-5" />
+                        <Send className="w-4 h-4 sm:w-5 sm:h-5" />
                       )}
                     </Button>
-                  </motion.div>
+                  </div>
                 ) : (
-                  <motion.div
-                    initial={{ scale: 0.8, opacity: 0 }}
-                    animate={{ scale: 1, opacity: 1 }}
-                    exit={{ scale: 0.8, opacity: 0 }}
-                    transition={{ duration: 0.2 }}
-                  >
+                  <div className="transition-all duration-200">
                     <Button
                       size="icon"
                       variant="ghost"
-                      className="w-10 h-10 rounded-xl bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-500 dark:text-gray-400 transition-all duration-200 hover:scale-105 active:scale-95"
+                      className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-500 dark:text-gray-400 transition-all duration-200 hover:scale-105 active:scale-95 touch-manipulation"
                       aria-label="Voice message"
                     >
-                      <Mic2 className="w-5 h-5" />
+                      <Mic2 className="w-4 h-4 sm:w-5 sm:h-5" />
                     </Button>
-                  </motion.div>
+                  </div>
                 )}
               </div>
             </div>
             
-            {/* Bottom indicator */}
-            <div className="flex items-center justify-end mt-3 px-1">
+            {/* Mobile-optimized bottom indicator */}
+            <div className="flex items-center justify-end mt-2 sm:mt-3 px-1">
               {input.length > 0 && (
-                <motion.div
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  className="text-xs text-gray-400 dark:text-gray-500"
+                <div
+                  id="char-count"
+                  className="text-xs text-gray-400 dark:text-gray-500 transition-opacity duration-200"
+                  aria-live="polite"
                 >
-                  {input.length} characters
-                </motion.div>
+                  {input.length} character{input.length !== 1 ? 's' : ''}
+                </div>
               )}
             </div>
           </div>
         </div>
-      </motion.div>
-    </motion.div>
+      </div>
+    </div>
   );
 }

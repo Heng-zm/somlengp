@@ -3,6 +3,7 @@ import type {Metadata, Viewport} from 'next';
 import {Toaster} from '@/components/ui/toaster';
 import './globals.css';
 import '../styles/performance-optimizations.css';
+import '../styles/mobile-optimizations.css';
 import { GoogleAnalytics } from '@next/third-parties/google'; // Keep this import
 import { Analytics } from '@vercel/analytics/next';
 import { AppLayout } from '@/layouts/app-layout';
