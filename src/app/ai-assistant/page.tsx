@@ -50,117 +50,7 @@ import { cn } from '@/lib/utils';
 import { generateMessageId } from '@/lib/id-utils';
 import Link from 'next/link';
 import ReactMarkdown from 'react-markdown';
-import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
-
-// Monochrome Prism theme to enforce black/gray/white syntax highlighting
-const monochromePrism: any = {
-  'code[class*="language-"]': {
-    color: '#E5E5E5',
-    background: 'transparent',
-    textShadow: 'none',
-    fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace',
-    fontSize: '0.85rem',
-  },
-  'pre[class*="language-"]': {
-    color: '#E5E5E5',
-    background: 'transparent',
-    margin: 0,
-    padding: 0,
-    overflow: 'auto',
-  },
-  'token.comment': { color: '#A3A3A3' },
-  'token.prolog': { color: '#A3A3A3' },
-  'token.doctype': { color: '#A3A3A3' },
-  'token.cdata': { color: '#A3A3A3' },
-  'token.punctuation': { color: '#D4D4D4' },
-  'token.property': { color: '#D4D4D4' },
-  'token.tag': { color: '#D4D4D4' },
-  'token.boolean': { color: '#D4D4D4' },
-  'token.number': { color: '#D4D4D4' },
-  'token.constant': { color: '#D4D4D4' },
-  'token.symbol': { color: '#D4D4D4' },
-  'token.selector': { color: '#FFFFFF' },
-  'token.attr-name': { color: '#FFFFFF' },
-  'token.string': { color: '#E5E5E5' },
-  'token.char': { color: '#E5E5E5' },
-  'token.builtin': { color: '#E5E5E5' },
-  'token.inserted': { color: '#E5E5E5' },
-  'token.operator': { color: '#D4D4D4' },
-  'token.entity': { color: '#D4D4D4', cursor: 'help' },
-  'token.url': { color: '#D4D4D4' },
-  'token.atrule': { color: '#FFFFFF' },
-  'token.keyword': { color: '#FFFFFF' },
-  'token.function': { color: '#FFFFFF' },
-  'token.deleted': { color: '#BFBFBF' },
-  'token.regex': { color: '#BFBFBF' },
-  'token.important': { color: '#FFFFFF', fontWeight: 'bold' },
-  'token.bold': { fontWeight: 'bold' },
-  'token.italic': { fontStyle: 'italic' },
-};
-
-/**
- * Skeleton loader for code blocks
- */
-const CodeSkeleton = memo(function CodeSkeleton({ lines = 5 }: { lines?: number }) {
-  return (
-    <div className="animate-pulse bg-gray-800 rounded p-4">
-      <div className="space-y-2">
-        {Array.from({ length: lines }, (_, i) => (
-          <div 
-            key={`skeleton-line-${i}`}
-            className={`h-4 bg-gray-700 rounded ${
-              i === 0 ? 'w-3/4' : 
-              i === 1 ? 'w-1/2' : 
-              i === lines - 1 ? 'w-2/3' :
-              'w-5/6'
-            }`}
-          />
-        ))}
-      </div>
-    </div>
-  );
-});
-
-/**
- * Lazy loading wrapper for syntax highlighter with loading skeleton
- */
-const LazyCodeHighlighter = memo(function LazyCodeHighlighter({
-  language,
-  children,
-  customStyle
-}: LazyCodeHighlighterProps) {
-  const lineCount = String(children || '').split('\n').length;
-  
-  // Fallback if children is null/undefined
-  if (!children || typeof children !== 'string') {
-    return <CodeSkeleton lines={3} />;
-  }
-  
-  try {
-    return (
-      <Suspense fallback={<CodeSkeleton lines={Math.min(lineCount, 10)} />}>
-        <SyntaxHighlighter
-          style={monochromePrism}
-          language={language || 'text'}
-          PreTag="div"
-          customStyle={customStyle || {}}
-          showLineNumbers={false}
-          wrapLines={false}
-          wrapLongLines={true}
-        >
-          {children}
-        </SyntaxHighlighter>
-      </Suspense>
-    );
-  } catch (error) {
-    // Fallback to plain code if syntax highlighting fails
-    return (
-      <pre className="font-mono text-sm overflow-x-auto p-3 bg-gray-900 text-gray-100 rounded">
-        <code>{children}</code>
-      </pre>
-    );
-  }
-});
+import { AdvancedLazyCodeHighlighter } from '@/components/shared/advanced-lazy-loader';
 
 interface Message {
   id: string;
@@ -202,11 +92,6 @@ interface CodeBlockProps {
   isUser: boolean;
 }
 
-interface LazyCodeHighlighterProps {
-  language: string;
-  children: string;
-  customStyle: React.CSSProperties;
-}
 
 interface MessageComponentProps {
   message: Message;
@@ -459,20 +344,18 @@ const CodeBlock = memo(function CodeBlock({
             className="overflow-x-auto bg-gray-900 max-w-full"
             style={{ maxHeight: '300px' }}
           >
-            <pre className="p-3 text-gray-100 font-mono text-xs leading-tight m-0">
-              <LazyCodeHighlighter
-                language={language}
-                customStyle={{
-                  margin: 0,
-                  padding: 0,
-                  background: 'transparent',
-                  fontSize: '11px',
-                  lineHeight: '1.3'
-                }}
-              >
-                {codeString}
-              </LazyCodeHighlighter>
-            </pre>
+            <AdvancedLazyCodeHighlighter
+              language={language}
+              customStyle={{
+                margin: 0,
+                padding: '12px',
+                background: 'transparent',
+                fontSize: '11px',
+                lineHeight: '1.3'
+              }}
+            >
+              {codeString}
+            </AdvancedLazyCodeHighlighter>
           </div>
         </div>
       </div>
@@ -526,46 +409,18 @@ const ChatGPTMessageComponent = memo(function ChatGPTMessageComponent({ message,
                         const codeString = String(children || '').replace(/\n$/, '');
                         
                         if (!inline && match && codeString.trim()) {
-                      return (
-                        <div className="my-3 sm:my-4 rounded-md sm:rounded-lg overflow-hidden bg-black dark:bg-gray-900 border border-gray-600 dark:border-gray-700 w-full max-w-full" style={{ minWidth: 0, maxWidth: '100%' }}>
-                          <div className="flex items-center justify-between bg-gray-800 dark:bg-gray-800 px-2 sm:px-3 md:px-4 py-1.5 sm:py-2">
-                            <span className="text-gray-300 dark:text-gray-400 font-mono text-[10px] xs:text-xs sm:text-sm truncate flex-1 min-w-0">{language}</span>
-                            <button 
-                              className="text-gray-400 dark:text-gray-500 hover:text-white dark:hover:text-gray-300 transition-colors p-1 ml-1 sm:ml-2 flex-shrink-0"
-                              onClick={async () => {
-                                try {
-                                  await navigator.clipboard.writeText(codeString);
-                                  showSuccessToast('Code copied');
-                                } catch (error) {
-                                  // Fallback for older browsers
-                                  const textArea = document.createElement('textarea');
-                                  textArea.value = codeString;
-                                  document.body.appendChild(textArea);
-                                  textArea.select();
-                                  document.execCommand('copy');
-                                  document.body.removeChild(textArea);
-                                  showSuccessToast('Code copied');
-                                }
-                              }}
-                            >
-                              <Copy className="w-3 h-3" />
-                            </button>
-                          </div>
-                          <div className="overflow-x-auto" style={{ maxWidth: '100%', width: '100%' }}>
-                            <pre 
-                              className="p-2 sm:p-3 md:p-4 text-[9px] xs:text-[10px] sm:text-xs md:text-sm text-white dark:text-gray-100 font-mono leading-tight whitespace-pre" 
-                              style={{ 
-                                margin: 0, 
-                                minWidth: 'max-content',
+                          return (
+                            <AdvancedLazyCodeHighlighter
+                              language={language}
+                              customStyle={{
                                 fontSize: 'clamp(9px, 2.5vw, 14px)',
-                                lineHeight: '1.2'
+                                lineHeight: '1.2',
+                                padding: '8px 12px'
                               }}
                             >
-                              <code className="block">{codeString}</code>
-                            </pre>
-                          </div>
-                        </div>
-                      );
+                              {codeString}
+                            </AdvancedLazyCodeHighlighter>
+                          );
                         }
                         
                         return (
