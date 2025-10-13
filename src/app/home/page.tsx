@@ -152,7 +152,7 @@ const HomePageComponent = function HomePage() {
           onLanguageToggle={handleLanguageToggle}
         />
         <ScrollArea className="flex-grow pt-20 sm:pt-24 md:pt-28">
-          <main className="p-4 sm:p-6 space-y-8">
+          <main id="main-content" role="main" className="p-4 sm:p-6 space-y-8">
             <OptimizedFeatureGrid
               primaryFeature={primaryFeature}
               otherFeatures={otherFeatures}

@@ -1,7 +1,7 @@
 'use client';
 
 import { memo, useCallback, Suspense, lazy } from 'react';
-import { Sun, Moon, Menu, Users } from 'lucide-react';
+import { Sun, Moon, Menu, Users, Globe } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import type { Language } from '@/lib/translations';
@@ -29,10 +29,12 @@ const VisitorCount = memo(function VisitorCount({ count }: { count: number | nul
     return <Skeleton className="h-6 w-24 rounded-md" />;
   }
 
+  const label = `${count} ${count === 1 ? 'User' : 'Users'}`;
+
   return (
-    <div className="flex items-center gap-2 text-sm text-muted-foreground">
-      <Users className="w-4 h-4" />
-      <span>{count} User</span>
+    <div className="flex items-center gap-2 text-sm text-muted-foreground" aria-live="polite">
+      <Users className="w-4 h-4" aria-hidden="true" />
+      <span>{label}</span>
     </div>
   );
 });
@@ -54,7 +56,29 @@ const ThemeToggleButton = memo(function ThemeToggleButton({
       type="button"
       aria-label={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
     >
-      {theme === 'dark' ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
+      {theme === 'dark' ? <Sun className="h-5 w-5" aria-hidden="true" /> : <Moon className="h-5 w-5" aria-hidden="true" />}
+    </Button>
+  );
+});
+
+// Memoized language toggle button
+const LanguageToggleButton = memo(function LanguageToggleButton({ 
+  language, 
+  onToggle 
+}: { 
+  language: Language; 
+  onToggle: () => void; 
+}) {
+  return (
+    <Button 
+      variant="ghost" 
+      size="icon" 
+      onClick={onToggle} 
+      type="button"
+      aria-label="Switch language"
+    >
+      <Globe className="h-5 w-5" aria-hidden="true" />
+      <span className="sr-only">Current language: {language}</span>
     </Button>
   );
 });
@@ -70,13 +94,13 @@ const MobileMenu = memo(function MobileMenu({
   return (
     <Suspense fallback={
       <Button variant="ghost" size="icon" type="button" disabled>
-        <Menu className="h-6 w-6" />
+        <Menu className="h-6 w-6" aria-hidden="true" />
       </Button>
     }>
       <Sheet>
         <SheetTrigger asChild>
           <Button variant="ghost" size="icon" type="button" aria-label="Open menu">
-            <Menu className="h-6 w-6" />
+            <Menu className="h-6 w-6" aria-hidden="true" />
           </Button>
         </SheetTrigger>
         <SheetContent side="left" className="p-0 w-[300px] bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -125,8 +149,9 @@ export const OptimizedHomeHeader = memo(function OptimizedHomeHeader({
         </div>
       </div>
       
-      {/* Right side - Auth and Theme toggle */}
+      {/* Right side - Controls */}
       <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
+        <LanguageToggleButton language={language} onToggle={handleLanguageToggle} />
         <ThemeToggleButton theme={theme} onToggle={handleThemeToggle} />
       </div>
     </header>

@@ -77,7 +77,7 @@ const PrimaryFeatureCard = memo(function PrimaryFeatureCard({
   return (
     <div ref={cardRef}>
       {href ? (
-        <Link href={href} passHref>
+        <Link href={href} passHref aria-label={`${title} - ${startNowText}`}>
           {cardContent}
         </Link>
       ) : (
@@ -125,6 +125,10 @@ const OptimizedFeatureCard = memo(function OptimizedFeatureCard({
         action ? "cursor-pointer" : ""
       )}
       onClick={action}
+      role={action ? 'button' : undefined}
+      tabIndex={action ? 0 : undefined}
+      aria-label={action ? `${title} - ${description}` : undefined}
+      onKeyDown={action ? (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); action(); } } : undefined}
     >
       <div className="p-3 bg-secondary rounded-lg border motion-safe:will-change-transform">
         <Icon className="w-6 h-6 text-primary motion-safe:transition-colors motion-safe:group-hover:text-primary" />
@@ -141,7 +145,7 @@ const OptimizedFeatureCard = memo(function OptimizedFeatureCard({
     <div ref={cardRef}>
       {isVisible ? (
         href ? (
-          <Link href={href} passHref>
+          <Link href={href} passHref aria-label={`${title} - ${description}`}>
             {cardContent}
           </Link>
         ) : (

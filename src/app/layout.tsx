@@ -86,6 +86,14 @@ export default function RootLayout({
         {/* Theme is now handled by LanguageProvider to prevent hydration mismatch */}
       </head>
       <body className={`antialiased font-sans`}>
+        {/* Skip link for keyboard users */}
+        <a
+          href="#main-content"
+          className="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-[100] focus:px-4 focus:py-2 focus:rounded-md focus:bg-primary focus:text-primary-foreground"
+        >
+          Skip to content
+        </a>
+
         {/* REMOVE these manual script tags: */}
         {/* <!-- Google tag (gtag.js) -->
         <script async src="https://www.googletagmanager.com/gtag/js?id=G-GQPSM8WTZY"></script>

@@ -44,8 +44,8 @@ export const Sidebar = memo(function Sidebar() {
     <aside className="w-full h-full flex flex-col bg-transparent">
       <div className="flex-shrink-0 p-4 border-b">
         <div className="flex justify-between items-center mb-3">
-          <Link href="/home" className="flex items-center gap-2">
-            <Image src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRfXQ6IUyl8D8fpZl8p9BvXg-PCxKPa-1vOp0oPC2-uKH-H_M1T" alt="logo" width={32} height={32} data-ai-hint="logo" className="rounded-full" />
+          <Link href="/home" className="flex items-center gap-2" aria-label="Go to home">
+            <Image src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRfXQ6IUyl8D8fpZl8p9BvXg-PCxKPa-1vOp0oPC2-uKH-H_M1T" alt="Somleng logo" width={32} height={32} data-ai-hint="logo" className="rounded-full" />
             <div>
               <h1 className="text-xl font-bold text-foreground">Somleng</h1>
               <p className="text-xs text-muted-foreground">{t('version')} 2.2.5</p>
@@ -55,24 +55,34 @@ export const Sidebar = memo(function Sidebar() {
       </div>
 
       <ScrollArea className="flex-grow">
-          <nav className="p-4 space-y-1">
-              {navItems.map(item => (
-                <Link key={item.href} href={item.href} passHref>
-                  <Button
-                    variant={pathname === item.href ? 'secondary' : 'ghost'}
-                    className="w-full justify-start text-sm py-3 relative"
-                    type="button"
+          <nav className="p-4 space-y-1" aria-label="Primary">
+              {navItems.map(item => {
+                const isActive = pathname === item.href;
+                return (
+                  <Link 
+                    key={item.href} 
+                    href={item.href} 
+                    passHref 
+                    aria-current={isActive ? 'page' : undefined}
+                    aria-label={item.label}
                   >
-                    <item.icon className="mr-3 h-5 w-5" />
-                    {item.label}
-                    {item.premium && (
-                      <span className="ml-auto text-xs bg-gradient-to-r from-blue-500 to-purple-600 text-white px-2 py-1 rounded-full">
-                        {t('premium')}
-                      </span>
-                    )}
-                  </Button>
-                </Link>
-              ))}
+                    <Button
+                      variant={isActive ? 'secondary' : 'ghost'}
+                      className="w-full justify-start text-sm py-3 relative"
+                      type="button"
+                      aria-pressed={isActive ? true : undefined}
+                    >
+                      <item.icon className="mr-3 h-5 w-5" aria-hidden="true" />
+                      {item.label}
+                      {item.premium && (
+                        <span className="ml-auto text-xs bg-gradient-to-r from-blue-500 to-purple-600 text-white px-2 py-1 rounded-full">
+                          {t('premium')}
+                        </span>
+                      )}
+                    </Button>
+                  </Link>
+                );
+              })}
           </nav>
           
       </ScrollArea>
@@ -80,8 +90,8 @@ export const Sidebar = memo(function Sidebar() {
       <div className="flex-shrink-0 p-4 border-t mt-auto">
         <Sheet>
           <SheetTrigger asChild>
-            <Button variant="ghost" className="w-full justify-start" type="button">
-              <LifeBuoy className="mr-3 h-5 w-5" />
+            <Button variant="ghost" className="w-full justify-start" type="button" aria-label="Open support">
+              <LifeBuoy className="mr-3 h-5 w-5" aria-hidden="true" />
               {t('support')}
             </Button>
           </SheetTrigger>
@@ -89,7 +99,7 @@ export const Sidebar = memo(function Sidebar() {
             <SheetHeader className="text-center mb-4">
               <SheetTitle>
                 <div className="flex items-center justify-center gap-2">
-                  <LifeBuoy />
+                  <LifeBuoy aria-hidden="true" />
                   {t('support')}
                 </div>
               </SheetTitle>
@@ -104,16 +114,16 @@ export const Sidebar = memo(function Sidebar() {
             </div>
           </SheetContent>
         </Sheet>
-        <Link href="https://t.me/Ozo0_0" target="_blank" rel="noopener noreferrer" passHref>
+        <Link href="https://t.me/Ozo0_0" target="_blank" rel="noopener noreferrer" passHref aria-label="Report a bug on Telegram (opens in a new tab)">
           <Button variant="ghost" className="w-full justify-start mt-2" type="button">
-            <FileHeart className="mr-3 h-5 w-5" />
+            <FileHeart className="mr-3 h-5 w-5" aria-hidden="true" />
             {t('reportBug')}
           </Button>
         </Link>
         <div className="flex items-center gap-2 mt-2">
             <LanguageToggle variant="sidebar" className="flex-1" />
-            <Button variant="ghost" size="icon" onClick={toggleTheme} className="flex-shrink-0" type="button">
-                {theme === 'dark' ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
+            <Button variant="ghost" size="icon" onClick={toggleTheme} className="flex-shrink-0" type="button" aria-label={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}>
+                {theme === 'dark' ? <Sun className="h-5 w-5" aria-hidden="true" /> : <Moon className="h-5 w-5" aria-hidden="true" />}
             </Button>
         </div>
       </div>
