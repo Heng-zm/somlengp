@@ -13,7 +13,6 @@ import { CommentItem } from './comment-item';
 // Performance optimization needed: Consider memoizing inline event handlers
 // Use useMemo for objects/arrays and useCallback for functions
 
-
 interface CommentsListProps {
   comments: Comment[];
   stats: CommentStats;

@@ -10,7 +10,6 @@ import { Loader2, Mail, Clock, RefreshCw } from 'lucide-react';
 // Memory leak prevention: Timers need cleanup
 // Add cleanup in useEffect return function
 
-
 interface OTPVerificationProps {
   onSuccess?: (email: string) => void;
   onError?: (error: string) => void;

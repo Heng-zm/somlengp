@@ -1,9 +1,9 @@
 "use client";
 
-import React from 'react';
+import React, { memo } from 'react';
 import { AIResponseFormatter } from '@/components/features/ai/AIResponseFormatter';
 
-export default function AIResponseDemo() {
+const AIResponseDemoComponent = function AIResponseDemo() {
   // Sample AI response text with different styling
   const sampleResponse = `Here's a description of the image:
 
@@ -86,3 +86,5 @@ The character conveys a feeling of \`warmth\`, *friendliness*, and **innocence**
     </div>
   );
 }
+
+export default memo(AIResponseDemoComponent);

@@ -8,7 +8,6 @@ import { errorHandler, AppError, ErrorType, ErrorSeverity } from '@/lib/error-ut
 // Memory leak prevention: Timers need cleanup
 // Add cleanup in useEffect return function
 
-
 interface Props {
   children: ReactNode;
   fallback?: ReactNode;

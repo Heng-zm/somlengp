@@ -185,7 +185,7 @@ export const GmailUserCard = memo(function GmailUserCard({
       "bg-white dark:bg-gray-900 hover:bg-gray-50 dark:hover:bg-gray-800",
       "transition-all duration-200 ease-out",
       className
-    )} onClick={onClick}>
+    )} onClick={onClick} role="button" tabIndex={0}>
       <div className="flex items-center space-x-3">
         <GmailUserAvatar user={user} showOnline />
         <div className="flex-1 min-w-0">
@@ -232,7 +232,7 @@ export const GmailEmailItem = memo(function GmailEmailItem({
       selected && "bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-700",
       !email.read && "bg-gradient-to-r from-blue-50/30 to-transparent dark:from-blue-900/10",
       className
-    )} onClick={onSelect}>
+    )} onClick={onSelect} role="button" tabIndex={0}>
       <div className="flex items-center space-x-4">
         {/* Selection checkbox */}
         <div className="shrink-0">

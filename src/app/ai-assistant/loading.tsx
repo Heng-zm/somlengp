@@ -11,19 +11,19 @@ export default function AIAssistantLoading() {
       <div className="flex-shrink-0 bg-white/95 dark:bg-gray-900/95 backdrop-blur-md border-b border-gray-200/50 dark:border-gray-700/50">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 py-4">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
+            <div className="center-y gap-3">
               <Skeleton className="w-9 h-9 rounded-xl" />
-              <div className="flex items-center gap-3">
+              <div className="center-y gap-3">
                 <div className="relative">
-                  <div className="w-9 h-9 bg-gradient-to-r from-gray-700 to-gray-500 rounded-xl flex items-center justify-center shadow-lg">
+                  <div className="w-9 h-9 bg-gradient-to-r from-gray-700 to-gray-500 rounded-xl center-icon shadow-lg">
                     <Sparkles className="w-5 h-5 text-white" />
                   </div>
-                  <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-gray-400 rounded-full border-2 border-white dark:border-gray-900 animate-pulse"></div>
+                  <div className="center-absolute -bottom-1 -right-1 w-4 h-4 bg-gray-400 rounded-full border-2 border-white dark:border-gray-900 animate-pulse"></div>
                 </div>
                 <Skeleton className="h-6 w-24" />
               </div>
             </div>
-            <div className="flex items-center gap-2">
+            <div className="center-y gap-2">
               <Skeleton className="h-8 w-32 rounded-xl" />
               <Skeleton className="w-9 h-9 rounded-xl" />
             </div>
@@ -34,7 +34,7 @@ export default function AIAssistantLoading() {
       {/* Messages area skeleton */}
       <div className="flex-1 overflow-hidden">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 py-6">
-          <div className="flex justify-center mb-8">
+          <div className="center-x mb-8">
             <Skeleton className="h-8 w-16 rounded-full" />
           </div>
           

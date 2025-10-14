@@ -38,8 +38,6 @@ export const Sidebar = memo(function Sidebar() {
     { href: '/convert-image-format', label: t('convertImageFormat'), icon: Wand2 },
   ], [t]);
 
-
-
   return (
     <aside className="w-full h-full flex flex-col bg-transparent">
       <div className="flex-shrink-0 p-4 border-b">

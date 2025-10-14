@@ -29,7 +29,6 @@ import { cn } from '@/lib/utils';
 // Performance optimization needed: Consider memoizing inline event handlers
 // Use useMemo for objects/arrays and useCallback for functions
 
-
 interface PasswordOptions {
   length: number;
   includeUppercase: boolean;
@@ -187,7 +186,6 @@ const PasswordGeneratorPageComponent = function PasswordGeneratorPage() {
       setIsGenerating(false);
     }, 300); // Small delay for UX
   }, [options, charSets.uppercase, charSets.lowercase, charSets.numbers, charSets.symbols, charSets.similar, charSets.ambiguous, calculatePasswordStrength]);
-
 
   const passwordStrength = useMemo(() => calculatePasswordStrength(password), [password, calculatePasswordStrength]);
 
@@ -873,6 +871,5 @@ const PasswordGeneratorPageComponent = function PasswordGeneratorPage() {
     </FeaturePageLayout>
   );
 }
-
 
 export default memo(PasswordGeneratorPageComponent);

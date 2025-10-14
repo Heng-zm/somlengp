@@ -10,7 +10,7 @@ export const BasicExample: React.FC = () => {
   const [imageFile, setImageFile] = useState<File | null>(null);
   
   const handleDimensionsChange = (dimensions: any) => {
-    console.log('New dimensions:', dimensions);
+    
   };
 
   return (
@@ -51,7 +51,7 @@ export const CompactExample: React.FC = () => {
 
       <CompactImageDimensionPanel 
         imageFile={imageFile}
-        onDimensionsChange={(dims) => console.log('Compact dimensions:', dims)}
+        onDimensionsChange={(dims) => }
       />
     </div>
   );
@@ -177,9 +177,7 @@ USAGE EXAMPLES:
 <ImageDimensionPanel 
   imageFile={file}
   onDimensionsChange={(dims) => {
-    console.log(`Size: ${dims.width}x${dims.height} ${dims.unit}`);
-    console.log(`Resolution: ${dims.resolution} DPI`);
-    console.log(`Resampling: ${dims.resample ? dims.resampleMethod : 'Off'}`);
+
   }}
 />
 */

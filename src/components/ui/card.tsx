@@ -10,6 +10,8 @@ const cardVariants = {
   elevated: "rounded-xl border bg-card text-card-foreground shadow-lg hover:shadow-xl",
   glass: "rounded-xl border border-white/20 bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl text-card-foreground shadow-xl",
   interactive: "rounded-xl border bg-card text-card-foreground shadow-md hover:shadow-xl cursor-pointer transition-all duration-300",
+  centered: "rounded-xl border bg-card text-card-foreground shadow-lg center-card-content",
+  hero: "rounded-2xl border bg-gradient-to-b from-card to-card/50 text-card-foreground shadow-xl center-card-content min-h-[300px]"
 };
 
 const animationVariants = {
@@ -21,16 +23,18 @@ const animationVariants = {
 const Card = React.memo(React.forwardRef<
   HTMLDivElement,
   React.HTMLAttributes<HTMLDivElement> & {
-    variant?: "default" | "elevated" | "glass" | "interactive";
+    variant?: "default" | "elevated" | "glass" | "interactive" | "centered" | "hero";
     animation?: "none" | "hover" | "float";
+    centered?: boolean;
   }
->(({ className, variant = "default", animation = "hover", ...props }, ref) => {
+>(({ className, variant = "default", animation = "hover", centered = false, ...props }, ref) => {
   return (
     <div
       ref={ref}
       className={cn(
         cardVariants[variant],
         animationVariants[animation],
+        centered && "center-card-content",
         className
       )}
       {...props}
@@ -41,11 +45,17 @@ Card.displayName = "Card"
 
 const CardHeader = React.memo(React.forwardRef<
   HTMLDivElement,
-  React.HTMLAttributes<HTMLDivElement>
->(({ className, ...props }, ref) => (
+  React.HTMLAttributes<HTMLDivElement> & {
+    centered?: boolean;
+  }
+>(({ className, centered = false, ...props }, ref) => (
   <div
     ref={ref}
-    className={cn("flex flex-col space-y-1.5 p-6", className)}
+    className={cn(
+      "flex flex-col space-y-1.5 p-6",
+      centered && "items-center text-center",
+      className
+    )}
     {...props}
   />
 )));
@@ -80,19 +90,35 @@ CardDescription.displayName = "CardDescription"
 
 const CardContent = React.memo(React.forwardRef<
   HTMLDivElement,
-  React.HTMLAttributes<HTMLDivElement>
->(({ className, ...props }, ref) => (
-  <div ref={ref} className={cn("p-6 pt-0", className)} {...props} />
+  React.HTMLAttributes<HTMLDivElement> & {
+    centered?: boolean;
+  }
+>(({ className, centered = false, ...props }, ref) => (
+  <div 
+    ref={ref} 
+    className={cn(
+      "p-6 pt-0",
+      centered && "center-content text-center",
+      className
+    )} 
+    {...props} 
+  />
 )));
 CardContent.displayName = "CardContent"
 
 const CardFooter = React.memo(React.forwardRef<
   HTMLDivElement,
-  React.HTMLAttributes<HTMLDivElement>
->(({ className, ...props }, ref) => (
+  React.HTMLAttributes<HTMLDivElement> & {
+    centered?: boolean;
+  }
+>(({ className, centered = false, ...props }, ref) => (
   <div
     ref={ref}
-    className={cn("flex items-center p-6 pt-0", className)}
+    className={cn(
+      "flex items-center p-6 pt-0",
+      centered ? "justify-center" : "justify-start",
+      className
+    )}
     {...props}
   />
 )));

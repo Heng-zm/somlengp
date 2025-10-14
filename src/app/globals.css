@@ -1068,4 +1068,194 @@ body {
       }
     }
     
+    /* ============================================================================ */
+    /* PERFECT CENTER ALIGNMENT UTILITIES */
+    /* ============================================================================ */
+    
+    /* Full viewport centering - perfect for login pages, loading screens */
+    .center-full {
+      @apply min-h-screen flex items-center justify-center;
+    }
+    
+    .center-full-fixed {
+      @apply fixed inset-0 flex items-center justify-center;
+    }
+    
+    /* Viewport height centering with padding */
+    .center-viewport {
+      @apply min-h-[100dvh] flex items-center justify-center p-4;
+    }
+    
+    /* Content area centering */
+    .center-content {
+      @apply flex items-center justify-center;
+    }
+    
+    /* Perfect center for modals and dialogs */
+    .center-modal {
+      @apply fixed inset-0 z-50 flex items-center justify-center p-4;
+    }
+    
+    /* Center with backdrop */
+    .center-backdrop {
+      @apply fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4;
+    }
+    
+    /* Horizontal center only */
+    .center-x {
+      @apply flex justify-center;
+    }
+    
+    /* Vertical center only */
+    .center-y {
+      @apply flex items-center;
+    }
+    
+    /* Perfect center for cards and containers */
+    .center-card-content {
+      @apply flex flex-col items-center justify-center text-center;
+    }
+    
+    /* Center with max width constraint */
+    .center-constrained {
+      @apply flex items-center justify-center w-full max-w-md mx-auto;
+    }
+    
+    .center-constrained-lg {
+      @apply flex items-center justify-center w-full max-w-2xl mx-auto;
+    }
+    
+    .center-constrained-xl {
+      @apply flex items-center justify-center w-full max-w-4xl mx-auto;
+    }
+    
+    /* Perfect center for form elements */
+    .center-form {
+      @apply flex flex-col items-center justify-center space-y-4 w-full max-w-sm mx-auto;
+    }
+    
+    .center-form-lg {
+      @apply flex flex-col items-center justify-center space-y-6 w-full max-w-lg mx-auto;
+    }
+    
+    /* Center for buttons and interactive elements */
+    .center-button {
+      @apply inline-flex items-center justify-center;
+    }
+    
+    .center-button-group {
+      @apply flex items-center justify-center gap-4;
+    }
+    
+    /* Responsive centering utilities */
+    @media (max-width: 640px) {
+      .center-mobile {
+        @apply flex flex-col items-center justify-center text-center p-4;
+      }
+      
+      .center-mobile-full {
+        @apply min-h-screen flex flex-col items-center justify-center p-4;
+      }
+    }
+    
+    @media (min-width: 641px) {
+      .center-desktop {
+        @apply flex items-center justify-center;
+      }
+    }
+    
+    /* Perfect center for loading states */
+    .center-loading {
+      @apply flex items-center justify-center min-h-[200px];
+    }
+    
+    .center-loading-full {
+      @apply flex items-center justify-center min-h-screen;
+    }
+    
+    /* Center with animation support */
+    .center-animate {
+      @apply flex items-center justify-center transition-all duration-300 ease-in-out;
+    }
+    
+    /* Grid centering utilities */
+    .grid-center {
+      @apply place-items-center;
+    }
+    
+    .grid-center-content {
+      @apply grid place-items-center;
+    }
+    
+    /* Perfect center with safe area support */
+    .center-safe {
+      @apply min-h-screen flex items-center justify-center;
+      padding-top: env(safe-area-inset-top);
+      padding-bottom: env(safe-area-inset-bottom);
+      padding-left: env(safe-area-inset-left);
+      padding-right: env(safe-area-inset-right);
+    }
+    
+    /* Table cell centering (for legacy support) */
+    .center-table {
+      display: table-cell;
+      vertical-align: middle;
+      text-align: center;
+    }
+    
+    /* Absolute center positioning */
+    .center-absolute {
+      @apply absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2;
+    }
+    
+    .center-absolute-x {
+      @apply absolute left-1/2 transform -translate-x-1/2;
+    }
+    
+    .center-absolute-y {
+      @apply absolute top-1/2 transform -translate-y-1/2;
+    }
+    
+    /* Perfect center for icons */
+    .center-icon {
+      @apply inline-flex items-center justify-center flex-shrink-0;
+    }
+    
+    /* Center with aspect ratio preservation */
+    .center-aspect {
+      @apply flex items-center justify-center aspect-square;
+    }
+    
+    .center-aspect-video {
+      @apply flex items-center justify-center aspect-video;
+    }
+    
+    /* Perfect center for hero sections */
+    .center-hero {
+      @apply flex flex-col items-center justify-center text-center min-h-[60vh] px-4;
+    }
+    
+    .center-hero-full {
+      @apply flex flex-col items-center justify-center text-center min-h-screen px-4;
+    }
+    
+    /* Center for navigation elements */
+    .center-nav {
+      @apply flex items-center justify-center h-full;
+    }
+    
+    /* Perfect center with overflow handling */
+    .center-overflow {
+      @apply flex items-center justify-center overflow-hidden;
+    }
+    
+    .center-overflow-scroll {
+      @apply flex items-center justify-center overflow-auto;
+    }
+    
+    /* Center utilities with focus management */
+    .center-focus {
+      @apply flex items-center justify-center focus-within:outline-none focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2;
+    }
+    
 }

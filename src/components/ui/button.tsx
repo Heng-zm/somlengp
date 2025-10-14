@@ -223,7 +223,7 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
 
         {/* Loading State */}
         {loading && (
-          <div className="absolute inset-0 flex items-center justify-center bg-inherit">
+          <div className="center-absolute center-content bg-inherit rounded-inherit">
             <LoadingSpinner 
               size={
                 effectiveSize === 'xs' ? 'xs' : 
@@ -237,12 +237,12 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
 
         {/* Content wrapper */}
         <div className={cn(
-          'flex items-center justify-center gap-2',
+          'center-button gap-2 w-full',
           loading && 'opacity-0'
         )}>
           {/* Left Icon */}
           {leftIcon && (
-            <span className="flex-shrink-0">
+            <span className="center-icon flex-shrink-0">
               {leftIcon}
             </span>
           )}
@@ -256,7 +256,7 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
 
           {/* Right Icon */}
           {rightIcon && (
-            <span className="flex-shrink-0">
+            <span className="center-icon flex-shrink-0">
               {rightIcon}
             </span>
           )}
@@ -264,7 +264,7 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
 
         {/* Badge */}
         {badge && (
-          <span className="absolute -top-2 -right-2 bg-destructive text-destructive-foreground text-xs font-bold rounded-full min-w-[1.25rem] h-5 flex items-center justify-center px-1">
+          <span className="absolute -top-2 -right-2 bg-destructive text-destructive-foreground text-xs font-bold rounded-full min-w-[1.25rem] h-5 center-content px-1">
             {badge}
           </span>
         )}
@@ -335,24 +335,28 @@ export const FloatingActionButton = React.forwardRef<HTMLButtonElement, FABProps
 FloatingActionButton.displayName = 'FloatingActionButton';
 
 // Button Group
+
 export interface ButtonGroupProps {
   children: React.ReactNode;
   className?: string;
   orientation?: 'horizontal' | 'vertical';
   attached?: boolean;
+  centered?: boolean;
 }
 
 export const ButtonGroup = ({
   children,
   className,
   orientation = 'horizontal',
-  attached = false
+  attached = false,
+  centered = false
 }: ButtonGroupProps) => {
   return (
     <div
       className={cn(
         'inline-flex',
         orientation === 'horizontal' ? 'flex-row' : 'flex-col',
+        centered && 'center-button-group',
         attached && orientation === 'horizontal' && '[&>button:not(:first-child)]:rounded-l-none [&>button:not(:last-child)]:rounded-r-none [&>button:not(:first-child)]:-ml-px',
         attached && orientation === 'vertical' && '[&>button:not(:first-child)]:rounded-t-none [&>button:not(:last-child)]:rounded-b-none [&>button:not(:first-child)]:-mt-px',
         !attached && (orientation === 'horizontal' ? 'gap-2' : 'gap-1'),

@@ -144,12 +144,12 @@ export function NotificationTestPanel() {
             actions: [
               {
                 label: 'Update Now',
-                onClick: () => console.log('Update clicked'),
+                onClick: () => {},
                 variant: 'default'
               },
               {
                 label: 'Later',
-                onClick: () => console.log('Later clicked'),
+                onClick: () => {},
                 variant: 'outline'
               }
             ],
@@ -318,12 +318,12 @@ export function NotificationTestPanel() {
             actions: [
               {
                 label: 'Reply',
-                onClick: () => console.log('Reply clicked'),
+                onClick: () => {},
                 variant: 'default'
               },
               {
                 label: 'Mark as Read',
-                onClick: () => console.log('Mark as read clicked'),
+                onClick: () => {},
                 variant: 'outline'
               }
             ]

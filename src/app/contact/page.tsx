@@ -11,7 +11,6 @@ import { Label } from '@/components/ui/label'
 // Memory leak prevention: Timers need cleanup
 // Add cleanup in useEffect return function
 
-
 const ContactPageComponent = function ContactPage() {
   const [formData, setFormData] = useState({
     name: '',
@@ -344,6 +343,5 @@ const ContactPageComponent = function ContactPage() {
     </div>
   )
 }
-
 
 export default memo(ContactPageComponent);

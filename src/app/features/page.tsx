@@ -10,7 +10,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 // Performance optimization needed: Consider memoizing inline event handlers, dynamic classNames
 // Use useMemo for objects/arrays and useCallback for functions
 
-
 const FeaturesPageComponent = function FeaturesPage() {
   const [activeFeature, setActiveFeature] = useState(0)
 
@@ -408,6 +407,5 @@ const FeaturesPageComponent = function FeaturesPage() {
     </div>
   )
 }
-
 
 export default memo(FeaturesPageComponent);

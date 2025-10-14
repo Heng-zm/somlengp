@@ -1137,7 +1137,7 @@ const ProgressiveModal: React.FC<ProgressiveModalProps> = ({
   return (
     <div
       className="progressive-modal-overlay"
-      onClick={closeOnOverlayClick ? onClose : undefined}
+       role="button" tabIndex={0}={closeOnOverlayClick ? onClose : undefined}
       onKeyDown={(e) => e.key === 'Escape' && closeOnEscape && onClose()}
     >
       <ProgressiveFocusManager

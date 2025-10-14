@@ -110,7 +110,7 @@ export class AdvancedErrorBoundary extends Component<ErrorBoundaryProps, ErrorBo
       return;
     }
 
-    console.log(`Retrying... (${retryCount + 1}/${maxRetries})`);
+    `);
 
     this.setState({
       hasError: false,

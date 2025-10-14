@@ -36,7 +36,6 @@ class QRPerformanceMonitor {
       }
       const duration = performance.now() - this.metrics.cameraInitTime;
       if (duration >= 0) {
-        console.log(`QR Camera initialized in ${Math.round(duration)}ms`);
         this.metrics.cameraInitTime = duration;
       } else {
         console.warn('Invalid camera init duration');
@@ -67,7 +66,6 @@ class QRPerformanceMonitor {
       }
       const duration = performance.now() - this.metrics.libraryLoadTime;
       if (duration >= 0) {
-        console.log(`QR Library loaded in ${Math.round(duration)}ms`);
         this.metrics.libraryLoadTime = duration;
       } else {
         console.warn('Invalid library load duration');
@@ -125,12 +123,10 @@ class QRPerformanceMonitor {
       if (this.metrics.scanDuration < 0) {
         this.metrics.scanDuration = 0;
       }
-      console.log(`QR scan completed in ${Math.round(this.metrics.scanDuration)}ms`);
       // Calculate scan rate safely
       const scanRate = this.metrics.scanDuration > 0 
         ? (this.scanAttempts / (this.metrics.scanDuration / 1000))
         : 0;
-      console.log(`Scan rate: ${scanRate.toFixed(1)} attempts/second`);
       // Send to analytics if available
       this.sendAnalytics('qr_scan_success', {
         duration: this.metrics.scanDuration,
@@ -213,7 +209,7 @@ class QRPerformanceMonitor {
       }
       // For now, just log to console in development
       if (process.env.NODE_ENV === 'development') {
-        console.log(`QR Analytics: ${event}`, data);
+        // Analytics logging disabled in production
       }
     } catch (error) {
       errorHandler.handle(error, { 
@@ -247,9 +243,6 @@ class QRPerformanceMonitor {
       if (memoryData.used < 0 || memoryData.total < 0 || memoryData.limit < 0) {
         return null;
       }
-      console.log(`Memory - Used: ${(memoryData.used / 1024 / 1024).toFixed(2)} MB`);
-      console.log(`Memory - Total: ${(memoryData.total / 1024 / 1024).toFixed(2)} MB`);
-      console.log(`Memory - Limit: ${(memoryData.limit / 1024 / 1024).toFixed(2)} MB`);
       return memoryData;
     } catch (error) {
       errorHandler.handle(error, { method: 'recordMemoryUsage' });

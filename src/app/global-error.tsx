@@ -1,9 +1,9 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, memo } from 'react';
 import Link from 'next/link';
 
-export default function GlobalError({
+const GlobalErrorComponent = function GlobalError({
   error,
   reset,
 }: {
@@ -57,3 +57,5 @@ export default function GlobalError({
     </html>
   );
 }
+
+export default memo(GlobalErrorComponent);

@@ -9,7 +9,6 @@ import { cn } from '@/lib/utils';
 // Performance optimization needed: Consider memoizing inline styles
 // Use useMemo for objects/arrays and useCallback for functions
 
-
 interface EnhancedImageProps {
   src: string;
   alt: string;

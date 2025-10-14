@@ -5,7 +5,6 @@ import { AlertContainerAlert } from './alert-utils';
 // Memory leak prevention: Event listeners need cleanup, Timers need cleanup, Observers need cleanup
 // Add cleanup in useEffect return function
 
-
 // Constants for accessibility
 const FOCUS_TRAP_SELECTOR = 'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])';
 const ANNOUNCEMENT_DELAY = 100; // Delay before announcing changes

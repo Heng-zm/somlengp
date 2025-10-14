@@ -121,7 +121,7 @@ export function Loading({
 
   if (showText) {
     return (
-      <div className={cn('flex flex-col items-center gap-3', className)}>
+      <div className={cn('center-card-content gap-3', className)}>
         {renderSpinner()}
         <span className={cn(
           'text-muted-foreground font-medium',
@@ -139,7 +139,7 @@ export function Loading({
 // Specialized loading components
 export function PageLoading({ text = 'Loading page...' }: { text?: string }) {
   return (
-    <div className="flex items-center justify-center min-h-[400px]">
+    <div className="center-loading">
       <Loading variant="spinner" size="lg" showText text={text} />
     </div>
   );
@@ -151,7 +151,7 @@ export function ButtonLoading({ size = 'sm' }: { size?: 'sm' | 'md' | 'lg' }) {
 
 export function InlineLoading({ text }: { text?: string }) {
   return (
-    <div className="flex items-center gap-2">
+    <div className="center-y gap-2">
       <Loading variant="dots" size="sm" />
       {text && <span className="text-sm text-muted-foreground">{text}</span>}
     </div>
@@ -187,8 +187,8 @@ export function LoadingOverlay({
   if (!show) return null;
 
   return (
-    <div className="fixed inset-0 bg-background/80 backdrop-blur-sm z-50 flex items-center justify-center">
-      <div className="bg-card p-6 rounded-lg shadow-lg border">
+    <div className="center-backdrop">
+      <div className="bg-card p-6 rounded-lg shadow-lg border center-card-content">
         <Loading variant={variant} size="lg" showText text={text} />
       </div>
     </div>

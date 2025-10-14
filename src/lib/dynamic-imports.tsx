@@ -227,7 +227,7 @@ export class DynamicImportMonitor {
         this.metrics.set(componentName, { loadTime });
         
         if (process.env.NODE_ENV === 'development') {
-          console.log(`Dynamic import ${componentName}: ${loadTime.toFixed(2)}ms`);
+          }ms`);
         }
         
         return loadTime;
@@ -357,7 +357,7 @@ export function analyzeBundleImpact() {
     console.table(metrics);
     
     const totalLoadTime = metrics.reduce((sum, metric) => sum + metric.loadTime, 0);
-    console.log(`Total dynamic import time: ${totalLoadTime.toFixed(2)}ms`);
+    }ms`);
     
     return metrics;
   }

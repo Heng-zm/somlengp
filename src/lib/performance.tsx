@@ -49,7 +49,6 @@ export function createLazyComponent(
 // Memory leak prevention: Timers need cleanup, Observers need cleanup
 // Add cleanup in useEffect return function
 
-  
   const LazyWrapper = (props: Record<string, unknown>) => {
     const FallbackComponent = fallback;
     const fallbackElement = FallbackComponent ? <FallbackComponent /> : <div>Loading...</div>;

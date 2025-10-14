@@ -2,7 +2,6 @@
 
 import { useMemo, useState, useCallback, useContext, memo } from 'react';
 
-
 import Link from 'next/link';
 import { 
     History as HistoryIcon, 
@@ -485,6 +484,5 @@ const HistoryPageComponent = function HistoryPage() {
         </FeaturePageLayout>
     );
 }
-
 
 export default memo(HistoryPageComponent);

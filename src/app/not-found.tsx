@@ -5,7 +5,6 @@ import { Button } from '@/components/ui/button'
 // Performance optimization needed: Consider memoizing inline event handlers
 // Use useMemo for objects/arrays and useCallback for functions
 
-
 export default function NotFound() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 flex items-center justify-center px-4 sm:px-6 lg:px-8">

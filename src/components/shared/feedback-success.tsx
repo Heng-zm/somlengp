@@ -6,7 +6,6 @@ import { Button } from '@/components/ui/button';
 // Memory leak prevention: Timers need cleanup
 // Add cleanup in useEffect return function
 
-
 interface FeedbackSuccessProps {
   message: string;
   onAnimationEnd: () => void;

@@ -6,7 +6,6 @@ import { Button } from "@/components/ui/button"
 // Memory leak prevention: Timers need cleanup
 // Add cleanup in useEffect return function
 
-
 const buttonNotificationVariants = cva(
   "inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-medium transition-all duration-300 ease-in-out shadow-sm hover:shadow-md focus:outline-none focus:ring-2 focus:ring-offset-2 max-w-fit",
   {

@@ -22,7 +22,6 @@ interface HomeHeaderProps {
   onLanguageToggle: () => void;
 }
 
-
 // Memoized visitor count display
 const VisitorCount = memo(function VisitorCount({ count }: { count: number | null }) {
   if (count === null) {

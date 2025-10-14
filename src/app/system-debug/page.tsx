@@ -11,7 +11,6 @@ import { AlertCircle, CheckCircle2, XCircle, User, MessageCircle, Settings } fro
 // Performance optimization needed: Consider memoizing inline event handlers
 // Use useMemo for objects/arrays and useCallback for functions
 
-
 const SystemDebugPageComponent = function SystemDebugPage() {
   const [testResults, setTestResults] = useState<Record<string, 'pending' | 'success' | 'error'>>({});
   const [errorMessages, setErrorMessages] = useState<Record<string, string>>({});
@@ -188,6 +187,5 @@ const SystemDebugPageComponent = function SystemDebugPage() {
     </div>
   );
 }
-
 
 export default memo(SystemDebugPageComponent);

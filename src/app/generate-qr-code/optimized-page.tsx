@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useRef, useCallback, useMemo, useEffect, Suspense } from 'react';
+import React, { useState, useRef, useCallback, useMemo, useEffect, Suspense , memo} from 'react';
 import dynamic from 'next/dynamic';
 import Image from 'next/image';
 import { 
@@ -128,7 +128,7 @@ interface SavedQRCode {
   favorite: boolean;
 }
 
-export default function OptimizedQRCodeGenerator() {
+const OptimizedQRCodeGeneratorComponent = function OptimizedQRCodeGenerator() {
   // Core state
   const [inputText, setInputText] = useState('');
   const [selectedTemplate, setSelectedTemplate] = useState('text');
@@ -883,7 +883,7 @@ export default function OptimizedQRCodeGenerator() {
                               ? 'border-blue-500 bg-blue-50'
                               : 'border-gray-200 hover:border-gray-300'
                           }`}
-                          onClick={() => selectTemplate(template.id)}
+                           role="button" tabIndex={0}={() => selectTemplate(template.id)}
                         >
                           <div className="text-3xl mb-2">{template.icon}</div>
                           <h3 className="font-semibold mb-1">{template.name}</h3>
@@ -1159,3 +1159,5 @@ export default function OptimizedQRCodeGenerator() {
     </FeaturePageLayout>
   );
 }
+
+export default memo(OptimizedQRCodeGeneratorComponent);

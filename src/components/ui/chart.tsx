@@ -9,7 +9,6 @@ import { cn } from "@/lib/utils"
 // Performance optimization needed: Consider memoizing inline styles
 // Use useMemo for objects/arrays and useCallback for functions
 
-
 // Format: { THEME_NAME: CSS_SELECTOR }
 const THEMES = { light: "", dark: ".dark" } as const
 

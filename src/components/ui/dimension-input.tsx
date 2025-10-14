@@ -21,7 +21,6 @@ import { Ruler, ArrowLeftRight, Link2 } from 'lucide-react';
 // Performance optimization needed: Consider memoizing inline event handlers, dynamic classNames
 // Use useMemo for objects/arrays and useCallback for functions
 
-
 interface DimensionInputProps {
   label?: string;
   value: Dimension;

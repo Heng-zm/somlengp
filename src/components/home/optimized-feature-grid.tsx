@@ -12,7 +12,6 @@ import { useIntersectionObserver } from '@/lib/performance';
 // Memory leak prevention: Observers need cleanup
 // Add cleanup in useEffect return function
 
-
 interface FeatureCardData {
   href?: string;
   action?: () => void;
@@ -53,19 +52,19 @@ const PrimaryFeatureCard = memo(function PrimaryFeatureCard({
       "transform-gpu", // Force GPU acceleration
       isVisible ? "opacity-100" : "opacity-50"
     )}>
-      <div className="flex flex-col sm:flex-row items-start gap-6">
-        <div className="p-4 bg-primary/20 rounded-xl w-fit border border-primary/30 will-change-transform">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center gap-6">
+        <div className="center-icon p-4 bg-primary/20 rounded-xl border border-primary/30 will-change-transform">
           <Icon className="w-8 h-8 text-primary" />
         </div>
-        <div className="flex-grow">
+        <div className="flex-grow text-center sm:text-left">
           <h2 className="text-3xl font-bold">{title}</h2>
-          <p className="text-muted-foreground mt-2 max-w-lg">{description}</p>
+          <p className="text-muted-foreground mt-2 max-w-lg mx-auto sm:mx-0">{description}</p>
         </div>
       </div>
-      <div className="flex justify-end mt-6">
+      <div className="center-x sm:flex sm:justify-end mt-6">
         <Button 
           variant="default" 
-          className="group-hover:bg-primary/90 will-change-transform"
+          className="group-hover:bg-primary/90 will-change-transform center-button"
         >
           {startNowText}
           <ArrowRight className="ml-2 transition-transform group-hover:translate-x-1 will-change-transform" />
@@ -130,7 +129,7 @@ const OptimizedFeatureCard = memo(function OptimizedFeatureCard({
       aria-label={action ? `${title} - ${description}` : undefined}
       onKeyDown={action ? (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); action(); } } : undefined}
     >
-      <div className="p-3 bg-secondary rounded-lg border motion-safe:will-change-transform">
+      <div className="center-icon p-3 bg-secondary rounded-lg border motion-safe:will-change-transform">
         <Icon className="w-6 h-6 text-primary motion-safe:transition-colors motion-safe:group-hover:text-primary" />
       </div>
       <div className="flex-grow">
@@ -260,9 +259,11 @@ export const OptimizedFeatureGrid = memo(function OptimizedFeatureGrid({
       
       {/* Other Features */}
       <div className="space-y-6">
-        <h3 className="text-xl sm:text-2xl font-semibold px-2 text-center sm:text-left">
-          {otherToolsText}
-        </h3>
+        <div className="center-x sm:text-left">
+          <h3 className="text-xl sm:text-2xl font-semibold px-2">
+            {otherToolsText}
+          </h3>
+        </div>
         <VirtualFeatureGrid 
           features={otherFeatures}
           className="min-h-[300px]"

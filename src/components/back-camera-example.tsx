@@ -10,7 +10,6 @@ import { useBackCamera } from '@/hooks/use-camera-permission';
 // Performance optimization needed: Consider memoizing inline styles, inline event handlers, dynamic classNames
 // Use useMemo for objects/arrays and useCallback for functions
 
-
 export function BackCameraExample() {
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);

@@ -21,7 +21,6 @@ export type TranscribeAudioOutput = z.infer<
   typeof TranscribeAudioOutputSchema
 >;
 
-
 // Comment Types
 export interface Comment {
   id: string;

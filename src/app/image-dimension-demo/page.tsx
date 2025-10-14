@@ -46,6 +46,8 @@ const ImageDimensionDemoComponent = function ImageDimensionDemo() {
               <div className="space-y-4">
                 <div 
                   className="border-2 border-dashed border-gray-600 rounded-lg p-8 text-center hover:border-gray-500 transition-colors cursor-pointer"
+                  role="button" 
+                  tabIndex={0}
                   onClick={() => fileInputRef.current?.click()}
                 >
                   {imagePreview ? (
@@ -237,6 +239,5 @@ const ImageDimensionDemoComponent = function ImageDimensionDemo() {
     </div>
   );
 }
-
 
 export default memo(ImageDimensionDemoComponent);

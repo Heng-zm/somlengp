@@ -105,7 +105,6 @@ export function SoundsPage() {
     clearFile();
   }, [t, toast]);
 
-  
   const handleRetranscribe = useCallback(async () => {
     if (!audioFile) return;
   
@@ -223,7 +222,6 @@ export function SoundsPage() {
         setIsRatingOpen(true);
     }
   }, [editedTranscript, exportFormat, structuredTranscript, toast, wordsPerSecond]);
-  
 
   const isReadyForContent = !isTranscribing && structuredTranscript.length > 0;
 

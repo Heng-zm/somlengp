@@ -96,5 +96,4 @@ const OTPTestPageComponent = function OTPTestPage() {
   );
 }
 
-
 export default memo(OTPTestPageComponent);

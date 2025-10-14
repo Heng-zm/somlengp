@@ -40,7 +40,6 @@ import { formatTotalFileSize } from '@/lib/format-file-size';
 // Performance optimization needed: Consider memoizing inline event handlers
 // Use useMemo for objects/arrays and useCallback for functions
 
-
 type TargetFormat = 'jpeg' | 'png' | 'webp' | 'bmp' | 'gif' | 'avif';
 
 // Move inline styles outside component to prevent re-renders

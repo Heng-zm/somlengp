@@ -415,7 +415,7 @@ export const GmailProfileCard = memo(function GmailProfileCard({
         "bg-white dark:bg-gray-900 hover:bg-gray-50 dark:hover:bg-gray-800",
         "hover:shadow-md transition-all duration-200 ease-out",
         className
-      )} onClick={onClick}>
+      )} onClick={onClick} role="button" tabIndex={0}>
         <div className="flex items-center space-x-3">
           <Avatar className="h-10 w-10 ring-2 ring-gray-200/50 dark:ring-gray-700/50 group-hover:ring-blue-400/50 transition-all duration-200">
             <AvatarImage src={profile.avatar} alt={profile.name} className="object-cover" />

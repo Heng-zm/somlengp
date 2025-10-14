@@ -81,8 +81,8 @@ const alertExamples = [
     dismissible: true,
     autoClose: true,
     actions: [
-      { label: 'Learn More', onClick: () => console.log('Learn More clicked'), variant: 'outline' as const },
-      { label: 'Got it', onClick: () => console.log('Got it clicked'), variant: 'default' as const }
+      { label: 'Learn More', onClick: () => , variant: 'outline' as const },
+      { label: 'Got it', onClick: () => , variant: 'default' as const }
     ]
   },
   {
@@ -100,7 +100,7 @@ const alertExamples = [
     description: 'This feature is available for premium users only.',
     dismissible: false,
     actions: [
-      { label: 'Upgrade', onClick: () => console.log('Upgrade clicked'), variant: 'default' as const }
+      { label: 'Upgrade', onClick: () => , variant: 'default' as const }
     ]
   },
   {
@@ -437,7 +437,7 @@ export function AlertShowcase() {
             playSound={soundEnabled}
             soundType="notification"
             actions={[
-              { label: 'Play Sound', onClick: () => console.log('Play sound clicked'), variant: 'default' as const }
+              { label: 'Play Sound', onClick: () => , variant: 'default' as const }
             ]}
           >
             <Volume2 className="h-4 w-4" />

@@ -169,5 +169,4 @@ const HomePageComponent = function HomePage() {
   );
 }
 
-
 export default memo(HomePageComponent);

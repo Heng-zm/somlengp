@@ -212,7 +212,7 @@ function scanQRCodeEnhanced(imageData: ImageData, options: QRScanOptions = {}): 
     // Log performance metrics periodically
     if (scanCount % 30 === 0) {
       const averageTime = totalProcessingTime / scanCount;
-      console.log(`QR Scanner performance: ${averageTime.toFixed(2)}ms average, ${scanCount} scans`);
+      // Performance logging disabled in worker
     }
     return {
       qrCode: result ? {

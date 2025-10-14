@@ -8,7 +8,6 @@ import { showSuccessToast, showErrorToast } from '@/lib/toast-utils';
 // Performance optimization needed: Consider memoizing inline event handlers
 // Use useMemo for objects/arrays and useCallback for functions
 
-
 interface QRScannerSheetProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;

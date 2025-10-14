@@ -5,7 +5,6 @@ import { supabaseClient } from '@/lib/supabase';
 // Performance optimization needed: Consider memoizing dynamic classNames
 // Use useMemo for objects/arrays and useCallback for functions
 
-
 const TestFirebasePageComponent = function TestSupabasePage() {
   const [status, setStatus] = useState({
     auth: 'checking...',

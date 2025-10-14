@@ -70,8 +70,7 @@ const FirebaseTestPageComponent = function SupabaseTestPage() {
       if (error && !error.message.includes('session_not_found')) {
         throw error;
       }
-      
-      console.log('✅ Supabase connection test successful');
+
     } catch (error) {
       console.error('❌ Supabase connection failed:', error);
     }

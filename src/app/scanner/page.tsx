@@ -160,5 +160,4 @@ const ScannerTestPageComponent = function ScannerTestPage() {
   );
 }
 
-
 export default memo(ScannerTestPageComponent);

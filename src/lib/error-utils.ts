@@ -895,3 +895,12 @@ export class RateLimiter {
 export const defaultCircuitBreaker = new CircuitBreaker();
 export const defaultOperationQueue = new OperationQueue();
 export const defaultRateLimiter = new RateLimiter();
+
+
+// TODO: Memory leak fix needed - Add cleanup for event listeners:
+// useEffect(() => {
+//   const cleanup = () => {
+//     // Add removeEventListener calls here
+//   };
+//   return cleanup;
+// }, []);

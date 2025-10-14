@@ -52,8 +52,7 @@ function initializeSupabase(): SupabaseClient<Database> {
           },
         },
       });
-      
-      console.log('✅ Supabase initialized successfully');
+
     } catch (error) {
       console.error('❌ Failed to initialize Supabase:', error);
       throw error;
@@ -90,7 +89,5 @@ export function getSupabaseStatus(): {
     hasAnonKey: !!supabaseAnonKey,
   };
 }
-
-
 
 export default supabaseClient;

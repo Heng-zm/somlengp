@@ -8,7 +8,6 @@ import { cn } from "@/lib/utils"
 // Performance optimization needed: Consider memoizing inline styles
 // Use useMemo for objects/arrays and useCallback for functions
 
-
 // Advanced Toast Variants with new styles
 const advancedToastVariants = cva(
   "group pointer-events-auto relative flex w-full items-center justify-between space-x-4 overflow-hidden rounded-2xl border px-6 py-4 shadow-2xl backdrop-blur-xl transition-all duration-500 ease-out data-[swipe=cancel]:translate-x-0 data-[swipe=end]:translate-x-[var(--radix-toast-swipe-end-x)] data-[swipe=move]:translate-x-[var(--radix-toast-swipe-move-x)] data-[swipe=move]:transition-none data-[state=open]:animate-in data-[state=closed]:animate-out data-[swipe=end]:animate-out hover:scale-[1.02] active:scale-[0.98] transform-gpu",

@@ -13,7 +13,6 @@ import { DPIPreset, DPI_PRESETS, getDPIPresetsByCategory } from '@/lib/physical-
 // Performance optimization needed: Consider memoizing inline event handlers, dynamic classNames
 // Use useMemo for objects/arrays and useCallback for functions
 
-
 interface DPIInputProps {
   value: number;
   onChange: (dpi: number) => void;

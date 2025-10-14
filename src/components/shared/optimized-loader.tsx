@@ -6,7 +6,6 @@ import { Skeleton } from '@/components/ui/skeleton';
 // Performance optimization needed: Consider memoizing dynamic classNames
 // Use useMemo for objects/arrays and useCallback for functions
 
-
 interface OptimizedLoaderProps {
   variant?: 'dots' | 'skeleton' | 'spinner';
   size?: 'sm' | 'md' | 'lg';

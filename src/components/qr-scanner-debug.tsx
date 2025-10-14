@@ -86,7 +86,7 @@ export function QRScannerDebug() {
   }, [stopDebugMonitoring]);
 
   const handleScanSuccess = useCallback((data: string) => {
-    console.log('✅ QR Code scanned successfully:', data);
+    
     alert(`QR Code detected: ${data}`);
   }, []);
 

@@ -9,7 +9,6 @@ import { Button } from './button'
 // Performance optimization needed: Consider memoizing inline event handlers
 // Use useMemo for objects/arrays and useCallback for functions
 
-
 // Demo 1: All Status Types Display
 export function AllStatusDisplay() {
   return (

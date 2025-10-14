@@ -8,7 +8,6 @@ import { commentUtils } from '@/lib/comment-cache';
 // Performance optimization needed: Consider memoizing inline styles, inline event handlers, dynamic classNames
 // Use useMemo for objects/arrays and useCallback for functions
 
-
 // Note: CommentEditor is available in ./comment-editor but not used in this component
 
 // Memoized comment vote buttons to prevent unnecessary re-renders

@@ -7,7 +7,6 @@ import { useMemo, useRef, useEffect, useState, useCallback } from 'react';
 // Performance optimization needed: Consider memoizing inline styles, dynamic classNames
 // Use useMemo for objects/arrays and useCallback for functions
 
-
 interface VirtualGridProps<T> {
   items: T[];
   renderItem: (item: T, index: number) => React.ReactNode;

@@ -24,7 +24,6 @@ const TranscribeAudioInputSchema = z.object({
 });
 export type TranscribeAudioInput = z.infer<typeof TranscribeAudioInputSchema>;
 
-
 export async function transcribeAudio(input: TranscribeAudioInput): Promise<TranscribeAudioOutput> {
   return transcribeAudioFlow(input);
 }

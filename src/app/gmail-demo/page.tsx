@@ -125,16 +125,16 @@ const GmailDemoPageComponent = function GmailDemoPage() {
     );
   };
   const handleEmailStar = (emailId: string) => {
-    console.log('Star email:', emailId);
+    
   };
   const handleEmailArchive = (emailId: string) => {
-    console.log('Archive email:', emailId);
+    
   };
   const handleEmailDelete = (emailId: string) => {
-    console.log('Delete email:', emailId);
+    
   };
   const handleCompose = () => {
-    console.log('Compose new email');
+    
   };
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
@@ -219,13 +219,13 @@ const GmailDemoPageComponent = function GmailDemoPage() {
                 </CardHeader>
                 <CardContent className="p-0 space-y-4">
                   <GmailNavigation.GmailTopNav
-                    onSearch={(query) => console.log('Search:', query)}
+                    onSearch={(query) => {}}
                   />
                   <GmailNavigation.GmailToolbar
                     selectedCount={2}
-                    onRefresh={() => console.log('Refresh')}
-                    onArchive={() => console.log('Archive')}
-                    onDelete={() => console.log('Delete')}
+                    onRefresh={() => {}}
+                    onArchive={() => {}}
+                    onDelete={() => {}}
                   />
                 </CardContent>
               </Card>
@@ -243,8 +243,8 @@ const GmailDemoPageComponent = function GmailDemoPage() {
                   <GmailUserProfiles.GmailProfileHeader
                     profile={sampleProfile}
                     isOwnProfile={false}
-                    onMessage={() => console.log('Send message')}
-                    onFollow={() => console.log('Follow user')}
+                    onMessage={() => {}}
+                    onFollow={() => {}}
                   />
                 </CardContent>
               </Card>
@@ -257,7 +257,7 @@ const GmailDemoPageComponent = function GmailDemoPage() {
                   profile={sampleProfile}
                   variant="detailed"
                   showStats={true}
-                  onClick={() => console.log('Profile clicked')}
+                  onClick={() => {}}
                 />
               </div>
             </div>
@@ -334,7 +334,7 @@ const GmailDemoPageComponent = function GmailDemoPage() {
                       user={user}
                       variant="detailed"
                       showActions={true}
-                      onClick={() => console.log('User card clicked')}
+                      onClick={() => {}}
                     />
                   ))}
                 </div>
@@ -347,7 +347,7 @@ const GmailDemoPageComponent = function GmailDemoPage() {
                       key={user.id}
                       user={user}
                       variant="compact"
-                      onClick={() => console.log('Compact user clicked')}
+                      onClick={() => {}}
                     />
                   ))}
                 </div>
@@ -358,18 +358,18 @@ const GmailDemoPageComponent = function GmailDemoPage() {
                   <GmailUserProfiles.GmailProfileCard
                     profile={sampleProfile}
                     variant="minimal"
-                    onClick={() => console.log('Minimal profile clicked')}
+                    onClick={() => {}}
                   />
                   <GmailUserProfiles.GmailProfileCard
                     profile={sampleProfile}
                     variant="compact"
-                    onClick={() => console.log('Compact profile clicked')}
+                    onClick={() => {}}
                   />
                   <GmailUserProfiles.GmailProfileCard
                     profile={sampleProfile}
                     variant="detailed"
                     showStats={true}
-                    onClick={() => console.log('Detailed profile clicked')}
+                    onClick={() => {}}
                   />
                 </div>
               </div>
@@ -419,6 +419,5 @@ const GmailDemoPageComponent = function GmailDemoPage() {
     </div>
   );
 }
-
 
 export default memo(GmailDemoPageComponent);

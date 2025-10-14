@@ -376,3 +376,12 @@ if (typeof window !== 'undefined' && process.env.NODE_ENV === 'production') {
   getServiceWorkerManager();
 }
 export { ServiceWorkerManager, type ServiceWorkerConfig, type SwPerformanceData, type SwMessage };
+
+
+// TODO: Memory leak fix needed - Add cleanup for event listeners:
+// useEffect(() => {
+//   const cleanup = () => {
+//     // Add removeEventListener calls here
+//   };
+//   return cleanup;
+// }, []);

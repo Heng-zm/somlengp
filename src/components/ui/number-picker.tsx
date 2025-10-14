@@ -6,7 +6,6 @@ import React, { useEffect, useRef, useState } from "react";
 // Performance optimization needed: Consider memoizing inline event handlers
 // Use useMemo for objects/arrays and useCallback for functions
 
-
 interface NumberPickerProps {
   min?: number;
   max?: number;
@@ -118,7 +117,7 @@ export const NumberPicker = React.memo<NumberPickerProps>(function NumberPicker(
           <div
             key={num}
             data-value={num}
-            onClick={() => handleClick(num)}
+             role="button" tabIndex={0} onClick={() => handleClick(num)}
             className={cn(
                 "snap-center shrink-0 w-16 h-16 flex items-center justify-center text-4xl font-bold transition-all duration-150 ease-in-out cursor-pointer",
                 internalValue === num ? "text-primary scale-100" : "text-muted-foreground/30 scale-75"

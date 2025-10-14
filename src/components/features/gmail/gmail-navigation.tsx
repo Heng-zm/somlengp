@@ -523,6 +523,8 @@ export const GmailLayout = memo(function GmailLayout({
       {isMobileMenuOpen && (
         <div
           className="fixed inset-0 z-40 bg-black/50 md:hidden"
+          role="button" 
+          tabIndex={0}
           onClick={() => setIsMobileMenuOpen(false)}
         />
       )}

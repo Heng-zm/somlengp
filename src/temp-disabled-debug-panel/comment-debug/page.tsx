@@ -11,7 +11,6 @@ import { AlertCircle, CheckCircle2, XCircle, User, MessageCircle } from 'lucide-
 // Performance optimization needed: Consider memoizing inline event handlers
 // Use useMemo for objects/arrays and useCallback for functions
 
-
 const CommentDebugPageComponent = function CommentDebugPage() {
   const [testResults, setTestResults] = useState<Record<string, 'pending' | 'success' | 'error'>>({});
   const [errorMessages, setErrorMessages] = useState<Record<string, string>>({});
@@ -251,6 +250,5 @@ const CommentDebugPageComponent = function CommentDebugPage() {
     </div>
   );
 }
-
 
 export default memo(CommentDebugPageComponent);

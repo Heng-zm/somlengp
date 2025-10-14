@@ -4,7 +4,6 @@ import React, { useState, useEffect } from 'react';
 // Performance optimization needed: Consider memoizing inline styles, inline event handlers, dynamic classNames
 // Use useMemo for objects/arrays and useCallback for functions
 
-
 interface ImageDimensionPanelProps {
   imageFile?: File | null;
   onDimensionsChange?: (dimensions: ImageDimensions) => void;

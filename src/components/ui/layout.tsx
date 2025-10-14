@@ -412,20 +412,44 @@ Inline.displayName = 'Inline';
 export interface CenterProps extends HTMLAttributes<HTMLDivElement> {
   axis?: 'both' | 'horizontal' | 'vertical';
   as?: ElementType;
+  variant?: 'default' | 'full' | 'viewport' | 'modal' | 'loading' | 'hero';
+  size?: 'sm' | 'md' | 'lg' | 'xl' | 'full';
 }
 
 export const Center = forwardRef<HTMLDivElement, CenterProps>(
-  ({ className, axis = 'both', as: Component = 'div', ...props }, ref) => {
+  ({ className, axis = 'both', variant = 'default', size = 'md', as: Component = 'div', ...props }, ref) => {
     const centerClasses = {
       both: 'flex items-center justify-center',
       horizontal: 'flex justify-center',
       vertical: 'flex items-center'
     };
 
+    const variantClasses = {
+      default: '',
+      full: 'center-full',
+      viewport: 'center-viewport', 
+      modal: 'center-modal',
+      loading: 'center-loading',
+      hero: 'center-hero'
+    };
+
+    const sizeClasses = {
+      sm: 'max-w-sm mx-auto',
+      md: 'max-w-md mx-auto',
+      lg: 'max-w-lg mx-auto',
+      xl: 'max-w-xl mx-auto',
+      full: 'w-full'
+    };
+
     return (
       <Component
         ref={ref}
-        className={cn(centerClasses[axis], className)}
+        className={cn(
+          centerClasses[axis],
+          variantClasses[variant],
+          variant === 'default' && sizeClasses[size],
+          className
+        )}
         {...props}
       />
     );
@@ -433,6 +457,94 @@ export const Center = forwardRef<HTMLDivElement, CenterProps>(
 );
 
 Center.displayName = 'Center';
+
+// ============================================================================
+// SPECIALIZED CENTER COMPONENTS
+// ============================================================================
+
+// Perfect center for login/auth pages
+export interface AuthCenterProps extends HTMLAttributes<HTMLDivElement> {
+  as?: ElementType;
+}
+
+export const AuthCenter = forwardRef<HTMLDivElement, AuthCenterProps>(
+  ({ className, as: Component = 'div', ...props }, ref) => {
+    return (
+      <Component
+        ref={ref}
+        className={cn('center-safe center-form-lg', className)}
+        {...props}
+      />
+    );
+  }
+);
+
+AuthCenter.displayName = 'AuthCenter';
+
+// Perfect center for loading states
+export interface LoadingCenterProps extends HTMLAttributes<HTMLDivElement> {
+  as?: ElementType;
+  fullScreen?: boolean;
+}
+
+export const LoadingCenter = forwardRef<HTMLDivElement, LoadingCenterProps>(
+  ({ className, fullScreen = false, as: Component = 'div', ...props }, ref) => {
+    return (
+      <Component
+        ref={ref}
+        className={cn(
+          fullScreen ? 'center-loading-full' : 'center-loading',
+          className
+        )}
+        {...props}
+      />
+    );
+  }
+);
+
+LoadingCenter.displayName = 'LoadingCenter';
+
+// Perfect center for modal/dialog content
+export interface ModalCenterProps extends HTMLAttributes<HTMLDivElement> {
+  as?: ElementType;
+}
+
+export const ModalCenter = forwardRef<HTMLDivElement, ModalCenterProps>(
+  ({ className, as: Component = 'div', ...props }, ref) => {
+    return (
+      <Component
+        ref={ref}
+        className={cn('center-modal', className)}
+        {...props}
+      />
+    );
+  }
+);
+
+ModalCenter.displayName = 'ModalCenter';
+
+// Perfect center for hero sections
+export interface HeroCenterProps extends HTMLAttributes<HTMLDivElement> {
+  as?: ElementType;
+  fullScreen?: boolean;
+}
+
+export const HeroCenter = forwardRef<HTMLDivElement, HeroCenterProps>(
+  ({ className, fullScreen = false, as: Component = 'div', ...props }, ref) => {
+    return (
+      <Component
+        ref={ref}
+        className={cn(
+          fullScreen ? 'center-hero-full' : 'center-hero',
+          className
+        )}
+        {...props}
+      />
+    );
+  }
+);
+
+HeroCenter.displayName = 'HeroCenter';
 
 // ============================================================================
 // ASPECT RATIO COMPONENT
@@ -627,6 +739,10 @@ export const Layout = {
   Stack,
   Inline,
   Center,
+  AuthCenter,
+  LoadingCenter,
+  ModalCenter,
+  HeroCenter,
   AspectRatio,
   Spacer,
   Divider,

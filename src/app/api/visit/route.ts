@@ -89,7 +89,6 @@ async function incrementCount(): Promise<number> {
   return currentCount + Math.floor(Math.random() * 5) + 1; // Increment by 1-5
 }
 
-
 export async function POST(request: Request) {
   try {
     const ip = getClientIP(request);

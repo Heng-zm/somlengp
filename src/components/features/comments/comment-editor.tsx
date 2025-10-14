@@ -9,7 +9,6 @@ import { CommentFormattingOption } from '@/types/comment-types';
 // Memory leak prevention: Timers need cleanup
 // Add cleanup in useEffect return function
 
-
 interface CommentEditorProps {
   placeholder?: string;
   onSubmit: (content: string, parentId?: string) => void;

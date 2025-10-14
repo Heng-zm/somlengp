@@ -22,7 +22,6 @@ import { ThreeDotsLoader } from './three-dots-loader';
 // Performance optimization needed: Consider memoizing inline event handlers
 // Use useMemo for objects/arrays and useCallback for functions
 
-
 interface RatingDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;

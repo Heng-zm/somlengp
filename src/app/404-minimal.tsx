@@ -4,7 +4,6 @@ import Link from 'next/link'
 // Performance optimization needed: Consider memoizing inline event handlers
 // Use useMemo for objects/arrays and useCallback for functions
 
-
 export default function MinimalNotFound() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-white">

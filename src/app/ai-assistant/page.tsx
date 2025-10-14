@@ -101,7 +101,6 @@ interface CodeBlockProps {
   isUser: boolean;
 }
 
-
 interface MessageComponentProps {
   message: Message;
 }

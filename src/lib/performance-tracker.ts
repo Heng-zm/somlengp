@@ -195,7 +195,7 @@ class PerformanceTracker implements IPerformanceTracker {
     if (process.env.NODE_ENV === 'development') {
       const color = this.getVitalColor(vital);
       console.log(
-        `%c${vital.name}: ${Math.round(vital.value * 100) / 100}ms`,
+        `🎯 ${vital.name}: ${Math.round(vital.value / 100)}ms`,
         `color: ${color}; font-weight: bold;`
       );
     }
@@ -296,3 +296,12 @@ export function getPerformanceTracker(): IPerformanceTracker {
   return performanceTracker;
 }
 export { PerformanceTracker };
+
+
+// TODO: Memory leak fix needed - Add cleanup for event listeners:
+// useEffect(() => {
+//   const cleanup = () => {
+//     // Add removeEventListener calls here
+//   };
+//   return cleanup;
+// }, []);

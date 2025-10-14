@@ -8,7 +8,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 // Performance optimization needed: Consider memoizing inline event handlers, dynamic classNames
 // Use useMemo for objects/arrays and useCallback for functions
 
-
 export function CameraDebug() {
   const [debugInfo, setDebugInfo] = useState('');
   const videoRef = useRef<HTMLVideoElement>(null);

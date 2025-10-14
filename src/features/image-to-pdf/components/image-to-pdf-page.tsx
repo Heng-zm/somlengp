@@ -17,7 +17,6 @@ import { formatTotalFileSize } from '@/lib/format-file-size';
 // Performance optimization needed: Consider memoizing inline event handlers
 // Use useMemo for objects/arrays and useCallback for functions
 
-
 const blobToBase64 = (blob: Blob): Promise<string> => {
     return new Promise((resolve, reject) => {
         const reader = new FileReader();
@@ -43,7 +42,6 @@ const dataUriToBlob = (dataUri: string): Blob => {
     }
     return new Blob([ab], { type: mimeString });
 }
-
 
 const imageObjectFitStyle = { objectFit: 'cover' as const };
 

@@ -147,7 +147,6 @@ async function exportToDocx(text: string): Promise<Blob> {
     return await Packer.toBlob(doc);
 }
 
-
 function downloadFile(content: string | Blob, filename: string, mimeType: string): void {
     const blob = content instanceof Blob ? content : new Blob([content], { type: mimeType });
     const url = URL.createObjectURL(blob);

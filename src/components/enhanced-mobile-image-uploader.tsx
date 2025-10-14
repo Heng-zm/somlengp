@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useRef, useCallback, useEffect, useMemo } from 'react';
+import React, { useState, useRef, useCallback, useEffect, useMemo , memo} from 'react';
 import { Upload, X, Plus, Grid, List, Eye, Download, Share2, RotateCw, Trash2, FileImage, AlertCircle, CheckCircle, Info, Maximize2, Minimize2 } from 'lucide-react' // TODO: Consider importing icons individually for better tree shaking;
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -20,7 +20,6 @@ import { Sheet, SheetContent, SheetDescription, SheetFooter, SheetHeader, SheetT
 
 // Performance optimization needed: Consider memoizing inline event handlers, dynamic classNames
 // Use useMemo for objects/arrays and useCallback for functions
-
 
 interface ImageFile {
   id: string;
@@ -58,7 +57,7 @@ const SUPPORTED_FORMATS = ['image/jpeg', 'image/png', 'image/webp'];
 const MAX_FILE_SIZE_MB = 10;
 const TOUCH_THRESHOLD = 10; // pixels for touch gesture recognition
 
-export default function EnhancedMobileImageUploader({
+const EnhancedMobileImageUploaderComponent = function EnhancedMobileImageUploader({
   onImagesProcessed,
   maxFiles = 10,
   maxFileSize = MAX_FILE_SIZE_MB,
@@ -814,7 +813,7 @@ export default function EnhancedMobileImageUploader({
                 {/* Image preview */}
                 <div className="aspect-video bg-muted rounded-lg overflow-hidden">
                   <img
-                    src={images.find(img => img.id === selectedImage)?.preview}
+                    src={images.find(img = alt=""> img.id === selectedImage)?.preview}
                     alt="Preview"
                     className="w-full h-full object-contain"
                   />
@@ -858,3 +857,5 @@ export default function EnhancedMobileImageUploader({
     </div>
   );
 }
+
+export default memo(EnhancedMobileImageUploaderComponent);

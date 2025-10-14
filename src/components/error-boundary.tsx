@@ -172,7 +172,7 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
     const { error, errorId } = this.state;
     if (!error || !errorId) return;
     // This would integrate with your error reporting service
-    console.log('Reporting error:', { error, errorId });
+    
     // Could integrate with services like Sentry, LogRocket, etc.
     // Example: Sentry.captureException(error, { extra: { errorId } });
   };

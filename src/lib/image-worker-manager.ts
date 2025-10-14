@@ -684,7 +684,7 @@ export class ImageWorkerManager {
     try {
       while (this.retryAttempts < this.maxRetryAttempts && !this.isInitialized) {
         this.retryAttempts++;
-        console.log(`Worker recovery attempt ${this.retryAttempts}/${this.maxRetryAttempts}`);
+        
         // Wait before retry (exponential backoff)
         const delay = this.retryDelayMs * Math.pow(2, this.retryAttempts - 1);
         await new Promise(resolve => setTimeout(resolve, delay));

@@ -11,7 +11,6 @@ import { Switch } from '@/components/ui/switch'
 // Performance optimization needed: Consider memoizing dynamic classNames
 // Use useMemo for objects/arrays and useCallback for functions
 
-
 const PricingPageComponent = function PricingPage() {
   const [isAnnual, setIsAnnual] = useState(false)
 
@@ -456,6 +455,5 @@ const PricingPageComponent = function PricingPage() {
     </div>
   )
 }
-
 
 export default memo(PricingPageComponent);

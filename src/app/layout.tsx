@@ -106,7 +106,6 @@ export default function RootLayout({
           gtag('config', 'G-GQPSM8WTZY');
         </script> */}
 
-        
         <LanguageProvider>
           <AppLayout>
             {children}
@@ -168,9 +167,9 @@ export default function RootLayout({
                   ) {
                     try {
                       const registration = await navigator.serviceWorker.register('/sw.js');
-                      console.log('SW registered: ', registration);
+                      
                     } catch (registrationError) {
-                      console.log('SW registration failed: ', registrationError);
+                      
                     }
                   }
                 };

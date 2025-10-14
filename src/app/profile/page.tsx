@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, memo } from 'react';
 import { FeaturePageLayout } from '@/layouts/feature-page-layout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -38,7 +38,7 @@ interface UserProfile {
   preferences: UserPreferences;
 }
 
-export default function ProfilePage() {
+const ProfilePageComponent = function ProfilePage() {
   const { t } = useLanguage();
   const [profile, setProfile] = useState<UserProfile>({
     id: '1',
@@ -458,3 +458,5 @@ export default function ProfilePage() {
     </FeaturePageLayout>
   );
 }
+
+export default memo(ProfilePageComponent);

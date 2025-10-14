@@ -6,7 +6,6 @@ import { cn } from '@/lib/utils';
 // Memory leak prevention: Timers need cleanup
 // Add cleanup in useEffect return function
 
-
 export interface ToastProps {
   id: string;
   title?: string;

@@ -11,7 +11,6 @@ import { CommentEditor } from './comment-editor';
 // Performance optimization needed: Consider memoizing inline event handlers
 // Use useMemo for objects/arrays and useCallback for functions
 
-
 interface CommentItemProps {
   comment: Comment;
   onVote: (commentId: string, voteType: 'upvote' | 'downvote') => void;

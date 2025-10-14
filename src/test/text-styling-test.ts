@@ -15,7 +15,7 @@ function testTextStyling() {
     enableItalic: true,
     enableInlineCode: true
   };
-  console.log('Test 1 (All enabled):', formatAIResponse(testText, options1));
+  :', formatAIResponse(testText, options1));
   // Test 2: Bold disabled
   const options2: FormatOptions = {
     format: 'markdown',
@@ -23,7 +23,7 @@ function testTextStyling() {
     enableItalic: true,
     enableInlineCode: true
   };
-  console.log('Test 2 (Bold disabled):', formatAIResponse(testText, options2));
+  :', formatAIResponse(testText, options2));
   // Test 3: Italic disabled
   const options3: FormatOptions = {
     format: 'markdown',
@@ -31,7 +31,7 @@ function testTextStyling() {
     enableItalic: false,
     enableInlineCode: true
   };
-  console.log('Test 3 (Italic disabled):', formatAIResponse(testText, options3));
+  :', formatAIResponse(testText, options3));
   // Test 4: Code disabled
   const options4: FormatOptions = {
     format: 'markdown',
@@ -39,7 +39,7 @@ function testTextStyling() {
     enableItalic: true,
     enableInlineCode: false
   };
-  console.log('Test 4 (Code disabled):', formatAIResponse(testText, options4));
+  :', formatAIResponse(testText, options4));
   // Test 5: HTML format with all enabled
   const options5: FormatOptions = {
     format: 'html',
@@ -47,7 +47,7 @@ function testTextStyling() {
     enableItalic: true,
     enableInlineCode: true
   };
-  console.log('Test 5 (HTML format, all enabled):', formatAIResponse(testText, options5));
+  :', formatAIResponse(testText, options5));
   // Test 6: HTML format with bold disabled
   const options6: FormatOptions = {
     format: 'html',
@@ -55,7 +55,7 @@ function testTextStyling() {
     enableItalic: true,
     enableInlineCode: true
   };
-  console.log('Test 6 (HTML format, bold disabled):', formatAIResponse(testText, options6));
+  :', formatAIResponse(testText, options6));
   // Test 7: All styling disabled
   const options7: FormatOptions = {
     format: 'markdown',
@@ -63,7 +63,7 @@ function testTextStyling() {
     enableItalic: false,
     enableInlineCode: false
   };
-  console.log('Test 7 (All styling disabled):', formatAIResponse(testText, options7));
+  :', formatAIResponse(testText, options7));
 }
 // Export for use in other files
 export { testTextStyling };

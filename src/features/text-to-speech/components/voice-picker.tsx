@@ -13,7 +13,6 @@ import { Button } from "@/components/ui/button";
 // Performance optimization needed: Consider memoizing inline event handlers
 // Use useMemo for objects/arrays and useCallback for functions
 
-
 const VOICE_PREVIEW_CACHE_KEY = 'voicePreviewCache';
 
 export const voices = [
@@ -26,7 +25,6 @@ export const voices = [
     { value: 'umbriel', label: 'Umbriel', gender: 'Female' },
     { value: 'zubenelgenubi', label: 'Zubenelgenubi', gender: 'Male' },
 ];
-
 
 interface VoicePickerProps {
     selectedValue: string;
@@ -136,7 +134,7 @@ const VoicePicker = memo(function VoicePicker({ selectedValue, onValueChange, di
                         <CarouselItem key={voice.value} className="basis-1/2 sm:basis-1/3 md:basis-1/4 lg:basis-1/5 xl:basis-1/6">
                             <div 
                                 className="p-1"
-                                onClick={() => handleCardClick(voice.value)}
+                                 role="button" tabIndex={0} onClick={() => handleCardClick(voice.value)}
                             >
                                 <Card 
                                     className={cn(

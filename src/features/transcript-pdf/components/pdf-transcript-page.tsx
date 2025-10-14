@@ -130,7 +130,6 @@ export function PdfTranscriptPage() {
     }
   }, [t, toast, handleError, selectedModel]);
 
-
   const handleDragEvents = (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
     e.stopPropagation();

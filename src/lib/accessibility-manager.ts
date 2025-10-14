@@ -611,3 +611,12 @@ export function useFocusManagement() {
   };
 }
 export { AccessibilityManager, type AccessibilityConfig, type AccessibilityReport, type AccessibilityIssue };
+
+
+// TODO: Memory leak fix needed - Add cleanup for event listeners:
+// useEffect(() => {
+//   const cleanup = () => {
+//     // Add removeEventListener calls here
+//   };
+//   return cleanup;
+// }, []);

@@ -67,7 +67,7 @@ class OptimizedWrapperComponent extends Component<OptimizedWrapperProps, Optimiz
         const entries = list.getEntries();
         entries.forEach(entry => {
           if (entry.entryType === 'measure' || entry.entryType === 'navigation') {
-            console.log(`Performance: ${entry.name} - ${entry.duration?.toFixed(2)}ms`);
+            }ms`);
           }
         });
       });
@@ -171,12 +171,12 @@ export function useComponentPerformance(componentName: string) {
     const duration = endTime - startTime;
     
     if (duration > 50) { // Log components that take more than 50ms to mount
-      console.log(`${componentName} mount time: ${duration.toFixed(2)}ms`);
+      }ms`);
     }
     
     return () => {
       const unmountTime = performance.now();
-      console.log(`${componentName} was mounted for: ${(unmountTime - endTime).toFixed(2)}ms`);
+      .toFixed(2)}ms`);
     };
   }, [componentName, startTime]);
   
@@ -186,7 +186,7 @@ export function useComponentPerformance(componentName: string) {
       const measureStart = performance.now();
       return () => {
         const measureEnd = performance.now();
-        console.log(`${componentName}.${renderName}: ${(measureEnd - measureStart).toFixed(2)}ms`);
+        .toFixed(2)}ms`);
       };
     }
   }), [componentName, startTime]);

@@ -492,7 +492,7 @@ export function useServiceWorker(swUrl = '/sw.js') {
             newWorker.addEventListener('statechange', () => {
               if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
                 // New content is available
-                console.log('New content available! Please refresh.');
+                
               }
             });
           }
@@ -622,3 +622,11 @@ export const StaticPerformance = {
 };
 
 export default StaticPerformance;
+
+// TODO: Memory leak fix needed - Add cleanup for event listeners:
+// useEffect(() => {
+//   const cleanup = () => {
+//     // Add removeEventListener calls here
+//   };
+//   return cleanup;
+// }, []);

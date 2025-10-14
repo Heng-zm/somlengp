@@ -494,8 +494,7 @@ const enTranslations: Translations = {
     format: "Format",
     resolution: "Resolution",
     duration: "Duration",
-    
-    
+
     // AI Model Translations
     selectAiModel: "Select AI Model",
     fastAndEfficient: "Fast and efficient for most tasks",

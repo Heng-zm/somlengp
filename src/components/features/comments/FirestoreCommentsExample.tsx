@@ -6,7 +6,6 @@ import { Comment } from '@/types/comment-types';
 // Performance optimization needed: Consider memoizing inline event handlers, dynamic classNames
 // Use useMemo for objects/arrays and useCallback for functions
 
-
 interface CommentItemProps {
   comment: Comment;
   onReply: (commentId: string, content: string) => void;
