@@ -33,7 +33,7 @@ export class AppError extends Error {
     severity: ErrorSeverity = ErrorSeverity.MEDIUM,
     context: Record<string, unknown> = {},
     userMessage?: string,
-    recoverable: boolean = true
+    recoverable = true
   ) {
     super(message);
     this.name = 'AppError';
@@ -125,7 +125,7 @@ export class ParserError extends AppError {
 export class ErrorHandler {
   private static instance: ErrorHandler;
   private errorLog: AppError[] = [];
-  private maxLogSize: number = 100;
+  private maxLogSize = 100;
   private constructor() {}
   static getInstance(): ErrorHandler {
     if (!ErrorHandler.instance) {
@@ -203,7 +203,7 @@ export class ErrorHandler {
   /**
    * Gets recent errors
    */
-  getRecentErrors(count: number = 10): AppError[] {
+  getRecentErrors(count = 10): AppError[] {
     return this.errorLog.slice(0, count);
   }
   /**
@@ -483,12 +483,12 @@ export function safeClipboard() {
 export const errorHandler = ErrorHandler.getInstance();
 // Export common validations
 export const commonValidations = {
-  required: (message: string = 'This field is required') => ({
+  required: (message = 'This field is required') => ({
     condition: (value: unknown) => value != null && value !== '',
     message,
     userMessage: message
   }),
-  string: (message: string = 'Must be a string') => ({
+  string: (message = 'Must be a string') => ({
     condition: (value: unknown) => typeof value === 'string',
     message,
     userMessage: message
@@ -503,7 +503,7 @@ export const commonValidations = {
     message: message || `Must be no more than ${max} characters`,
     userMessage: message || `Must be no more than ${max} characters`
   }),
-  email: (message: string = 'Must be a valid email address') => ({
+  email: (message = 'Must be a valid email address') => ({
     condition: (value: string) => {
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
       return typeof value === 'string' && emailRegex.test(value);
@@ -511,7 +511,7 @@ export const commonValidations = {
     message,
     userMessage: message
   }),
-  url: (message: string = 'Must be a valid URL') => ({
+  url: (message = 'Must be a valid URL') => ({
     condition: (value: string) => {
       try {
         new URL(value);
@@ -534,9 +534,9 @@ export class CircuitBreaker {
   private nextAttempt = Date.now();
   private state: 'CLOSED' | 'OPEN' | 'HALF_OPEN' = 'CLOSED';
   constructor(
-    private threshold: number = 5,
-    private resetTimeout: number = 60000,
-    private monitoringPeriod: number = 60000
+    private threshold = 5,
+    private resetTimeout = 60000,
+    private monitoringPeriod = 60000
   ) {}
   async execute<T>(operation: () => Promise<T>): Promise<T> {
     if (this.state === 'OPEN') {
@@ -742,7 +742,7 @@ export class OperationQueue {
     pending: 0
   };
   constructor(
-    private maxConcurrency: number = 3,
+    private maxConcurrency = 3,
     private onProgress?: (stats: typeof this.stats) => void
   ) {}
   async add<T>({
@@ -829,8 +829,8 @@ export class RateLimiter {
     reject: (error: AppError) => void;
   }> = [];
   constructor(
-    private maxTokens: number = 10,
-    private refillRate: number = 1, // tokens per second
+    private maxTokens = 10,
+    private refillRate = 1, // tokens per second
     private burstAllowance: number = maxTokens
   ) {
     this.tokens = maxTokens;

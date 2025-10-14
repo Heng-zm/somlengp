@@ -110,7 +110,7 @@ export function useScrollAnimation<T extends HTMLElement = HTMLElement>(options:
  */
 export function useStaggeredScrollAnimation<T extends HTMLElement = HTMLElement>(
   count: number,
-  baseDelay: number = 100,
+  baseDelay = 100,
   options: ScrollAnimationOptions = {}
 ) {
   // Calculate the animation options for each index
@@ -137,7 +137,7 @@ export function useStaggeredScrollAnimation<T extends HTMLElement = HTMLElement>
  * Hook for parallax scroll effects
  * Creates smooth parallax movement based on scroll position
  */
-export function useParallaxScroll<T extends HTMLElement = HTMLElement>(speed: number = 0.5, direction: 'vertical' | 'horizontal' = 'vertical') {
+export function useParallaxScroll<T extends HTMLElement = HTMLElement>(speed = 0.5, direction: 'vertical' | 'horizontal' = 'vertical') {
   const elementRef = useRef<T>(null);
 
   useEffect(() => {

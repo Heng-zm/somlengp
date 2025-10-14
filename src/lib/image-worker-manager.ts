@@ -75,7 +75,7 @@ export class ImageWorkerManager {
       originalName?: string;
     }>,
     onProgress?: (progress: BatchProcessingProgress) => void,
-    initialChunkSize: number = 5
+    initialChunkSize = 5
   ): Promise<ProcessingResult[]> {
     const results: ProcessingResult[] = [];
     let chunkSize = initialChunkSize;
@@ -397,8 +397,8 @@ export class ImageWorkerManager {
     file: File,
     width: number,
     height: number,
-    quality: number = 90,
-    format: string = 'jpeg',
+    quality = 90,
+    format = 'jpeg',
     options: ProcessingOptions = {}
   ): Promise<ProcessingResult> {
     // Validate input parameters
@@ -522,7 +522,7 @@ export class ImageWorkerManager {
   // Generate thumbnail
   async generateThumbnail(
     file: File,
-    maxSize: number = 200
+    maxSize = 200
   ): Promise<ProcessingResult> {
     // Ensure worker is initialized before processing
     await this.ensureWorkerReady();
@@ -543,10 +543,10 @@ export class ImageWorkerManager {
     });
   }
   // Convert ArrayBuffer result back to usable formats
-  arrayBufferToBlob(arrayBuffer: ArrayBuffer, mimeType: string = 'image/jpeg'): Blob {
+  arrayBufferToBlob(arrayBuffer: ArrayBuffer, mimeType = 'image/jpeg'): Blob {
     return new Blob([arrayBuffer], { type: mimeType });
   }
-  arrayBufferToDataURL(arrayBuffer: ArrayBuffer, mimeType: string = 'image/jpeg'): Promise<string> {
+  arrayBufferToDataURL(arrayBuffer: ArrayBuffer, mimeType = 'image/jpeg'): Promise<string> {
     return new Promise((resolve, reject) => {
       const blob = this.arrayBufferToBlob(arrayBuffer, mimeType);
       const reader = new FileReader();
@@ -591,8 +591,8 @@ export class ImageWorkerManager {
   // Utility methods for common use cases
   async resizeForWeb(
     file: File,
-    maxWidth: number = 1920,
-    quality: number = 85
+    maxWidth = 1920,
+    quality = 85
   ): Promise<{ blob: Blob; dataURL: string; size: number }> {
     // Calculate height maintaining aspect ratio
     const img = await this.loadImageDimensions(file);

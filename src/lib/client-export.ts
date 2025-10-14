@@ -177,8 +177,8 @@ export async function exportTranscript(
     }
     
     let content: string | Blob | null = null;
-    let filename: string = 'transcript';
-    let mimeType: string = 'text/plain';
+    let filename = 'transcript';
+    let mimeType = 'text/plain';
 
     switch (format) {
       case 'srt':

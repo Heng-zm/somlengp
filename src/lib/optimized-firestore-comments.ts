@@ -9,7 +9,7 @@ import { Comment, CommentUser, CommentSortType } from '@/types/comment-types';
 export async function getOptimizedComments(
   pageId: string,
   sortBy: CommentSortType = 'recent',
-  limitCount: number = 25,
+  limitCount = 25,
   lastDoc?: any,
   useCache = true
 ): Promise<{ comments: Comment[], hasMore: boolean, lastDoc?: any }> {

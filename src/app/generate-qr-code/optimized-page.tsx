@@ -26,8 +26,8 @@ import { Slider } from '@/components/ui/slider';
 import { showSuccessToast, showErrorToast, showWarningToast } from '@/lib/toast-utils';
 import { FeaturePageLayout } from '@/layouts/feature-page-layout';
 
-// Lazy load QR code library for better performance
-const QRCodeLib = dynamic(() => import('qrcode'), { ssr: false });
+// QR code library - imported directly since it's not a React component
+import QRCode from 'qrcode';
 
 // QR Code templates
 const QR_TEMPLATES = [
@@ -68,9 +68,9 @@ function useLocalStorage<T>(key: string, initialValue: T) {
     }
   });
 
-  const setStoredValue = useCallback((value: T | ((val: T) => T)) => {
+  const setStoredValue = useCallback((newValue: T | ((val: T) => T)) => {
     try {
-      const valueToStore = value instanceof Function ? value(value) : value;
+      const valueToStore = newValue instanceof Function ? newValue(value) : newValue;
       setValue(valueToStore);
       if (typeof window !== 'undefined') {
         window.localStorage.setItem(key, JSON.stringify(valueToStore));
@@ -78,7 +78,7 @@ function useLocalStorage<T>(key: string, initialValue: T) {
     } catch (error) {
       console.error(`Error saving to localStorage key "${key}":`, error);
     }
-  }, [key]);
+  }, [key, value]);
 
   return [value, setStoredValue] as const;
 }
@@ -1014,7 +1014,7 @@ export default function OptimizedQRCodeGenerator() {
                     <FileImage className="w-4 h-4 mr-1" />
                     Canvas
                   </Button>
-                  {navigator.share && (
+                  {typeof navigator !== "undefined" && typeof navigator.share === "function" && (
                     <Button onClick={shareQRCode} variant="outline" size="sm">
                       <Share className="w-4 h-4 mr-1" />
                       Share

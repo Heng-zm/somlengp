@@ -867,17 +867,31 @@ const ProgressiveFormField: React.FC<ProgressiveFormFieldProps> = ({
         )}
       </label>
       <div className="form-control-wrapper">
-        {React.cloneElement(children as React.ReactElement, {
-          id: fieldId,
-          'aria-required': required,
-          'aria-invalid': !!error,
-          'aria-describedby': [errorId, hintId].filter(Boolean).join(' ') || undefined,
-          className: cn(
-            (children as React.ReactElement).props.className,
-            error && 'error',
-            baseline?.touchDevice && 'touch-optimized'
-          )
-        })}
+        {React.isValidElement(children) ? 
+          React.cloneElement(children, {
+            id: fieldId,
+            'aria-required': required,
+            'aria-invalid': !!error,
+            'aria-describedby': [errorId, hintId].filter(Boolean).join(' ') || undefined,
+            className: cn(
+              children.props.className,
+              error && 'error',
+              baseline?.touchDevice && 'touch-optimized'
+            )
+          }) :
+          <div 
+            id={fieldId}
+            aria-required={required}
+            aria-invalid={!!error}
+            aria-describedby={[errorId, hintId].filter(Boolean).join(' ') || undefined}
+            className={cn(
+              error && 'error',
+              baseline?.touchDevice && 'touch-optimized'
+            )}
+          >
+            {children}
+          </div>
+        }
       </div>
       {hint && (
         <div 

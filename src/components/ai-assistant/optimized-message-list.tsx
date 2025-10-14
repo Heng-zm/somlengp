@@ -69,7 +69,7 @@ export const OptimizedMessageList = memo(function OptimizedMessageList({
   isTyping,
   height
 }: VirtualizedMessageListProps) {
-  const listRef = useRef<List>(null);
+  const listRef = useRef<any>(null);
   const [itemSize] = useState(120); // Estimated height per message
 
   // Auto-scroll to bottom when new messages arrive
@@ -81,6 +81,35 @@ export const OptimizedMessageList = memo(function OptimizedMessageList({
 
   const itemCount = messages.length + (isTyping ? 1 : 0);
   const itemData = { messages, isTyping };
+
+  const ListItem = ({ index, style, data }: any) => {
+    const { messages, isTyping } = data;
+    
+    return (
+      <ErrorBoundary key={index}>
+        {index < messages.length ? (
+          <MessageItem index={index} style={style} data={data} />
+        ) : (
+          <div style={style}>
+            <div className="px-4 mb-4">
+              <div className="flex items-start gap-4 justify-start">
+                <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-gray-700 via-gray-600 to-gray-500 flex items-center justify-center shadow-lg flex-shrink-0 mt-1">
+                  <div className="flex gap-1">
+                    <div className="w-1.5 h-1.5 bg-white rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
+                    <div className="w-1.5 h-1.5 bg-white rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
+                    <div className="w-1.5 h-1.5 bg-white rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+                  </div>
+                </div>
+                <div className="px-4 py-3 bg-gray-100 dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-700">
+                  <span className="text-sm text-gray-500 dark:text-gray-400">AI is thinking...</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+      </ErrorBoundary>
+    );
+  };
 
   if (messages.length === 0) {
     return (
@@ -97,36 +126,17 @@ export const OptimizedMessageList = memo(function OptimizedMessageList({
       <List
         ref={listRef}
         height={height}
+        width="100%"
         itemCount={itemCount}
         itemSize={itemSize}
         itemData={itemData}
         overscanCount={5}
       >
-        {({ index, style }) => (
-          <ErrorBoundary key={index}>
-            {index < messages.length ? (
-              <MessageItem index={index} style={style} data={itemData} />
-            ) : (
-              <div style={style}>
-                <div className="px-4 mb-4">
-                  <div className="flex items-start gap-4 justify-start">
-                    <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-gray-700 via-gray-600 to-gray-500 flex items-center justify-center shadow-lg flex-shrink-0 mt-1">
-                      <div className="flex gap-1">
-                        <div className="w-1.5 h-1.5 bg-white rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
-                        <div className="w-1.5 h-1.5 bg-white rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
-                        <div className="w-1.5 h-1.5 bg-white rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
-                      </div>
-                    </div>
-                    <div className="px-4 py-3 bg-gray-100 dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-700">
-                      <span className="text-sm text-gray-500 dark:text-gray-400">AI is thinking...</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )}
-          </ErrorBoundary>
-        )}
+        {ListItem}
       </List>
     </ErrorBoundary>
   );
 });
+
+// Default export for dynamic imports
+export default OptimizedMessageList;

@@ -48,7 +48,7 @@ export class EnhancedImageWorkerManager extends ImageWorkerManager {
   // Override generateThumbnail to return ProcessingResult
   async generateThumbnail(
     file: File,
-    maxSize: number = 200
+    maxSize = 200
   ): Promise<ProcessingResult> {
     try {
       const result = await super.generateThumbnail(file, maxSize);

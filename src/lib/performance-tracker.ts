@@ -37,7 +37,7 @@ interface IPerformanceTracker {
 }
 class PerformanceTracker implements IPerformanceTracker {
   private data: PerformanceData;
-  private isEnabled: boolean = true;
+  private isEnabled = true;
   constructor() {
     this.data = {
       url: typeof window !== 'undefined' ? window.location.href : '',

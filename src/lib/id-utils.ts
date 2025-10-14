@@ -10,7 +10,7 @@ const MAX_RETRY_ATTEMPTS = 3; // Maximum retry attempts for ID generation
  * @param includeRandomSeed - Whether to include additional random seed for uniqueness
  * @returns A unique string ID
  */
-export function generateMessageId(prefix: string = 'msg', includeRandomSeed: boolean = false): string {
+export function generateMessageId(prefix = 'msg', includeRandomSeed = false): string {
   let attempts = 0;
   while (attempts < MAX_RETRY_ATTEMPTS) {
     try {
@@ -100,7 +100,7 @@ export function generateMessageId(prefix: string = 'msg', includeRandomSeed: boo
  * @returns A secure random string
  */
 export function generateSecureId(
-  length: number = 16, 
+  length = 16, 
   charset?: string,
   options: {
     requireUppercase?: boolean;
@@ -465,7 +465,7 @@ export function validateId(
  * @param length - Length of the ID (default: 8)
  * @returns A short URL-safe ID
  */
-export function generateShortId(length: number = 8): string {
+export function generateShortId(length = 8): string {
   return generateSecureId(length, 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-_', {
     excludeSimilar: true
   });
@@ -476,7 +476,7 @@ export function generateShortId(length: number = 8): string {
  * @param wordCount - Number of words to include (default: 3)
  * @returns A human-readable ID
  */
-export function generateReadableId(separator: string = '-', wordCount: number = 3): string {
+export function generateReadableId(separator = '-', wordCount = 3): string {
   const adjectives = ['happy', 'bright', 'swift', 'calm', 'bold', 'wise', 'kind', 'cool', 'warm', 'free'];
   const nouns = ['fox', 'owl', 'cat', 'dog', 'bird', 'fish', 'star', 'moon', 'sun', 'tree'];
   const colors = ['red', 'blue', 'green', 'gold', 'pink', 'gray', 'cyan', 'lime', 'navy', 'teal'];
@@ -507,7 +507,7 @@ export function generateReadableId(separator: string = '-', wordCount: number = 
 export function generateIdBatch(
   count: number,
   generator: () => string = generateMessageId,
-  maxAttempts: number = 1000
+  maxAttempts = 1000
 ): string[] {
   const ids = new Set<string>();
   let attempts = 0;
@@ -606,7 +606,7 @@ export function assessIdSecurity(id: string): {
  * Resets the message counter (useful for testing or specific use cases)
  * @param newValue - New counter value (optional, defaults to 0)
  */
-export function resetMessageCounter(newValue: number = 0): void {
+export function resetMessageCounter(newValue = 0): void {
   try {
     if (typeof newValue !== 'number' || !Number.isInteger(newValue) || newValue < 0) {
       throw new ValidationError('Counter value must be a non-negative integer', { provided: newValue });

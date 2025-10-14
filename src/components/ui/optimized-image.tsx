@@ -94,6 +94,8 @@ export function LegacyImageWrapper({
   src, 
   alt, 
   className, 
+  width,
+  height,
   ...props 
 }: React.ImgHTMLAttributes<HTMLImageElement>) {
   return (
@@ -101,8 +103,8 @@ export function LegacyImageWrapper({
       src={src || ''}
       alt={alt || 'Image'}
       className={className}
-      width="500"
-      height="300"
+      width={typeof width === 'string' ? parseInt(width) || 500 : width || 500}
+      height={typeof height === 'string' ? parseInt(height) || 300 : height || 300}
       style={{ width: 'auto', height: 'auto' }}
       {...props}
     />

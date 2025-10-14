@@ -88,7 +88,7 @@ export function PerformanceMonitor({
     const connectionType = (navigator as any).connection?.effectiveType || 'unknown';
     
     return { networkStatus, connectionType };
-  }, []);
+  });
 
   const checkThresholds = useStableCallback((currentMetrics: PerformanceMetrics) => {
     const newWarnings: string[] = [];
@@ -111,7 +111,7 @@ export function PerformanceMonitor({
     if (process.env.NODE_ENV === 'development' && newWarnings.length > 0) {
       console.warn('Performance warnings:', newWarnings);
     }
-  }, [threshold]);
+  });
 
   const updateMetrics = useStableCallback(() => {
     if (!enabled) return;
@@ -134,7 +134,7 @@ export function PerformanceMonitor({
     setMetrics(currentMetrics);
     checkThresholds(currentMetrics);
     onMetricsUpdate?.(currentMetrics);
-  }, [enabled, calculateFPS, getMemoryInfo, getTimingMetrics, getNetworkInfo, checkThresholds, onMetricsUpdate]);
+  });
 
   useEffect(() => {
     if (!enabled) return;
@@ -278,7 +278,7 @@ export function RenderPerformanceWrapper({
     const renderTime = renderEnd - renderStart.current;
     
     performance.mark(`${name}-render-end`);
-    performance.measure(`${name}-render`, renderStart.current, renderEnd);
+    performance.measure(`${name}-render`, { start: renderStart.current, end: renderEnd });
     
     if (process.env.NODE_ENV === 'development' && renderTime > 16) {
       console.warn(`Slow render detected: ${name} took ${renderTime.toFixed(2)}ms`);

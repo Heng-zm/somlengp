@@ -53,7 +53,7 @@ export type CodeTheme = keyof typeof codeThemes;
 // Enhanced syntax highlighting with theme support
 export const highlightCodeWithTheme = (
   code: string, 
-  language: string = 'text', 
+  language = 'text', 
   theme: CodeTheme = 'dark'
 ) => {
   const colors = codeThemes[theme];

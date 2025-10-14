@@ -250,7 +250,7 @@ export const showBatchOperationToast = (
   operation: string,
   total: number,
   completed: number,
-  failed: number = 0
+  failed = 0
 ) => {
   return safeSync(
     () => {
@@ -297,7 +297,7 @@ export const showBatchOperationToast = (
     { operation: 'showBatchOperationToast', operationType: operation, total, completed, failed }
   ).data;
 };
-export const showNetworkStatusToast = (isOnline: boolean, wasOffline: boolean = false) => {
+export const showNetworkStatusToast = (isOnline: boolean, wasOffline = false) => {
   return safeSync(
     () => {
       if (typeof isOnline !== 'boolean') {
@@ -366,7 +366,7 @@ export const showMaintenanceToast = (message: string, scheduledTime?: Date) => {
     { operation: 'showMaintenanceToast', message, scheduledTime }
   ).data;
 };
-export const showPermissionToast = (permission: string, granted: boolean, required: boolean = true) => {
+export const showPermissionToast = (permission: string, granted: boolean, required = true) => {
   return safeSync(
     () => {
       if (!permission || typeof permission !== 'string') {

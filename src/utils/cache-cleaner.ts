@@ -200,7 +200,8 @@ export function clearMediaCaches(): CacheStats {
   try {
     // Clear image cache by forcing reload of cached images
     const images = document.querySelectorAll('img[src]');
-    images.forEach((img: HTMLImageElement) => {
+    images.forEach((element) => {
+      const img = element as HTMLImageElement;
       if (img.src && img.complete) {
         const src = img.src;
         img.src = '';

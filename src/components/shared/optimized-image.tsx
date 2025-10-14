@@ -31,7 +31,7 @@ class ImageCache {
   markAsCached(src: string): void {
     this.cache.set(src, true);
   }
-  preloadImage(src: string, priority: boolean = false): Promise<void> {
+  preloadImage(src: string, priority = false): Promise<void> {
     if (this.preloadedImages.has(src)) {
       return Promise.resolve();
     }
@@ -163,7 +163,7 @@ export function OptimizedImage({
   );
 }
 // Hook for preloading multiple images
-export function useImagePreloader(images: string[], priority: boolean = false) {
+export function useImagePreloader(images: string[], priority = false) {
   const [loadedCount, setLoadedCount] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
   useEffect(() => {

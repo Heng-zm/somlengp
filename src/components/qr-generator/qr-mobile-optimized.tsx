@@ -72,9 +72,9 @@ function useLocalStorage<T>(key: string, initialValue: T) {
     }
   });
 
-  const setStoredValue = useCallback((value: T | ((val: T) => T)) => {
+  const setStoredValue = useCallback((newValue: T | ((val: T) => T)) => {
     try {
-      const valueToStore = value instanceof Function ? value(value) : value;
+      const valueToStore = newValue instanceof Function ? newValue(value) : newValue;
       setValue(valueToStore);
       if (typeof window !== 'undefined') {
         window.localStorage.setItem(key, JSON.stringify(valueToStore));
@@ -82,7 +82,7 @@ function useLocalStorage<T>(key: string, initialValue: T) {
     } catch (error) {
       console.error(`Error saving to localStorage key "${key}":`, error);
     }
-  }, [key]);
+  }, [key, value]);
 
   return [value, setStoredValue] as const;
 }
@@ -306,8 +306,7 @@ export function QRCodeMobileOptimized({
           size,
           format: outputFormat,
           contentLength: formattedText.length,
-          template: selectedTemplate,
-          hasLogo: !!logoImage
+          template: selectedTemplate
         });
       } catch (error) {
         console.error('Live preview generation error:', error);
@@ -359,7 +358,7 @@ export function QRCodeMobileOptimized({
             color: { dark: foregroundColor, light: backgroundColor }, 
             width: size,
             type: outputFormat === 'jpeg' ? 'image/jpeg' as const : 'image/png' as const,
-            ...(outputFormat !== 'svg' && { quality })
+            ...(outputFormat === 'jpeg' && { quality })
           });
         }
       }
@@ -1002,7 +1001,7 @@ export function QRCodeMobileOptimized({
             </Card>
           ) : (
             /* Desktop Layout */
-            <>
+            <div className="contents">
               {/* Input Section */}
               <Card className="bg-white border rounded-lg shadow">
                 <CardHeader className="bg-gray-50 border-b">
@@ -1230,7 +1229,7 @@ export function QRCodeMobileOptimized({
                   )}
                 </CardContent>
               </Card>
-            </>
+            </div>
           )}
         </div>
       </div>
@@ -1277,7 +1276,7 @@ export function QRCodeMobileOptimized({
                   <Copy className="w-4 h-4 mr-1" />
                   Copy
                 </Button>
-                {navigator.share && (
+                {typeof navigator !== "undefined" && typeof navigator.share === "function" && (
                   <Button onClick={shareQRCode} variant="outline" size="sm" className="h-11">
                     <Share className="w-4 h-4 mr-1" />
                     Share
@@ -1478,3 +1477,6 @@ export function QRCodeMobileOptimized({
     </div>
   );
 }
+
+// Default export for dynamic imports
+export default QRCodeMobileOptimized;

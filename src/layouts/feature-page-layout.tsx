@@ -42,7 +42,7 @@ export const FeaturePageLayout = React.memo<FeaturePageLayoutProps>(function Fea
     const header = React.useMemo(() => (
         <header className="fixed top-0 left-0 right-0 z-50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b flex items-center justify-between p-2 sm:p-4">
             <Button variant="ghost" size="icon" asChild>
-              <Link href="/home">
+              <Link href="/home" className="flex items-center justify-center">
                 <ChevronLeft />
                 <span className="sr-only">Back to Home</span>
               </Link>

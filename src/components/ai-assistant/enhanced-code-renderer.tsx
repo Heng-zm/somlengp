@@ -170,6 +170,6 @@ export const EnhancedCodeRenderer = memo(function EnhancedCodeRenderer({
 });
 
 // Pre-configured components for ReactMarkdown
-export const createCodeComponents = (isUser: boolean = false) => ({
+export const createCodeComponents = (isUser = false) => ({
   code: (props: any) => <EnhancedCodeRenderer {...props} isUser={isUser} />,
 });

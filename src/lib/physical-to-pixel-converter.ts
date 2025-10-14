@@ -166,7 +166,7 @@ export function calculateImageSize(
   dimensions: DimensionPair, 
   dpi: number, 
   colorDepth: 24 | 32 | 8 = 24,
-  compression: number = 1
+  compression = 1
 ): {
   pixels: DimensionPair;
   totalPixels: number;
@@ -219,7 +219,7 @@ export function getPrintDimensions(pixelDimensions: DimensionPair, printDPI: num
 export function convertWithDPI(
   dimension: Dimension,
   targetUnit: DimensionUnit,
-  dpi: number = 96
+  dpi = 96
 ): Dimension {
   // If converting to/from pixels, use DPI-aware conversion
   if (dimension.unit === DimensionUnit.PIXEL && targetUnit !== DimensionUnit.PIXEL) {

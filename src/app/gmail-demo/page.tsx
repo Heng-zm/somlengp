@@ -7,7 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { GmailComponents } from '@/components/features/gmail/gmail-user-components';
 import { GmailUserProfiles } from '@/components/features/gmail/gmail-user-profiles';
 import { GmailNavigation } from '@/components/features/gmail/gmail-navigation';
-import { GmailTemplateGenerator, GmailEmailTemplate } from '@/components/features/gmail/gmail-template-generator';
+import { GmailTemplateGenerator, IGmailEmailTemplate } from '@/components/features/gmail/gmail-template-generator';
 // Sample Data
 const sampleUsers = [
   {
@@ -96,7 +96,7 @@ const sampleProfile = {
     linkedin: 'https://linkedin.com/in/johndoe'
   }
 };
-const sampleTemplate: GmailEmailTemplate = {
+const sampleTemplate: IGmailEmailTemplate = {
   type: 'welcome',
   subject: 'Welcome to SomlengP!',
   content: {
@@ -116,7 +116,7 @@ const sampleTemplate: GmailEmailTemplate = {
 const GmailDemoPageComponent = function GmailDemoPage() {
   const [selectedEmails, setSelectedEmails] = useState<string[]>([]);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
-  const [emailTemplate, setEmailTemplate] = useState<GmailEmailTemplate>(sampleTemplate);
+  const [emailTemplate, setEmailTemplate] = useState<IGmailEmailTemplate>(sampleTemplate);
   const handleEmailSelect = (emailId: string) => {
     setSelectedEmails(prev => 
       prev.includes(emailId) 

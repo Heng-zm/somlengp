@@ -696,7 +696,7 @@ function AIAssistantPageInternal() {
               id: m.id || generateMessageId(),
               role: (m.role === 'user' || m.role === 'assistant') ? m.role : 'assistant',
               content: String(m.content || '').trim() || 'Message content unavailable',
-              timestamp: new Date(m.timestamp) || new Date(),
+              timestamp: m.timestamp ? new Date(m.timestamp) : new Date(),
               model: m.model || selectedModel.name,
               tokens: m.tokens || undefined
             }));

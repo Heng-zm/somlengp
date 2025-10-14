@@ -56,7 +56,7 @@ export class QRGeneratorError extends Error {
     message: string,
     userMessage: string,
     context?: any,
-    recoverable: boolean = true
+    recoverable = true
   ) {
     super(message);
     this.name = 'QRGeneratorError';
@@ -268,7 +268,7 @@ export class QRGeneratorErrorBoundary extends Component<
       const error = this.state.error;
       const isQRError = error instanceof QRGeneratorError;
       const maxRetries = this.props.maxRetries || 3;
-      const canRetry = this.state.retryCount < maxRetries && (!isQRError || isQRError.recoverable);
+      const canRetry = this.state.retryCount < maxRetries && (!isQRError || (error as QRGeneratorError).recoverable);
 
       return (
         <div className="flex items-center justify-center min-h-[400px] p-4">
@@ -292,8 +292,8 @@ export class QRGeneratorErrorBoundary extends Component<
             <CardContent className="space-y-4">
               {/* Error type badge */}
               {isQRError && (
-                <Badge variant={isQRError.recoverable ? 'destructive' : 'outline'} className="mb-4">
-                  {isQRError.type.replace(/_/g, ' ')}
+                <Badge variant={(error as QRGeneratorError).recoverable ? 'destructive' : 'outline'} className="mb-4">
+                  {(error as QRGeneratorError).type.replace(/_/g, ' ')}
                 </Badge>
               )}
 

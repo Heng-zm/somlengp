@@ -15,11 +15,11 @@ export const createLazyComponent = <T = {}>(
   
   let retryCount = 0;
   
-  const lazyLoader = () => {
+  const lazyLoader = (): Promise<{ default: ComponentType<T> }> => {
     return componentImport().catch((error) => {
       if (retryCount < retryAttempts) {
         retryCount++;
-        return new Promise((resolve) => {
+        return new Promise<{ default: ComponentType<T> }>((resolve) => {
           setTimeout(() => {
             resolve(lazyLoader());
           }, retryDelay);

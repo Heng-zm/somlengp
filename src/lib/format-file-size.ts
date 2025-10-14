@@ -4,7 +4,7 @@
  * @param decimals - Number of decimal places (default: 2)
  * @returns Formatted file size string (e.g., "1.23 MB", "456 KB", "2.1 GB")
  */
-export function formatFileSize(bytes: number, decimals: number = 2): string {
+export function formatFileSize(bytes: number, decimals = 2): string {
   if (bytes === 0) return '0 Bytes';
 
   const k = 1024;
@@ -22,7 +22,7 @@ export function formatFileSize(bytes: number, decimals: number = 2): string {
  * @param decimals - Number of decimal places (default: 2)
  * @returns Formatted total size string
  */
-export function formatTotalFileSize(files: (File | number)[], decimals: number = 2): string {
+export function formatTotalFileSize(files: (File | number)[], decimals = 2): string {
   const totalBytes = files.reduce((total: number, file) => {
     return total + (file instanceof File ? file.size : file);
   }, 0);

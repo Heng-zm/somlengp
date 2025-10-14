@@ -84,11 +84,11 @@ const ContactPageComponent = function ContactPage() {
               <p className="text-gray-600 mb-6">
                 Thank you for contacting us. We&apos;ll get back to you within 24 hours.
               </p>
-              <Link href="/home">
-                <Button className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700">
+              <Button asChild className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700">
+                <Link href="/home">
                   Back to Homepage
-                </Button>
-              </Link>
+                </Link>
+              </Button>
             </CardContent>
           </Card>
         </div>
@@ -109,11 +109,11 @@ const ContactPageComponent = function ContactPage() {
               <span className="text-xl font-bold text-gray-900">Somleng</span>
             </Link>
             
-            <Link href="/home">
-              <Button variant="ghost">
+            <Button asChild variant="ghost">
+              <Link href="/home">
                 ← Back to Homepage
-              </Button>
-            </Link>
+              </Link>
+            </Button>
           </div>
         </div>
       </nav>

@@ -316,7 +316,7 @@ export function useEnhancedImagePreloader(images: Array<{ src: string; priority?
     setLoadedCount(0);
     setProgress(0);
 
-    const preloadImage = async (src: string, priority: boolean = false) => {
+    const preloadImage = async (src: string, priority = false) => {
       return new Promise<void>((resolve, reject) => {
         const img = new window.Image();
         

@@ -65,7 +65,7 @@ export function QRScannerSheet({ open, onOpenChange, onScanSuccess, onScanError 
   const getContentType = (text: string): string => {
     if (isValidUrl(text)) return 'URL';
     if (text.includes('@') && text.includes('.')) return 'Email';
-    if (text.match(/^\+?[\d\s\-\(\)]+$/)) return 'Phone';
+    if (text.match(/^\+?[\d\s\-()]+$/)) return 'Phone';
     if (text.startsWith('WIFI:')) return 'WiFi';
     if (text.startsWith('VCARD:') || text.startsWith('BEGIN:VCARD')) return 'Contact';
     return 'Text';

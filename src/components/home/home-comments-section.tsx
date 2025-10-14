@@ -7,7 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { LanguageContext } from '@/contexts/language-context';
 import { allTranslations } from '@/lib/translations';
 import { useComments } from '@/hooks/use-comments';
-import { CommentsList } from '@/components/features/comments/limited-comments-list';
+import { CommentsList } from '@/components/features/comments/comments-list';
 import { cn } from '@/lib/utils';
 
 interface HomeCommentsSectionProps {

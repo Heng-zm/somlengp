@@ -55,8 +55,8 @@ interface BundleAnalysis {
 class PerformanceOptimizer {
   private suggestions: OptimizationSuggestion[] = [];
   private audits: PerformanceAudit[] = [];
-  private maxAudits: number = 10; // Limit stored audits to prevent memory bloat
-  private maxSuggestions: number = 20; // Limit suggestions
+  private maxAudits = 10; // Limit stored audits to prevent memory bloat
+  private maxSuggestions = 20; // Limit suggestions
   constructor() {
     this.initializeSuggestions();
     this.loadAudits();

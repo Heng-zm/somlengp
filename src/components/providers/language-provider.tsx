@@ -111,23 +111,15 @@ export function LanguageProvider({ children }: LanguageProviderProps) {
   const toggleTheme = () => {
     setTheme(current => current === 'light' ? 'dark' : 'light');
   };
-  // Don't render until initialized to prevent hydration mismatch
-  if (!isInitialized) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-      </div>
-    );
-  }
+  // Always render children with context - just use defaults during initialization
+  const contextValue = {
+    language: isInitialized ? language : 'en' as Language, 
+    toggleLanguage: isInitialized ? toggleLanguage : () => {}, 
+    theme: isInitialized ? theme : 'light', 
+    toggleTheme: isInitialized ? toggleTheme : () => {} 
+  };
   return (
-    <LanguageContext.Provider 
-      value={{ 
-        language, 
-        toggleLanguage, 
-        theme, 
-        toggleTheme 
-      }}
-    >
+    <LanguageContext.Provider value={contextValue}>
       {children}
     </LanguageContext.Provider>
   );

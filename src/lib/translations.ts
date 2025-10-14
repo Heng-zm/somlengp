@@ -121,6 +121,7 @@ interface BaseTranslations {
     edited: string;
     
     // Additional UI Elements
+    transcribeAudio: string;
     aiAssistant: string;
     textToSpeech: string;
     generateQrCode: string;
@@ -401,6 +402,7 @@ const enTranslations: Translations = {
     edited: "edited",
     
     // Additional UI Elements
+    transcribeAudio: "Transcribe Audio",
     aiAssistant: "AI Assistant",
     textToSpeech: "Text to Speech",
     generateQrCode: "Generate QR Code",
@@ -642,6 +644,7 @@ const kmTranslations: Translations = {
     edited: "បានកែសម្រួល",
     
     // Additional UI Elements
+    transcribeAudio: "សរសេរតាមសំឡេង",
     aiAssistant: "ជំនួយការ AI",
     textToSpeech: "អត្ថបទទៅសំឡេង",
     generateQrCode: "បង្កើតកូដ QR",

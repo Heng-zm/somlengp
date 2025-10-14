@@ -112,6 +112,8 @@ const HomePageComponent = function HomePage() {
       const budgetTimeout = setTimeout(() => {
         const budgetCheck = tracker.checkBudget(DEFAULT_BUDGETS);
         if (!budgetCheck.passed) {
+          // Performance budget exceeded - could log this or show warning
+          console.warn('Performance budget exceeded:', budgetCheck);
         }
       }, 2000);
       return () => clearTimeout(budgetTimeout);

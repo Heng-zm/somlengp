@@ -9,7 +9,7 @@ import { Comment, CommentUser, CommentSortType } from '@/types/comment-types';
 export async function getComments(
   pageId: string, 
   sortBy: CommentSortType = 'recent',
-  limitCount: number = 50,
+  limitCount = 50,
   lastDoc?: any
 ): Promise<{ comments: Comment[], hasMore: boolean, lastDoc?: any }> {
   throw new Error('Comments service temporarily disabled during Supabase migration.');
@@ -35,7 +35,7 @@ export async function updateComment(
 export async function deleteComment(
   commentId: string,
   userId: string,
-  isAdmin: boolean = false
+  isAdmin = false
 ): Promise<void> {
   throw new Error('Comments service temporarily disabled during Supabase migration.');
 }
@@ -62,7 +62,7 @@ export async function getCommentCount(pageId: string): Promise<number> {
 
 export async function getUserComments(
   userId: string,
-  limitCount: number = 20
+  limitCount = 20
 ): Promise<Comment[]> {
   throw new Error('Comments service temporarily disabled during Supabase migration.');
 }

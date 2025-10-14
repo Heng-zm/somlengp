@@ -194,7 +194,7 @@ export function validateUserPermissions(
 class RateLimiter {
   private requests = new Map<string, number[]>();
 
-  isAllowed(userId: string, limit: number, windowMs: number = 60000): boolean {
+  isAllowed(userId: string, limit: number, windowMs = 60000): boolean {
     const now = Date.now();
     const userRequests = this.requests.get(userId) || [];
     
@@ -212,7 +212,7 @@ class RateLimiter {
     return true;
   }
 
-  getRemainingTime(userId: string, windowMs: number = 60000): number {
+  getRemainingTime(userId: string, windowMs = 60000): number {
     const userRequests = this.requests.get(userId) || [];
     if (userRequests.length === 0) return 0;
     

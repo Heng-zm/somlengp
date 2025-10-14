@@ -1,6 +1,6 @@
 'use client';
 
-import { getCLS, getFCP, getFID, getLCP, getTTFB } from 'web-vitals';
+import { onCLS, onFCP, onINP, onLCP, onTTFB } from 'web-vitals';
 
 // Enhanced Web Vitals tracking with analytics integration
 export interface VitalMetric {
@@ -14,7 +14,7 @@ export interface VitalMetric {
 // Thresholds based on Google's recommendations
 const THRESHOLDS = {
   LCP: { good: 2500, poor: 4000 },
-  FID: { good: 100, poor: 300 },
+  INP: { good: 200, poor: 500 },
   CLS: { good: 0.1, poor: 0.25 },
   FCP: { good: 1800, poor: 3000 },
   TTFB: { good: 200, poor: 500 },
@@ -33,8 +33,8 @@ function sendToAnalytics(metric: VitalMetric) {
   // Send to your analytics service
   if (typeof window !== 'undefined' && process.env.NODE_ENV === 'production') {
     // Example: Google Analytics 4
-    if (typeof gtag !== 'undefined') {
-      gtag('event', metric.name, {
+    if (typeof (window as any).gtag !== 'undefined') {
+      (window as any).gtag('event', metric.name, {
         event_category: 'Web Vitals',
         value: Math.round(metric.value),
         event_label: metric.rating,
@@ -96,11 +96,11 @@ export function reportWebVitals(onPerfEntry?: (metric: VitalMetric) => void) {
   };
 
   // Measure all Core Web Vitals
-  getCLS(handleMetric);
-  getFCP(handleMetric);
-  getFID(handleMetric);
-  getLCP(handleMetric);
-  getTTFB(handleMetric);
+  onCLS(handleMetric);
+  onFCP(handleMetric);
+  onINP(handleMetric);
+  onLCP(handleMetric);
+  onTTFB(handleMetric);
 }
 
 // Advanced performance monitoring

@@ -8,7 +8,27 @@ import next from '@next/eslint-plugin-next';
 export default [
   js.configs.recommended,
   {
-    files: ['src/**/*.{js,ts,jsx,tsx}'],
+    ignores: [
+      '.next/**',
+      '.netlify/**', 
+      '.vercel/**',
+      'node_modules/**',
+      'dist/**',
+      'build/**',
+      'public/sw*.js',
+      'public/workers/**',
+      'scripts/**/*.js',
+      '**/*.config.js',
+      '**/*.test.js',
+      '**/*.test.ts',
+      '**/*.spec.js', 
+      '**/*.spec.ts',
+      'tailwind*.js',
+      'next.config.js'
+    ]
+  },
+  {
+    files: ['**/*.{js,ts,jsx,tsx}'],
     languageOptions: {
       parser: typescriptParser,
       parserOptions: {
@@ -17,6 +37,7 @@ export default [
         ecmaFeatures: {
           jsx: true,
         },
+        project: ['./tsconfig.json'],
       },
       globals: {
         React: 'readonly',
@@ -43,6 +64,38 @@ export default [
         PerformanceNavigationTiming: 'readonly',
         localStorage: 'readonly',
         sessionStorage: 'readonly',
+        // Browser APIs
+        Image: 'readonly',
+        Audio: 'readonly',
+        btoa: 'readonly',
+        atob: 'readonly',
+        crypto: 'readonly',
+        screen: 'readonly',
+        alert: 'readonly',
+        confirm: 'readonly',
+        requestAnimationFrame: 'readonly',
+        cancelAnimationFrame: 'readonly',
+        requestIdleCallback: 'readonly',
+        getComputedStyle: 'readonly',
+        indexedDB: 'readonly',
+        caches: 'readonly',
+        self: 'readonly',
+        setImmediate: 'readonly',
+        // Node.js globals
+        NodeJS: 'readonly',
+        __dirname: 'readonly',
+        require: 'readonly',
+        module: 'readonly',
+        // Testing globals
+        jest: 'readonly',
+        describe: 'readonly',
+        it: 'readonly',
+        test: 'readonly',
+        expect: 'readonly',
+        beforeEach: 'readonly',
+        afterEach: 'readonly',
+        beforeAll: 'readonly',
+        afterAll: 'readonly',
       },
     },
     plugins: {
@@ -55,7 +108,6 @@ export default [
       // TypeScript rules (warnings instead of errors for better DX)
       '@typescript-eslint/no-explicit-any': 'warn',
       '@typescript-eslint/no-unused-vars': 'warn',
-      '@typescript-eslint/prefer-const': 'warn',
       '@typescript-eslint/no-inferrable-types': 'warn',
       
       // React rules
@@ -68,13 +120,14 @@ export default [
       'react-hooks/exhaustive-deps': 'warn',
       
       // General rules
-      'no-unused-vars': 'warn',
+      'no-unused-vars': 'off', // Turn off base rule to avoid conflicts
       'no-console': 'warn',
       'prefer-const': 'warn',
       'no-var': 'warn',
       
       // Next.js rules
       '@next/next/no-img-element': 'warn',
+      '@next/next/no-html-link-for-pages': 'warn',
     },
     settings: {
       react: {
@@ -83,7 +136,7 @@ export default [
     },
   },
   {
-    files: ['src/**/*.test.{js,ts,jsx,tsx}', 'src/**/*.spec.{js,ts,jsx,tsx}'],
+    files: ['**/*.test.{js,ts,jsx,tsx}', '**/*.spec.{js,ts,jsx,tsx}'],
     rules: {
       // Relax rules in test files
       '@typescript-eslint/no-explicit-any': 'off',

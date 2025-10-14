@@ -400,11 +400,11 @@ export default function PrivacyNotice() {
                         If you have any questions about this Privacy Notice or how we handle your data, please don&apos;t hesitate to contact us.\n
                       </p>
                       <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                        <Link href="/contact">
-                          <Button className="bg-blue-600 hover:bg-blue-700 text-white">
+                        <Button asChild className="bg-blue-600 hover:bg-blue-700 text-white">
+                          <Link href="/contact">
                             Contact Support
-                          </Button>
-                        </Link>
+                          </Link>
+                        </Button>
                         <Button variant="outline" className="border-gray-300">
                           privacy@company.com
                         </Button>

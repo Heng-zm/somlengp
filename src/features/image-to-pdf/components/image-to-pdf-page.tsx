@@ -69,7 +69,7 @@ const ImageToPdfPage = memo(function ImageToPdfPage() {
     return () => {
         fileObjectURLs.forEach(url => URL.revokeObjectURL(url), []);
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+     
   }, [fileObjectURLs]);
   
   const handleFileSelect = (selectedFiles: FileList | null) => {

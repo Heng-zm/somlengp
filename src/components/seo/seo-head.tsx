@@ -1,1 +1,89 @@
-import Head from 'next/head';\nimport { useRouter } from 'next/router';\n\ninterface SEOProps {\n  title?: string;\n  description?: string;\n  keywords?: string[];\n  image?: string;\n  url?: string;\n  type?: 'website' | 'article' | 'product' | 'profile';\n  siteName?: string;\n  author?: string;\n  publishedTime?: string;\n  modifiedTime?: string;\n  section?: string;\n  tags?: string[];\n  noIndex?: boolean;\n  canonical?: string;\n  alternateUrls?: { [key: string]: string };\n  schema?: Record<string, any>;\n}\n\nconst DEFAULT_SEO = {\n  title: 'Somleng - Audio Transcription & PDF Tools',\n  description: 'An all-in-one toolkit for audio transcription, text-to-speech, and PDF utilities. Fast, accurate, and easy to use.',\n  keywords: ['audio transcription', 'text-to-speech', 'PDF tools', 'voice recognition', 'speech to text', 'QR code generator'],\n  siteName: 'Somleng',\n  author: 'Somleng Team',\n  type: 'website',\n  image: '/images/og-image.png'\n};\n\nexport const SEOHead: React.FC<SEOProps> = ({\n  title,\n  description,\n  keywords = [],\n  image,\n  url,\n  type = 'website',\n  siteName = DEFAULT_SEO.siteName,\n  author = DEFAULT_SEO.author,\n  publishedTime,\n  modifiedTime,\n  section,\n  tags = [],\n  noIndex = false,\n  canonical,\n  alternateUrls = {},\n  schema\n}) => {\n  const router = useRouter();\n  \n  // Construct full URLs\n  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://somleng.app';\n  const currentUrl = url || `${siteUrl}${router.asPath}`;\n  const ogImage = image || DEFAULT_SEO.image;\n  const fullImageUrl = ogImage.startsWith('http') ? ogImage : `${siteUrl}${ogImage}`;\n  \n  // Construct page title\n  const pageTitle = title ? `${title} | ${DEFAULT_SEO.siteName}` : DEFAULT_SEO.title;\n  \n  // Merge keywords\n  const allKeywords = [...DEFAULT_SEO.keywords, ...keywords].join(', ');\n  \n  // Generate structured data\n  const defaultSchema = {\n    '@context': 'https://schema.org',\n    '@type': type === 'article' ? 'Article' : 'WebSite',\n    'name': pageTitle,\n    'description': description || DEFAULT_SEO.description,\n    'url': currentUrl,\n    'image': fullImageUrl,\n    'publisher': {\n      '@type': 'Organization',\n      'name': siteName,\n      'url': siteUrl\n    },\n    ...(author && {\n      'author': {\n        '@type': 'Person',\n        'name': author\n      }\n    }),\n    ...(publishedTime && { 'datePublished': publishedTime }),\n    ...(modifiedTime && { 'dateModified': modifiedTime }),\n    ...(section && { 'articleSection': section }),\n    ...(tags.length > 0 && { 'keywords': tags.join(', ') })\n  };\n  \n  const schemaData = schema || defaultSchema;\n  \n  return (\n    <Head>\n      {/* Basic Meta Tags */}\n      <title>{pageTitle}</title>\n      <meta name=\"description\" content={description || DEFAULT_SEO.description} />\n      <meta name=\"keywords\" content={allKeywords} />\n      <meta name=\"author\" content={author} />\n      \n      {/* Viewport and Mobile */}\n      <meta name=\"viewport\" content=\"width=device-width, initial-scale=1, maximum-scale=5\" />\n      <meta name=\"mobile-web-app-capable\" content=\"yes\" />\n      <meta name=\"apple-mobile-web-app-capable\" content=\"yes\" />\n      <meta name=\"apple-mobile-web-app-status-bar-style\" content=\"default\" />\n      <meta name=\"apple-mobile-web-app-title\" content={siteName} />\n      \n      {/* Canonical URL */}\n      <link rel=\"canonical\" href={canonical || currentUrl} />\n      \n      {/* Alternate URLs for internationalization */}\n      {Object.entries(alternateUrls).map(([lang, href]) => (\n        <link key={lang} rel=\"alternate\" hrefLang={lang} href={href} />\n      ))}\n      \n      {/* Open Graph */}\n      <meta property=\"og:type\" content={type} />\n      <meta property=\"og:title\" content={pageTitle} />\n      <meta property=\"og:description\" content={description || DEFAULT_SEO.description} />\n      <meta property=\"og:image\" content={fullImageUrl} />\n      <meta property=\"og:image:alt\" content={pageTitle} />\n      <meta property=\"og:url\" content={currentUrl} />\n      <meta property=\"og:site_name\" content={siteName} />\n      <meta property=\"og:locale\" content=\"en_US\" />\n      \n      {/* Article specific Open Graph */}\n      {type === 'article' && (\n        <>\n          {author && <meta property=\"article:author\" content={author} />}\n          {publishedTime && <meta property=\"article:published_time\" content={publishedTime} />}\n          {modifiedTime && <meta property=\"article:modified_time\" content={modifiedTime} />}\n          {section && <meta property=\"article:section\" content={section} />}\n          {tags.map(tag => <meta key={tag} property=\"article:tag\" content={tag} />)}\n        </>\n      )}\n      \n      {/* Twitter Card */}\n      <meta name=\"twitter:card\" content=\"summary_large_image\" />\n      <meta name=\"twitter:title\" content={pageTitle} />\n      <meta name=\"twitter:description\" content={description || DEFAULT_SEO.description} />\n      <meta name=\"twitter:image\" content={fullImageUrl} />\n      <meta name=\"twitter:image:alt\" content={pageTitle} />\n      <meta name=\"twitter:creator\" content=\"@somleng\" />\n      <meta name=\"twitter:site\" content=\"@somleng\" />\n      \n      {/* Search Engine Directives */}\n      <meta name=\"robots\" content={noIndex ? 'noindex,nofollow' : 'index,follow'} />\n      <meta name=\"googlebot\" content={noIndex ? 'noindex,nofollow' : 'index,follow'} />\n      \n      {/* Performance and Caching */}\n      <meta httpEquiv=\"Cache-Control\" content=\"public, max-age=31536000\" />\n      <meta name=\"theme-color\" content=\"#ffffff\" />\n      \n      {/* Favicon and Icons */}\n      <link rel=\"icon\" href=\"/favicon.ico\" sizes=\"any\" />\n      <link rel=\"icon\" href=\"/icon.svg\" type=\"image/svg+xml\" />\n      <link rel=\"apple-touch-icon\" href=\"/apple-touch-icon.png\" />\n      <link rel=\"manifest\" href=\"/manifest.json\" />\n      \n      {/* Preload critical resources */}\n      <link rel=\"dns-prefetch\" href=\"//fonts.googleapis.com\" />\n      <link rel=\"preconnect\" href=\"https://fonts.googleapis.com\" crossOrigin=\"anonymous\" />\n      <link rel=\"preconnect\" href=\"https://fonts.gstatic.com\" crossOrigin=\"anonymous\" />\n      \n      {/* Structured Data */}\n      <script\n        type=\"application/ld+json\"\n        dangerouslySetInnerHTML={{ __html: JSON.stringify(schemaData, null, 2) }}\n      />\n      \n      {/* Additional meta tags for better SEO */}\n      <meta name=\"format-detection\" content=\"telephone=no\" />\n      <meta name=\"msapplication-TileColor\" content=\"#ffffff\" />\n      <meta name=\"msapplication-config\" content=\"/browserconfig.xml\" />\n      \n      {/* Language */}\n      <meta httpEquiv=\"content-language\" content=\"en-US\" />\n      \n      {/* Security */}\n      <meta httpEquiv=\"X-Content-Type-Options\" content=\"nosniff\" />\n      <meta httpEquiv=\"X-Frame-Options\" content=\"DENY\" />\n      <meta httpEquiv=\"X-XSS-Protection\" content=\"1; mode=block\" />\n    </Head>\n  );\n};\n\n// Utility function to generate page-specific SEO\nexport const generatePageSEO = {\n  homepage: (): SEOProps => ({\n    title: 'Home',\n    description: 'Transform your audio and documents with Somleng\\'s powerful tools. Audio transcription, text-to-speech, PDF utilities, and QR code generation.',\n    keywords: ['audio transcription', 'text-to-speech', 'PDF tools', 'QR generator', 'voice recognition'],\n    type: 'website'\n  }),\n  \n  qrGenerator: (): SEOProps => ({\n    title: 'QR Code Generator',\n    description: 'Generate custom QR codes for URLs, text, WiFi, and more. Fast, free, and easy to use QR code generator with logo support.',\n    keywords: ['QR code generator', 'QR codes', 'barcode generator', 'custom QR codes', 'QR with logo'],\n    type: 'website'\n  }),\n  \n  aiAssistant: (): SEOProps => ({\n    title: 'AI Assistant',\n    description: 'Get intelligent help with your tasks using our advanced AI assistant. Powered by the latest language models.',\n    keywords: ['AI assistant', 'artificial intelligence', 'chatbot', 'language model', 'AI help'],\n    type: 'website'\n  }),\n  \n  transcription: (): SEOProps => ({\n    title: 'Audio Transcription',\n    description: 'Convert audio to text with high accuracy. Support for multiple formats and languages.',\n    keywords: ['audio transcription', 'speech to text', 'voice recognition', 'audio to text'],\n    type: 'website'\n  }),\n  \n  pdfTools: (): SEOProps => ({\n    title: 'PDF Tools',\n    description: 'Comprehensive PDF utilities including merge, split, convert, and compress.',\n    keywords: ['PDF tools', 'PDF merger', 'PDF converter', 'PDF utilities'],\n    type: 'website'\n  })\n};
+'use client';
+
+import { Metadata } from 'next';
+
+interface SEOProps {
+  title?: string;
+  description?: string;
+  keywords?: string[];
+  image?: string;
+  url?: string;
+  type?: 'website' | 'article' | 'product' | 'profile';
+  siteName?: string;
+  author?: string;
+  publishedTime?: string;
+  modifiedTime?: string;
+  section?: string;
+  tags?: string[];
+  noIndex?: boolean;
+  canonical?: string;
+  alternateUrls?: { [key: string]: string };
+}
+
+const DEFAULT_SEO = {
+  title: 'Somleng - Audio Transcription & PDF Tools',
+  description: 'An all-in-one toolkit for audio transcription, text-to-speech, and PDF utilities. Fast, accurate, and easy to use.',
+  keywords: ['audio transcription', 'text-to-speech', 'PDF tools', 'voice recognition', 'speech to text', 'QR code generator'],
+  siteName: 'Somleng',
+  author: 'Somleng Team',
+  type: 'website' as const,
+  image: '/images/og-image.png'
+};
+
+// Utility function to generate page-specific metadata
+export const generatePageSEO = {
+  homepage: (): Metadata => ({
+    title: 'Home | Somleng',
+    description: 'Transform your audio and documents with Somleng\'s powerful tools. Audio transcription, text-to-speech, PDF utilities, and QR code generation.',
+    keywords: ['audio transcription', 'text-to-speech', 'PDF tools', 'QR generator', 'voice recognition'],
+    openGraph: {
+      title: 'Home | Somleng',
+      description: 'Transform your audio and documents with Somleng\'s powerful tools.',
+      type: 'website'
+    }
+  }),
+  
+  qrGenerator: (): Metadata => ({
+    title: 'QR Code Generator | Somleng',
+    description: 'Generate custom QR codes for URLs, text, WiFi, and more. Fast, free, and easy to use QR code generator with logo support.',
+    keywords: ['QR code generator', 'QR codes', 'barcode generator', 'custom QR codes', 'QR with logo'],
+    openGraph: {
+      title: 'QR Code Generator | Somleng',
+      description: 'Generate custom QR codes for URLs, text, WiFi, and more.',
+      type: 'website'
+    }
+  }),
+  
+  aiAssistant: (): Metadata => ({
+    title: 'AI Assistant | Somleng',
+    description: 'Get intelligent help with your tasks using our advanced AI assistant. Powered by the latest language models.',
+    keywords: ['AI assistant', 'artificial intelligence', 'chatbot', 'language model', 'AI help'],
+    openGraph: {
+      title: 'AI Assistant | Somleng',
+      description: 'Get intelligent help with your tasks using our advanced AI assistant.',
+      type: 'website'
+    }
+  }),
+  
+  transcription: (): Metadata => ({
+    title: 'Audio Transcription | Somleng',
+    description: 'Convert audio to text with high accuracy. Support for multiple formats and languages.',
+    keywords: ['audio transcription', 'speech to text', 'voice recognition', 'audio to text'],
+    openGraph: {
+      title: 'Audio Transcription | Somleng',
+      description: 'Convert audio to text with high accuracy.',
+      type: 'website'
+    }
+  }),
+  
+  pdfTools: (): Metadata => ({
+    title: 'PDF Tools | Somleng',
+    description: 'Comprehensive PDF utilities including merge, split, convert, and compress.',
+    keywords: ['PDF tools', 'PDF merger', 'PDF converter', 'PDF utilities'],
+    openGraph: {
+      title: 'PDF Tools | Somleng',
+      description: 'Comprehensive PDF utilities including merge, split, convert, and compress.',
+      type: 'website'
+    }
+  })
+};

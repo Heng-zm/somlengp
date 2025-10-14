@@ -42,7 +42,7 @@ export function convertDimension(dimension: Dimension, targetUnit: DimensionUnit
 /**
  * Convert a dimension from one unit to another with DPI context for pixel conversions
  */
-export function convertDimensionWithDPI(dimension: Dimension, targetUnit: DimensionUnit, dpi: number = 96): Dimension {
+export function convertDimensionWithDPI(dimension: Dimension, targetUnit: DimensionUnit, dpi = 96): Dimension {
   return convertWithDPI(dimension, targetUnit, dpi);
 }
 
@@ -59,7 +59,7 @@ export function convertDimensionPair(pair: DimensionPair, targetUnit: DimensionU
 /**
  * Format a dimension value for display
  */
-export function formatDimension(dimension: Dimension, precision: number = 2): string {
+export function formatDimension(dimension: Dimension, precision = 2): string {
   // Remove unnecessary trailing zeros for better display
   const value = parseFloat(dimension.value.toFixed(precision));
   // For very small values or whole numbers, adjust display
@@ -70,7 +70,7 @@ export function formatDimension(dimension: Dimension, precision: number = 2): st
 /**
  * Format a dimension pair for display
  */
-export function formatDimensionPair(pair: DimensionPair, precision: number = 2): string {
+export function formatDimensionPair(pair: DimensionPair, precision = 2): string {
   const width = formatDimension(pair.width, precision);
   const height = formatDimension(pair.height, precision);
   return `${width} × ${height}`;
@@ -189,7 +189,7 @@ export function getAllUnits(): DimensionUnit[] {
 /**
  * Check if two dimensions are equal (after conversion)
  */
-export function areDimensionsEqual(dim1: Dimension, dim2: Dimension, tolerance: number = 0.001): boolean {
+export function areDimensionsEqual(dim1: Dimension, dim2: Dimension, tolerance = 0.001): boolean {
   const converted = convertDimension(dim2, dim1.unit);
   return Math.abs(dim1.value - converted.value) <= tolerance;
 }

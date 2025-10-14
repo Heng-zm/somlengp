@@ -96,7 +96,7 @@ export async function getUserAnalytics(userId: string): Promise<UserAnalytics | 
 // Get user's recent activities (for dashboard)
 export async function getUserRecentActivities(
   userId: string, 
-  limitCount: number = 10
+  limitCount = 10
 ): Promise<ActivityEvent[]> {
   try {
     // Analytics temporarily disabled during migration

@@ -375,3 +375,6 @@ export {
   ChartLegendContent,
   ChartStyle,
 }
+
+// Default export for dynamic imports
+export default ChartContainer;

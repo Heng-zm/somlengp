@@ -15,7 +15,7 @@ try {
 }
 
 const STORAGE_BUCKET = 'profile-pictures';
-const storage: null = null; // Keep for backwards compatibility
+const storage = null; // Keep for backwards compatibility
 
 class StorageError extends Error {
   code: string;

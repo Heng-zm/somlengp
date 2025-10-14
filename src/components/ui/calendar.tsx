@@ -78,3 +78,4 @@ const Calendar = React.memo<CalendarProps>(function Calendar({
 Calendar.displayName = "Calendar"
 
 export { Calendar }
+export default Calendar;

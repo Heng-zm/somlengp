@@ -254,6 +254,13 @@ const nextConfig = {
 };
 
 // Enable bundle analyzer in development
-module.exports = process.env.ANALYZE === 'true' 
-  ? require('@next/bundle-analyzer')({ enabled: true })(nextConfig)
-  : nextConfig;
+let finalConfig = nextConfig;
+
+if (process.env.ANALYZE === 'true') {
+  const withBundleAnalyzer = (await import('@next/bundle-analyzer')).default({
+    enabled: true
+  });
+  finalConfig = withBundleAnalyzer(nextConfig);
+}
+
+export default finalConfig;

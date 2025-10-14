@@ -54,7 +54,7 @@ class QRAnalyticsManager {
   private analytics: QRCodeAnalytics[] = [];
   private performanceMetrics: PerformanceMetrics[] = [];
   private usageStats: UsageStats;
-  private isEnabled: boolean = true;
+  private isEnabled = true;
 
   constructor(userId?: string) {
     this.sessionId = this.generateSessionId();

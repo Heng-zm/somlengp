@@ -107,7 +107,7 @@ class QRCodeCache {
       data: string;
       location?: QRCacheEntry['location'];
     },
-    confidence: number = 100
+    confidence = 100
   ): void {
     try {
       const imageHash = this.generateImageHash(imageData);
@@ -169,7 +169,7 @@ class QRCodeCache {
   /**
    * Check if image data likely contains a QR code based on cache history
    */
-  hasSimilar(imageData: ImageData, threshold: number = 0.8): QRCacheEntry | null {
+  hasSimilar(imageData: ImageData, threshold = 0.8): QRCacheEntry | null {
     try {
       const targetHash = this.generateImageHash(imageData);
       // Look for similar hashes (basic similarity check)

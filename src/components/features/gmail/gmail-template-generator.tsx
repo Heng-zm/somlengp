@@ -20,7 +20,7 @@ export interface GmailTemplateOptions {
   unsubscribeLink?: string;
 }
 
-export interface GmailEmailTemplate {
+export interface IGmailEmailTemplate {
   type: 'welcome' | 'verification' | 'reset-password' | 'notification' | 'newsletter' | 'invoice' | 'custom';
   subject: string;
   content: {
@@ -38,7 +38,7 @@ export const GmailEmailTemplate = memo(function GmailEmailTemplate({
   template,
   preview = false
 }: {
-  template: GmailEmailTemplate;
+  template: IGmailEmailTemplate;
   preview?: boolean;
 }) {
   const {
@@ -85,7 +85,7 @@ export const GmailEmailTemplate = memo(function GmailEmailTemplate({
 
 // Gmail Template Generator Function
 export function generateGmailHTML(
-  template: GmailEmailTemplate,
+  template: IGmailEmailTemplate,
   options: GmailTemplateOptions
 ): string {
   const {
@@ -366,7 +366,7 @@ export function generateGmailHTML(
 }
 
 // Pre-defined Gmail Templates
-export const GMAIL_TEMPLATES: Record<string, Omit<GmailEmailTemplate, 'options'>> = {
+export const GMAIL_TEMPLATES: Record<string, Omit<IGmailEmailTemplate, 'options'>> = {
   welcome: {
     type: 'welcome',
     subject: 'Welcome to [Company Name]!',
@@ -474,8 +474,8 @@ export const GMAIL_TEMPLATES: Record<string, Omit<GmailEmailTemplate, 'options'>
 
 // Gmail Template Builder Component
 interface GmailTemplateBuilderProps {
-  template: GmailEmailTemplate;
-  onChange: (template: GmailEmailTemplate) => void;
+  template: IGmailEmailTemplate;
+  onChange: (template: IGmailEmailTemplate) => void;
   className?: string;
 }
 
@@ -484,11 +484,11 @@ export const GmailTemplateBuilder = memo(function GmailTemplateBuilder({
   onChange,
   className
 }: GmailTemplateBuilderProps) {
-  const updateTemplate = (updates: Partial<GmailEmailTemplate>) => {
+  const updateTemplate = (updates: Partial<IGmailEmailTemplate>) => {
     onChange({ ...template, ...updates });
   };
 
-  const updateContent = (updates: Partial<GmailEmailTemplate['content']>) => {
+  const updateContent = (updates: Partial<IGmailEmailTemplate['content']>) => {
     onChange({
       ...template,
       content: { ...template.content, ...updates }
@@ -517,7 +517,7 @@ export const GmailTemplateBuilder = memo(function GmailTemplateBuilder({
         </label>
         <select
           value={template.type}
-          onChange={(e) => updateTemplate({ type: e.target.value as GmailEmailTemplate['type'] })}
+          onChange={(e) => updateTemplate({ type: e.target.value as IGmailEmailTemplate['type'] })}
           className="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
         >
           <option value="welcome">Welcome Email</option>

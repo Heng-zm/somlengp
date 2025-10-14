@@ -214,3 +214,6 @@ const CommentSkeleton = memo(function CommentSkeleton() {
     </div>
   );
 });
+
+// Export alias for backward compatibility
+export const CommentsList = LimitedCommentsList;

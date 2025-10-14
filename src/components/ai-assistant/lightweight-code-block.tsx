@@ -46,7 +46,7 @@ interface LightweightCodeBlockProps {
 }
 
 // Enhanced syntax highlighting with better language support
-const highlightCode = (code: string, language: string = 'text') => {
+const highlightCode = (code: string, language = 'text') => {
   // Escape HTML to prevent XSS
   const escapeHtml = (str: string) => 
     str.replace(/&/g, '&amp;')
@@ -64,7 +64,7 @@ const highlightCode = (code: string, language: string = 'text') => {
       // Keywords
       .replace(/\b(const|let|var|function|return|if|else|for|while|class|import|export|from|default|async|await)\b/g, '<span class="text-blue-300 font-medium">$1</span>')
       // Strings
-      .replace(/(\'|\"|\`)([^\'\"|\`]*?)\1/g, '<span class="text-green-300">$1$2$1</span>')
+      .replace(/('{1}|"{1}|`{1})([^'"` ]*?)\1/g, '<span class="text-green-300">$1$2$1</span>')
       // Numbers
       .replace(/\b(\d+\.?\d*)\b/g, '<span class="text-yellow-300">$1</span>')
       // Comments
@@ -76,7 +76,7 @@ const highlightCode = (code: string, language: string = 'text') => {
       // Keywords
       .replace(/\b(def|class|import|from|return|if|else|elif|for|while|try|except|with|as|True|False|None)\b/g, '<span class="text-blue-300 font-medium">$1</span>')
       // Strings
-      .replace(/(\'|\")([^\'\"]*)\1/g, '<span class="text-green-300">$1$2$1</span>')
+      .replace(/('{1}|"{1})([^'"]*?)\1/g, '<span class="text-green-300">$1$2$1</span>')
       // Numbers
       .replace(/\b(\d+\.?\d*)\b/g, '<span class="text-yellow-300">$1</span>')
       // Comments
