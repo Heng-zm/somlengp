@@ -44,12 +44,16 @@ import {
   XCircle,
   Target,
   User,
-  MoreHorizontal
+  MoreHorizontal,
+  Upload,
+  Image,
+  X
 } from 'lucide-react';
 import { showSuccessToast } from '@/lib/toast-utils';
 import { cn } from '@/lib/utils';
 import { generateMessageId } from '@/lib/id-utils';
 import Link from 'next/link';
+import { formatFileSize } from '@/lib/format-file-size';
 
 // Lazy load heavy components
 const ReactMarkdown = dynamic(() => import('react-markdown'), {
@@ -627,6 +631,48 @@ const TypingIndicator = memo(function TypingIndicator() {
   );
 });
 
+// Hydration-safe model select rendered only on client to avoid dev mismatch warnings
+function ModelSelectPill({ selectedModel, setSelectedModel }: { selectedModel: AIModel; setSelectedModel: (m: AIModel) => void }) {
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <button
+          type="button"
+          aria-label="Model Select"
+          className="group relative flex items-center rounded-full bg-gray-100 dark:bg-gray-900 border border-gray-300 dark:border-gray-700 pl-3 pr-2 h-8 sm:h-9"
+        >
+          <span className="text-gray-700 dark:text-gray-300 text-xs sm:text-sm font-semibold">Model Select</span>
+          <span className="ml-2 h-6 w-6 sm:h-7 sm:w-7 rounded-full bg-white dark:bg-black border border-gray-300 dark:border-gray-700 flex items-center justify-center shadow-sm">
+            <ChevronDown className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-gray-700 dark:text-gray-300" />
+          </span>
+        </button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent className="w-64 bg-white dark:bg-black border-gray-200 dark:border-gray-700">
+        <DropdownMenuLabel className="text-gray-600 dark:text-gray-400">Select Model</DropdownMenuLabel>
+        <DropdownMenuSeparator className="bg-gray-200 dark:bg-gray-700" />
+        {AI_MODELS.map((model) => (
+          <DropdownMenuItem
+            key={model.id}
+            onClick={() => setSelectedModel(model)}
+            className={cn(
+              "flex items-center gap-3 p-3 text-black dark:text-white hover:bg-gray-100 dark:hover:bg-gray-800",
+              selectedModel.id === model.id && "bg-gray-100 dark:bg-gray-800"
+            )}
+          >
+            <div className="flex-1">
+              <div className="font-medium text-black dark:text-white">{model.displayName}</div>
+              <div className="text-xs text-gray-600 dark:text-gray-400">{model.description}</div>
+            </div>
+            {selectedModel.id === model.id && <CheckCircle2 className="w-4 h-4 text-black dark:text-white" />}
+          </DropdownMenuItem>
+        ))}
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+}
+
+const ClientModelSelectPill = dynamic(async () => ModelSelectPill, { ssr: false });
+
 function AIAssistantPageInternal() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
@@ -634,6 +680,7 @@ function AIAssistantPageInternal() {
   const [isTyping, setIsTyping] = useState(false);
   const [selectedModel, setSelectedModel] = useState<AIModel>(AI_MODELS[0]);
   const [showScrollToBottom, setShowScrollToBottom] = useState(false);
+  const [uploadPreview, setUploadPreview] = useState<{ name: string; size: number; type: string; url?: string } | null>(null);
   
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
@@ -878,6 +925,11 @@ function AIAssistantPageInternal() {
       setIsLoading(false);
       setIsTyping(false);
       abortControllerRef.current = null;
+      // Clear any upload preview after sending/cancel
+      setUploadPreview(prev => {
+        if (prev?.url) URL.revokeObjectURL(prev.url);
+        return null;
+      });
     }
   }, [input, messages, selectedModel, isLoading]);
 
@@ -909,57 +961,24 @@ function AIAssistantPageInternal() {
       
       {/* Main Content */}
       <div className="w-full flex flex-col min-w-0" style={{ maxWidth: '100vw', boxSizing: 'border-box' }}>
-        {/* Monochrome Header with Back Button */}
-        <header className="flex items-center justify-between px-2 sm:px-3 py-2 sm:py-3 border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-black" style={{ minWidth: 0, maxWidth: '100%' }}>
-          <div className="flex items-center gap-1 sm:gap-2 md:gap-3 min-w-0 flex-1">
-            {/* Back Button */}
+        {/* Monochrome Header matching provided UI */}
+        <header className="relative px-2 sm:px-3 py-2 sm:py-3 border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-black" style={{ minWidth: 0, maxWidth: '100%' }}>
+          {/* Left action */}
+          <div className="absolute left-2 top-1/2 -translate-y-1/2">
             <Link href="/">
               <Button
                 variant="ghost"
                 size="icon"
                 className="text-gray-600 dark:text-gray-400 hover:text-black dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800 h-10 w-10"
-                aria-label="Go back to home"
+                aria-label="Go back"
               >
                 <ArrowLeft className="w-5 h-5" />
               </Button>
             </Link>
-            
-            {/* Model Selector - Monochrome */}
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button 
-                  variant="ghost" 
-                  className="flex items-center gap-1 sm:gap-2 text-black dark:text-white font-semibold hover:bg-gray-100 dark:hover:bg-gray-800 h-8 sm:h-10 px-2 sm:px-3 rounded-lg min-w-0"
-                >
-                  <span className="text-sm sm:text-base md:text-lg truncate">{selectedModel.displayName}</span>
-                  <ChevronDown className="w-4 h-4 text-gray-600 dark:text-gray-400" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent className="w-64 bg-white dark:bg-black border-gray-200 dark:border-gray-700">
-                <DropdownMenuLabel className="text-gray-600 dark:text-gray-400">Select Model</DropdownMenuLabel>
-                <DropdownMenuSeparator className="bg-gray-200 dark:bg-gray-700" />
-                {AI_MODELS.map((model) => (
-                  <DropdownMenuItem
-                    key={model.id}
-                    onClick={() => setSelectedModel(model)}
-                    className={cn(
-                      "flex items-center gap-3 p-3 text-black dark:text-white hover:bg-gray-100 dark:hover:bg-gray-800",
-                      selectedModel.id === model.id && "bg-gray-100 dark:bg-gray-800"
-                    )}
-                  >
-                    <div className="flex-1">
-                      <div className="font-medium text-black dark:text-white">{model.displayName}</div>
-                      <div className="text-xs text-gray-600 dark:text-gray-400">{model.description}</div>
-                    </div>
-                    {selectedModel.id === model.id && <CheckCircle2 className="w-4 h-4 text-black dark:text-white" />}
-                  </DropdownMenuItem>
-                ))}
-              </DropdownMenuContent>
-            </DropdownMenu>
           </div>
-          
-          <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
-            {/* Clear Button */}
+
+          {/* Right action */}
+          <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-2">
             <Button
               variant="ghost"
               size="icon"
@@ -969,6 +988,14 @@ function AIAssistantPageInternal() {
             >
               <Trash2 className="w-4 h-4 sm:w-5 sm:h-5" />
             </Button>
+          </div>
+
+          {/* Center title and model select */}
+          <div className="flex flex-col items-center text-center">
+            <h1 className="text-base sm:text-lg font-semibold text-black dark:text-white">Ai Assistant</h1>
+            <div className="mt-1">
+              <ClientModelSelectPill selectedModel={selectedModel} setSelectedModel={setSelectedModel} />
+            </div>
           </div>
         </header>
 
@@ -1033,54 +1060,115 @@ function AIAssistantPageInternal() {
                 </div>
               </div>
             )}
-            
-            {/* Input Container */}
-            <div className="relative">
-              <Textarea
-                ref={inputRef}
-                value={input}
-                onChange={(e) => setInput(e.target.value)}
-                onKeyDown={handleKeyDown}
-                onInput={(e) => {
-                  const t = e.currentTarget;
-                  t.style.height = '24px';
-                  t.style.height = Math.min(t.scrollHeight, 200) + 'px';
-                }}
-                rows={1}
-                placeholder="Message ChatGPT..."
-                disabled={isLoading}
-                className="w-full resize-none border border-gray-300 dark:border-gray-600 rounded-xl px-4 py-3 pr-12 bg-white dark:bg-gray-900 text-black dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-400 dark:focus:ring-gray-500 focus:border-gray-400 dark:focus:border-gray-500 min-h-[52px] max-h-[200px] no-zoom mobile-input"
-                style={{
-                  fontSize: '16px', // Prevent zoom on mobile
-                  WebkitAppearance: 'none',
-                  MozAppearance: 'none',
-                  appearance: 'none',
-                  transform: 'scale(1)',
-                  zoom: 1
+
+            {/* File preview card */}
+            {uploadPreview && (
+              <div className="mb-3">
+                <div className="flex items-center gap-3 p-3 rounded-3xl bg-gray-200 dark:bg-gray-800 border border-gray-300 dark:border-gray-700">
+                  {uploadPreview.url ? (
+                    <img src={uploadPreview.url} alt={uploadPreview.name} className="w-16 h-16 rounded-xl object-cover" />
+                  ) : (
+                    <div className="w-16 h-16 rounded-xl bg-gray-300 dark:bg-gray-700 flex items-center justify-center">
+                      <Image className="w-7 h-7 text-gray-600 dark:text-gray-300" />
+                    </div>
+                  )}
+                  <div className="flex-1 min-w-0">
+                    <div className="text-gray-700 dark:text-gray-200 text-lg font-medium truncate">{uploadPreview.name}</div>
+                    <div className="text-gray-600 dark:text-gray-400">Size: ({formatFileSize(uploadPreview.size)})</div>
+                  </div>
+                  <button
+                    aria-label="Remove file"
+                    className="h-8 w-8 rounded-full bg-white/70 dark:bg-black/30 border border-gray-300 dark:border-gray-700 flex items-center justify-center hover:bg-white dark:hover:bg-black"
+                    onClick={() => setUploadPreview(prev => { if (prev?.url) URL.revokeObjectURL(prev.url); return null; })}
+                  >
+                    <X className="w-4 h-4 text-gray-700 dark:text-gray-300" />
+                  </button>
+                </div>
+              </div>
+            )}
+            {/* Input Container - split pill with right inner upload and external send */}
+            <div className="flex items-center gap-3">
+              {/* Hidden file input for uploads */}
+              <input
+                id="ai-upload-input"
+                type="file"
+                className="hidden"
+                onChange={async (e) => {
+                  const file = e.target.files?.[0];
+                  if (!file) return;
+                  try {
+                    const isImage = file.type.startsWith('image/');
+                    const isText = /text|json|markdown|javascript|typescript|python|plain/.test(file.type);
+                    // Prepare preview
+                    const url = isImage ? URL.createObjectURL(file) : undefined;
+                    setUploadPreview({ name: file.name, size: file.size, type: file.type, url });
+                    // Insert text content only for small text-like files; do NOT inject placeholder text for other files
+                    if (isText && file.size <= 100 * 1024) {
+                      const text = await file.text();
+                      setInput((prev) => (prev ? prev + '\n\n' + text : text));
+                    }
+                  } finally {
+                    e.currentTarget.value = '';
+                  }
                 }}
               />
-              
-              {/* Send Button */}
-              <div className="absolute right-2 bottom-2">
-                {input.trim() ? (
-                  <Button
-                    onClick={sendMessage}
+
+              {/* Pill container */}
+              <div className="relative flex-1">
+                <div className="w-full rounded-full bg-gray-200 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 pr-14 pl-5 py-2.5">
+                  <Textarea
+                    ref={inputRef}
+                    value={input}
+                    onChange={(e) => setInput(e.target.value)}
+                    onKeyDown={handleKeyDown}
+                    onInput={(e) => {
+                      const t = e.currentTarget as HTMLTextAreaElement;
+                      t.style.height = '24px';
+                      t.style.height = Math.min(t.scrollHeight, 200) + 'px';
+                    }}
+                    rows={1}
+                    placeholder="Message"
                     disabled={isLoading}
-                    size="icon"
-                    className="w-8 h-8 bg-black dark:bg-white text-white dark:text-black hover:bg-gray-800 dark:hover:bg-gray-300 rounded-lg"
-                  >
-                    {isLoading ? (
-                      <XCircle className="w-4 h-4" onClick={cancelRequest} />
-                    ) : (
-                      <Send className="w-4 h-4" />
-                    )}
-                  </Button>
-                ) : (
-                  <div className="w-8 h-8 flex items-center justify-center">
-                    <div className="w-1 h-1 bg-gray-400 rounded-full" />
-                  </div>
-                )}
+                    className="w-full resize-none bg-transparent border-0 focus:outline-none focus:ring-0 text-gray-800 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 min-h-[40px] max-h-[200px] no-zoom mobile-input"
+                    style={{
+                      fontSize: '18px',
+                      WebkitAppearance: 'none',
+                      MozAppearance: 'none',
+                      appearance: 'none',
+                      transform: 'scale(1)',
+                      zoom: 1
+                    }}
+                  />
+                </div>
+                {/* Inner right upload circle */}
+                <button
+                  type="button"
+                  aria-label="Upload"
+                  onClick={() => document.getElementById('ai-upload-input')?.click()}
+                  className="absolute right-1 top-1/2 -translate-y-1/2 h-10 w-10 rounded-full bg-white dark:bg-black border-2 border-gray-300 dark:border-gray-700 flex items-center justify-center shadow-sm"
+                >
+                  <Upload className="w-5 h-5 text-gray-700 dark:text-gray-300" />
+                </button>
               </div>
+
+              {/* External send circle */}
+              <Button
+                onClick={input.trim() ? sendMessage : undefined}
+                disabled={!input.trim() || isLoading}
+                size="icon"
+                aria-label={isLoading ? 'Cancel' : 'Send'}
+                className={cn(
+                  'h-12 w-12 rounded-full bg-gray-200 dark:bg-gray-800 text-gray-800 dark:text-gray-100 hover:bg-gray-300 dark:hover:bg-gray-700',
+                  'border border-gray-300 dark:border-gray-700',
+                  (!input.trim() || isLoading) && 'opacity-50 cursor-not-allowed'
+                )}
+              >
+                {isLoading ? (
+                  <XCircle className="w-5 h-5" onClick={cancelRequest} />
+                ) : (
+                  <Send className="w-5 h-5" />
+                )}
+              </Button>
             </div>
             
             {/* Footer */}

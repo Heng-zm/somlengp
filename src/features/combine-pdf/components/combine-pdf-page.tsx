@@ -2,7 +2,7 @@
 "use client";
 
 import { useState, useMemo, useContext, useRef, useCallback } from 'react';
-import { FileUp, X, File, FilePlus, Download } from 'lucide-react';
+import { FileUp, X, File, FilePlus, Download, ChevronUp, ChevronDown, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { Card } from '@/components/ui/card';
@@ -15,15 +15,22 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { formatFileSize, formatTotalFileSize } from '@/lib/format-file-size';
 
 // Small, memo-friendly file card to avoid re-renders of the whole list
-function FileCard({ file, onRemove }: { file: File; onRemove: () => void }) {
+function FileCard({ file, index, onRemove, onMoveUp, onMoveDown }: { file: File; index: number; onRemove: () => void; onMoveUp: () => void; onMoveDown: () => void }) {
   return (
-    <Card className="relative group aspect-square flex flex-col items-center justify-center p-2 text-center transition-shadow hover:shadow-md">
+    <Card className="relative group aspect-square flex flex-col items-center justify-center p-2 text-center transition-shadow hover:shadow-md" aria-label={`File ${index + 1}: ${file.name}`}>
+      <div className="absolute top-1 left-1 text-xs px-1.5 py-0.5 rounded bg-primary text-primary-foreground">{index + 1}</div>
       <File className="w-12 h-12 text-primary mb-2" />
-      <p className="text-sm font-medium truncate w-full">{file.name}</p>
+      <p className="text-sm font-medium truncate w-full" title={file.name}>{file.name}</p>
       <p className="text-xs text-muted-foreground">{formatFileSize(file.size)}</p>
-      <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity rounded-lg">
-        <Button variant="destructive" size="icon" onClick={onRemove}>
-          <X className="w-5 h-5" />
+      <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 flex items-center justify-center gap-2 transition-opacity rounded-lg">
+        <Button aria-label="Move up" variant="secondary" size="icon" onClick={onMoveUp}>
+          <ChevronUp className="w-5 h-5" />
+        </Button>
+        <Button aria-label="Remove" variant="destructive" size="icon" onClick={onRemove}>
+          <Trash2 className="w-5 h-5" />
+        </Button>
+        <Button aria-label="Move down" variant="secondary" size="icon" onClick={onMoveDown}>
+          <ChevronDown className="w-5 h-5" />
         </Button>
       </div>
     </Card>
@@ -89,6 +96,20 @@ export function CombinePdfPage() {
   const handleRemoveFile = useCallback((index: number) => {
     setFiles((prev) => prev.filter((_, i) => i !== index));
   }, []);
+
+  const moveFile = useCallback((index: number, dir: -1 | 1) => {
+    setFiles((prev) => {
+      const next = [...prev];
+      const target = index + dir;
+      if (target < 0 || target >= next.length) return prev;
+      const tmp = next[index];
+      next[index] = next[target];
+      next[target] = tmp;
+      return next;
+    });
+  }, []);
+
+  const clearAll = useCallback(() => setFiles([]), []);
 
   const handleCombine = useCallback(async () => {
     if (files.length < 2) {
@@ -181,11 +202,15 @@ export function CombinePdfPage() {
         <div className="w-full max-w-4xl flex-grow flex flex-col">
           {files.length === 0 ? (
             <Card
+              role="button"
+              tabIndex={0}
+              aria-label={t.addMorePdfs}
               className={cn(
                 'flex flex-col items-center justify-center text-center border-2 border-dashed h-64 sm:h-80 md:h-full transition-colors cursor-pointer p-4 sm:p-6 mobile-gap-2',
                 isDragging ? 'border-primary bg-primary/10' : 'border-border'
               )}
               onClick={() => fileInputRef.current?.click()}
+              onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); fileInputRef.current?.click(); } }}
               onDragLeave={handleDragLeave}
               onDrop={handleDrop}
             >
@@ -196,25 +221,41 @@ export function CombinePdfPage() {
           ) : (
             <div className="grid md:grid-cols-2 gap-4 md:gap-6 h-full">
               <Card className="flex flex-col">
-                <div className="p-3 sm:p-4 border-b">
-                  <h3 className="text-base sm:text-lg font-semibold">{t.filesToCombine} ({files.length})</h3>
-                  <p className="text-xs sm:text-sm text-muted-foreground mt-1">Total size: {totalSizeLabel}</p>
+                <div className="p-3 sm:p-4 border-b flex items-center justify-between gap-2">
+                  <div>
+                    <h3 className="text-base sm:text-lg font-semibold">{t.filesToCombine} ({files.length})</h3>
+                    <p className="text-xs sm:text-sm text-muted-foreground mt-1">Total size: {totalSizeLabel}</p>
+                  </div>
+                  <Button variant="outline" size="sm" onClick={clearAll} aria-label="Clear all files">
+                    {t.clear ?? 'Clear all'}
+                  </Button>
                 </div>
                 <ScrollArea className="flex-grow p-3 sm:p-4 no-scrollbar smooth-scroll">
                   <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 sm:gap-4">
                     {files.map((file, index) => (
-                      <FileCard key={`${file.name}_${file.size}_${file.lastModified}`} file={file} onRemove={() => handleRemoveFile(index)} />
+                      <FileCard
+                        key={`${file.name}_${file.size}_${file.lastModified}`}
+                        file={file}
+                        index={index}
+                        onRemove={() => handleRemoveFile(index)}
+                        onMoveUp={() => moveFile(index, -1)}
+                        onMoveDown={() => moveFile(index, 1)}
+                      />
                     ))}
                   </div>
                 </ScrollArea>
               </Card>
 
               <Card
+                role="button"
+                tabIndex={0}
+                aria-label={t.addMorePdfs}
                 className={cn(
                   'flex flex-col items-center justify-center text-center border-2 border-dashed h-40 sm:h-auto transition-colors cursor-pointer p-4 sm:p-6',
                   isDragging ? 'border-primary bg-primary/10' : 'border-border'
                 )}
                 onClick={() => fileInputRef.current?.click()}
+                onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); fileInputRef.current?.click(); } }}
                 onDragLeave={handleDragLeave}
                 onDrop={handleDrop}
               >
