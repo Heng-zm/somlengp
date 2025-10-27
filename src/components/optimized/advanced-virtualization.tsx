@@ -508,7 +508,9 @@ export const VirtualTable = memo(
               'flex items-center border-b hover:bg-gray-50 cursor-pointer',
               rowClass
             )}
-             role="button" tabIndex={0}={() => onRowClick?.(item, index)}
+            role="button"
+            tabIndex={0}
+            onClick={() => onRowClick?.(item, index)}
           >
             {columns.map((column, colIndex) => (
               <div

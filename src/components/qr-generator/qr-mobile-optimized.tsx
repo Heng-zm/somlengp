@@ -1016,7 +1016,7 @@ export function QRCodeMobileOptimized({
                     <div className="text-center">
                       <Label className="text-base font-medium text-gray-700">Choose Content Type</Label>
                     </div>
-                    <DesktopTemplateSelector />
+                    {DesktopTemplateSelector}
                   </div>
 
                   {/* Text Input */}

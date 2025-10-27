@@ -273,7 +273,9 @@ const HistoryItem = memo<{
         <div className="flex justify-between items-start gap-2">
           <div 
             className="flex-1 min-w-0"
-             role="button" tabIndex={0}={() => onSelect(item.text, item.voice)}
+            role="button"
+            tabIndex={0}
+            onClick={() => onSelect(item.text, item.voice)}
           >
             <p className="text-sm font-medium truncate mb-1">
               {item.text.substring(0, 60)}...

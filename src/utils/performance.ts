@@ -146,36 +146,7 @@ export const getOptimizedImageSrc = (src: string, quality = 75) => {
  */
 export const preloadCriticalResources = () => {
   if (typeof document === 'undefined') return;
-  
-  // Preload critical fonts
-  const criticalFonts = [
-    '/fonts/inter-var.woff2',
-    '/fonts/cal-sans.woff2'
-  ];
-  
-  criticalFonts.forEach(font => {
-    const link = document.createElement('link');
-    link.rel = 'preload';
-    link.as = 'font';
-    link.type = 'font/woff2';
-    link.href = font;
-    link.crossOrigin = 'anonymous';
-    document.head.appendChild(link);
-  });
-  
-  // Preload critical images
-  const criticalImages = [
-    '/images/logo.webp',
-    '/images/hero-bg.webp'
-  ];
-  
-  criticalImages.forEach(image => {
-    const link = document.createElement('link');
-    link.rel = 'preload';
-    link.as = 'image';
-    link.href = image;
-    document.head.appendChild(link);
-  });
+  // Resources can be added here when available
 };
 
 /**

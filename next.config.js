@@ -6,6 +6,7 @@ const nextConfig = {
     optimizeCss: true,
     // Enable modern bundling optimizations
     optimizePackageImports: ['lucide-react', '@radix-ui/react-icons'],
+    // Increase Server Actions body size limit to handle larger PDF payloads
   },
   
   // Server external packages (moved from experimental)

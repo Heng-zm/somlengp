@@ -441,10 +441,10 @@ export const OptimizedStaticPageWrapper = memo(function OptimizedStaticPageWrapp
   useEffect(() => {
     if (process.env.NODE_ENV === 'development' && Object.keys(vitals).length > 0) {
       console.group(`🎯 Core Web Vitals for ${pathname}`);
-      , 'ms', `(${scores.lcp})`);
-      , 'ms', `(${scores.fid})`);
-      , `(${scores.cls})`);
-      , 'ms', `(${scores.fcp})`);
+      console.log('LCP:', vitals.lcp?.toFixed(0), 'ms', `(${scores.lcp})`);
+      console.log('FID:', vitals.fid?.toFixed(0), 'ms', `(${scores.fid})`);
+      console.log('CLS:', vitals.cls?.toFixed(3), `(${scores.cls})`);
+      console.log('FCP:', vitals.fcp?.toFixed(0), 'ms', `(${scores.fcp})`);
       
       console.groupEnd();
     }

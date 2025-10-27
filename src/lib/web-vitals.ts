@@ -88,7 +88,7 @@ export function reportWebVitals(onPerfEntry?: (metric: VitalMetric) => void) {
         enhancedMetric.rating === 'good' ? '#0f5132' :
         enhancedMetric.rating === 'needs-improvement' ? '#664d03' : '#842029';
       
-       / 100}ms (${enhancedMetric.rating})`,
+      console.log(`%c${enhancedMetric.name}: ${enhancedMetric.value / 100}ms (${enhancedMetric.rating})`,
         `color: ${color}; font-weight: bold;`
       );
     }

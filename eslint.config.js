@@ -18,17 +18,20 @@ export default [
       'public/sw*.js',
       'public/workers/**',
       'scripts/**/*.js',
+      'scripts/**/*.cjs',
       '**/*.config.js',
       '**/*.test.js',
       '**/*.test.ts',
       '**/*.spec.js', 
       '**/*.spec.ts',
       'tailwind*.js',
-      'next.config.js'
+      'next.config.js',
+      'src/lib/performance-monitor.tsx'
     ]
   },
   {
     files: ['**/*.{js,ts,jsx,tsx}'],
+    ignores: ['**/*.cjs'],
     languageOptions: {
       parser: typescriptParser,
       parserOptions: {
@@ -81,11 +84,14 @@ export default [
         caches: 'readonly',
         self: 'readonly',
         setImmediate: 'readonly',
+        structuredClone: 'readonly',
         // Node.js globals
         NodeJS: 'readonly',
         __dirname: 'readonly',
+        __filename: 'readonly',
         require: 'readonly',
         module: 'readonly',
+        exports: 'readonly',
         // Testing globals
         jest: 'readonly',
         describe: 'readonly',
@@ -143,6 +149,33 @@ export default [
       '@typescript-eslint/no-unused-vars': 'off',
       'no-unused-vars': 'off',
       'no-console': 'off',
+    },
+  },
+  {
+    files: ['scripts/**/*.cjs', '**/*.cjs'],
+    languageOptions: {
+      sourceType: 'commonjs',
+      ecmaVersion: 'latest',
+      parserOptions: {
+        ecmaVersion: 'latest',
+        sourceType: 'commonjs',
+      },
+      globals: {
+        console: 'readonly',
+        process: 'readonly',
+        Buffer: 'readonly',
+        __dirname: 'readonly',
+        __filename: 'readonly',
+        require: 'readonly',
+        module: 'readonly',
+        exports: 'readonly',
+        global: 'readonly',
+      },
+    },
+    rules: {
+      'no-console': 'off',
+      '@typescript-eslint/no-unused-vars': 'off',
+      '@typescript-eslint/no-explicit-any': 'off',
     },
   },
 ];

@@ -1,0 +1,404 @@
+/* ============================================================================
+ UX/UI ENHANCEMENT UTILITIES - Smooth, Modern, Accessible
+ ============================================================================ */
+
+/* Smooth Page Transitions */
+/* Fade In Animations */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeInDown {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideInLeft {
+  from {
+    opacity: 0;
+    transform: translateX(-30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes slideInRight {
+  from {
+    opacity: 0;
+    transform: translateX(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes scaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* Animation Classes */
+.animate-fade-in {
+  animation: fadeIn 0.4s ease-out;
+}
+
+.animate-fade-in-up {
+  animation: fadeInUp 0.5s ease-out;
+}
+
+.animate-fade-in-down {
+  animation: fadeInDown 0.5s ease-out;
+}
+
+.animate-slide-in-left {
+  animation: slideInLeft 0.5s ease-out;
+}
+
+.animate-slide-in-right {
+  animation: slideInRight 0.5s ease-out;
+}
+
+.animate-scale-in {
+  animation: scaleIn 0.4s ease-out;
+}
+
+/* Staggered animations for lists */
+.animate-stagger-1 {
+  animation-delay: 0.1s;
+}
+
+.animate-stagger-2 {
+  animation-delay: 0.2s;
+}
+
+.animate-stagger-3 {
+  animation-delay: 0.3s;
+}
+
+.animate-stagger-4 {
+  animation-delay: 0.4s;
+}
+
+.animate-stagger-5 {
+  animation-delay: 0.5s;
+}
+
+/* Enhanced Button Styles */
+.btn-enhanced {
+  @apply transition-all duration-200 ease-out;
+  @apply hover:scale-105 active:scale-95;
+  @apply focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2;
+  @apply disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100;
+}
+
+.btn-smooth {
+  @apply transition-all duration-300 ease-in-out;
+  @apply hover:shadow-lg hover:-translate-y-0.5;
+  @apply active:translate-y-0 active:shadow-md;
+}
+
+.btn-glow {
+  @apply transition-all duration-300;
+  @apply hover:shadow-[0_0_20px_rgba(0,0,0,0.1)];
+}
+
+/* Card Enhancement Classes */
+.card-smooth {
+  @apply transition-all duration-300 ease-out;
+  @apply hover:shadow-xl hover:-translate-y-1;
+  @apply hover:border-primary/20;
+}
+
+.card-lift {
+  @apply transition-all duration-300 ease-out;
+  @apply hover:shadow-2xl hover:scale-[1.02];
+}
+
+.card-glow {
+  @apply transition-all duration-300;
+}
+
+.card-glow:hover {
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.12),
+              0 0 20px rgba(var(--primary), 0.1);
+}
+
+/* Input Enhancement Classes */
+.input-smooth {
+  @apply transition-all duration-200 ease-out;
+  @apply focus:ring-2 focus:ring-primary/20 focus:border-primary;
+  @apply focus:shadow-lg focus:scale-[1.01];
+}
+
+.input-glow:focus {
+  box-shadow: 0 0 0 3px rgba(var(--primary), 0.1),
+              0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+/* Icon Animation Classes */
+.icon-hover-rotate {
+  @apply transition-transform duration-300 ease-out;
+}
+
+.icon-hover-rotate:hover {
+  @apply rotate-12;
+}
+
+.icon-hover-bounce {
+  @apply transition-transform duration-300 ease-out;
+}
+
+.icon-hover-bounce:hover {
+  animation: bounce 0.6s ease-in-out;
+}
+
+@keyframes bounce {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-5px);
+  }
+}
+
+.icon-hover-pulse {
+  @apply transition-all duration-300;
+}
+
+.icon-hover-pulse:hover {
+  animation: pulse 1s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.8;
+    transform: scale(1.05);
+  }
+}
+
+/* Smooth Scrolling */
+.smooth-scroll {
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Enhanced Focus States */
+.focus-enhanced {
+  @apply focus-visible:outline-none;
+  @apply focus-visible:ring-2 focus-visible:ring-primary;
+  @apply focus-visible:ring-offset-2 focus-visible:ring-offset-background;
+  @apply transition-all duration-200;
+}
+
+/* Touch Feedback for Mobile */
+.touch-feedback {
+  @apply active:scale-95 active:opacity-80;
+  @apply transition-all duration-100 ease-out;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.touch-feedback-light {
+  @apply active:bg-secondary/50;
+  @apply transition-colors duration-150;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Gradient Text */
+.text-gradient {
+  @apply bg-clip-text text-transparent;
+  background-image: linear-gradient(to right, hsl(var(--foreground)), hsl(var(--foreground) / 0.7));
+}
+
+.text-gradient-primary {
+  @apply bg-clip-text text-transparent;
+  background-image: linear-gradient(to right, hsl(var(--primary)), hsl(var(--primary) / 0.7));
+}
+
+/* Loading Skeleton with Shimmer */
+.skeleton-shimmer {
+  @apply relative overflow-hidden bg-muted;
+}
+
+.skeleton-shimmer::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  transform: translateX(-100%);
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.1),
+    transparent
+  );
+  animation: shimmer 2s infinite;
+}
+
+@keyframes shimmer {
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+/* Smooth Hover Border */
+.hover-border {
+  @apply relative transition-all duration-300;
+}
+
+.hover-border::after {
+  content: '';
+  @apply absolute inset-0 border-2 border-primary rounded-lg;
+  @apply opacity-0 transition-opacity duration-300;
+}
+
+.hover-border:hover::after {
+  @apply opacity-100;
+}
+
+/* Enhanced Shadows */
+.shadow-smooth {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04),
+              0 4px 16px rgba(0, 0, 0, 0.06);
+}
+
+.shadow-smooth-lg {
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06),
+              0 8px 32px rgba(0, 0, 0, 0.08);
+}
+
+.shadow-smooth-xl {
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08),
+              0 16px 48px rgba(0, 0, 0, 0.1);
+}
+
+/* Backdrop Blur Enhancement */
+.backdrop-enhanced {
+  backdrop-filter: blur(12px) saturate(180%);
+  -webkit-backdrop-filter: blur(12px) saturate(180%);
+}
+
+/* Smooth Page Transitions */
+.page-transition {
+  @apply transition-all duration-300 ease-in-out;
+}
+
+.page-enter {
+  @apply opacity-0 translate-y-4;
+}
+
+.page-enter-active {
+  @apply opacity-100 translate-y-0;
+}
+
+.page-exit {
+  @apply opacity-100 translate-y-0;
+}
+
+.page-exit-active {
+  @apply opacity-0 -translate-y-4;
+}
+
+/* Enhanced Dividers */
+.divider-smooth {
+  @apply h-px bg-gradient-to-r from-transparent via-border to-transparent;
+}
+
+.divider-glow {
+  @apply h-px bg-gradient-to-r from-transparent via-primary/30 to-transparent;
+  box-shadow: 0 0 10px rgba(var(--primary), 0.2);
+}
+
+/* Accessibility: Respect reduced motion preferences */
+@media (prefers-reduced-motion: reduce) {
+  .animate-fade-in,
+  .animate-fade-in-up,
+  .animate-fade-in-down,
+  .animate-slide-in-left,
+  .animate-slide-in-right,
+  .animate-scale-in,
+  .icon-hover-bounce,
+  .icon-hover-pulse {
+    animation: none !important;
+  }
+  
+  .btn-enhanced,
+  .btn-smooth,
+  .card-smooth,
+  .card-lift,
+  .input-smooth,
+  .icon-hover-rotate,
+  .page-transition {
+    transition: none !important;
+  }
+  
+  .hover-border:hover,
+  .card-smooth:hover,
+  .card-lift:hover {
+    transform: none !important;
+  }
+}
+
+/* Dark mode enhancements */
+.dark .shadow-smooth {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2),
+              0 4px 16px rgba(0, 0, 0, 0.3);
+}
+
+.dark .shadow-smooth-lg {
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3),
+              0 8px 32px rgba(0, 0, 0, 0.4);
+}
+
+.dark .shadow-smooth-xl {
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4),
+              0 16px 48px rgba(0, 0, 0, 0.5);
+}
+
+/* Utility: Smooth appearance */
+.appear-on-scroll {
+  opacity: 0;
+  transform: translateY(20px);
+  transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+}
+
+.appear-on-scroll.is-visible {
+opacity: 1;
+transform: translateY(0);
+}

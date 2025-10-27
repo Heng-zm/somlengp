@@ -51,7 +51,7 @@ export const CompactExample: React.FC = () => {
 
       <CompactImageDimensionPanel 
         imageFile={imageFile}
-        onDimensionsChange={(dims) => }
+        onDimensionsChange={(dims) => console.log(dims)}
       />
     </div>
   );

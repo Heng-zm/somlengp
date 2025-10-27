@@ -813,7 +813,7 @@ const EnhancedMobileImageUploaderComponent = function EnhancedMobileImageUploade
                 {/* Image preview */}
                 <div className="aspect-video bg-muted rounded-lg overflow-hidden">
                   <img
-                    src={images.find(img = alt=""> img.id === selectedImage)?.preview}
+                    src={images.find(img => img.id === selectedImage)?.preview}
                     alt="Preview"
                     className="w-full h-full object-contain"
                   />

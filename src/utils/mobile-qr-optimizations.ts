@@ -223,7 +223,7 @@ class MobileQROptimizer {
           pointsOfInterest: [{ x: clampedX, y: clampedY }]
         } as any]
       });
-      }, ${clampedY.toFixed(2)})`);
+      console.log(`Focus applied at (${clampedX.toFixed(2)}, ${clampedY.toFixed(2)})`);
       return true;
     } catch (error) {
       return false;

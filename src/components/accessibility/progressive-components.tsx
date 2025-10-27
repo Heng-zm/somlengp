@@ -868,7 +868,7 @@ const ProgressiveFormField: React.FC<ProgressiveFormFieldProps> = ({
       </label>
       <div className="form-control-wrapper">
         {React.isValidElement(children) ? 
-          React.cloneElement(children, {
+          React.cloneElement(children as React.ReactElement<any>, {
             id: fieldId,
             'aria-required': required,
             'aria-invalid': !!error,
@@ -1137,7 +1137,9 @@ const ProgressiveModal: React.FC<ProgressiveModalProps> = ({
   return (
     <div
       className="progressive-modal-overlay"
-       role="button" tabIndex={0}={closeOnOverlayClick ? onClose : undefined}
+      role="button"
+      tabIndex={0}
+      onClick={closeOnOverlayClick ? onClose : undefined}
       onKeyDown={(e) => e.key === 'Escape' && closeOnEscape && onClose()}
     >
       <ProgressiveFocusManager

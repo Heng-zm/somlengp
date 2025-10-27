@@ -883,7 +883,9 @@ const OptimizedQRCodeGeneratorComponent = function OptimizedQRCodeGenerator() {
                               ? 'border-blue-500 bg-blue-50'
                               : 'border-gray-200 hover:border-gray-300'
                           }`}
-                           role="button" tabIndex={0}={() => selectTemplate(template.id)}
+                          role="button"
+                          tabIndex={0}
+                          onClick={() => selectTemplate(template.id)}
                         >
                           <div className="text-3xl mb-2">{template.icon}</div>
                           <h3 className="font-semibold mb-1">{template.name}</h3>

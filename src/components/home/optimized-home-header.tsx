@@ -51,11 +51,14 @@ const ThemeToggleButton = memo(function ThemeToggleButton({
       variant="ghost" 
       size="icon" 
       onClick={onToggle} 
-      className="hidden md:inline-flex" 
+      className="hidden md:inline-flex hover:bg-secondary/80 transition-all duration-200 hover:scale-105 active:scale-95" 
       type="button"
       aria-label={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
     >
-      {theme === 'dark' ? <Sun className="h-5 w-5" aria-hidden="true" /> : <Moon className="h-5 w-5" aria-hidden="true" />}
+      {theme === 'dark' ? 
+        <Sun className="h-5 w-5 transition-transform duration-300 hover:rotate-180" aria-hidden="true" /> : 
+        <Moon className="h-5 w-5 transition-transform duration-300 hover:-rotate-12" aria-hidden="true" />
+      }
     </Button>
   );
 });
@@ -75,8 +78,9 @@ const LanguageToggleButton = memo(function LanguageToggleButton({
       onClick={onToggle} 
       type="button"
       aria-label="Switch language"
+      className="hover:bg-secondary/80 transition-all duration-200 hover:scale-105 active:scale-95"
     >
-      <Globe className="h-5 w-5" aria-hidden="true" />
+      <Globe className="h-5 w-5 transition-transform duration-300 hover:rotate-12" aria-hidden="true" />
       <span className="sr-only">Current language: {language}</span>
     </Button>
   );
@@ -98,8 +102,14 @@ const MobileMenu = memo(function MobileMenu({
     }>
       <Sheet>
         <SheetTrigger asChild>
-          <Button variant="ghost" size="icon" type="button" aria-label="Open menu">
-            <Menu className="h-6 w-6" aria-hidden="true" />
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            type="button" 
+            aria-label="Open menu"
+            className="hover:bg-secondary/80 transition-all duration-200 hover:scale-105 active:scale-95"
+          >
+            <Menu className="h-6 w-6 transition-transform duration-200" aria-hidden="true" />
           </Button>
         </SheetTrigger>
         <SheetContent side="left" className="p-0 w-[300px] bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -130,26 +140,26 @@ export const OptimizedHomeHeader = memo(function OptimizedHomeHeader({
   }, [onLanguageToggle]);
 
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b flex items-center p-3 sm:p-4 md:p-6">
+    <header className="fixed top-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-md supports-[backdrop-filter]:bg-background/60 border-b flex items-center px-4 py-3 sm:px-6 sm:py-4 md:px-8 md:py-5 transition-all duration-300 ease-in-out shadow-sm">
       {/* Left side - Menu button */}
       <div className="flex items-center flex-shrink-0">
         <MobileMenu language={language} onLanguageToggle={handleLanguageToggle} />
       </div>
       
       {/* Center - Title */}
-      <div className="flex items-center justify-center gap-2 sm:gap-4 min-w-0 flex-1">
-        <div className="flex flex-col gap-1 min-w-0 text-center">
-          <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-foreground truncate">
+      <div className="flex items-center justify-center gap-2 sm:gap-4 min-w-0 flex-1 px-2">
+        <div className="flex flex-col gap-1.5 min-w-0 text-center transition-all duration-300">
+          <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-foreground truncate tracking-tight">
             Somleng
           </h1>
-          <div className="hidden sm:block">
+          <div className="hidden sm:block opacity-80 hover:opacity-100 transition-opacity duration-200">
             <VisitorCount count={visitorCount} />
           </div>
         </div>
       </div>
       
       {/* Right side - Controls */}
-      <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
+      <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0">
         <LanguageToggleButton language={language} onToggle={handleLanguageToggle} />
         <ThemeToggleButton theme={theme} onToggle={handleThemeToggle} />
       </div>

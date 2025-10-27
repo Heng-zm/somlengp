@@ -72,7 +72,7 @@ export const OptimizedExpensiveComponent = memo<ExpensiveComponentProps>(functio
 
   // Expensive calculation - memoized
   const processedData = useMemo(() => {
-     // This should only log when data changes
+    console.log('Processing data'); // This should only log when data changes
     return data
       .filter(item => item.active)
       .map(item => ({
@@ -132,7 +132,9 @@ const OptimizedListItem = memo<ListItemProps>(function ListItem({ item, onClick 
     <div 
       className="border rounded-lg p-4 cursor-pointer hover:shadow-md transition-shadow"
       style={itemStyles}
-       role="button" tabIndex={0}={handleClick}
+      role="button"
+      tabIndex={0}
+      onClick={handleClick}
     >
       <h3 className="font-semibold">{item.title}</h3>
       <p className="text-gray-600">{item.description}</p>

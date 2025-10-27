@@ -95,7 +95,7 @@ export function ToastExamples() {
       priority: 'attention',
       showTimestamp: true,
       autoHide: false,
-      onAction: () => ,
+      onAction: () => console.log('View Details clicked'),
       actionLabel: 'View Details'
     })
     toast(options1)
