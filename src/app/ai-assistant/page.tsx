@@ -681,6 +681,8 @@ function AIAssistantPageInternal() {
   const [selectedModel, setSelectedModel] = useState<AIModel>(AI_MODELS[0]);
   const [showScrollToBottom, setShowScrollToBottom] = useState(false);
   const [uploadPreview, setUploadPreview] = useState<{ name: string; size: number; type: string; url?: string } | null>(null);
+  const [isComposing, setIsComposing] = useState(false);
+  const saveTimerRef = useRef<number | null>(null);
   
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
@@ -791,7 +793,12 @@ function AIAssistantPageInternal() {
         const json = JSON.stringify(serializable);
         // Check if JSON is reasonable size (< 5MB)
         if (json.length < 5 * 1024 * 1024) {
-          localStorage.setItem('aiAssistantMessages', json);
+          if (saveTimerRef.current) window.clearTimeout(saveTimerRef.current);
+          saveTimerRef.current = window.setTimeout(() => {
+            try {
+              localStorage.setItem('aiAssistantMessages', json);
+            } catch {}
+          }, 400);
         }
       }
     } catch (error) {
@@ -950,11 +957,20 @@ function AIAssistantPageInternal() {
   }, []);
 
   const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
+    if (isComposing) return;
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
       sendMessage();
     }
-  }, [sendMessage]);
+  }, [sendMessage, isComposing]);
+
+  // Cleanup on unmount (revoke preview URL, clear timers)
+  useEffect(() => {
+    return () => {
+      if (uploadPreview?.url) URL.revokeObjectURL(uploadPreview.url);
+      if (saveTimerRef.current) window.clearTimeout(saveTimerRef.current);
+    };
+  }, [uploadPreview?.url]);
 
   return (
     <div className="flex h-screen bg-white dark:bg-black">
@@ -1000,7 +1016,7 @@ function AIAssistantPageInternal() {
         </header>
 
         {/* Monochrome Messages Area */}
-        <div className="flex-1 overflow-hidden bg-white dark:bg-black">
+        <div className="relative flex-1 overflow-hidden bg-white dark:bg-black">
           <ScrollArea ref={scrollAreaRef} className="h-full">
             <div className="w-full max-w-3xl mx-auto px-2 sm:px-4" style={{ minWidth: 0, maxWidth: '100vw', boxSizing: 'border-box' }}>
               {messages.length === 0 ? (
@@ -1020,7 +1036,7 @@ function AIAssistantPageInternal() {
                 </div>
               ) : (
                 /* Messages */
-                <div className="py-2 sm:py-4 w-full" style={{ minWidth: 0, maxWidth: '100%' }}>
+                <div className="py-2 sm:py-4 pb-28 sm:pb-32 w-full" style={{ minWidth: 0, maxWidth: '100%' }}>
                   {messages.map((message) => (
                     <ErrorBoundary key={message.id}>
                       <div className="w-full overflow-hidden" style={{ minWidth: 0, maxWidth: '100%', boxSizing: 'border-box' }}>
@@ -1039,6 +1055,17 @@ function AIAssistantPageInternal() {
               )}
             </div>
           </ScrollArea>
+
+          {/* Scroll-to-bottom floating button */}
+          {showScrollToBottom && (
+            <button
+              aria-label="Scroll to bottom"
+              onClick={scrollToBottom}
+              className="absolute bottom-3 right-3 z-10 h-10 w-10 rounded-full bg-gray-900 text-white dark:bg-gray-200 dark:text-black shadow-md hover:opacity-90"
+            >
+              <ChevronDown className="w-5 h-5 mx-auto" />
+            </button>
+          )}
         </div>
 
         {/* Monochrome Input Area */}
@@ -1115,12 +1142,14 @@ function AIAssistantPageInternal() {
 
               {/* Pill container */}
               <div className="relative flex-1">
-                <div className="w-full rounded-full bg-gray-200 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 pr-14 pl-5 py-2.5">
+                <div className="w-full rounded-[9999px] bg-white dark:bg-gray-900 border border-gray-300/70 dark:border-gray-700/70 ring-1 ring-inset ring-gray-200 dark:ring-gray-800 pr-16 sm:pr-14 pl-5 py-2.5 focus-within:ring-2 focus-within:ring-gray-400 dark:focus-within:ring-gray-500 shadow-sm">
                   <Textarea
                     ref={inputRef}
                     value={input}
                     onChange={(e) => setInput(e.target.value)}
                     onKeyDown={handleKeyDown}
+                    onCompositionStart={() => setIsComposing(true)}
+                    onCompositionEnd={() => setIsComposing(false)}
                     onInput={(e) => {
                       const t = e.currentTarget as HTMLTextAreaElement;
                       t.style.height = '24px';
@@ -1129,9 +1158,9 @@ function AIAssistantPageInternal() {
                     rows={1}
                     placeholder="Message"
                     disabled={isLoading}
-                    className="w-full resize-none bg-transparent border-0 focus:outline-none focus:ring-0 text-gray-800 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 min-h-[40px] max-h-[200px] no-zoom mobile-input"
+                    className="w-full resize-none bg-transparent border-0 focus:outline-none focus:ring-0 text-gray-800 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 min-h-[40px] max-h-[160px] sm:max-h-[200px] no-zoom mobile-input leading-6"
                     style={{
-                      fontSize: '18px',
+                      fontSize: '16px',
                       WebkitAppearance: 'none',
                       MozAppearance: 'none',
                       appearance: 'none',
@@ -1145,7 +1174,7 @@ function AIAssistantPageInternal() {
                   type="button"
                   aria-label="Upload"
                   onClick={() => document.getElementById('ai-upload-input')?.click()}
-                  className="absolute right-1 top-1/2 -translate-y-1/2 h-10 w-10 rounded-full bg-white dark:bg-black border-2 border-gray-300 dark:border-gray-700 flex items-center justify-center shadow-sm"
+                  className="absolute right-2 top-1/2 -translate-y-1/2 h-10 w-10 rounded-full bg-white dark:bg-black border border-gray-300 dark:border-gray-700 ring-1 ring-inset ring-gray-200 dark:ring-gray-800 flex items-center justify-center shadow-sm"
                 >
                   <Upload className="w-5 h-5 text-gray-700 dark:text-gray-300" />
                 </button>
