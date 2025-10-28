@@ -580,7 +580,7 @@ export function QRCodeMobileOptimized({
 
   // Mobile template selector - memoized to prevent unnecessary re-renders
   const MobileTemplateSelector = useMemo(() => (
-    <div className="flex gap-2 overflow-x-auto pb-3 px-1">
+    <div className="flex gap-2 overflow-x-auto pb-3 px-2">
       {QR_TEMPLATES.map((template) => {
         const IconComponent = template.icon;
         const isSelected = selectedTemplate === template.id;
@@ -588,22 +588,15 @@ export function QRCodeMobileOptimized({
           <button
             key={template.id}
             onClick={() => selectTemplate(template.id)}
-            className={`flex-shrink-0 p-3 rounded-lg text-center min-w-16 border ${
+            title={template.name}
+            aria-label={template.name}
+            className={`flex-shrink-0 inline-flex items-center justify-center w-11 h-11 rounded-full border transition-colors ${
               isSelected
-                ? 'bg-blue-500 border-blue-600 text-white'
-                : 'bg-white border-gray-200 hover:bg-gray-50'
+                ? 'bg-blue-600 border-blue-600 text-white'
+                : 'bg-white border-gray-200 text-gray-700 hover:bg-gray-50'
             }`}
           >
-            <div className="flex justify-center mb-1">
-              <IconComponent className={`w-5 h-5 ${
-                isSelected ? 'text-white' : 'text-gray-600'
-              }`} />
-            </div>
-            <div className={`text-xs ${
-              isSelected ? 'text-white' : 'text-gray-700'
-            }`}>
-              {template.shortName}
-            </div>
+            <IconComponent className="w-5 h-5" />
           </button>
         );
       })}
@@ -612,7 +605,7 @@ export function QRCodeMobileOptimized({
 
   // Desktop template selector - memoized to prevent unnecessary re-renders
   const DesktopTemplateSelector = useMemo(() => (
-    <div className="grid grid-cols-3 gap-3">
+    <div className="grid grid-cols-6 gap-3">
       {QR_TEMPLATES.map((template) => {
         const IconComponent = template.icon;
         const isSelected = selectedTemplate === template.id;
@@ -620,22 +613,15 @@ export function QRCodeMobileOptimized({
           <button
             key={template.id}
             onClick={() => selectTemplate(template.id)}
-            className={`p-4 rounded-lg border text-center ${
+            title={template.name}
+            aria-label={template.name}
+            className={`inline-flex items-center justify-center w-12 h-12 rounded-full border transition-colors ${
               isSelected
-                ? 'bg-blue-500 border-blue-600 text-white'
-                : 'bg-white border-gray-200 hover:bg-gray-50'
+                ? 'bg-blue-600 border-blue-600 text-white'
+                : 'bg-white border-gray-200 text-gray-700 hover:bg-gray-50'
             }`}
           >
-            <div className="flex justify-center mb-2">
-              <IconComponent className={`w-6 h-6 ${
-                isSelected ? 'text-white' : 'text-gray-600'
-              }`} />
-            </div>
-            <div className={`text-sm ${
-              isSelected ? 'text-white' : 'text-gray-700'
-            }`}>
-              {template.name}
-            </div>
+            <IconComponent className="w-6 h-6" />
           </button>
         );
       })}
@@ -644,7 +630,7 @@ export function QRCodeMobileOptimized({
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-gray-100">
-      <div className={`container mx-auto ${isMobile ? 'px-0 py-0' : 'px-4 py-4 sm:py-8'} max-w-7xl`}>
+      <div className={`container mx-auto ${isMobile ? 'px-0 pt-0 pb-24' : 'px-4 py-4 sm:py-8'} max-w-7xl`}>
         
         {/* Desktop Header Only */}
         {!isMobile && (
@@ -707,19 +693,29 @@ export function QRCodeMobileOptimized({
         <div className={`${isMobile ? 'p-4' : 'grid gap-8 lg:grid-cols-2'}`}>
           {isMobile ? (
             /* Mobile Single Card Design */
-            <Card className="bg-white rounded-2xl shadow-sm border border-gray-100">
+              <Card className="bg-white rounded-2xl shadow-sm border border-gray-100">
               <CardContent className="p-6 space-y-6">
+                {/* Quick Type Templates */}
+                {MobileTemplateSelector}
+                {/* Live Preview */}
+                {livePreviewUrl ? (
+                  <div className="space-y-3">
+                    <div className="flex justify-center">
+                      <div className="p-4 bg-white rounded-xl border shadow-sm">
+                        <Image src={livePreviewUrl} alt="Live QR" width={220} height={220} className="w-full h-auto rounded" unoptimized />
+                      </div>
+                    </div>
+                  </div>
+                ) : null}
                 {/* Content Input Section */}
                 <div className="space-y-4">
                   <div className="flex items-center gap-2">
                     <TextCursor className="w-5 h-5 text-gray-600" />
-                    <Label className="text-lg font-semibold text-gray-900">
-                      Enter Your Content
-                    </Label>
+                    <Label className="sr-only">Enter Your Content</Label>
                   </div>
                   <div className="relative">
                     <Textarea
-                      placeholder="Paste your URL, type a message, or enter any text to generate a QR code..."
+                      placeholder={currentTemplate.placeholder}
                       value={inputText}
                       onChange={(e) => setInputText(e.target.value)}
                       rows={5}
@@ -735,9 +731,7 @@ export function QRCodeMobileOptimized({
                 <div className="space-y-4">
                   <div className="flex items-center gap-2">
                     <Settings className="w-5 h-5 text-gray-600" />
-                    <Label className="text-lg font-semibold text-gray-900">
-                      Customize Settings
-                    </Label>
+                    <Label className="sr-only">Customize Settings</Label>
                   </div>
                   
                   <div className="grid grid-cols-3 gap-4">
@@ -747,8 +741,9 @@ export function QRCodeMobileOptimized({
                         <Shield className="w-5 h-5 text-gray-600" />
                       </div>
                       <Select value={errorCorrectionLevel} onValueChange={(v: 'L' | 'M' | 'Q' | 'H') => setErrorCorrectionLevel(v)}>
-                        <SelectTrigger className="h-10 text-xs">
-                          <SelectValue />
+                        <SelectTrigger className="h-10 w-10 p-0 justify-center" title="Error correction" aria-label="Error correction">
+                          <Shield className="w-4 h-4" />
+                          <SelectValue className="sr-only" />
                         </SelectTrigger>
                         <SelectContent>
                           <SelectItem value="L">Low</SelectItem>
@@ -765,8 +760,9 @@ export function QRCodeMobileOptimized({
                         <Monitor className="w-5 h-5 text-gray-600" />
                       </div>
                       <Select value={size.toString()} onValueChange={(v) => setSize(parseInt(v))}>
-                        <SelectTrigger className="h-10 text-xs">
-                          <SelectValue />
+                        <SelectTrigger className="h-10 w-10 p-0 justify-center" title="Size" aria-label="Size">
+                          <Monitor className="w-4 h-4" />
+                          <SelectValue className="sr-only" />
                         </SelectTrigger>
                         <SelectContent>
                           <SelectItem value="256">Medium...</SelectItem>
@@ -783,8 +779,9 @@ export function QRCodeMobileOptimized({
                         <FileImage className="w-5 h-5 text-gray-600" />
                       </div>
                       <Select value={outputFormat} onValueChange={(v: 'png' | 'svg' | 'jpeg') => setOutputFormat(v)}>
-                        <SelectTrigger className="h-10 text-xs">
-                          <SelectValue />
+                        <SelectTrigger className="h-10 w-10 p-0 justify-center" title="Format" aria-label="Format">
+                          <FileImage className="w-4 h-4" />
+                          <SelectValue className="sr-only" />
                         </SelectTrigger>
                         <SelectContent>
                           <SelectItem value="png">PNG...</SelectItem>
@@ -800,9 +797,7 @@ export function QRCodeMobileOptimized({
                 <div className="space-y-4">
                   <div className="flex items-center gap-2">
                     <Palette className="w-5 h-5 text-gray-600" />
-                    <Label className="text-lg font-semibold text-gray-900">
-                      Colors
-                    </Label>
+                    <Label className="sr-only">Colors</Label>
                   </div>
                   
                   <div className="space-y-4">
@@ -863,9 +858,7 @@ export function QRCodeMobileOptimized({
                 <div className="space-y-4">
                   <div className="flex items-center gap-2">
                     <ImageIcon className="w-5 h-5 text-gray-600" />
-                    <Label className="text-lg font-semibold text-gray-900">
-                      Add Logo
-                    </Label>
+                    <Label className="sr-only">Add Logo</Label>
                   </div>
                   
                   <div className="space-y-4">
@@ -966,14 +959,11 @@ export function QRCodeMobileOptimized({
 
                 {/* Action Buttons */}
                 <div className="flex gap-3 pt-4">
-                  <Button variant="outline" className="flex-1 h-12">
-                    <Eye className="w-4 h-4 mr-2" />
-                    Preview
+                  <Button variant="outline" className="flex-1 h-12" onClick={generateQRCode} disabled={isGenerating || !inputText.trim()}>
+                    <QrCode className="w-4 h-4 mr-2" />
+                    Generate
                   </Button>
-                  <Button variant="outline" size="icon" className="h-12 w-12">
-                    <Grid className="w-4 h-4" />
-                  </Button>
-                  <Button variant="outline" size="icon" className="h-12 w-12">
+                  <Button variant="outline" size="icon" className="h-12 w-12" onClick={() => { setInputText(''); setLivePreviewUrl(''); }}>
                     <RotateCcw className="w-4 h-4" />
                   </Button>
                 </div>
@@ -982,18 +972,13 @@ export function QRCodeMobileOptimized({
                 <Button
                   onClick={generateQRCode}
                   disabled={isGenerating || !inputText.trim()}
-                  className="w-full h-14 text-base font-semibold bg-gray-800 hover:bg-gray-900 text-white rounded-xl"
+                  aria-label="Generate"
+                  className="w-full h-14 bg-gray-800 hover:bg-gray-900 text-white rounded-xl"
                 >
                   {isGenerating ? (
-                    <div className="flex items-center gap-2">
-                      <Loader2 className="w-5 h-5 animate-spin" />
-                      Generating...
-                    </div>
+                    <Loader2 className="w-5 h-5 animate-spin mx-auto" />
                   ) : (
-                    <div className="flex items-center gap-2">
-                      <QrCode className="w-5 h-5" />
-                      Generate QR Code
-                    </div>
+                    <QrCode className="w-5 h-5 mx-auto" />
                   )}
                 </Button>
               </CardContent>
@@ -1014,7 +999,7 @@ export function QRCodeMobileOptimized({
                   {/* Template Selection - Desktop Only */}
                   <div className="space-y-3">
                     <div className="text-center">
-                      <Label className="text-base font-medium text-gray-700">Choose Content Type</Label>
+                        <Label className="sr-only">Choose Content Type</Label>
                     </div>
                     {DesktopTemplateSelector}
                   </div>
@@ -1023,7 +1008,7 @@ export function QRCodeMobileOptimized({
                   <div className="space-y-3">
                     <div className="flex items-center justify-between">
                       <Label htmlFor="input-text" className="text-sm font-medium text-gray-700">
-                        Your Content
+                        <span className="sr-only">Your Content</span>
                       </Label>
                       <span className="text-xs text-gray-500">{inputText.length} chars</span>
                     </div>
@@ -1044,10 +1029,14 @@ export function QRCodeMobileOptimized({
                     <Label className="text-sm font-medium text-gray-700">Quick Settings</Label>
                     <div className="grid grid-cols-2 gap-3">
                       <div className="space-y-2">
-                        <Label className="text-xs text-gray-600">Size</Label>
+                        <Label className="sr-only">Size</Label>
                         <Select value={size.toString()} onValueChange={(v) => setSize(parseInt(v))}>
-                          <SelectTrigger className="h-10">
-                            <SelectValue />
+                          <SelectTrigger className="h-10 w-10 p-0 justify-center" title="Format" aria-label="Format">
+                            <FileImage className="w-4 h-4" />
+                            <SelectValue className="sr-only" />
+                          </SelectTrigger>
+itor className="w-4 h-4" />
+                            <SelectValue className="sr-only" />
                           </SelectTrigger>
                           <SelectContent>
                             <SelectItem value="128">Small (128px)</SelectItem>
@@ -1058,7 +1047,7 @@ export function QRCodeMobileOptimized({
                         </Select>
                       </div>
                       <div className="space-y-2">
-                        <Label className="text-xs text-gray-600">Format</Label>
+                        <Label className="sr-only">Format</Label>
                         <Select value={outputFormat} onValueChange={(v: 'png' | 'svg' | 'jpeg') => setOutputFormat(v)}>
                           <SelectTrigger className="h-10">
                             <SelectValue />
@@ -1105,19 +1094,14 @@ export function QRCodeMobileOptimized({
                     <Button
                       onClick={generateQRCode}
                       disabled={isGenerating || !inputText.trim()}
+                      aria-label="Generate"
                       className="w-full h-12 bg-blue-600 hover:bg-blue-700 text-white"
                       size="lg"
                     >
                       {isGenerating ? (
-                        <div className="flex items-center gap-2">
-                          <Loader2 className="w-4 h-4 animate-spin" />
-                          <span>Generating...</span>
-                        </div>
+                        <Loader2 className="w-4 h-4 animate-spin mx-auto" />
                       ) : (
-                        <div className="flex items-center gap-2">
-                          <QrCode className="w-4 h-4" />
-                          <span>Generate QR Code</span>
-                        </div>
+                        <QrCode className="w-4 h-4 mx-auto" />
                       )}
                     </Button>
                   </div>
@@ -1232,6 +1216,72 @@ export function QRCodeMobileOptimized({
           )}
         </div>
       </div>
+
+      {/* Mobile sticky action bar */}
+      {isMobile && (livePreviewUrl || qrCodeUrl) ? (
+        <div className="fixed bottom-0 inset-x-0 z-40 bg-white/85 backdrop-blur border-t p-3 pb-[max(12px,env(safe-area-inset-bottom))] md:hidden">
+          <div className="max-w-3xl mx-auto flex items-center justify-center gap-3">
+            <Button
+              variant="default"
+              className="h-11 px-4 rounded-full"
+              onClick={async () => {
+                if (qrCodeUrl) {
+                  await copyToClipboard();
+                } else if (livePreviewUrl) {
+                  try {
+                    const r = await fetch(livePreviewUrl);
+                    const b = await r.blob();
+                    await navigator.clipboard.write([new ClipboardItem({ [b.type]: b })]);
+                    showSuccessToast('Copied!');
+                  } catch {
+                    showErrorToast('Copy failed');
+                  }
+                }
+              }}
+            >
+              <Copy className="w-4 h-4 mr-2" /> Copy
+            </Button>
+            <Button
+              variant="outline"
+              className="h-11 px-4 rounded-full"
+              onClick={() => {
+                if (qrCodeUrl) {
+                  void (async () => { await downloadQRCode(); })();
+                } else if (livePreviewUrl) {
+                  const link = document.createElement('a');
+                  link.download = `preview.${outputFormat}`;
+                  link.href = livePreviewUrl;
+                  link.click();
+                }
+              }}
+            >
+              <Download className="w-4 h-4 mr-2" /> Download
+            </Button>
+            {typeof navigator !== 'undefined' && typeof navigator.share === 'function' && (
+              <Button
+                variant="outline"
+                className="h-11 px-4 rounded-full"
+                onClick={async () => {
+                  try {
+                    if (qrCodeUrl) {
+                      await shareQRCode();
+                    } else if (livePreviewUrl) {
+                      const resp = await fetch(livePreviewUrl);
+                      const blob = await resp.blob();
+                      const file = new File([blob], `preview.${outputFormat}`, { type: blob.type });
+                      await navigator.share({ title: 'QR Code', files: [file] });
+                    }
+                  } catch {
+                    showErrorToast('Share failed');
+                  }
+                }}
+              >
+                <Share className="w-4 h-4 mr-2" /> Share
+              </Button>
+            )}
+          </div>
+        </div>
+      ) : null}
 
       {/* Hidden canvas and download link */}
       <canvas ref={canvasRef} className="hidden" />

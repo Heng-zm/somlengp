@@ -25,9 +25,30 @@ interface AIResponse {
 
 export async function POST(request: NextRequest): Promise<NextResponse> {
   try {
-    // Parse request body
-    const body: RequestBody = await request.json();
-    const { messages, model = 'gemini-2.5-flash' } = body;
+    // Parse JSON or multipart form
+    const contentType = request.headers.get('content-type') || '';
+    let messages: Message[] = [];
+    let model: string = 'gemini-2.5-flash';
+    let uploadedFile: File | null = null;
+
+    if (contentType.includes('multipart/form-data')) {
+      const form = await request.formData();
+      const messagesStr = (form.get('messages') as string) || '[]';
+      try {
+        messages = JSON.parse(messagesStr) as Message[];
+      } catch {
+        messages = [];
+      }
+      model = ((form.get('model') as string) || 'gemini-2.5-flash').trim();
+      const f = form.get('file');
+      if (f && typeof f !== 'string') {
+        uploadedFile = f as unknown as File;
+      }
+    } else {
+      const body: RequestBody = await request.json();
+      messages = body.messages || [];
+      model = (body.model || 'gemini-2.5-flash').trim();
+    }
 
     // Resolve and normalize model early so we can report it consistently later
     // Based on testing, only gemini-2.0-flash-exp is currently available with this API key
@@ -93,6 +114,33 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     }
 
     const lastMessage = messages[messages.length - 1];
+
+    // If a file was uploaded, enrich the last user message with file context
+    if (uploadedFile && lastMessage && lastMessage.role === 'user') {
+      // Enforce file limits and types
+      const MAX_FILE_BYTES = 10 * 1024 * 1024; // 10MB
+      const allowedTypes = [/^image\//, /^text\//, /json/, /pdf/, /markdown/];
+      if (uploadedFile.size > MAX_FILE_BYTES) {
+        return NextResponse.json({ error: 'File too large' }, { status: 413 });
+      }
+      if (!allowedTypes.some((re) => re.test(uploadedFile.type))) {
+        return NextResponse.json({ error: 'Unsupported file type' }, { status: 415 });
+      }
+      try {
+        const MAX_TEXT_BYTES = 1_000_000; // 1MB
+        const meta = `${uploadedFile.name} (${uploadedFile.type || 'application/octet-stream'}, ${uploadedFile.size} bytes)`;
+        if (/^text\//.test(uploadedFile.type) || /(json|markdown)/i.test(uploadedFile.type)) {
+          const sizeOk = uploadedFile.size <= MAX_TEXT_BYTES;
+          const text = sizeOk ? await uploadedFile.text() : '';
+          const trimmed = text.length > 8000 ? text.slice(0, 8000) + '\n...[truncated]' : text;
+          lastMessage.content = `${lastMessage.content ? lastMessage.content + "\n\n" : ''}Attached file: ${meta}\n\n${trimmed || '(file too large to inline)'}\n`;
+        } else {
+          lastMessage.content = `${lastMessage.content ? lastMessage.content + "\n\n" : ''}Attached file: ${meta}.`;
+        }
+      } catch (e) {
+        // If file enrichment fails, continue without file context
+      }
+    }
     
     try {
       // Start chat with history
@@ -201,12 +249,16 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
 
 // Handle preflight requests for CORS
 export async function OPTIONS(request: NextRequest) {
+  const origin = request.headers.get('origin') || '';
+  const allowed = (process.env.ALLOWED_ORIGINS || '').split(',').map(s => s.trim()).filter(Boolean);
+  const allowOrigin = allowed.length === 0 ? '*' : (allowed.includes('*') || allowed.includes(origin) ? origin : 'null');
   return new NextResponse(null, {
     status: 200,
     headers: {
-      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Origin': allowOrigin,
       'Access-Control-Allow-Methods': 'POST, OPTIONS',
-      'Access-Control-Allow-Headers': 'Content-Type',
+      'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+      'Vary': 'Origin',
     },
   });
 }

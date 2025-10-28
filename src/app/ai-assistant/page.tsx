@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef, useCallback, memo, ErrorInfo, Component, Suspense } from 'react';
+import { useState, useEffect, useRef, useCallback, memo, ErrorInfo, Component, Suspense, useDeferredValue } from 'react';
 import dynamic from 'next/dynamic';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
@@ -673,7 +673,13 @@ function ModelSelectPill({ selectedModel, setSelectedModel }: { selectedModel: A
 
 const ClientModelSelectPill = dynamic(async () => ModelSelectPill, { ssr: false });
 
+// Virtualized list (client-only)
+const VirtualizedMessageList = dynamic(() => import('@/components/ai-assistant/optimized-message-list').then(mod => ({ default: mod.default })), { ssr: false, loading: () => <div className="center-loading text-gray-500">Loading…</div> });
+
 function AIAssistantPageInternal() {
+  const MAX_MESSAGES = 200;
+  const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
+
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -681,11 +687,16 @@ function AIAssistantPageInternal() {
   const [selectedModel, setSelectedModel] = useState<AIModel>(AI_MODELS[0]);
   const [showScrollToBottom, setShowScrollToBottom] = useState(false);
   const [uploadPreview, setUploadPreview] = useState<{ name: string; size: number; type: string; url?: string } | null>(null);
+  const [uploadedFile, setUploadedFile] = useState<File | null>(null);
   const [isComposing, setIsComposing] = useState(false);
+  const [isDragging, setIsDragging] = useState(false);
+  const [fileError, setFileError] = useState<string | null>(null);
   const saveTimerRef = useRef<number | null>(null);
   
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
+  const [listHeight, setListHeight] = useState(0);
+  const deferredMessages = useDeferredValue(messages);
   const abortControllerRef = useRef<AbortController | null>(null);
   const hasInitializedRef = useRef(false);
 
@@ -699,17 +710,30 @@ function AIAssistantPageInternal() {
     }
   }, []);
 
-  // Track scroll position to show a floating "scroll to bottom" button
+  // Track scroll position and measure viewport for virtualization
   useEffect(() => {
     const viewport = scrollAreaRef.current?.querySelector('[data-radix-scroll-area-viewport]') as HTMLDivElement | null;
     if (!viewport) return;
+
     const onScroll = () => {
       const nearBottom = viewport.scrollHeight - viewport.scrollTop - viewport.clientHeight < 80;
       setShowScrollToBottom(!nearBottom);
     };
     viewport.addEventListener('scroll', onScroll, { passive: true } as any);
     onScroll();
-    return () => viewport.removeEventListener('scroll', onScroll);
+
+    // Measure height with ResizeObserver
+    const ro = new ResizeObserver((entries) => {
+      for (const entry of entries) {
+        setListHeight(Math.floor(entry.contentRect.height));
+      }
+    });
+    ro.observe(viewport);
+
+    return () => {
+      viewport.removeEventListener('scroll', onScroll);
+      ro.disconnect();
+    };
   }, []);
 
   useEffect(() => {
@@ -777,8 +801,9 @@ function AIAssistantPageInternal() {
     try {
       if (!messages || messages.length === 0) return;
       
-      // Sanitize messages before storing
+      // Sanitize messages before storing (cap history)
       const serializable = messages
+        .slice(-MAX_MESSAGES)
         .filter(m => m && typeof m.content === 'string' && m.content.trim())
         .map(m => ({
           id: m.id || generateMessageId(),
@@ -793,12 +818,12 @@ function AIAssistantPageInternal() {
         const json = JSON.stringify(serializable);
         // Check if JSON is reasonable size (< 5MB)
         if (json.length < 5 * 1024 * 1024) {
+          const idle = (window as any).requestIdleCallback as undefined | ((cb: () => void, opts?: any) => number);
           if (saveTimerRef.current) window.clearTimeout(saveTimerRef.current);
           saveTimerRef.current = window.setTimeout(() => {
-            try {
-              localStorage.setItem('aiAssistantMessages', json);
-            } catch {}
-          }, 400);
+            const writer = () => { try { localStorage.setItem('aiAssistantMessages', json); } catch (e) { /* noop */ } };
+            if (typeof idle === 'function') { idle(writer, { timeout: 800 }); } else { writer(); }
+          }, 300);
         }
       }
     } catch (error) {
@@ -812,12 +837,12 @@ function AIAssistantPageInternal() {
   }, [messages, selectedModel.name]);
 
   const sendMessage = useCallback(async () => {
-    if (!input.trim() || isLoading) return;
+    if ((!input.trim() && !uploadedFile) || isLoading) return;
 
     const userMessage: Message = {
       id: generateMessageId(),
       role: 'user',
-      content: input.trim(),
+      content: input.trim() || (uploadPreview ? `Attached file: ${uploadPreview.name} (${uploadPreview.type || 'unknown'}, ${uploadPreview.size} bytes).` : ''),
       timestamp: new Date(),
     };
 
@@ -832,25 +857,36 @@ function AIAssistantPageInternal() {
 
     try {
       // Prepare the request data
-      const requestData = {
-        messages: [...messages, userMessage].map(msg => ({
-          role: msg.role,
-          content: msg.content,
-        })),
-        model: selectedModel.name,
-      };
+      const baseMessages = [...messages, userMessage].map(msg => ({
+        role: msg.role,
+        content: msg.content,
+      }));
+      const modelName = selectedModel.name;
 
       // Create abort controller for this request
       abortControllerRef.current = new AbortController();
 
-      const response = await fetch('/api/ai-assistant', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(requestData),
-        signal: abortControllerRef.current.signal,
-      });
+      // If a file is attached, send multipart/form-data
+      let response: Response;
+      if (uploadedFile) {
+        const form = new FormData();
+        form.append('messages', JSON.stringify(baseMessages));
+        form.append('model', modelName);
+        form.append('file', uploadedFile);
+        response = await fetch('/api/ai-assistant', {
+          method: 'POST',
+          body: form,
+          signal: abortControllerRef.current.signal,
+        });
+      } else {
+        const requestData = { messages: baseMessages, model: modelName };
+        response = await fetch('/api/ai-assistant', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(requestData),
+          signal: abortControllerRef.current.signal,
+        });
+      }
 
       if (!response.ok) {
         let errorMessage = `HTTP ${response.status}: Failed to get response`;
@@ -937,6 +973,7 @@ function AIAssistantPageInternal() {
         if (prev?.url) URL.revokeObjectURL(prev.url);
         return null;
       });
+      setUploadedFile(null);
     }
   }, [input, messages, selectedModel, isLoading]);
 
@@ -958,11 +995,16 @@ function AIAssistantPageInternal() {
 
   const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
     if (isComposing) return;
-    if (e.key === 'Enter' && !e.shiftKey) {
+    const meta = e.metaKey || e.ctrlKey;
+    if ((e.key === 'Enter' && !e.shiftKey) || (meta && e.key === 'Enter')) {
       e.preventDefault();
       sendMessage();
     }
-  }, [sendMessage, isComposing]);
+    if (e.key === 'Escape' && isLoading) {
+      e.preventDefault();
+      cancelRequest();
+    }
+  }, [sendMessage, isComposing, isLoading, cancelRequest]);
 
   // Cleanup on unmount (revoke preview URL, clear timers)
   useEffect(() => {
@@ -1037,19 +1079,27 @@ function AIAssistantPageInternal() {
               ) : (
                 /* Messages */
                 <div className="py-2 sm:py-4 pb-28 sm:pb-32 w-full" style={{ minWidth: 0, maxWidth: '100%' }}>
-                  {messages.map((message) => (
-                    <ErrorBoundary key={message.id}>
-                      <div className="w-full overflow-hidden" style={{ minWidth: 0, maxWidth: '100%', boxSizing: 'border-box' }}>
-                        <ChatGPTMessageComponent message={message} selectedModel={selectedModel} />
-                      </div>
-                    </ErrorBoundary>
-                  ))}
-                  {isTyping && (
-                    <ErrorBoundary>
-                      <div className="w-full overflow-hidden" style={{ minWidth: 0, maxWidth: '100%', boxSizing: 'border-box' }}>
-                        <ChatGPTTypingIndicator selectedModel={selectedModel} />
-                      </div>
-                    </ErrorBoundary>
+                  {deferredMessages.length > 40 && listHeight > 0 ? (
+                    <Suspense fallback={<div className="center-loading text-gray-500">Loading messages…</div>}>
+                      <VirtualizedMessageList messages={deferredMessages} isTyping={isTyping} height={listHeight} />
+                    </Suspense>
+                  ) : (
+                    <>
+                      {deferredMessages.map((message) => (
+                        <ErrorBoundary key={message.id}>
+                          <div className="w-full overflow-hidden" style={{ minWidth: 0, maxWidth: '100%', boxSizing: 'border-box' }}>
+                            <ChatGPTMessageComponent message={message} selectedModel={selectedModel} />
+                          </div>
+                        </ErrorBoundary>
+                      ))}
+                      {isTyping && (
+                        <ErrorBoundary>
+                          <div className="w-full overflow-hidden" style={{ minWidth: 0, maxWidth: '100%', boxSizing: 'border-box' }}>
+                            <ChatGPTTypingIndicator selectedModel={selectedModel} />
+                          </div>
+                        </ErrorBoundary>
+                      )}
+                    </>
                   )}
                 </div>
               )}
@@ -1106,7 +1156,7 @@ function AIAssistantPageInternal() {
                   <button
                     aria-label="Remove file"
                     className="h-8 w-8 rounded-full bg-white/70 dark:bg-black/30 border border-gray-300 dark:border-gray-700 flex items-center justify-center hover:bg-white dark:hover:bg-black"
-                    onClick={() => setUploadPreview(prev => { if (prev?.url) URL.revokeObjectURL(prev.url); return null; })}
+                    onClick={() => { setUploadPreview(prev => { if (prev?.url) URL.revokeObjectURL(prev.url); return null; }); setUploadedFile(null); }}
                   >
                     <X className="w-4 h-4 text-gray-700 dark:text-gray-300" />
                   </button>
@@ -1123,12 +1173,15 @@ function AIAssistantPageInternal() {
                 onChange={async (e) => {
                   const file = e.target.files?.[0];
                   if (!file) return;
+                  if (file.size > MAX_FILE_SIZE) { setFileError("File too large (max 10MB)"); return; }
+                  setFileError(null);
                   try {
                     const isImage = file.type.startsWith('image/');
                     const isText = /text|json|markdown|javascript|typescript|python|plain/.test(file.type);
-                    // Prepare preview
+                    // Prepare preview and retain file
                     const url = isImage ? URL.createObjectURL(file) : undefined;
                     setUploadPreview({ name: file.name, size: file.size, type: file.type, url });
+                    setUploadedFile(file);
                     // Insert text content only for small text-like files; do NOT inject placeholder text for other files
                     if (isText && file.size <= 100 * 1024) {
                       const text = await file.text();
@@ -1141,7 +1194,26 @@ function AIAssistantPageInternal() {
               />
 
               {/* Pill container */}
-              <div className="relative flex-1">
+              <div 
+                className={cn(
+                  "relative flex-1",
+                  isDragging && "outline outline-2 outline-dashed outline-gray-400 rounded-3xl"
+                )}
+                onDragEnter={(e) => { e.preventDefault(); setIsDragging(true); }}
+                onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
+                onDragLeave={() => setIsDragging(false)}
+                onDrop={(e) => {
+                  e.preventDefault();
+                  setIsDragging(false);
+                  const file = e.dataTransfer.files?.[0];
+                  if (!file) return;
+                  if (file.size > MAX_FILE_SIZE) { setFileError("File too large (max 10MB)"); return; }
+                  const isImage = file.type.startsWith('image/');
+                  const url = isImage ? URL.createObjectURL(file) : undefined;
+                  setUploadPreview({ name: file.name, size: file.size, type: file.type, url });
+                  setUploadedFile(file);
+                }}
+              >
                 <div className="w-full rounded-[9999px] bg-white dark:bg-gray-900 border border-gray-300/70 dark:border-gray-700/70 ring-1 ring-inset ring-gray-200 dark:ring-gray-800 pr-16 sm:pr-14 pl-5 py-2.5 focus-within:ring-2 focus-within:ring-gray-400 dark:focus-within:ring-gray-500 shadow-sm">
                   <Textarea
                     ref={inputRef}
@@ -1154,6 +1226,16 @@ function AIAssistantPageInternal() {
                       const t = e.currentTarget as HTMLTextAreaElement;
                       t.style.height = '24px';
                       t.style.height = Math.min(t.scrollHeight, 200) + 'px';
+                    }}
+                    onPaste={(e) => {
+                      const items = Array.from(e.clipboardData?.files || []);
+                      const file = items[0];
+                      if (!file) return;
+                      if (file.size > MAX_FILE_SIZE) { setFileError("File too large (max 10MB)"); return; }
+                      const isImage = file.type.startsWith('image/');
+                      const url = isImage ? URL.createObjectURL(file) : undefined;
+                      setUploadPreview({ name: file.name, size: file.size, type: file.type, url });
+                      setUploadedFile(file);
                     }}
                     rows={1}
                     placeholder="Message"
@@ -1169,6 +1251,9 @@ function AIAssistantPageInternal() {
                     }}
                   />
                 </div>
+                {fileError && (
+                  <div className="mt-1 text-xs text-red-600 dark:text-red-400">{fileError}</div>
+                )}
                 {/* Inner right upload circle */}
                 <button
                   type="button"
@@ -1182,8 +1267,8 @@ function AIAssistantPageInternal() {
 
               {/* External send circle */}
               <Button
-                onClick={input.trim() ? sendMessage : undefined}
-                disabled={!input.trim() || isLoading}
+                onClick={(input.trim() || uploadedFile) ? sendMessage : undefined}
+                disabled={(!input.trim() && !uploadedFile) || isLoading}
                 size="icon"
                 aria-label={isLoading ? 'Cancel' : 'Send'}
                 className={cn(

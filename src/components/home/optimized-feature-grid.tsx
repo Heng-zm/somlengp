@@ -54,23 +54,29 @@ const PrimaryFeatureCard = memo(function PrimaryFeatureCard({
       isVisible ? "opacity-100 translate-y-0" : "opacity-50 translate-y-4"
     )}>
       <div className="flex flex-col sm:flex-row items-start sm:items-center gap-6 sm:gap-8">
-        <div className="flex items-center justify-center p-5 bg-primary/20 rounded-2xl border-2 border-primary/30 will-change-transform transition-all duration-300 group-hover:scale-110 group-hover:bg-primary/30 group-hover:border-primary/50">
-          <Icon className="w-10 h-10 sm:w-12 sm:h-12 text-primary transition-transform duration-300 group-hover:rotate-6" />
+        <div className="flex items-center justify-center h-[88px] w-[88px] bg-gray-100 rounded-[12px] border border-gray-200">
+          <Icon className="w-10 h-10 sm:w-12 sm:h-12 text-black" aria-hidden="true" />
         </div>
         <div className="flex-grow text-center sm:text-left space-y-3 min-w-0">
           <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold tracking-tight break-words">{title}</h2>
-          <p className="text-muted-foreground text-base sm:text-lg mt-2 max-w-2xl mx-auto sm:mx-0 leading-relaxed break-words">{description}</p>
+          <p className="text-gray-700 text-base sm:text-lg mt-2 max-w-2xl mx-auto sm:mx-0 leading-relaxed break-words">{description}</p>
         </div>
       </div>
-      <div className="flex justify-center sm:flex sm:justify-end mt-8">
+      <div className="flex items-center justify-center sm:justify-end mt-8 gap-3">
         <Button 
           variant="default" 
           size="lg"
-          className="group-hover:bg-primary/90 will-change-transform transition-all duration-300 hover:shadow-lg hover:scale-105 active:scale-95 px-8 py-6 text-base font-semibold"
+          className="rounded-full bg-black text-white hover:bg-black/90 will-change-transform transition-all duration-300 hover:shadow-lg hover:scale-[1.02] active:scale-95 px-8 py-6 text-base font-semibold"
         >
           {startNowText}
-          <ArrowRight className="ml-2 h-5 w-5 transition-transform duration-300 group-hover:translate-x-2" />
         </Button>
+        <div
+          className="flex items-center justify-center rounded-full bg-black text-white shadow-sm shrink-0 aspect-square"
+          style={{ width: 44, height: 44 }}
+          aria-hidden="true"
+        >
+          <ArrowRight className="h-5 w-5" />
+        </div>
       </div>
     </Card>
   );
@@ -116,29 +122,34 @@ const OptimizedFeatureCard = memo(function OptimizedFeatureCard({
   const cardContent = (
     <Card 
       className={cn(
-        "w-full h-full p-6 flex items-center gap-5 rounded-xl",
-        "bg-card text-card-foreground border-2",
-        "motion-safe:transition-all motion-safe:duration-300 motion-safe:ease-out",
-        "motion-safe:hover:scale-[1.03] hover:shadow-xl hover:border-primary/30 hover:-translate-y-1",
-        "motion-reduce:hover:bg-secondary/50",
-        "group focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2",
-        "transform-gpu will-change-transform",
-        action ? "cursor-pointer active:scale-95" : ""
+        "w-full h-full p-5 sm:p-6 flex items-center gap-4",
+        "rounded-[12px] bg-white text-foreground border border-gray-200 shadow",
+        "hover:bg-gray-50 transition-colors",
+        "focus-visible:ring-0"
       )}
       onClick={action}
       role={action ? 'button' : undefined}
       tabIndex={action ? 0 : undefined}
       aria-label={action ? `${title} - ${description}` : undefined}
-      onKeyDown={action ? (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); action(); } } : undefined}
+      onKeyDown={action ? (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); action?.(); } } : undefined}
     >
-      <div className="flex items-center justify-center p-4 bg-secondary/80 rounded-xl border-2 motion-safe:will-change-transform motion-safe:transition-all motion-safe:duration-300 motion-safe:group-hover:scale-110 motion-safe:group-hover:bg-primary/10 motion-safe:group-hover:border-primary/30">
-        <Icon className="w-7 h-7 text-primary motion-safe:transition-all motion-safe:duration-300 motion-safe:group-hover:scale-110" />
+      <div className="flex items-center justify-center h-[75px] w-[75px] shrink-0 rounded-[18px] bg-gray-50 border border-gray-200">
+        <Icon className="w-10 h-10 text-gray-900" aria-hidden="true" />
       </div>
       <div className="flex-grow min-w-0">
-        <h2 className="text-lg sm:text-xl font-semibold mb-1.5 transition-colors duration-200 group-hover:text-primary truncate">{title}</h2>
-        <p className="text-sm text-muted-foreground line-clamp-2 leading-relaxed break-words">{description}</p>
+        <h2 className="text-[16px] font-semibold mb-1 truncate">{title}</h2>
+        <p className="text-[13px] text-gray-600 leading-6 break-words line-clamp-2">{description}</p>
       </div>
-      <ArrowRight className="w-5 h-5 flex-shrink-0 text-muted-foreground/50 motion-safe:transition-all motion-safe:duration-300 motion-safe:group-hover:translate-x-2 motion-safe:group-hover:text-primary motion-safe:will-change-transform" />
+      <div
+        className="ml-auto flex items-center justify-center rounded-full bg-black text-white shadow-sm pointer-events-none shrink-0 aspect-square"
+        style={{ width: 26, height: 26 }}
+        aria-hidden="true"
+      >
+        <span
+          className="block rounded-full bg-white"
+          style={{ width: 14, height: 8 }}
+        />
+      </div>
     </Card>
   );
 
@@ -154,7 +165,7 @@ const OptimizedFeatureCard = memo(function OptimizedFeatureCard({
         )
       ) : (
         <Card className="w-full h-full p-5 flex items-center gap-5 animate-pulse">
-          <Skeleton className="w-12 h-12 rounded-lg" />
+          <Skeleton className="w-[75px] h-[75px] rounded-2xl" />
           <div className="flex-grow space-y-2">
             <Skeleton className="h-5 w-3/4" />
             <Skeleton className="h-4 w-full" />
@@ -222,7 +233,7 @@ const VirtualFeatureGrid = memo(function VirtualFeatureGrid({
         >
           <Suspense fallback={
             <Card className="w-full h-full p-5 flex items-center gap-5 animate-pulse">
-              <Skeleton className="w-12 h-12 rounded-lg" />
+              <Skeleton className="w-[75px] h-[75px] rounded-2xl" />
               <div className="flex-grow space-y-2">
                 <Skeleton className="h-5 w-3/4" />
                 <Skeleton className="h-4 w-full" />
@@ -260,12 +271,12 @@ export const OptimizedFeatureGrid = memo(function OptimizedFeatureGrid({
       />
       
       {/* Other Features */}
-      <div className="space-y-8 mt-12">
-      <div className="flex justify-center sm:justify-start sm:text-left">
-          <h3 className="text-2xl sm:text-3xl font-bold px-2 tracking-tight bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text break-words">
+      <div id="other-tools" className="space-y-6 mt-12">
+        <div>
+          <h3 className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground">
             {otherToolsText}
           </h3>
-          <div className="h-1 w-20 bg-primary rounded-full mt-3 mx-auto sm:mx-0 transition-all duration-300"></div>
+          <div className="mt-2 h-1 w-20 bg-foreground rounded-full" />
         </div>
         <VirtualFeatureGrid 
           features={otherFeatures}

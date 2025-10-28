@@ -1,6 +1,6 @@
 
 'use client';
-import { useMemo, useState, useEffect, useCallback, memo } from 'react';
+import { useMemo, useState, useEffect, useCallback, useDeferredValue, memo } from 'react';
 // Optimized individual icon imports for better tree shaking
 import { 
   Mic, 
@@ -18,6 +18,9 @@ import { useLanguage } from '@/hooks/use-language';
 import { getPerformanceTracker, DEFAULT_BUDGETS } from '@/lib/performance-tracker';
 import { OptimizedHomeHeader } from '@/components/home/optimized-home-header';
 import { OptimizedFeatureGrid } from '@/components/home/optimized-feature-grid';
+import { SearchToolBar } from '@/components/home/search-tool-bar';
+import { Card } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 import { Footer } from '@/components/shared/footer';
 // Memory leak prevention: Timers need cleanup
 // Add cleanup in useEffect return function
@@ -136,6 +139,27 @@ const HomePageComponent = function HomePage() {
   ], [t]);
   const primaryFeature = featureCards[0];
   const otherFeatures = featureCards.slice(1);
+
+  // Search state and filtering for other tools
+  const [searchQuery, setSearchQuery] = useState('');
+  const deferredQuery = useDeferredValue(searchQuery);
+  const filteredOtherFeatures = useMemo(() => {
+    const q = deferredQuery.trim().toLowerCase();
+    if (!q) return otherFeatures;
+    return otherFeatures.filter((f) =>
+      [f.title, f.description].some((s) => s.toLowerCase().includes(q))
+    );
+  }, [otherFeatures, deferredQuery]);
+
+  const scrollToOtherTools = useCallback(() => {
+    const el = typeof document !== 'undefined' ? document.getElementById('other-tools') : null;
+    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }, []);
+
+  // Smooth-scroll to results when user starts searching
+  useEffect(() => {
+    if (searchQuery.trim()) scrollToOtherTools();
+  }, [searchQuery, scrollToOtherTools]);
   // Memoized callbacks for better performance
   const handleThemeToggle = useCallback(() => {
     toggleTheme();
@@ -154,12 +178,24 @@ const HomePageComponent = function HomePage() {
           onLanguageToggle={handleLanguageToggle}
         />
         <ScrollArea className="flex-grow pt-20 sm:pt-24 md:pt-28">
-          <main id="main-content" role="main" className="px-4 py-6 sm:px-6 sm:py-8 md:px-8 md:py-10 lg:px-12 lg:py-12 space-y-10 sm:space-y-12 md:space-y-14 max-w-[1600px] mx-auto">
+          <main id="main-content" role="main" className="px-4 py-6 sm:px-6 sm:py-8 md:px-8 md:py-10 lg:px-12 lg:py-12 space-y-8 sm:space-y-10 md:space-y-12 max-w-[1600px] mx-auto">
+            <SearchToolBar value={searchQuery} onChange={setSearchQuery} onSubmit={scrollToOtherTools} />
+            {filteredOtherFeatures.length === 0 ? (
+              <div className="mt-3">
+                <Card className="p-5 flex items-center justify-between rounded-2xl border border-gray-200 bg-white">
+                  <div>
+                    <h4 className="text-base font-semibold text-gray-900">No tools found</h4>
+                    <p className="text-sm text-gray-600">Try different keywords or clear your search.</p>
+                  </div>
+                  <Button variant="outline" onClick={() => setSearchQuery('')}>Clear</Button>
+                </Card>
+              </div>
+            ) : null}
             <OptimizedFeatureGrid
               primaryFeature={primaryFeature}
-              otherFeatures={otherFeatures}
+              otherFeatures={filteredOtherFeatures}
               startNowText={t('startNow')}
-              otherToolsText={t('otherTools')}
+              otherToolsText={"Other Tool"}
             />
           </main>
           <Footer />
