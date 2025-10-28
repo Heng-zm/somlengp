@@ -1028,14 +1028,11 @@ export function QRCodeMobileOptimized({
                   <div className="space-y-3">
                     <Label className="text-sm font-medium text-gray-700">Quick Settings</Label>
                     <div className="grid grid-cols-2 gap-3">
-                      <div className="space-y-2">
+                      <div className="space-y-2"> 
                         <Label className="sr-only">Size</Label>
                         <Select value={size.toString()} onValueChange={(v) => setSize(parseInt(v))}>
-                          <SelectTrigger className="h-10 w-10 p-0 justify-center" title="Format" aria-label="Format">
-                            <FileImage className="w-4 h-4" />
-                            <SelectValue className="sr-only" />
-                          </SelectTrigger>
-itor className="w-4 h-4" />
+                          <SelectTrigger className="h-10 w-10 p-0 justify-center" title="Size" aria-label="Size">
+                            <Monitor className="w-4 h-4" />
                             <SelectValue className="sr-only" />
                           </SelectTrigger>
                           <SelectContent>
@@ -1049,8 +1046,9 @@ itor className="w-4 h-4" />
                       <div className="space-y-2">
                         <Label className="sr-only">Format</Label>
                         <Select value={outputFormat} onValueChange={(v: 'png' | 'svg' | 'jpeg') => setOutputFormat(v)}>
-                          <SelectTrigger className="h-10">
-                            <SelectValue />
+                          <SelectTrigger className="h-10 w-10 p-0 justify-center" title="Format" aria-label="Format">
+                            <FileImage className="w-4 h-4" />
+                            <SelectValue className="sr-only" />
                           </SelectTrigger>
                           <SelectContent>
                             <SelectItem value="png">PNG</SelectItem>

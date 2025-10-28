@@ -40,6 +40,7 @@
   },
   "dependencies": {
     "@genkit-ai/firebase": "^1.16.1",
+    "@vercel/speed-insights": "^1.0.12",
     "@genkit-ai/googleai": "^1.15.5",
     "@genkit-ai/next": "^1.15.5",
     "@google/generative-ai": "^0.24.1",

@@ -6,6 +6,7 @@ import '../styles/performance-optimizations.css';
 import '../styles/mobile-optimizations.css';
 import { GoogleAnalytics } from '@next/third-parties/google'; // Keep this import
 import { Analytics } from '@vercel/analytics/next';
+import { SpeedInsights } from '@vercel/speed-insights/next';
 import { AppLayout } from '@/layouts/app-layout';
 import { PerformanceOverlay } from '@/components/shared/performance-dashboard';
 import { LanguageProvider } from '@/components/providers/language-provider';
@@ -113,6 +114,7 @@ export default function RootLayout({
         </LanguageProvider>
         <Toaster />
         <Analytics />
+        <SpeedInsights />
         <PerformanceOverlay />
 
         {/* Performance optimization scripts */}
