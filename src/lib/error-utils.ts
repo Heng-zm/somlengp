@@ -406,6 +406,7 @@ export function safeLocalStorage() {
         { operation: 'getItem', key }
       );
       if (error) {
+        void 0;
       }
       return data;
     },
@@ -474,6 +475,7 @@ export function safeClipboard() {
         { operation: 'readText' }
       );
       if (error) {
+        void 0;
       }
       return data;
     }

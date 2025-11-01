@@ -88,6 +88,7 @@ class AccessibilityManager {
       this.isInitialized = true;
       this.announce('Accessibility features enabled', 'polite');
     } catch (error) {
+      void 0;
     }
   }
   private setupAnnouncer() {
@@ -365,6 +366,7 @@ class AccessibilityManager {
     }
     // Report issues if any
     if (issues.length > 0) {
+      void 0;
     }
   }
   // Public methods

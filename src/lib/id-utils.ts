@@ -156,6 +156,7 @@ export function generateSecureId(
           }
           // Check if we're in a secure context for crypto operations
           if (typeof window !== 'undefined' && window.location && window.location.protocol !== 'https:' && window.location.hostname !== 'localhost') {
+            void 0;
           }
           const array = new Uint8Array(length);
           crypto.getRandomValues(array);
@@ -518,6 +519,7 @@ export function generateIdBatch(
       attempts++;
     }
     if (ids.size < count) {
+      void 0;
     }
     return Array.from(ids);
   } catch (error) {

@@ -496,7 +496,7 @@ export function useSEOPerformanceMonitoring() {
         issues.forEach(issue => console.warn(`⚠️ ${issue}`));
         console.groupEnd();
       } else {
-        
+        void 0;
       }
     };
 

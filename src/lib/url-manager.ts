@@ -157,6 +157,7 @@ export class URLManager {
       }
     });
     if (cleanedCount > 0) {
+      void 0;
     }
   }
   // Get statistics about managed URLs

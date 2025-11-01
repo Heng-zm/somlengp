@@ -8,6 +8,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Card } from '@/components/ui/card';
+import NextImage from 'next/image';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -46,7 +47,7 @@ import {
   User,
   MoreHorizontal,
   Upload,
-  Image,
+  Image as ImageIcon,
   X
 } from 'lucide-react';
 import { showSuccessToast } from '@/lib/toast-utils';
@@ -72,6 +73,13 @@ interface Message {
   timestamp: Date;
   model?: string;
   tokens?: TokenUsage;
+  attachment?: {
+    url?: string;
+    name: string;
+    type: string;
+    size: number;
+    kind: 'image' | 'file';
+  };
 }
 
 interface TokenUsage {
@@ -378,7 +386,7 @@ const CodeBlock = memo(function CodeBlock({
 /**
  * ChatGPT-style Message Component
  */
-const ChatGPTMessageComponent = memo(function ChatGPTMessageComponent({ message, selectedModel }: MessageComponentProps & { selectedModel: AIModel }) {
+const ChatGPTMessageComponent = memo(function ChatGPTMessageComponent({ message, selectedModel, onImageOpen }: MessageComponentProps & { selectedModel: AIModel; onImageOpen?: (src: string, alt: string) => void }) {
   const isUser = message.role === 'user';
 
   return (
@@ -410,6 +418,24 @@ const ChatGPTMessageComponent = memo(function ChatGPTMessageComponent({ message,
             </div>
             
             <div className="prose prose-gray dark:prose-invert max-w-none w-full overflow-hidden" style={{ minWidth: 0 }}>
+              {/* User image attachment preview */}
+              {isUser && message.attachment?.kind === 'image' && message.attachment.url && (
+                <button
+                  type="button"
+                  onClick={() => onImageOpen?.(message.attachment!.url!, message.attachment!.name)}
+                  className="mb-2 cursor-zoom-in focus:outline-none"
+                  aria-label="Open image preview"
+                >
+                  <NextImage 
+                    src={message.attachment.url} 
+                    alt={message.attachment.name}
+                    width={256}
+                    height={256}
+                    className="rounded-xl object-contain w-auto h-auto max-w-64 max-h-64"
+                    unoptimized
+                  />
+                </button>
+              )}
               <div className="w-full overflow-x-auto" style={{ minWidth: 0, maxWidth: '100%' }}>
               <ErrorBoundary>
                 <ReactMarkdown
@@ -685,20 +711,31 @@ function AIAssistantPageInternal() {
   const [isLoading, setIsLoading] = useState(false);
   const [isTyping, setIsTyping] = useState(false);
   const [selectedModel, setSelectedModel] = useState<AIModel>(AI_MODELS[0]);
+  const [lightbox, setLightbox] = useState<{ src: string; alt: string } | null>(null);
   const [showScrollToBottom, setShowScrollToBottom] = useState(false);
-  const [uploadPreview, setUploadPreview] = useState<{ name: string; size: number; type: string; url?: string } | null>(null);
+  const [uploadPreview, setUploadPreview] = useState<{ name: string; size: number; type: string; url?: string; dataUrl?: string } | null>(null);
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
   const [isComposing, setIsComposing] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
   const [fileError, setFileError] = useState<string | null>(null);
+  const [isPillRound, setIsPillRound] = useState(true);
   const saveTimerRef = useRef<number | null>(null);
   
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [listHeight, setListHeight] = useState(0);
   const deferredMessages = useDeferredValue(messages);
+
+  const readAsDataUrl = useCallback((file: File) => new Promise<string>((resolve, reject) => {
+    const fr = new FileReader();
+    fr.onload = () => resolve(String(fr.result || ''));
+    fr.onerror = reject;
+    fr.readAsDataURL(file);
+  }), []);
   const abortControllerRef = useRef<AbortController | null>(null);
   const hasInitializedRef = useRef(false);
+  const attachmentUrlsRef = useRef<Set<string>>(new Set());
 
   // Auto-scroll to bottom
   const scrollToBottom = useCallback(() => {
@@ -745,10 +782,16 @@ function AIAssistantPageInternal() {
     inputRef.current?.focus();
   }, []);
   
-  // Refocus input after message is sent
+  // Refocus input after message is sent and normalize pill shape
   useEffect(() => {
     if (!isLoading && !isTyping) {
       inputRef.current?.focus();
+    }
+    // Ensure pill shape reflects current height on state changes
+    const t = inputRef.current;
+    if (t) {
+      const h = t.scrollHeight;
+      setIsPillRound(h <= 64);
     }
   }, [isLoading, isTyping]);
 
@@ -811,7 +854,9 @@ function AIAssistantPageInternal() {
           content: String(m.content).trim(),
           timestamp: (m.timestamp instanceof Date ? m.timestamp : new Date()).toISOString(),
           model: m.model || selectedModel.name,
-          tokens: m.tokens
+          tokens: m.tokens,
+          // Do not persist object URLs; keep attachment metadata only
+          attachment: m.attachment ? { ...m.attachment, url: undefined } : undefined
         }));
         
       if (serializable.length > 0) {
@@ -839,11 +884,25 @@ function AIAssistantPageInternal() {
   const sendMessage = useCallback(async () => {
     if ((!input.trim() && !uploadedFile) || isLoading) return;
 
+    let usedAttachmentUrl: string | undefined;
+    const attachment: Message['attachment'] | undefined = uploadedFile ? {
+      url: uploadPreview?.dataUrl || uploadPreview?.url,
+      name: uploadedFile.name,
+      type: uploadedFile.type,
+      size: uploadedFile.size,
+      kind: uploadedFile.type.startsWith('image/') ? 'image' : 'file'
+    } : undefined;
+    if (attachment?.url) {
+      usedAttachmentUrl = attachment.url;
+      attachmentUrlsRef.current.add(attachment.url);
+    }
+
     const userMessage: Message = {
       id: generateMessageId(),
       role: 'user',
       content: input.trim() || (uploadPreview ? `Attached file: ${uploadPreview.name} (${uploadPreview.type || 'unknown'}, ${uploadPreview.size} bytes).` : ''),
       timestamp: new Date(),
+      attachment
     };
 
     setMessages(prev => [...prev, userMessage]);
@@ -970,7 +1029,9 @@ function AIAssistantPageInternal() {
       abortControllerRef.current = null;
       // Clear any upload preview after sending/cancel
       setUploadPreview(prev => {
-        if (prev?.url) URL.revokeObjectURL(prev.url);
+        if (prev?.url && prev.url !== usedAttachmentUrl) {
+          URL.revokeObjectURL(prev.url);
+        }
         return null;
       });
       setUploadedFile(null);
@@ -978,6 +1039,12 @@ function AIAssistantPageInternal() {
   }, [input, messages, selectedModel, isLoading]);
 
   const clearMessages = useCallback(() => {
+    // Revoke any object URLs used for attachments
+    attachmentUrlsRef.current.forEach(url => {
+      try { URL.revokeObjectURL(url); } catch {}
+    });
+    attachmentUrlsRef.current.clear();
+
     setMessages([{
       id: generateMessageId(),
       role: 'assistant',
@@ -1006,13 +1073,23 @@ function AIAssistantPageInternal() {
     }
   }, [sendMessage, isComposing, isLoading, cancelRequest]);
 
-  // Cleanup on unmount (revoke preview URL, clear timers)
+  // Cleanup on unmount (revoke preview URL, clear timers and attachment URLs)
   useEffect(() => {
     return () => {
       if (uploadPreview?.url) URL.revokeObjectURL(uploadPreview.url);
+      attachmentUrlsRef.current.forEach(url => { try { URL.revokeObjectURL(url); } catch {} });
+      attachmentUrlsRef.current.clear();
       if (saveTimerRef.current) window.clearTimeout(saveTimerRef.current);
     };
   }, [uploadPreview?.url]);
+
+  // Close lightbox on Escape
+  useEffect(() => {
+    if (!lightbox) return;
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setLightbox(null); };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [lightbox]);
 
   return (
     <div className="flex h-screen bg-white dark:bg-black">
@@ -1088,7 +1165,11 @@ function AIAssistantPageInternal() {
                       {deferredMessages.map((message) => (
                         <ErrorBoundary key={message.id}>
                           <div className="w-full overflow-hidden" style={{ minWidth: 0, maxWidth: '100%', boxSizing: 'border-box' }}>
-                            <ChatGPTMessageComponent message={message} selectedModel={selectedModel} />
+                            <ChatGPTMessageComponent 
+                              message={message} 
+                              selectedModel={selectedModel} 
+                              onImageOpen={(src, alt) => setLightbox({ src, alt })}
+                            />
                           </div>
                         </ErrorBoundary>
                       ))}
@@ -1142,11 +1223,11 @@ function AIAssistantPageInternal() {
             {uploadPreview && (
               <div className="mb-3">
                 <div className="flex items-center gap-3 p-3 rounded-3xl bg-gray-200 dark:bg-gray-800 border border-gray-300 dark:border-gray-700">
-                  {uploadPreview.url ? (
-                    <img src={uploadPreview.url} alt={uploadPreview.name} className="w-16 h-16 rounded-xl object-cover" />
+                  {uploadPreview.url || uploadPreview.dataUrl ? (
+                    <NextImage src={uploadPreview.dataUrl || uploadPreview.url!} alt={uploadPreview.name} width={64} height={64} className="w-16 h-16 rounded-xl object-cover" unoptimized />
                   ) : (
                     <div className="w-16 h-16 rounded-xl bg-gray-300 dark:bg-gray-700 flex items-center justify-center">
-                      <Image className="w-7 h-7 text-gray-600 dark:text-gray-300" />
+                      <ImageIcon className="w-7 h-7 text-gray-600 dark:text-gray-300" />
                     </div>
                   )}
                   <div className="flex-1 min-w-0">
@@ -1170,8 +1251,10 @@ function AIAssistantPageInternal() {
                 id="ai-upload-input"
                 type="file"
                 className="hidden"
+                ref={fileInputRef}
                 onChange={async (e) => {
-                  const file = e.target.files?.[0];
+                  const inputEl = fileInputRef.current as HTMLInputElement | null;
+                  const file = (e.target as HTMLInputElement)?.files?.[0] ?? inputEl?.files?.[0];
                   if (!file) return;
                   if (file.size > MAX_FILE_SIZE) { setFileError("File too large (max 10MB)"); return; }
                   setFileError(null);
@@ -1180,7 +1263,11 @@ function AIAssistantPageInternal() {
                     const isText = /text|json|markdown|javascript|typescript|python|plain/.test(file.type);
                     // Prepare preview and retain file
                     const url = isImage ? URL.createObjectURL(file) : undefined;
-                    setUploadPreview({ name: file.name, size: file.size, type: file.type, url });
+                    let dataUrl: string | undefined;
+                    if (isImage && file.size <= 2 * 1024 * 1024) {
+                      try { dataUrl = await readAsDataUrl(file); } catch {}
+                    }
+                    setUploadPreview({ name: file.name, size: file.size, type: file.type, url, dataUrl });
                     setUploadedFile(file);
                     // Insert text content only for small text-like files; do NOT inject placeholder text for other files
                     if (isText && file.size <= 100 * 1024) {
@@ -1188,7 +1275,7 @@ function AIAssistantPageInternal() {
                       setInput((prev) => (prev ? prev + '\n\n' + text : text));
                     }
                   } finally {
-                    e.currentTarget.value = '';
+                    try { if (inputEl) inputEl.value = ''; } catch {}
                   }
                 }}
               />
@@ -1210,11 +1297,18 @@ function AIAssistantPageInternal() {
                   if (file.size > MAX_FILE_SIZE) { setFileError("File too large (max 10MB)"); return; }
                   const isImage = file.type.startsWith('image/');
                   const url = isImage ? URL.createObjectURL(file) : undefined;
-                  setUploadPreview({ name: file.name, size: file.size, type: file.type, url });
+                  let dataUrl: string | undefined;
+                  if (isImage && file.size <= 2 * 1024 * 1024) {
+                    readAsDataUrl(file).then((d) => setUploadPreview(prev => ({ ...(prev || {} as any), name: file.name, size: file.size, type: file.type, url, dataUrl: d })) ).catch(() => {});
+                  }
+                  setUploadPreview({ name: file.name, size: file.size, type: file.type, url, dataUrl });
                   setUploadedFile(file);
                 }}
               >
-                <div className="w-full rounded-[9999px] bg-white dark:bg-gray-900 border border-gray-300/70 dark:border-gray-700/70 ring-1 ring-inset ring-gray-200 dark:ring-gray-800 pr-16 sm:pr-14 pl-5 py-2.5 focus-within:ring-2 focus-within:ring-gray-400 dark:focus-within:ring-gray-500 shadow-sm">
+                <div className={cn(
+                  "w-full bg-white dark:bg-gray-900 border border-gray-300/70 dark:border-gray-700/70 ring-1 ring-inset ring-gray-200 dark:ring-gray-800 pr-16 sm:pr-14 pl-5 py-2.5 focus-within:ring-2 focus-within:ring-gray-400 dark:focus-within:ring-gray-500 shadow-sm",
+                  isPillRound ? "rounded-[9999px]" : "rounded-2xl"
+                )}>
                   <Textarea
                     ref={inputRef}
                     value={input}
@@ -1225,7 +1319,11 @@ function AIAssistantPageInternal() {
                     onInput={(e) => {
                       const t = e.currentTarget as HTMLTextAreaElement;
                       t.style.height = '24px';
-                      t.style.height = Math.min(t.scrollHeight, 200) + 'px';
+                      const max = 400;
+                      const newH = Math.min(t.scrollHeight, max);
+                      t.style.height = newH + 'px';
+                      t.style.overflowY = t.scrollHeight > max ? 'auto' : 'hidden';
+                      setIsPillRound(newH <= 64);
                     }}
                     onPaste={(e) => {
                       const items = Array.from(e.clipboardData?.files || []);
@@ -1234,13 +1332,22 @@ function AIAssistantPageInternal() {
                       if (file.size > MAX_FILE_SIZE) { setFileError("File too large (max 10MB)"); return; }
                       const isImage = file.type.startsWith('image/');
                       const url = isImage ? URL.createObjectURL(file) : undefined;
-                      setUploadPreview({ name: file.name, size: file.size, type: file.type, url });
+                      let dataUrl: string | undefined;
+                      if (isImage && file.size <= 2 * 1024 * 1024) {
+                        readAsDataUrl(file).then((d) => setUploadPreview(prev => ({ ...(prev || {} as any), name: file.name, size: file.size, type: file.type, url, dataUrl: d })) ).catch(() => {});
+                      }
+                      setUploadPreview({ name: file.name, size: file.size, type: file.type, url, dataUrl });
                       setUploadedFile(file);
                     }}
                     rows={1}
-                    placeholder="Message"
+                    placeholder="Type your message…"
+                    aria-label="AI Assistant message input"
+                    autoComplete="off"
+                    autoCorrect="off"
+                    autoCapitalize="none"
+                    spellCheck={false}
                     disabled={isLoading}
-                    className="w-full resize-none bg-transparent border-0 focus:outline-none focus:ring-0 text-gray-800 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 min-h-[40px] max-h-[160px] sm:max-h-[200px] no-zoom mobile-input leading-6"
+                    className="w-full resize-none bg-transparent border-0 focus:outline-none focus:ring-0 text-gray-800 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 min-h-[40px] max-h-[320px] sm:max-h-[400px] no-zoom mobile-input leading-6"
                     style={{
                       fontSize: '16px',
                       WebkitAppearance: 'none',
@@ -1258,7 +1365,7 @@ function AIAssistantPageInternal() {
                 <button
                   type="button"
                   aria-label="Upload"
-                  onClick={() => document.getElementById('ai-upload-input')?.click()}
+                  onClick={() => fileInputRef.current?.click()}
                   className="absolute right-2 top-1/2 -translate-y-1/2 h-10 w-10 rounded-full bg-white dark:bg-black border border-gray-300 dark:border-gray-700 ring-1 ring-inset ring-gray-200 dark:ring-gray-800 flex items-center justify-center shadow-sm"
                 >
                   <Upload className="w-5 h-5 text-gray-700 dark:text-gray-300" />
@@ -1292,6 +1399,34 @@ function AIAssistantPageInternal() {
           </div>
         </div>
       </div>
+
+      {/* Lightbox */}
+      {lightbox && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4"
+          onClick={() => setLightbox(null)}
+        >
+          <div className="relative max-w-[90vw] max-h-[90vh]" onClick={(e) => e.stopPropagation()}>
+            <NextImage
+              src={lightbox.src}
+              alt={lightbox.alt}
+              width={1200}
+              height={1200}
+              className="object-contain w-auto h-auto max-w-[90vw] max-h-[90vh] rounded-lg"
+              unoptimized
+            />
+            <button
+              aria-label="Close preview"
+              className="absolute top-2 right-2 bg-black/60 text-white rounded-full px-3 py-1 text-sm"
+              onClick={() => setLightbox(null)}
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

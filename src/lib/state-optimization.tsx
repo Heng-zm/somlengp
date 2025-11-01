@@ -466,7 +466,7 @@ export const OptimizedAppProvider = memo(function OptimizedAppProvider({
       middleware: [
         (state, action) => {
           if (process.env.NODE_ENV === 'development') {
-            
+            void 0;
           }
         }
       ]

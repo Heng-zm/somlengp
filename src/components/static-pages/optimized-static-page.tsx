@@ -439,7 +439,7 @@ export const OptimizedStaticPage = memo(function OptimizedStaticPage({
   // Report performance metrics in development
   useEffect(() => {
     if (process.env.NODE_ENV === 'development' && Object.keys(metrics).length > 0) {
-      
+      void 0;
     }
   }, [metrics]);
 

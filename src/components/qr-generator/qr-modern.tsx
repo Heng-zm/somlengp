@@ -1213,7 +1213,7 @@ export function ModernQRGenerator() {
                         <Copy className="w-5 h-5" />
                       </Button>
                       
-                      {navigator.share && (
+                      {typeof navigator.share === 'function' && (
                         <Button
                           onClick={handleShare}
                           variant="outline"

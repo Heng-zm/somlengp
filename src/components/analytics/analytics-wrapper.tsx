@@ -117,6 +117,7 @@ class EnhancedAnalytics {
     this.sendToCustomAnalytics(eventData);
     // Development logging
     if (process.env.NODE_ENV === 'development') {
+      void 0;
     }
   }
   // Send to custom analytics API
@@ -137,6 +138,7 @@ class EnhancedAnalytics {
     } catch (error) {
       // Fail silently for analytics
       if (process.env.NODE_ENV === 'development') {
+        void 0;
       }
     }
   }
@@ -170,6 +172,7 @@ class EnhancedAnalytics {
         });
         observer.observe({ entryTypes: ['measure'] });
       } catch (error) {
+        void 0;
       }
     }
   }

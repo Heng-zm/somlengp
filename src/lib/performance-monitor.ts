@@ -450,6 +450,7 @@ class PerformanceMonitor {
   }
   private log(message: string, data?: any) {
     if (this.config.enableConsoleLogging) {
+      void 0;
     }
   }
   // Public methods

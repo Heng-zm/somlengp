@@ -25,7 +25,7 @@ export function useRenderCount(componentName: string) {
   useEffect(() => {
     renderCount.current += 1;
     if (process.env.NODE_ENV === 'development') {
-      
+      void 0;
     }
   });
 

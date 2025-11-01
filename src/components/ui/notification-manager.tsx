@@ -350,7 +350,7 @@ function NotificationContainer() {
   )
 }
 // Notification settings component
-export function NotificationSettings() {
+export function NotificationSettingsPanel() {
   const { state, updateSettings } = useNotifications()
   return (
     <Card className="w-full max-w-2xl">

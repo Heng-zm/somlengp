@@ -55,54 +55,31 @@ export async function logActivity(
   metadata: Record<string, any> = {},
   userAgent?: string
 ): Promise<void> {
-  try {
-    // Analytics temporarily disabled during migration
-    return;
-  } catch (error) {
-    console.error('Failed to log activity:', error);
-    // Don't throw error - analytics shouldn't break user experience
-  }
+  // Analytics temporarily disabled during migration
+  return;
 }
 // Update aggregated user analytics
 async function updateUserAnalytics(userId: string, activityType: ActivityType): Promise<void> {
-  try {
-    // Analytics temporarily disabled during migration
-    return;
-  } catch (error) {
-    console.error('Failed to update user analytics:', error);
-  }
+  // Analytics temporarily disabled during migration
+  return;
 }
 // Get user's recent activities count
 async function getRecentActivitiesCount(userId: string, since: Date): Promise<number> {
-  try {
-    // Analytics temporarily disabled during migration
-    return 0;
-  } catch (error) {
-    return 0;
-  }
+  // Analytics temporarily disabled during migration
+  return 0;
 }
 // Get user analytics summary
 export async function getUserAnalytics(userId: string): Promise<UserAnalytics | null> {
-  try {
-    // Analytics temporarily disabled during migration
-    return null;
-  } catch (error) {
-    console.error('Failed to get user analytics:', error);
-    return null;
-  }
+  // Analytics temporarily disabled during migration
+  return null;
 }
 // Get user's recent activities (for dashboard)
 export async function getUserRecentActivities(
   userId: string, 
   limitCount = 10
 ): Promise<ActivityEvent[]> {
-  try {
-    // Analytics temporarily disabled during migration
-    return [];
-  } catch (error) {
-    console.error('Failed to get user recent activities:', error);
-    return [];
-  }
+  // Analytics temporarily disabled during migration
+  return [];
 }
 // Helper functions
 function getSessionId(): string {

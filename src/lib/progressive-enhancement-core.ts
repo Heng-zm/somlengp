@@ -165,6 +165,7 @@ export class EnhancedProgressiveAccessibilityManager {
       hardwareConcurrency: navigator.hardwareConcurrency || 4,
     };
     if (this.config.testMode) {
+      void 0;
     }
     return baseline;
   }
@@ -571,6 +572,7 @@ export class EnhancedProgressiveAccessibilityManager {
   private setFeatureState(name: string, state: FeatureState): void {
     this.featureStates.set(name, state);
     if (this.config.testMode) {
+      void 0;
     }
     // Emit custom event for monitoring
     if (typeof window !== 'undefined') {

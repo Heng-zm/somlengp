@@ -8,6 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Label } from '@/components/ui/label'
+import { CONTACT } from '@/config/contact'
 // Memory leak prevention: Timers need cleanup
 // Add cleanup in useEffect return function
 
@@ -46,28 +47,28 @@ const ContactPageComponent = function ContactPage() {
       icon: Mail,
       title: "Email",
       description: "Send us an email anytime",
-      contact: "hello@somleng.com",
-      action: "mailto:hello@somleng.com"
+      contact: CONTACT.email,
+      action: `mailto:${CONTACT.email}`
     },
     {
       icon: Phone,
       title: "Phone",
       description: "Call us during business hours",
-      contact: "+1 (555) 123-4567",
-      action: "tel:+15551234567"
+      contact: CONTACT.phoneDisplay,
+      action: `tel:${CONTACT.phoneLink}`
     },
     {
       icon: MapPin,
       title: "Office",
       description: "Visit our headquarters",
-      contact: "123 Tech Street, San Francisco, CA 94105",
+      contact: CONTACT.address,
       action: "https://maps.google.com"
     },
     {
       icon: Clock,
       title: "Business Hours",
       description: "Monday to Friday",
-      contact: "9:00 AM - 6:00 PM PST",
+      contact: CONTACT.hours,
       action: null
     }
   ]
@@ -105,7 +106,7 @@ const ContactPageComponent = function ContactPage() {
               <div className="w-8 h-8 bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg flex items-center justify-center">
                 <Mail className="w-5 h-5 text-white" />
               </div>
-              <span className="text-xl font-bold text-gray-900">Somleng</span>
+              <span className="text-xl font-bold text-gray-900">{CONTACT.brandName}</span>
             </Link>
             
             <Button asChild variant="ghost">

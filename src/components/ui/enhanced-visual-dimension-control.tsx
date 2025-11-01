@@ -165,6 +165,7 @@ export function EnhancedVisualDimensionControl({
       onValidationError?.(null);
       // Show warnings if any
       if (validation.warnings && validation.warnings.length > 0) {
+        void 0;
       }
     } else {
       onValidationError?.(validation.error || 'Invalid dimensions');

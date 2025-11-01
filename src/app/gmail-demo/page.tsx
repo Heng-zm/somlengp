@@ -1,6 +1,7 @@
 "use client";
 import { useState, memo } from 'react';
 import { Button } from '@/components/ui/button';
+import { EMAIL_TEMPLATE_DEFAULT } from '@/config/contact';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 // Gmail Components
@@ -96,23 +97,7 @@ const sampleProfile = {
     linkedin: 'https://linkedin.com/in/johndoe'
   }
 };
-const sampleTemplate: IGmailEmailTemplate = {
-  type: 'welcome',
-  subject: 'Welcome to SomlengP!',
-  content: {
-    title: 'Welcome to Our Community!',
-    body: '<p>Hi there!</p><p>We\'re thrilled to have you join our community. Your account has been successfully created, and you\'re now ready to explore everything we have to offer.</p>',
-    buttonText: 'Get Started',
-    buttonUrl: 'https://example.com/get-started',
-    secondaryText: 'Need help? Contact our support team anytime.'
-  },
-  options: {
-    companyName: 'SomlengP',
-    primaryColor: '#1a73e8',
-    accentColor: '#34a853',
-    footerText: 'Thanks for joining us!'
-  }
-};
+const sampleTemplate: IGmailEmailTemplate = EMAIL_TEMPLATE_DEFAULT as IGmailEmailTemplate;
 const GmailDemoPageComponent = function GmailDemoPage() {
   const [selectedEmails, setSelectedEmails] = useState<string[]>([]);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);

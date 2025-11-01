@@ -167,8 +167,10 @@ export class SupabaseDiagnostic {
     this.results.forEach((result, index) => {
       const status = result.success ? '✅' : '❌';
       if (!result.success && result.error) {
+        void 0;
       }
       if (result.details) {
+        void 0;
       }
     });
     // Provide recommendations
@@ -189,6 +191,7 @@ export class SupabaseDiagnostic {
         }
       });
     } else {
+      void 0;
     }
   }
 }

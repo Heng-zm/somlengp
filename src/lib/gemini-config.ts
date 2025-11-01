@@ -69,6 +69,7 @@ class GeminiConfig {
       }
       // Basic validation - Gemini API keys typically start with 'AIza'
       if (!apiKey.startsWith('AIza')) {
+        void 0;
       }
       this.config.apiKey = apiKey.trim();
       this.config.isConfigured = true;
