@@ -235,7 +235,9 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     }
 
   } catch (error: any) {
-    console.error('API Error:', error);
+    if (process.env.NODE_ENV === 'development') {
+      console.error('API Error:', error);
+    }
     
     return NextResponse.json(
       { 
