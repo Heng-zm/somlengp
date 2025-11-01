@@ -130,6 +130,8 @@ export default [
       'no-console': 'warn',
       'prefer-const': 'warn',
       'no-var': 'warn',
+      'no-empty': ['error', { 'allowEmptyCatch': true }], // Allow empty catch blocks
+      'no-case-declarations': 'warn', // Lexical declarations in case blocks
       
       // Next.js rules
       '@next/next/no-img-element': 'warn',

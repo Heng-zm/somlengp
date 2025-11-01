@@ -67,8 +67,19 @@ export const createSupabaseClient = (): SupabaseClient<Database> => {
   return initializeSupabase();
 };
 
-// Export the client
-export const supabaseClient = createSupabaseClient();
+// Export the client (lazy initialization)
+let _exportedClient: SupabaseClient<Database> | null = null;
+
+export const supabaseClient = (() => {
+  if (typeof window === 'undefined') {
+    // During SSR/build, return null to avoid initialization errors
+    return null as any;
+  }
+  if (!_exportedClient) {
+    _exportedClient = createSupabaseClient();
+  }
+  return _exportedClient;
+})();
 
 // Export as 'supabase' for backward compatibility
 export const supabase = supabaseClient;

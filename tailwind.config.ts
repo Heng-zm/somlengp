@@ -221,6 +221,16 @@ export default {
         'opacity': 'opacity',
         'transform-opacity': 'transform, opacity',
       },
+      backdropBlur: {
+        xs: '2px',
+      },
+      transitionTimingFunction: {
+        'bounce-in': 'cubic-bezier(0.68, -0.55, 0.265, 1.55)',
+      },
+      spacing: {
+        '128': '32rem',
+        '144': '36rem',
+      },
     },
   },
   plugins: [

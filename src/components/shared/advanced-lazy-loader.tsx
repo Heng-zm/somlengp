@@ -213,15 +213,15 @@ export const AdvancedLazyCodeHighlighter = memo(function AdvancedLazyCodeHighlig
   const lineCount = String(children || '').split('\n').length;
   const [loadError, setLoadError] = useState(false);
   
-  // Fallback if children is null/undefined
-  if (!children || typeof children !== 'string') {
-    return <CodeSkeleton lines={3} showLineNumbers={showLineNumbers} />;
-  }
-
   const handleLoadError = useCallback((error: Error) => {
     console.warn('Code highlighter failed to load:', error);
     setLoadError(true);
   }, []);
+  
+  // Fallback if children is null/undefined
+  if (!children || typeof children !== 'string') {
+    return <CodeSkeleton lines={3} showLineNumbers={showLineNumbers} />;
+  }
 
   // If syntax highlighter fails to load, fall back to simple highlighting
   if (loadError) {

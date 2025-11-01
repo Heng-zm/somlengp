@@ -57,7 +57,6 @@ export async function logActivity(
 ): Promise<void> {
   try {
     // Analytics temporarily disabled during migration
-    
     return;
   } catch (error) {
     console.error('Failed to log activity:', error);
@@ -68,7 +67,6 @@ export async function logActivity(
 async function updateUserAnalytics(userId: string, activityType: ActivityType): Promise<void> {
   try {
     // Analytics temporarily disabled during migration
-    
     return;
   } catch (error) {
     console.error('Failed to update user analytics:', error);
@@ -175,6 +173,5 @@ export const ActivityLogger = {
 export function deleteUserAnalytics(userId: string): Promise<void> {
   // For GDPR compliance - delete all user analytics data
   // Analytics temporarily disabled during migration
-  
   return Promise.resolve();
 }

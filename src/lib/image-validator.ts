@@ -108,11 +108,10 @@ export class ImageValidator {
     const suspiciousPatterns = [
       /\.(php|js|html|htm|asp|aspx|jsp|exe|bat|cmd|sh)$/i,
       /[<>:"|?*]/,
-      /^\./,
-      /\x00/
+      /^\./
     ];
 
-    if (suspiciousPatterns.some(pattern => pattern.test(file.name))) {
+    if (suspiciousPatterns.some(pattern => pattern.test(file.name)) || file.name.includes('\0')) {
       result.errors.push('File name contains suspicious characters or extensions');
     }
   }

@@ -347,6 +347,45 @@ body {
         -webkit-text-size-adjust: 100%;
         zoom: 1;
     }
+
+    /* Modern Design System Utilities */
+    .gradient-radial {
+        background: radial-gradient(circle at center, var(--tw-gradient-stops));
+    }
+    .gradient-conic {
+        background: conic-gradient(from 180deg at 50% 50%, var(--tw-gradient-stops));
+    }
+    .glass-modern {
+        background: rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(10px) saturate(180%);
+        -webkit-backdrop-filter: blur(10px) saturate(180%);
+        border: 1px solid rgba(255, 255, 255, 0.18);
+    }
+    .dark .glass-modern {
+        background: rgba(0, 0, 0, 0.1);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    .focus-modern {
+        @apply focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary;
+        transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .btn-modern {
+        @apply px-4 py-2 rounded-lg font-medium transition-all duration-200 hover:scale-105 active:scale-95 focus-modern;
+    }
+    .card-modern {
+        @apply rounded-2xl border bg-card text-card-foreground transition-all duration-300 hover:shadow-xl hover:-translate-y-1;
+    }
+    .input-modern {
+        @apply w-full rounded-lg border bg-input px-4 py-2 transition-all duration-200 focus:border-primary focus:ring-2 focus:ring-primary/20 placeholder:text-muted-foreground;
+    }
+    .skeleton {
+        @apply animate-pulse bg-muted rounded;
+    }
+    .grid-auto-fit {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 1rem;
+    }
     
     .no-zoom-input {
         font-size: 16px !important;

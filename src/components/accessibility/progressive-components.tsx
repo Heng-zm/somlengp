@@ -15,7 +15,7 @@ export interface SkipNavigationProps {
 }
 const ProgressiveSkipNavigation = forwardRef<HTMLElement, SkipNavigationProps>(
   ({ links, className }, ref) => {
-    const {} = useEnhancedProgressiveAccessibility();
+    useEnhancedProgressiveAccessibility();
     return (
       <nav 
         ref={ref}
@@ -174,6 +174,7 @@ const ProgressiveFocusManager = forwardRef<HTMLDivElement, FocusManagementProps>
         try {
           lastFocusedElement.current.focus();
         } catch (error) {
+          // Silently handle focus error
         }
         lastFocusedElement.current = null;
       }

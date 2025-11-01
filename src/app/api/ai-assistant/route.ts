@@ -28,7 +28,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     // Parse JSON or multipart form
     const contentType = request.headers.get('content-type') || '';
     let messages: Message[] = [];
-    let model: string = 'gemini-2.5-flash';
+    let model = 'gemini-2.5-flash';
     let uploadedFile: File | null = null;
 
     if (contentType.includes('multipart/form-data')) {

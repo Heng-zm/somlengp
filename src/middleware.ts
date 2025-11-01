@@ -26,7 +26,7 @@ export function middleware(req: NextRequest) {
   const url = new URL(req.url);
   if (!url.pathname.startsWith('/api/')) return NextResponse.next();
 
-  const ip = req.ip || req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || 'unknown';
+  const ip = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || req.headers.get('x-real-ip') || 'unknown';
   const { ok, retryAfter } = rateLimit(ip);
   if (!ok) {
     return new NextResponse(JSON.stringify({ error: 'Too Many Requests' }), {
