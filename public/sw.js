@@ -222,6 +222,8 @@ function detectOptimalImageFormat() {
 
 async function optimizeImage(originalResponse, config = IMAGE_OPTIMIZATION_CONFIG) {
   try {
+    // Clone response immediately to preserve it for error fallback
+    const responseClone = originalResponse.clone();
     const arrayBuffer = await originalResponse.arrayBuffer();
     const blob = new Blob([arrayBuffer]);
     
@@ -268,10 +270,10 @@ async function optimizeImage(originalResponse, config = IMAGE_OPTIMIZATION_CONFI
     
     // Create optimized response
     const optimizedResponse = new Response(optimizedBlob, {
-      status: originalResponse.status,
-      statusText: originalResponse.statusText,
+      status: responseClone.status,
+      statusText: responseClone.statusText,
       headers: {
-        ...Object.fromEntries(originalResponse.headers.entries()),
+        ...Object.fromEntries(responseClone.headers.entries()),
         'content-type': mimeType,
         'content-length': optimizedBlob.size.toString(),
         'sw-optimized': 'true',
@@ -284,7 +286,9 @@ async function optimizeImage(originalResponse, config = IMAGE_OPTIMIZATION_CONFI
     return optimizedResponse;
   } catch (error) {
     console.warn('Image optimization failed:', error);
-    return originalResponse;
+    // Return a new Response with original data if we still have it
+    // Otherwise this will fail - caller should handle
+    throw error;
   }
 }
 
@@ -305,14 +309,21 @@ async function optimizedImageCacheFirst(request) {
     
     if (cachedOriginal && !isExpired(cachedOriginal, IMAGE_OPTIMIZATION_CONFIG.cacheExpiry)) {
       // Clone BEFORE optimizing (optimizeImage consumes the response)
-      const originalForCache = cachedOriginal.clone();
-      const optimizedResponse = await optimizeImage(originalForCache);
+      const originalForReturn = cachedOriginal.clone();
+      const originalForOptimization = cachedOriginal.clone();
       
-      // Clone the optimized response for caching
-      const optimizedForCache = optimizedResponse.clone();
-      optimizedCache.put(request, addCacheHeaders(optimizedForCache));
-      
-      return optimizedResponse;
+      try {
+        const optimizedResponse = await optimizeImage(originalForOptimization);
+        
+        // Clone the optimized response for caching
+        const optimizedForCache = optimizedResponse.clone();
+        optimizedCache.put(request, addCacheHeaders(optimizedForCache));
+        
+        return optimizedResponse;
+      } catch (error) {
+        console.warn('Failed to optimize cached image, returning original:', error);
+        return originalForReturn;
+      }
     }
     
     // Fetch from network
@@ -323,19 +334,25 @@ async function optimizedImageCacheFirst(request) {
       return networkResponse;
     }
     
-    // Clone network response for both caching and optimization
+    // Clone network response for caching, optimization, and fallback
     const networkForOriginalCache = networkResponse.clone();
     const networkForOptimization = networkResponse.clone();
+    const networkForReturn = networkResponse.clone();
     
     // Cache original image
     imageCache.put(request, addCacheHeaders(networkForOriginalCache));
     
     // Optimize and cache
-    const optimizedResponse = await optimizeImage(networkForOptimization);
-    const optimizedForCache = optimizedResponse.clone();
-    optimizedCache.put(request, addCacheHeaders(optimizedForCache));
-    
-    return optimizedResponse;
+    try {
+      const optimizedResponse = await optimizeImage(networkForOptimization);
+      const optimizedForCache = optimizedResponse.clone();
+      optimizedCache.put(request, addCacheHeaders(optimizedForCache));
+      
+      return optimizedResponse;
+    } catch (error) {
+      console.warn('Failed to optimize network image, returning original:', error);
+      return networkForReturn;
+    }
     
   } catch (error) {
     console.error('Optimized image cache failed:', error);

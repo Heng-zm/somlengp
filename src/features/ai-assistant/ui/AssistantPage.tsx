@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback, memo, ErrorInfo, Component, Suspense, useDeferredValue } from 'react';
+import { useRouter, usePathname } from 'next/navigation';
 import dynamic from 'next/dynamic';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
@@ -44,7 +45,7 @@ import {
 } from 'lucide-react';
 import { showSuccessToast } from '@/lib/toast-utils';
 import { cn } from '@/lib/utils';
-import { generateMessageId } from '@/lib/id-utils';
+import { generateMessageId, generateShareableRoute } from '@/lib/id-utils';
 import Link from 'next/link';
 import { formatFileSize } from '@/lib/format-file-size';
 import { encryptString, decryptString, isEncryptedPayload, EncryptedBlobV1 } from '@/lib/secure-storage';
@@ -688,6 +689,20 @@ function AIAssistantPageInternal() {
       setIsPillRound(h <= 64);
     }
   }, [isLoading, isTyping]);
+
+  // Auto-generate shareable route on page load
+  const router = useRouter();
+  const pathname = usePathname();
+  
+  useEffect(() => {
+    // Only generate route if we're on base /ai-assistant path (not already on a shared route)
+    if (pathname === '/ai-assistant') {
+      const { route, id } = generateShareableRoute('/ai-assistant', { prefix: 'chat' });
+      // Update URL without page reload
+      window.history.replaceState(null, '', route);
+      console.log('Generated shareable session:', id);
+    }
+  }, [pathname]);
 
   // Initialize from localStorage or with welcome message (run once)
   useEffect(() => {
