@@ -625,3 +625,188 @@ export function resetMessageCounter(newValue = 0): void {
 export function getMessageCounter(): number {
   return messageCounter;
 }
+
+/**
+ * Generates a shareable route with a secure random ID
+ * @param basePath - The base route path (e.g., '/ai-assistant', '/profile')
+ * @param options - Generation options
+ * @returns Object containing the full route and the ID
+ * @example
+ * const { route, id } = generateShareableRoute('/ai-assistant');
+ * // Returns: { route: '/ai-assistant/=AE3TifNagMlXtBHunG4l61gIqPLa', id: 'AE3TifNagMlXtBHunG4l61gIqPLa' }
+ */
+export function generateShareableRoute(
+  basePath: string,
+  options: {
+    idLength?: number;
+    prefix?: string;
+    includeTimestamp?: boolean;
+    customCharset?: string;
+  } = {}
+): { route: string; id: string; shortUrl?: string } {
+  try {
+    // Validate and sanitize base path
+    if (typeof basePath !== 'string' || basePath.length === 0) {
+      throw new ValidationError('Base path must be a non-empty string', { provided: basePath });
+    }
+
+    // Ensure path starts with /
+    let sanitizedPath = basePath.trim();
+    if (!sanitizedPath.startsWith('/')) {
+      sanitizedPath = '/' + sanitizedPath;
+    }
+
+    // Remove trailing slash
+    if (sanitizedPath.endsWith('/') && sanitizedPath.length > 1) {
+      sanitizedPath = sanitizedPath.slice(0, -1);
+    }
+
+    // Validate path format
+    if (!/^\/[a-zA-Z0-9_-]+(\/[a-zA-Z0-9_-]+)*$/.test(sanitizedPath)) {
+      throw new ValidationError('Invalid path format', { provided: basePath });
+    }
+
+    // Generate the secure ID
+    const idLength = options.idLength || 28;
+    const charset = options.customCharset || 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+    
+    let id: string;
+    if (options.includeTimestamp) {
+      // Include timestamp for time-based IDs
+      const timestamp = Date.now().toString(36);
+      const randomPart = generateSecureId(idLength - timestamp.length - 1, charset);
+      id = `${timestamp}_${randomPart}`;
+    } else {
+      // Pure random ID
+      id = generateSecureId(idLength, charset, {
+        requireUppercase: true,
+        requireLowercase: true,
+        requireNumbers: true
+      });
+    }
+
+    // Add optional prefix
+    if (options.prefix) {
+      const sanitizedPrefix = options.prefix.replace(/[^a-zA-Z0-9]/g, '');
+      if (sanitizedPrefix.length > 0 && sanitizedPrefix.length <= 10) {
+        id = `${sanitizedPrefix}${id}`;
+      }
+    }
+
+    // Construct the shareable route with = separator
+    const route = `${sanitizedPath}/=${id}`;
+
+    // Validate final route
+    if (route.length > 500) {
+      throw new ValidationError('Generated route too long', { length: route.length });
+    }
+
+    return {
+      route,
+      id,
+      shortUrl: undefined // Can be populated with URL shortener if needed
+    };
+  } catch (error) {
+    errorHandler.handle(error, { 
+      function: 'generateShareableRoute', 
+      basePath, 
+      options 
+    });
+    
+    // Fallback route generation
+    const fallbackId = generateShortId(16);
+    const safePath = basePath.startsWith('/') ? basePath : '/' + basePath;
+    return {
+      route: `${safePath}/=${fallbackId}`,
+      id: fallbackId
+    };
+  }
+}
+
+/**
+ * Parses a shareable route to extract the ID
+ * @param route - The shareable route (e.g., '/ai-assistant/=AE3TifNagMlXtBHunG4l61gIqPLa')
+ * @returns Object with parsed components
+ */
+export function parseShareableRoute(route: string): {
+  basePath: string;
+  id: string | null;
+  isValid: boolean;
+} {
+  try {
+    if (typeof route !== 'string' || route.length === 0) {
+      return { basePath: '', id: null, isValid: false };
+    }
+
+    // Match pattern: /path/=ID
+    const match = route.match(/^(\/[^=]+)\/=([a-zA-Z0-9_-]+)$/);
+    
+    if (match) {
+      const [, basePath, id] = match;
+      return {
+        basePath,
+        id,
+        isValid: true
+      };
+    }
+
+    // If no match, return the route as basePath
+    return {
+      basePath: route,
+      id: null,
+      isValid: false
+    };
+  } catch (error) {
+    errorHandler.handle(error, { function: 'parseShareableRoute', route });
+    return {
+      basePath: route || '',
+      id: null,
+      isValid: false
+    };
+  }
+}
+
+/**
+ * Generates multiple shareable routes in batch
+ * @param basePath - The base route path
+ * @param count - Number of routes to generate
+ * @param options - Generation options
+ * @returns Array of generated routes
+ */
+export function generateShareableRouteBatch(
+  basePath: string,
+  count: number,
+  options: Parameters<typeof generateShareableRoute>[1] = {}
+): Array<{ route: string; id: string }> {
+  try {
+    if (count < 1 || count > 1000) {
+      throw new ValidationError('Count must be between 1 and 1000', { provided: count });
+    }
+
+    const routes: Array<{ route: string; id: string }> = [];
+    const usedIds = new Set<string>();
+    let attempts = 0;
+    const maxAttempts = count * 10;
+
+    while (routes.length < count && attempts < maxAttempts) {
+      const generated = generateShareableRoute(basePath, options);
+      
+      // Ensure uniqueness
+      if (!usedIds.has(generated.id)) {
+        routes.push(generated);
+        usedIds.add(generated.id);
+      }
+      
+      attempts++;
+    }
+
+    if (routes.length < count) {
+      console.warn(`Only generated ${routes.length} unique routes out of ${count} requested`);
+    }
+
+    return routes;
+  } catch (error) {
+    errorHandler.handle(error, { function: 'generateShareableRouteBatch', basePath, count });
+    return [];
+  }
+}
