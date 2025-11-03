@@ -1,12 +1,15 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
-// Apply security headers globally
+// Apply security and CORS headers globally
 export function middleware(request: NextRequest) {
   const res = NextResponse.next();
+  const isProd = process.env.NODE_ENV === 'production';
+  const pathname = request.nextUrl.pathname || '/';
+  const isApi = pathname.startsWith('/api');
 
-  // Content Security Policy (permissive enough to not break existing inline scripts; tighten over time)
-  const csp = [
+  // Content Security Policy (keep permissive to avoid breaking; tighten later)
+  const cspDirectives = [
     "default-src 'self'",
     "base-uri 'self'",
     "object-src 'none'",
@@ -20,9 +23,14 @@ export function middleware(request: NextRequest) {
     "frame-src 'self' https:",
     "worker-src 'self' blob:",
     "form-action 'self'",
-  ].join('; ');
+  ];
+  if (isProd) cspDirectives.push('upgrade-insecure-requests');
+  const csp = cspDirectives.join('; ');
 
-  res.headers.set('Content-Security-Policy', csp);
+  const cspHeaderName = isProd ? 'Content-Security-Policy' : 'Content-Security-Policy-Report-Only';
+  res.headers.set(cspHeaderName, csp);
+
+  // Security headers
   res.headers.set('X-Frame-Options', 'DENY');
   res.headers.set('X-Content-Type-Options', 'nosniff');
   res.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin');
@@ -49,9 +57,23 @@ export function middleware(request: NextRequest) {
     'usb=()',
     'xr-spatial-tracking=()'
   ].join(', '));
-  res.headers.set('Strict-Transport-Security', 'max-age=15552000; includeSubDomains');
+  if (isProd) {
+    res.headers.set('Strict-Transport-Security', 'max-age=15552000; includeSubDomains');
+  }
   res.headers.set('Cross-Origin-Opener-Policy', 'same-origin');
   res.headers.set('Cross-Origin-Resource-Policy', 'same-origin');
+  res.headers.set('X-DNS-Prefetch-Control', 'off');
+
+  // Basic CORS for API routes (override per-route as needed)
+  if (isApi) {
+    const origin = request.headers.get('origin') || '';
+    const allowed = (process.env.ALLOWED_ORIGINS || '').split(',').map(s => s.trim()).filter(Boolean);
+    const allowOrigin = allowed.length === 0 ? '*' : (allowed.includes('*') || allowed.includes(origin) ? origin : 'null');
+    res.headers.set('Access-Control-Allow-Origin', allowOrigin);
+    res.headers.set('Vary', 'Origin');
+    res.headers.set('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS');
+    res.headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  }
 
   return res;
 }

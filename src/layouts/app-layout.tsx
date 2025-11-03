@@ -8,7 +8,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
   return (
     <FeaturePageLayoutProvider>
       <div className="flex flex-col min-h-screen bg-background">
-        <IdleSessionGuard timeoutMs={10 * 60 * 1000} redirectPath="/" />
+        <IdleSessionGuard timeoutMs={10 * 60 * 1000} warnMs={60 * 1000} pingMs={5 * 60 * 1000} pollMs={30 * 1000} redirectPath="/" />
         <main className="flex-grow flex flex-col">
           {children}
         </main>

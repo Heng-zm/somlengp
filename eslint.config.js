@@ -15,6 +15,7 @@ export default [
       'node_modules/**',
       'dist/**',
       'build/**',
+      'coverage/**',
       'public/sw*.js',
       'public/workers/**',
       'scripts/**/*.js',

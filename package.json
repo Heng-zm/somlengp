@@ -18,7 +18,7 @@
     "test:ci": "jest --ci --coverage --watchAll=false",
     "analyze": "cross-env ANALYZE=true next build",
     "check-all": "npm run typecheck && npm run lint && npm run test:ci",
-    "perf:check": "node scripts/performance-check.js",
+    "perf:check": "node scripts/performance-check.cjs",
     "perf:build": "npm run build && npm run perf:check",
     "lighthouse": "lhci autorun",
     "lighthouse:collect": "lhci collect",
