@@ -363,7 +363,11 @@ export function ModernQRGenerator() {
       }
 
       const mapboxgl = (window as any).mapboxgl;
-      mapboxgl.accessToken = 'pk.eyJ1Ijoib3BlbnN0cmVldGNhbSIsImEiOiJja252Ymh4ZnIwNHdkMnd0ZzF5NDVmdnR5In0.dYxz3TzZPTPzd_ibMeGK2g';
+      mapboxgl.accessToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN || '';
+      if (!mapboxgl.accessToken) {
+        console.warn('Mapbox token not configured. Set NEXT_PUBLIC_MAPBOX_TOKEN to enable map.');
+        return;
+      }
 
       // Default coordinates (Phnom Penh, Cambodia)
       const defaultLng = locationLng ? parseFloat(locationLng) : 104.9160;
@@ -454,7 +458,11 @@ export function ModernQRGenerator() {
       }
 
       const mapboxgl = (window as any).mapboxgl;
-      mapboxgl.accessToken = 'pk.eyJ1Ijoib3BlbnN0cmVldGNhbSIsImEiOiJja252Ymh4ZnIwNHdkMnd0ZzF5NDVmdnR5In0.dYxz3TzZPTPzd_ibMeGK2g';
+      mapboxgl.accessToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN || '';
+      if (!mapboxgl.accessToken) {
+        console.warn('Mapbox token not configured. Set NEXT_PUBLIC_MAPBOX_TOKEN to enable map.');
+        return;
+      }
 
       const defaultLng = eventLng ? parseFloat(eventLng) : 104.9160;
       const defaultLat = eventLat ? parseFloat(eventLat) : 11.5564;
