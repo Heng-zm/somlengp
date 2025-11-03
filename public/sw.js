@@ -7,14 +7,10 @@ const PERFORMANCE_CACHE_NAME = 'somleng-performance-v1-3-0';
 const IMAGE_CACHE_NAME = 'somleng-images-v1-3-0';
 const OPTIMIZED_IMAGE_CACHE_NAME = 'somleng-optimized-images-v1-3-0';
 
-// Assets to cache on install
+// Assets to cache on install - only essential files that are guaranteed to exist
 const STATIC_ASSETS = [
   '/',
-  '/manifest.json',
-  '/icon.svg',
-  '/favicon.ico',
-  '/apple-touch-icon.png',
-  // Add critical CSS and JS paths here when known
+  // Note: Other assets will be cached on-demand during runtime
 ];
 
 // API endpoints to cache with different strategies
@@ -401,11 +397,16 @@ async function sendPerformanceData() {
 async function cleanupOldCaches() {
   try {
     const cacheNames = await caches.keys();
+    const currentCacheNames = [
+      CACHE_NAME,
+      RUNTIME_CACHE_NAME,
+      PERFORMANCE_CACHE_NAME,
+      IMAGE_CACHE_NAME,
+      OPTIMIZED_IMAGE_CACHE_NAME
+    ];
     const oldCaches = cacheNames.filter(name => 
       name.startsWith('somleng-') && 
-      name !== CACHE_NAME && 
-      name !== RUNTIME_CACHE_NAME && 
-      name !== PERFORMANCE_CACHE_NAME
+      !currentCacheNames.includes(name)
     );
     
     await Promise.all(oldCaches.map(name => caches.delete(name)));
@@ -432,21 +433,58 @@ async function cleanupOldCaches() {
   }
 }
 
+// Helper function to cache assets with error handling
+async function cacheStaticAssets(cache, assets) {
+  const results = await Promise.allSettled(
+    assets.map(async (url) => {
+      try {
+        const response = await fetch(url);
+        if (response.ok) {
+          await cache.put(url, response);
+          console.log('Cached:', url);
+          return { url, success: true };
+        } else {
+          console.warn(`Failed to cache ${url}: ${response.status}`);
+          return { url, success: false, status: response.status };
+        }
+      } catch (error) {
+        console.warn(`Failed to fetch ${url}:`, error.message);
+        return { url, success: false, error: error.message };
+      }
+    })
+  );
+  
+  const successful = results.filter(r => r.status === 'fulfilled' && r.value.success);
+  const failed = results.filter(r => r.status === 'rejected' || !r.value?.success);
+  
+  console.log(`Cached ${successful.length}/${assets.length} static assets`);
+  if (failed.length > 0) {
+    console.warn('Failed to cache some assets:', failed);
+  }
+  
+  // Don't throw error if some assets fail - graceful degradation
+  return successful.length > 0;
+}
+
 // Event handlers
 self.addEventListener('install', event => {
   console.log('Service Worker installing:', CACHE_NAME);
   
   event.waitUntil(
-    caches.open(CACHE_NAME)
-      .then(cache => {
+    (async () => {
+      try {
+        const cache = await caches.open(CACHE_NAME);
         console.log('Caching static assets');
-        return cache.addAll(STATIC_ASSETS);
-      })
-      .then(() => self.skipWaiting())
-      .catch(error => {
+        await cacheStaticAssets(cache, STATIC_ASSETS);
+        console.log('Service Worker installed successfully');
+        await self.skipWaiting();
+      } catch (error) {
         console.error('Installation failed:', error);
-        throw error;
-      })
+        // Still skip waiting to activate the service worker
+        // even if caching failed - better than blocking
+        await self.skipWaiting();
+      }
+    })()
   );
 });
 
