@@ -387,6 +387,19 @@ export function ModernQRGenerator() {
         style: 'mapbox://styles/mapbox/streets-v12',
         center: [defaultLng, defaultLat],
         zoom: 12,
+        transformRequest: (url: string) => {
+          try {
+            const u = new URL(url);
+            if (u.hostname.includes('mapbox.com')) {
+              u.searchParams.delete('access_token');
+              const path = `${u.pathname}${u.search ? '?' + u.searchParams.toString() : ''}`;
+              return { url: `/api/mapbox-proxy?path=${encodeURIComponent(path)}` };
+            }
+            return { url };
+          } catch {
+            return { url };
+          }
+        },
       });
 
       // Add marker (black color)
@@ -488,6 +501,19 @@ export function ModernQRGenerator() {
         style: 'mapbox://styles/mapbox/streets-v12',
         center: [defaultLng, defaultLat],
         zoom: 12,
+        transformRequest: (url: string) => {
+          try {
+            const u = new URL(url);
+            if (u.hostname.includes('mapbox.com')) {
+              u.searchParams.delete('access_token');
+              const path = `${u.pathname}${u.search ? '?' + u.searchParams.toString() : ''}`;
+              return { url: `/api/mapbox-proxy?path=${encodeURIComponent(path)}` };
+            }
+            return { url };
+          } catch {
+            return { url };
+          }
+        },
       });
 
       const marker = new mapboxgl.Marker({ draggable: true, color: '#000000' })
