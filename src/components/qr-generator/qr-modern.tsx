@@ -363,9 +363,17 @@ export function ModernQRGenerator() {
       }
 
       const mapboxgl = (window as any).mapboxgl;
-      mapboxgl.accessToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN || '';
-      if (!mapboxgl.accessToken) {
-        console.warn('Mapbox token not configured. Set NEXT_PUBLIC_MAPBOX_TOKEN to enable map.');
+      try {
+        const resp = await fetch('/api/mapbox-token', { cache: 'no-store' });
+        const data = await resp.json();
+        const token = data?.token as string | undefined;
+        if (!token) {
+          console.warn('Mapbox token not configured on server.');
+          return;
+        }
+        mapboxgl.accessToken = token;
+      } catch {
+        console.warn('Failed to fetch Mapbox token');
         return;
       }
 
@@ -458,9 +466,17 @@ export function ModernQRGenerator() {
       }
 
       const mapboxgl = (window as any).mapboxgl;
-      mapboxgl.accessToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN || '';
-      if (!mapboxgl.accessToken) {
-        console.warn('Mapbox token not configured. Set NEXT_PUBLIC_MAPBOX_TOKEN to enable map.');
+      try {
+        const resp = await fetch('/api/mapbox-token', { cache: 'no-store' });
+        const data = await resp.json();
+        const token = data?.token as string | undefined;
+        if (!token) {
+          console.warn('Mapbox token not configured on server.');
+          return;
+        }
+        mapboxgl.accessToken = token;
+      } catch {
+        console.warn('Failed to fetch Mapbox token');
         return;
       }
 
