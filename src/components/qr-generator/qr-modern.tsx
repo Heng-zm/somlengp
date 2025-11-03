@@ -2,11 +2,12 @@
 
 import React, { useState, useCallback, useEffect, useRef } from 'react';
 import Image from 'next/image';
+import dynamic from 'next/dynamic';
 import { 
   QrCode, Download, Copy, Share2, Sparkles, 
   Globe, Mail, Phone, MessageSquare, Wifi, Type,
   Settings, Palette, ImageIcon, Check, X, Upload, Trash2,
-  MapPin, Calendar, CreditCard, User, Link2, FileText
+  MapPin, Calendar, CreditCard, User, Link2, FileText, Camera
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
@@ -17,6 +18,11 @@ import { Card } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { showSuccessToast, showErrorToast } from '@/lib/toast-utils';
+
+const QRScannerSheet = dynamic(
+  () => import('@/components/qr-scanner-sheet').then(m => m.QRScannerSheet),
+  { ssr: false }
+);
 
 // QR Templates
 const templates = [
@@ -64,6 +70,7 @@ export function ModernQRGenerator() {
   const [activeTemplate, setActiveTemplate] = useState('text');
   const [qrUrl, setQrUrl] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
+  const [isScannerOpen, setIsScannerOpen] = useState(false);
   
   // WiFi specific fields
   const [wifiSSID, setWifiSSID] = useState('');
@@ -237,6 +244,12 @@ export function ModernQRGenerator() {
 
     return () => clearTimeout(timer);
   }, [content, activeTemplate, fgColor, bgColor, size, margin, errorLevel, logo, format, wifiSSID, wifiPassword, wifiSecurity, locationLat, locationLng, phoneCountryCode, phoneNumber, smsCountryCode, smsNumber, smsMessage, eventTitle, eventLocation, eventStartDate, eventStartTime, eventEndDate, eventEndTime, eventDescription, embedLogo]);
+
+  const handleScanSuccess = useCallback((data: string) => {
+    setContent(data);
+    setIsScannerOpen(false);
+    showSuccessToast('Imported content from scan');
+  }, []);
 
   // Generate and download
   const handleDownload = useCallback(async () => {
@@ -504,6 +517,7 @@ export function ModernQRGenerator() {
   }, [eventLat, eventLng]);
 
   return (
+    <>
     <div className="min-h-full bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50">
       <div className="container mx-auto px-3 sm:px-4 md:px-6 py-4 sm:py-6 md:py-8 max-w-7xl">
         
@@ -1148,16 +1162,14 @@ export function ModernQRGenerator() {
                 {/* QR Code Display */}
                 <div className="relative aspect-square bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl sm:rounded-2xl p-4 sm:p-6 lg:p-8 flex items-center justify-center">
                   {qrUrl ? (
-                    <div className="relative">
-                      <Image
-                        src={qrUrl}
-                        alt="QR Code"
-                        width={size}
-                        height={size}
-                        className="w-full h-auto max-w-[280px] sm:max-w-sm rounded-lg sm:rounded-xl shadow-xl sm:shadow-2xl"
-                        unoptimized
-                      />
-                    </div>
+                    <Image
+                      src={qrUrl}
+                      alt="QR Code"
+                      width={size}
+                      height={size}
+                      className="w-full h-auto max-w-[280px] sm:max-w-sm rounded-lg sm:rounded-xl shadow-xl sm:shadow-2xl"
+                      unoptimized
+                    />
                   ) : (
                     <div className="text-center space-y-4">
                       <div className="w-24 h-24 mx-auto rounded-2xl bg-gray-200 flex items-center justify-center">
@@ -1234,6 +1246,24 @@ export function ModernQRGenerator() {
         </div>
       </div>
     </div>
+
+    {/* Fixed Scanner Button */}
+    <Button
+      onClick={() => setIsScannerOpen(true)}
+      className="fixed bottom-6 right-6 h-14 w-14 rounded-full shadow-lg hover:shadow-xl bg-blue-600 hover:bg-blue-700 z-50"
+      size="icon"
+      aria-label="Scan QR code"
+      title="Scan QR"
+    >
+      <Camera className="w-6 h-6 text-white" />
+    </Button>
+
+    <QRScannerSheet 
+      open={isScannerOpen}
+      onOpenChange={setIsScannerOpen}
+      onScanSuccess={handleScanSuccess}
+    />
+    </>
   );
 }
 

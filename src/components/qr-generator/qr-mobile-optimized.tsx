@@ -686,6 +686,46 @@ export function QRCodeMobileOptimized({
                 </Button>
               </div>
             </div>
+
+            {/* Quick Action Buttons Below Scanner */}
+            <div className="flex items-center justify-center gap-3 mb-6">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  setInputText('');
+                  setLivePreviewUrl('');
+                  setQrCodeUrl('');
+                  showSuccessToast('Cleared all fields');
+                }}
+                className="flex items-center gap-2 px-3 py-2 border-gray-300 hover:bg-gray-50"
+              >
+                <RotateCcw className="w-4 h-4" />
+                <span>Reset</span>
+              </Button>
+              
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setShowCustomDesign(!showCustomDesign)}
+                className="flex items-center gap-2 px-3 py-2 border-gray-300 hover:bg-gray-50"
+              >
+                <Paintbrush className="w-4 h-4" />
+                <span>{showCustomDesign ? 'Hide' : 'Show'} Design</span>
+              </Button>
+
+              {qrCodeUrl && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={downloadQRCode}
+                  className="flex items-center gap-2 px-3 py-2 border-green-300 hover:bg-green-50 text-green-700"
+                >
+                  <Download className="w-4 h-4" />
+                  <span>Download</span>
+                </Button>
+              )}
+            </div>
           </div>
         )}
 
@@ -704,6 +744,36 @@ export function QRCodeMobileOptimized({
                       <div className="p-4 bg-white rounded-xl border shadow-sm">
                         <Image src={livePreviewUrl} alt="Live QR" width={220} height={220} className="w-full h-auto rounded" unoptimized />
                       </div>
+                    </div>
+                    {/* Quick Actions below preview */}
+                    <div className="flex gap-2 justify-center">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={downloadQRCode}
+                        className="flex items-center gap-2 px-4 py-2 border-green-300 bg-green-50 hover:bg-green-100 text-green-700"
+                      >
+                        <Download className="w-4 h-4" />
+                        <span>Download</span>
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={copyToClipboard}
+                        className="flex items-center gap-2 px-4 py-2"
+                      >
+                        <Copy className="w-4 h-4" />
+                        <span>Copy</span>
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={shareQRCode}
+                        className="flex items-center gap-2 px-4 py-2"
+                      >
+                        <Share className="w-4 h-4" />
+                        <span>Share</span>
+                      </Button>
                     </div>
                   </div>
                 ) : null}

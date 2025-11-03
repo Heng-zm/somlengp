@@ -45,7 +45,16 @@ import {
 } from 'lucide-react';
 import { showSuccessToast } from '@/lib/toast-utils';
 import { cn } from '@/lib/utils';
-import { generateMessageId, generateShareableRoute } from '@/lib/id-utils';
+import { 
+  generateMessageId, 
+  generateShareableRoute, 
+  parseShareableRoute,
+  isSessionExpired,
+  getSessionAge,
+  getSessionTimeRemaining,
+  formatTimeRemaining,
+  cleanupExpiredSessions
+} from '@/lib/id-utils';
 import Link from 'next/link';
 import { formatFileSize } from '@/lib/format-file-size';
 import { encryptString, decryptString, isEncryptedPayload, EncryptedBlobV1 } from '@/lib/secure-storage';
@@ -597,7 +606,11 @@ function AIAssistantPageInternal() {
   const [isTyping, setIsTyping] = useState(false);
   const [selectedModel, setSelectedModel] = useState<AIModel>(AI_MODELS[0]);
   const [lightbox, setLightbox] = useState<{ src: string; alt: string } | null>(null);
+  const [listHeight, setListHeight] = useState(0);
   const [showScrollToBottom, setShowScrollToBottom] = useState(false);
+  const [sessionExpired, setSessionExpired] = useState(false);
+  const [sessionAge, setSessionAge] = useState<string>('');
+  const [timeRemaining, setTimeRemaining] = useState<string>('');
   const [uploadPreview, setUploadPreview] = useState<{ name: string; size: number; type: string; url?: string; dataUrl?: string } | null>(null);
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
   const [isComposing, setIsComposing] = useState(false);
@@ -609,7 +622,6 @@ function AIAssistantPageInternal() {
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const [listHeight, setListHeight] = useState(0);
   const deferredMessages = useDeferredValue(messages);
 
   const readAsDataUrl = useCallback((file: File) => new Promise<string>((resolve, reject) => {
@@ -690,17 +702,57 @@ function AIAssistantPageInternal() {
     }
   }, [isLoading, isTyping]);
 
-  // Auto-generate shareable route on page load
+  // Auto-generate shareable route on page load with timestamp
   const router = useRouter();
   const pathname = usePathname();
   
   useEffect(() => {
-    // Only generate route if we're on base /ai-assistant path (not already on a shared route)
+    // Session expiration time: 5 minutes for testing (change to 30 * 24 * 60 * 60 * 1000 for production)
+    const SESSION_EXPIRY_MS = 5 * 60 * 1000; // 5 minutes
+    
+    // Cleanup expired sessions on load
+    const cleaned = cleanupExpiredSessions('chat_', SESSION_EXPIRY_MS);
+    if (cleaned > 0) {
+      console.log(`Cleaned up ${cleaned} expired session(s)`);
+    }
+
+    // Check if current session is expired
+    const parsed = parseShareableRoute(pathname);
+    if (parsed.id) {
+      const updateSessionStatus = () => {
+        const expired = isSessionExpired(parsed.id!, SESSION_EXPIRY_MS);
+        setSessionExpired(expired);
+        setSessionAge(getSessionAge(parsed.id!));
+        
+        if (!expired) {
+          const remaining = getSessionTimeRemaining(parsed.id!, SESSION_EXPIRY_MS);
+          if (remaining !== null) {
+            setTimeRemaining(formatTimeRemaining(remaining));
+          }
+        } else {
+          setTimeRemaining('Expired');
+          console.warn('Session expired:', parsed.id);
+        }
+      };
+      
+      // Initial check
+      updateSessionStatus();
+      
+      // Update every 10 seconds
+      const timer = setInterval(updateSessionStatus, 10000);
+      return () => clearInterval(timer);
+    }
+    
+    // Only generate route if we're on base /ai-assistant path
     if (pathname === '/ai-assistant') {
-      const { route, id } = generateShareableRoute('/ai-assistant', { prefix: 'chat' });
+      const { route, id } = generateShareableRoute('/ai-assistant', { 
+        prefix: 'chat',
+        includeTimestamp: true // Enable timestamp for expiration
+      });
       // Update URL without page reload
       window.history.replaceState(null, '', route);
       console.log('Generated shareable session:', id);
+      setSessionAge('Just now');
     }
   }, [pathname]);
 
@@ -1076,6 +1128,51 @@ function AIAssistantPageInternal() {
             </div>
           </div>
         </header>
+
+        {/* Session Expiration Banner */}
+        {sessionExpired && (
+          <div className="bg-yellow-50 dark:bg-yellow-900/20 border-b border-yellow-200 dark:border-yellow-800 px-4 py-2">
+            <div className="max-w-3xl mx-auto flex items-center gap-3">
+              <AlertCircle className="w-5 h-5 text-yellow-600 dark:text-yellow-400 flex-shrink-0" />
+              <div className="flex-1 text-sm">
+                <p className="font-medium text-yellow-900 dark:text-yellow-100">
+                  Session Expired
+                </p>
+                <p className="text-yellow-700 dark:text-yellow-300">
+                  This conversation is older than 5 minutes and may be removed soon. Created {sessionAge}.
+                </p>
+              </div>
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => {
+                  const { route } = generateShareableRoute('/ai-assistant', {
+                    prefix: 'chat',
+                    includeTimestamp: true
+                  });
+                  window.location.href = route;
+                }}
+                className="text-yellow-900 dark:text-yellow-100 border-yellow-300 dark:border-yellow-700 hover:bg-yellow-100 dark:hover:bg-yellow-900/40"
+              >
+                Start New
+              </Button>
+            </div>
+          </div>
+        )}
+
+        {/* Session Age Indicator with Countdown */}
+        {!sessionExpired && sessionAge && sessionAge !== 'Just now' && (
+          <div className="bg-gray-50 dark:bg-gray-900/50 border-b border-gray-200 dark:border-gray-800 px-4 py-1">
+            <div className="max-w-3xl mx-auto text-xs text-gray-500 dark:text-gray-400 text-center">
+              Session created {sessionAge}
+              {timeRemaining && (
+                <span className="ml-2 text-orange-600 dark:text-orange-400 font-medium">
+                  • Expires in {timeRemaining}
+                </span>
+              )}
+            </div>
+          </div>
+        )}
 
         {/* Monochrome Messages Area */}
         <div className="relative flex-1 overflow-hidden bg-white dark:bg-black">

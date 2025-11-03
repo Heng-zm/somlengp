@@ -767,6 +767,162 @@ export function parseShareableRoute(route: string): {
 }
 
 /**
+ * Extracts timestamp from a timestamped ID
+ * @param id - The session ID (e.g., 'chatm2n3p4_ABC123')
+ * @returns Timestamp in milliseconds, or null if not found
+ */
+export function extractTimestampFromId(id: string): number | null {
+  try {
+    // Remove prefix (e.g., 'chat')
+    const withoutPrefix = id.replace(/^[a-zA-Z]+/, '');
+    
+    // Check if starts with timestamp pattern (base36 number followed by underscore)
+    const match = withoutPrefix.match(/^([a-z0-9]+)_/);
+    if (match) {
+      const timestamp = parseInt(match[1], 36);
+      if (!isNaN(timestamp) && timestamp > 0) {
+        return timestamp;
+      }
+    }
+    return null;
+  } catch (error) {
+    errorHandler.handle(error, { function: 'extractTimestampFromId', id });
+    return null;
+  }
+}
+
+/**
+ * Checks if a session ID has expired
+ * @param id - The session ID
+ * @param maxAgeMs - Maximum age in milliseconds (default: 30 days)
+ * @returns Boolean indicating if expired
+ */
+export function isSessionExpired(id: string, maxAgeMs: number = 30 * 24 * 60 * 60 * 1000): boolean {
+  try {
+    const timestamp = extractTimestampFromId(id);
+    if (!timestamp) {
+      // No timestamp found, treat as non-expiring or expired based on preference
+      return false; // Default: non-expiring if no timestamp
+    }
+    
+    const ageMs = Date.now() - timestamp;
+    return ageMs > maxAgeMs;
+  } catch (error) {
+    errorHandler.handle(error, { function: 'isSessionExpired', id });
+    return false;
+  }
+}
+
+/**
+ * Gets session age in human-readable format
+ * @param id - The session ID
+ * @returns Human-readable age string (e.g., '2 hours ago', '3 days ago')
+ */
+export function getSessionAge(id: string): string {
+  try {
+    const timestamp = extractTimestampFromId(id);
+    if (!timestamp) return 'Unknown age';
+    
+    const ageMs = Date.now() - timestamp;
+    const seconds = Math.floor(ageMs / 1000);
+    const minutes = Math.floor(seconds / 60);
+    const hours = Math.floor(minutes / 60);
+    const days = Math.floor(hours / 24);
+    const months = Math.floor(days / 30);
+    const years = Math.floor(days / 365);
+    
+    if (years > 0) return `${years} year${years > 1 ? 's' : ''} ago`;
+    if (months > 0) return `${months} month${months > 1 ? 's' : ''} ago`;
+    if (days > 0) return `${days} day${days > 1 ? 's' : ''} ago`;
+    if (hours > 0) return `${hours} hour${hours > 1 ? 's' : ''} ago`;
+    if (minutes > 0) return `${minutes} minute${minutes > 1 ? 's' : ''} ago`;
+    return 'Just now';
+  } catch (error) {
+    errorHandler.handle(error, { function: 'getSessionAge', id });
+    return 'Unknown age';
+  }
+}
+
+/**
+ * Gets remaining time until session expires
+ * @param id - The session ID
+ * @param maxAgeMs - Maximum age in milliseconds (default: 30 days)
+ * @returns Remaining time in milliseconds, or null if expired/no timestamp
+ */
+export function getSessionTimeRemaining(id: string, maxAgeMs: number = 30 * 24 * 60 * 60 * 1000): number | null {
+  try {
+    const timestamp = extractTimestampFromId(id);
+    if (!timestamp) return null;
+    
+    const ageMs = Date.now() - timestamp;
+    const remaining = maxAgeMs - ageMs;
+    
+    return remaining > 0 ? remaining : 0;
+  } catch (error) {
+    errorHandler.handle(error, { function: 'getSessionTimeRemaining', id });
+    return null;
+  }
+}
+
+/**
+ * Formats remaining time in human-readable format
+ * @param milliseconds - Time in milliseconds
+ * @returns Human-readable string (e.g., '2 hours', '3 days')
+ */
+export function formatTimeRemaining(milliseconds: number): string {
+  const seconds = Math.floor(milliseconds / 1000);
+  const minutes = Math.floor(seconds / 60);
+  const hours = Math.floor(minutes / 60);
+  const days = Math.floor(hours / 24);
+  
+  if (days > 0) return `${days} day${days > 1 ? 's' : ''}`;
+  if (hours > 0) return `${hours} hour${hours > 1 ? 's' : ''}`;
+  if (minutes > 0) return `${minutes} minute${minutes > 1 ? 's' : ''}`;
+  return 'Less than a minute';
+}
+
+/**
+ * Cleans up expired sessions from localStorage
+ * @param keyPrefix - Prefix for localStorage keys (e.g., 'chat_')
+ * @param maxAgeMs - Maximum age in milliseconds (default: 30 days)
+ * @returns Number of sessions cleaned up
+ */
+export function cleanupExpiredSessions(keyPrefix: string = 'chat_', maxAgeMs: number = 30 * 24 * 60 * 60 * 1000): number {
+  try {
+    let cleanedCount = 0;
+    const keysToRemove: string[] = [];
+    
+    // Iterate through localStorage
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (key && key.startsWith(keyPrefix)) {
+        // Extract session ID from key
+        const sessionId = key.replace(keyPrefix, '');
+        
+        if (isSessionExpired(sessionId, maxAgeMs)) {
+          keysToRemove.push(key);
+        }
+      }
+    }
+    
+    // Remove expired sessions
+    keysToRemove.forEach(key => {
+      try {
+        localStorage.removeItem(key);
+        cleanedCount++;
+      } catch (e) {
+        // Ignore removal errors
+      }
+    });
+    
+    return cleanedCount;
+  } catch (error) {
+    errorHandler.handle(error, { function: 'cleanupExpiredSessions', keyPrefix });
+    return 0;
+  }
+}
+
+/**
  * Generates multiple shareable routes in batch
  * @param basePath - The base route path
  * @param count - Number of routes to generate

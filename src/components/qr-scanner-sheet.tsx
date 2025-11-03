@@ -79,6 +79,9 @@ export function QRScannerSheet({ open, onOpenChange, onScanSuccess, onScanError 
         {/* Fixed Header */}
         <div className="flex-shrink-0">
           <SheetHeader className="pb-2 pt-2">
+            {/* Accessible title for Radix Dialog requirement */}
+            <SheetTitle className="sr-only">QR Scanner</SheetTitle>
+            <SheetDescription className="sr-only">Scan a QR code using the camera</SheetDescription>
             <div className="w-12 h-1.5 bg-gray-300 rounded-full mx-auto" />
           </SheetHeader>
         </div>
@@ -95,8 +98,8 @@ export function QRScannerSheet({ open, onOpenChange, onScanSuccess, onScanError 
                 className="w-full max-w-lg mx-auto"
                 enableVibration={true}
                 enableSound={false}
-                scanRegion="auto"
-                scanQuality="balanced"
+                scanRegion="center"
+                scanQuality="accurate"
               />
             </div>
           ) : (

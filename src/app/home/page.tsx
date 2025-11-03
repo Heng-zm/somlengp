@@ -49,7 +49,7 @@ const HomePageComponent = function HomePage() {
           }
         }
         const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 5000);
+        const timeoutId = setTimeout(() => controller.abort('Request timeout after 5 seconds'), 5000);
         // Memoized request options to prevent re-renders
         const requestOptions = {
           method: isIncrement ? 'POST' : 'GET',
@@ -78,8 +78,12 @@ const HomePageComponent = function HomePage() {
         }
         retryCount = 0; // Reset on success
       } catch (error) {
+        // Silently ignore abort errors (timeouts are expected)
+        if (error instanceof Error && error.name === 'AbortError') {
+          return;
+        }
         console.error(`Failed to fetch visitor count (attempt ${retryCount + 1}):`, error);
-        if (retryCount < maxRetries && error instanceof Error && error.name !== 'AbortError') {
+        if (retryCount < maxRetries && error instanceof Error) {
           retryCount++;
           const delay = Math.pow(2, retryCount) * 1000; // Exponential backoff
           setTimeout(() => fetchVisitorCount(isIncrement), delay);

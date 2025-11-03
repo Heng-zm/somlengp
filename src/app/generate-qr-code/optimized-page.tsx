@@ -26,6 +26,12 @@ import { Slider } from '@/components/ui/slider';
 import { showSuccessToast, showErrorToast, showWarningToast } from '@/lib/toast-utils';
 import { FeaturePageLayout } from '@/layouts/feature-page-layout';
 
+// Lazy-load scanner sheet for client only
+const QRScannerSheet = dynamic(
+  () => import('@/components/qr-scanner-sheet').then(m => m.QRScannerSheet),
+  { ssr: false }
+);
+
 // QR code library - imported directly since it's not a React component
 import QRCode from 'qrcode';
 
@@ -152,6 +158,7 @@ const OptimizedQRCodeGeneratorComponent = function OptimizedQRCodeGenerator() {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [showAdvancedSettings, setShowAdvancedSettings] = useState(false);
   const [currentTab, setCurrentTab] = useState('generator');
+  const [isScannerOpen, setIsScannerOpen] = useState(false);
 
   // Storage and history
   const [savedCodes, setSavedCodes] = useLocalStorage<SavedQRCode[]>('qr-codes-history', []);
@@ -494,6 +501,12 @@ const OptimizedQRCodeGeneratorComponent = function OptimizedQRCodeGenerator() {
     favorites: favorites.length
   }), [generatePerf.metrics, livePreviewPerf.metrics, savedCodes.length, favorites.length]);
 
+  const handleScanSuccess = useCallback((data: string) => {
+    setInputText(data);
+    setIsScannerOpen(false);
+    showSuccessToast('Imported content from scan');
+  }, []);
+
   return (
     <FeaturePageLayout title="Advanced QR Code Generator">
       <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-gray-100">
@@ -776,92 +789,96 @@ const OptimizedQRCodeGeneratorComponent = function OptimizedQRCodeGenerator() {
                       </CardDescription>
                     </CardHeader>
                     <CardContent>
-                      {livePreviewUrl ? (
-                        <div className="space-y-4">
-                          <div className="flex justify-center">
-                            <div className="relative">
-                              <div className="p-6 bg-white rounded-lg border-2 border-gray-200">
-                                <Image
-                                  src={livePreviewUrl}
-                                  alt="Live QR Code Preview"
-                                  width={size > 256 ? 256 : size}
-                                  height={size > 256 ? 256 : size}
-                                  className="w-full h-auto rounded"
-                                  unoptimized
-                                />
-                              </div>
-                              {livePreviewUrl && !isLiveGenerating && (
-                                <div className="absolute -top-2 -right-2 w-6 h-6 bg-green-500 rounded-full flex items-center justify-center">
-                                  <Check className="w-4 h-4 text-white" />
-                                </div>
-                              )}
+                      <div className="space-y-4">
+                        <div className="relative flex justify-center">
+                          {livePreviewUrl ? (
+                            <div className="p-6 bg-white rounded-lg border-2 border-gray-200">
+                              <Image
+                                src={livePreviewUrl}
+                                alt="Live QR Code Preview"
+                                width={size > 256 ? 256 : size}
+                                height={size > 256 ? 256 : size}
+                                className="w-full h-auto rounded"
+                                unoptimized
+                              />
                             </div>
-                          </div>
+                          ) : (
+                            <div className="flex flex-col items-center justify-center h-64 text-gray-400 w-full">
+                              <QrCode className="w-16 h-16 mb-4" />
+                              <p>Enter content to see live preview</p>
+                            </div>
+                          )}
 
-                          {/* Quick Actions */}
-                          <div className="grid grid-cols-2 gap-2">
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => {
-                                if (livePreviewUrl) {
-                                  const link = document.createElement('a');
-                                  link.download = `preview.${outputFormat}`;
-                                  link.href = livePreviewUrl;
-                                  link.click();
-                                }
-                              }}
-                              disabled={!livePreviewUrl}
-                            >
-                              <Download className="w-4 h-4 mr-1" />
-                              Download
-                            </Button>
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={async () => {
-                                if (livePreviewUrl) {
-                                  try {
-                                    const response = await fetch(livePreviewUrl);
-                                    const blob = await response.blob();
-                                    await navigator.clipboard.write([
-                                      new ClipboardItem({ [blob.type]: blob })
-                                    ]);
-                                    showSuccessToast('Preview copied!');
-                                  } catch {
-                                    showErrorToast('Copy failed');
+                          {/* Status checkmark */}
+                          {livePreviewUrl && !isLiveGenerating && (
+                            <div className="absolute -top-2 -right-2 w-6 h-6 bg-green-500 rounded-full flex items-center justify-center">
+                              <Check className="w-4 h-4 text-white" />
+                            </div>
+                          )}
+                        </div>
+
+                        {livePreviewUrl && (
+                          <>
+                            {/* Quick Actions */}
+                            <div className="grid grid-cols-2 gap-2">
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => {
+                                  if (livePreviewUrl) {
+                                    const link = document.createElement('a');
+                                    link.download = `preview.${outputFormat}`;
+                                    link.href = livePreviewUrl;
+                                    link.click();
                                   }
-                                }
-                              }}
-                              disabled={!livePreviewUrl}
-                            >
-                              <Copy className="w-4 h-4 mr-1" />
-                              Copy
-                            </Button>
-                          </div>
+                                }}
+                                disabled={!livePreviewUrl}
+                              >
+                                <Download className="w-4 h-4 mr-1" />
+                                Download
+                              </Button>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={async () => {
+                                  if (livePreviewUrl) {
+                                    try {
+                                      const response = await fetch(livePreviewUrl);
+                                      const blob = await response.blob();
+                                      await navigator.clipboard.write([
+                                        new ClipboardItem({ [blob.type]: blob })
+                                      ]);
+                                      showSuccessToast('Preview copied!');
+                                    } catch {
+                                      showErrorToast('Copy failed');
+                                    }
+                                  }
+                                }}
+                                disabled={!livePreviewUrl}
+                              >
+                                <Copy className="w-4 h-4 mr-1" />
+                                Copy
+                              </Button>
+                            </div>
 
-                          {/* Preview Info */}
-                          <div className="text-sm text-gray-600 space-y-1">
-                            <div className="flex justify-between">
-                              <span>Size:</span>
-                              <span>{size}×{size}px</span>
+                            {/* Preview Info */}
+                            <div className="text-sm text-gray-600 space-y-1">
+                              <div className="flex justify-between">
+                                <span>Size:</span>
+                                <span>{size}×{size}px</span>
+                              </div>
+                              <div className="flex justify-between">
+                                <span>Format:</span>
+                                <span>{outputFormat.toUpperCase()}</span>
+                              </div>
+                              <div className="flex justify-between">
+                                <span>Error Correction:</span>
+                                <span>{errorCorrectionLevel}</span>
+                              </div>
                             </div>
-                            <div className="flex justify-between">
-                              <span>Format:</span>
-                              <span>{outputFormat.toUpperCase()}</span>
-                            </div>
-                            <div className="flex justify-between">
-                              <span>Error Correction:</span>
-                              <span>{errorCorrectionLevel}</span>
-                            </div>
-                          </div>
-                        </div>
-                      ) : (
-                        <div className="flex flex-col items-center justify-center h-64 text-gray-400">
-                          <QrCode className="w-16 h-16 mb-4" />
-                          <p>Enter content to see live preview</p>
-                        </div>
-                      )}
+                          </>
+                        )}
+                      </div>
                     </CardContent>
                   </Card>
                 </div>
@@ -1157,6 +1174,24 @@ const OptimizedQRCodeGeneratorComponent = function OptimizedQRCodeGenerator() {
             </div>
           </DialogContent>
         </Dialog>
+
+        {/* Fixed Scanner Button */}
+        <Button
+          onClick={() => setIsScannerOpen(true)}
+          className="fixed bottom-6 right-6 h-14 w-14 rounded-full shadow-lg hover:shadow-xl bg-blue-600 hover:bg-blue-700 z-50"
+          size="icon"
+          aria-label="Scan QR code"
+          title="Scan QR"
+        >
+          <Camera className="w-6 h-6 text-white" />
+        </Button>
+
+        {/* Scanner Sheet */}
+        <QRScannerSheet 
+          open={isScannerOpen} 
+          onOpenChange={setIsScannerOpen} 
+          onScanSuccess={handleScanSuccess}
+        />
       </div>
     </FeaturePageLayout>
   );
