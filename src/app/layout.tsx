@@ -10,6 +10,7 @@ import { SpeedInsights } from '@vercel/speed-insights/next';
 import { AppLayout } from '@/layouts/app-layout';
 import { PerformanceOverlay } from '@/components/shared/performance-dashboard';
 import { LanguageProvider } from '@/components/providers/language-provider';
+import { IdleSessionGuard } from '@/components/providers/idle-session-guard';
 import { Kantumruy_Pro } from 'next/font/google';
 import Script from 'next/script';
 
@@ -108,6 +109,11 @@ export default function RootLayout({
         </script> */}
 
         <LanguageProvider>
+          <IdleSessionGuard 
+            timeoutMs={15 * 60 * 1000} // 15 minutes default
+            warnMs={60 * 1000} // Warn 1 minute before
+            redirectPath="/" // Redirect to home on timeout
+          />
           <AppLayout>
             {children}
           </AppLayout>

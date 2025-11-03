@@ -304,11 +304,13 @@ async function optimizedImageCacheFirst(request) {
     const cachedOriginal = await imageCache.match(request);
     
     if (cachedOriginal && !isExpired(cachedOriginal, IMAGE_OPTIMIZATION_CONFIG.cacheExpiry)) {
-      // Optimize cached original image
-      const optimizedResponse = await optimizeImage(cachedOriginal);
+      // Clone BEFORE optimizing (optimizeImage consumes the response)
+      const originalForCache = cachedOriginal.clone();
+      const optimizedResponse = await optimizeImage(originalForCache);
       
-      // Cache the optimized version
-      optimizedCache.put(request, addCacheHeaders(optimizedResponse.clone()));
+      // Clone the optimized response for caching
+      const optimizedForCache = optimizedResponse.clone();
+      optimizedCache.put(request, addCacheHeaders(optimizedForCache));
       
       return optimizedResponse;
     }
@@ -321,12 +323,17 @@ async function optimizedImageCacheFirst(request) {
       return networkResponse;
     }
     
+    // Clone network response for both caching and optimization
+    const networkForOriginalCache = networkResponse.clone();
+    const networkForOptimization = networkResponse.clone();
+    
     // Cache original image
-    imageCache.put(request, addCacheHeaders(networkResponse.clone()));
+    imageCache.put(request, addCacheHeaders(networkForOriginalCache));
     
     // Optimize and cache
-    const optimizedResponse = await optimizeImage(networkResponse);
-    optimizedCache.put(request, addCacheHeaders(optimizedResponse.clone()));
+    const optimizedResponse = await optimizeImage(networkForOptimization);
+    const optimizedForCache = optimizedResponse.clone();
+    optimizedCache.put(request, addCacheHeaders(optimizedForCache));
     
     return optimizedResponse;
     
