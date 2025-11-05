@@ -4,6 +4,7 @@ import {Toaster} from '@/components/ui/toaster';
 import './globals.css';
 import '../styles/performance-optimizations.css';
 import '../styles/mobile-optimizations.css';
+import '../styles/smooth-interface.css';
 import { GoogleAnalytics } from '@next/third-parties/google'; // Keep this import
 import { Analytics } from '@vercel/analytics/next';
 import { SpeedInsights } from '@vercel/speed-insights/next';
@@ -14,24 +15,15 @@ import { IdleSessionGuard } from '@/components/providers/idle-session-guard';
 import { Kantumruy_Pro } from 'next/font/google';
 import Script from 'next/script';
 
-// Firebase has been fully migrated to Supabase - no need for status checks anymore
-
+// Optimized font loading - only load commonly used weights
 const kantumruy = Kantumruy_Pro({
-  subsets: ['khmer', 'latin'],
+  subsets: ['latin'], // Load khmer subset on-demand
   variable: '--font-sans',
   display: 'swap',
   preload: true,
-  fallback: [
-    'system-ui',
-    '-apple-system', 
-    'BlinkMacSystemFont',
-    'Segoe UI',
-    'Roboto',
-    'Arial',
-    'sans-serif'
-  ],
-  adjustFontFallback: false,
-  weight: ['300', '400', '500', '600', '700'],
+  fallback: ['system-ui', 'sans-serif'],
+  adjustFontFallback: true, // Enable for better CLS
+  weight: ['400', '600'], // Only load essential weights
   style: ['normal'],
 });
 

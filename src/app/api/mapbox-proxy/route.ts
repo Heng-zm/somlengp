@@ -22,23 +22,39 @@ export async function GET(req: NextRequest) {
 
   try {
     const upstreamRes = await fetch(upstream.toString(), {
-      // Forward method headers if needed later; currently GET only
       headers: {
-        // Forward basic content negotiators as needed
         'accept': req.headers.get('accept') || '*/*',
+        'accept-encoding': 'identity',
       },
-      cache: 'no-store',
     });
 
-    const resHeaders = new Headers(upstreamRes.headers);
-    resHeaders.set('cache-control', 'public, max-age=300, s-maxage=600');
+    if (!upstreamRes.ok) {
+      return new NextResponse(`Upstream returned ${upstreamRes.status}`, { 
+        status: upstreamRes.status 
+      });
+    }
+
+    // Get the response as a stream to avoid memory issues and corruption
+    const contentType = upstreamRes.headers.get('content-type') || 'application/octet-stream';
+    const body = upstreamRes.body;
+
+    const resHeaders = new Headers();
+    resHeaders.set('content-type', contentType);
+    resHeaders.set('cache-control', 'public, max-age=3600, immutable');
+    resHeaders.set('access-control-allow-origin', '*');
+    
+    // Don't set content-length - let the response handle it
+    // Remove headers that might cause issues
+    resHeaders.delete('content-encoding');
+    resHeaders.delete('transfer-encoding');
     resHeaders.delete('set-cookie');
 
-    return new NextResponse(upstreamRes.body, {
-      status: upstreamRes.status,
+    return new NextResponse(body, {
+      status: 200,
       headers: resHeaders,
     });
   } catch (e) {
-    return new NextResponse('Upstream error', { status: 502 });
+    console.error('Mapbox proxy error:', e);
+    return new NextResponse('Proxy error', { status: 502 });
   }
 }

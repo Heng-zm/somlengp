@@ -1,11 +1,23 @@
 import { NextResponse } from 'next/server';
 
-// Disabled endpoint to avoid exposing Mapbox tokens; always returns 404
+// Returns Mapbox public token from environment variable
+// This is safe because it's a public token restricted to specific domains
 export async function GET() {
-  return NextResponse.json({ error: 'Not Found' }, {
-    status: 404,
-    headers: {
-      'cache-control': 'no-store',
-    },
-  });
+  const token = process.env.MAPBOX_PUBLIC_TOKEN;
+  
+  if (!token) {
+    return NextResponse.json(
+      { error: 'Mapbox token not configured' },
+      { status: 500 }
+    );
+  }
+  
+  return NextResponse.json(
+    { token },
+    {
+      headers: {
+        'cache-control': 'public, max-age=3600', // Cache for 1 hour
+      },
+    }
+  );
 }

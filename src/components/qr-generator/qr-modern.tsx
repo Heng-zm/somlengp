@@ -363,17 +363,29 @@ export function ModernQRGenerator() {
       }
 
       const mapboxgl = (window as any).mapboxgl;
+      
+      // Fetch Mapbox token from API
       try {
-        const resp = await fetch('/api/mapbox-token', { cache: 'no-store' });
+        const resp = await fetch('/api/mapbox-token');
+        if (!resp.ok) {
+          if (mapContainerRef.current) {
+            mapContainerRef.current.innerHTML = `
+              <div style="display: flex; align-items: center; justify-content: center; height: 100%; background: #f0f0f0; border-radius: 8px; padding: 20px; text-align: center;">
+                <p style="color: #666; margin: 0;">Map preview unavailable</p>
+                <p style="color: #999; font-size: 0.75rem; margin-top: 4px;">QR code will still work with coordinates</p>
+              </div>
+            `;
+          }
+          return;
+        }
         const data = await resp.json();
         const token = data?.token as string | undefined;
         if (!token) {
-          console.warn('Mapbox token not configured on server.');
           return;
         }
         mapboxgl.accessToken = token;
-      } catch {
-        console.warn('Failed to fetch Mapbox token');
+      } catch (error) {
+        // Silently handle - map is optional
         return;
       }
 
@@ -381,26 +393,39 @@ export function ModernQRGenerator() {
       const defaultLng = locationLng ? parseFloat(locationLng) : 104.9160;
       const defaultLat = locationLat ? parseFloat(locationLat) : 11.5564;
 
-      // Initialize map
-      const map = new mapboxgl.Map({
-        container: mapContainerRef.current!,
-        style: 'mapbox://styles/mapbox/streets-v12',
-        center: [defaultLng, defaultLat],
-        zoom: 12,
-        transformRequest: (url: string) => {
-          try {
-            const u = new URL(url);
-            if (u.hostname.includes('mapbox.com')) {
-              u.searchParams.delete('access_token');
-              const path = `${u.pathname}${u.search ? '?' + u.searchParams.toString() : ''}`;
-              return { url: `/api/mapbox-proxy?path=${encodeURIComponent(path)}` };
+      // Initialize map with error handling
+      let map;
+      try {
+        map = new mapboxgl.Map({
+          container: mapContainerRef.current!,
+          style: 'mapbox://styles/mapbox/streets-v12',
+          center: [defaultLng, defaultLat],
+          zoom: 12,
+          transformRequest: (url: string) => {
+            try {
+              const u = new URL(url);
+              if (u.hostname.includes('mapbox.com')) {
+                u.searchParams.delete('access_token');
+                const path = `${u.pathname}${u.search ? '?' + u.searchParams.toString() : ''}`;
+                // Return absolute URL for the proxy
+                const proxyUrl = `${window.location.origin}/api/mapbox-proxy?path=${encodeURIComponent(path)}`;
+                return { url: proxyUrl };
+              }
+              return { url };
+            } catch {
+              return { url };
             }
-            return { url };
-          } catch {
-            return { url };
-          }
-        },
-      });
+          },
+        });
+        
+        // Handle map errors
+        map.on('error', (e: any) => {
+          console.warn('Mapbox error (expected during initial load):', e.error?.message || 'Unknown error');
+        });
+      } catch (error) {
+        console.error('Failed to initialize map:', error);
+        return;
+      }
 
       // Add marker (black color)
       const marker = new mapboxgl.Marker({ draggable: true, color: '#000000' })
@@ -425,7 +450,9 @@ export function ModernQRGenerator() {
       markerRef.current = marker;
     };
 
-    loadMapbox().catch(console.error);
+    loadMapbox().catch(() => {
+      // Silently ignore errors - map is optional
+    });
 
     // Cleanup
     return () => {
@@ -479,42 +506,67 @@ export function ModernQRGenerator() {
       }
 
       const mapboxgl = (window as any).mapboxgl;
+      
+      // Fetch Mapbox token
       try {
-        const resp = await fetch('/api/mapbox-token', { cache: 'no-store' });
+        const resp = await fetch('/api/mapbox-token');
+        if (!resp.ok) {
+          if (eventMapContainerRef.current) {
+            eventMapContainerRef.current.innerHTML = `
+              <div style="display: flex; align-items: center; justify-content: center; height: 100%; background: #f0f0f0; border-radius: 8px; padding: 20px; text-align: center;">
+                <p style="color: #666; margin: 0;">Map preview unavailable</p>
+                <p style="color: #999; font-size: 0.75rem; margin-top: 4px;">QR code will still work</p>
+              </div>
+            `;
+          }
+          return;
+        }
         const data = await resp.json();
         const token = data?.token as string | undefined;
         if (!token) {
-          console.warn('Mapbox token not configured on server.');
           return;
         }
         mapboxgl.accessToken = token;
-      } catch {
-        console.warn('Failed to fetch Mapbox token');
+      } catch (error) {
+        // Silently handle
         return;
       }
 
       const defaultLng = eventLng ? parseFloat(eventLng) : 104.9160;
       const defaultLat = eventLat ? parseFloat(eventLat) : 11.5564;
 
-      const map = new mapboxgl.Map({
-        container: eventMapContainerRef.current!,
-        style: 'mapbox://styles/mapbox/streets-v12',
-        center: [defaultLng, defaultLat],
-        zoom: 12,
-        transformRequest: (url: string) => {
-          try {
-            const u = new URL(url);
-            if (u.hostname.includes('mapbox.com')) {
-              u.searchParams.delete('access_token');
-              const path = `${u.pathname}${u.search ? '?' + u.searchParams.toString() : ''}`;
-              return { url: `/api/mapbox-proxy?path=${encodeURIComponent(path)}` };
+      let map;
+      try {
+        map = new mapboxgl.Map({
+          container: eventMapContainerRef.current!,
+          style: 'mapbox://styles/mapbox/streets-v12',
+          center: [defaultLng, defaultLat],
+          zoom: 12,
+          transformRequest: (url: string) => {
+            try {
+              const u = new URL(url);
+              if (u.hostname.includes('mapbox.com')) {
+                u.searchParams.delete('access_token');
+                const path = `${u.pathname}${u.search ? '?' + u.searchParams.toString() : ''}`;
+                // Return absolute URL for the proxy
+                const proxyUrl = `${window.location.origin}/api/mapbox-proxy?path=${encodeURIComponent(path)}`;
+                return { url: proxyUrl };
+              }
+              return { url };
+            } catch {
+              return { url };
             }
-            return { url };
-          } catch {
-            return { url };
-          }
-        },
-      });
+          },
+        });
+        
+        // Handle map errors
+        map.on('error', (e: any) => {
+          console.warn('Mapbox error (expected):', e.error?.message || 'Unknown');
+        });
+      } catch (error) {
+        console.error('Failed to initialize event map:', error);
+        return;
+      }
 
       const marker = new mapboxgl.Marker({ draggable: true, color: '#000000' })
         .setLngLat([defaultLng, defaultLat])
@@ -540,7 +592,9 @@ export function ModernQRGenerator() {
       eventMarkerRef.current = marker;
     };
 
-    loadMapbox().catch(console.error);
+    loadMapbox().catch(() => {
+      // Silently ignore errors - map is optional
+    });
 
     return () => {
       if (eventMapInstanceRef.current) {
