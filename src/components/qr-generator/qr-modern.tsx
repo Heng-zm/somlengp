@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useCallback, useEffect, useRef } from 'react';
+import React, { useState, useCallback, useEffect, useRef, useMemo } from 'react';
 import Image from 'next/image';
 import dynamic from 'next/dynamic';
 import { 
@@ -18,6 +18,8 @@ import { Card } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { showSuccessToast, showErrorToast } from '@/lib/toast-utils';
+import { Badge } from '@/components/ui/badge';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 const QRScannerSheet = dynamic(
   () => import('@/components/qr-scanner-sheet').then(m => m.QRScannerSheet),
@@ -63,6 +65,43 @@ const colorPresets = [
   { name: 'Purple', fg: '#7c3aed', bg: '#f3e8ff' },
   { name: 'Rose', fg: '#e11d48', bg: '#ffe4e6' },
 ];
+
+// Contrast utilities for readability
+function hexToRgb(hex: string) {
+  const m = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+  if (!m) return { r: 0, g: 0, b: 0 };
+  return {
+    r: parseInt(m[1], 16),
+    g: parseInt(m[2], 16),
+    b: parseInt(m[3], 16)
+  };
+}
+function luminance({ r, g, b }: { r: number; g: number; b: number }) {
+  const a = [r, g, b].map((v) => {
+    v /= 255;
+    return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4);
+  });
+  return 0.2126 * a[0] + 0.7152 * a[1] + 0.0722 * a[2];
+}
+function contrastRatio(fg: string, bg: string) {
+  const L1 = luminance(hexToRgb(fg));
+  const L2 = luminance(hexToRgb(bg));
+  const light = Math.max(L1, L2);
+  const dark = Math.min(L1, L2);
+  return (light + 0.05) / (dark + 0.05);
+}
+function recommendedLogoMax(error: string) {
+  switch (error) {
+    case 'H':
+      return 30;
+    case 'Q':
+      return 25;
+    case 'M':
+      return 20;
+    default:
+      return 15;
+  }
+}
 
 export function ModernQRGenerator() {
   // State
@@ -116,6 +155,15 @@ export function ModernQRGenerator() {
   const [logo, setLogo] = useState<string | null>(null);
   const [logoSize, setLogoSize] = useState(20); // Percentage of QR code
   const [format, setFormat] = useState<'png' | 'jpg' | 'svg' | 'webp'>('png');
+
+  // Readability metrics
+  const contrast = useMemo(() => contrastRatio(fgColor, bgColor), [fgColor, bgColor]);
+  const readability: { label: string; tone: 'good' | 'ok' | 'bad' } = useMemo(() => {
+    if (contrast >= 7) return { label: 'Excellent', tone: 'good' };
+    if (contrast >= 4.5) return { label: 'Good', tone: 'good' };
+    if (contrast >= 3) return { label: 'Fair', tone: 'ok' };
+    return { label: 'Low', tone: 'bad' };
+  }, [contrast]);
 
   // Generate QR with logo overlay
   const embedLogo = useCallback(async (qrDataUrl: string, logoDataUrl: string): Promise<string> => {
@@ -285,7 +333,7 @@ export function ModernQRGenerator() {
 
   // Share
   const handleShare = useCallback(async () => {
-    if (!qrUrl || !navigator.share) return;
+    if (!qrUrl || typeof navigator === 'undefined' || !navigator.share) return;
     
     try {
       const response = await fetch(qrUrl);
@@ -1055,9 +1103,14 @@ export function ModernQRGenerator() {
                   </div>
                 ) : (
                   <div className="space-y-2 sm:space-y-3">
-                    <Label htmlFor="content" className="text-sm sm:text-base font-semibold text-gray-900">
-                      Your Content
-                    </Label>
+                    <div className="flex items-center justify-between">
+                      <Label htmlFor="content" className="text-sm sm:text-base font-semibold text-gray-900">
+                        Your Content
+                      </Label>
+                      <Button variant="ghost" size="sm" onClick={() => setIsScannerOpen(true)} className="h-8">
+                        <Camera className="w-4 h-4 mr-1" /> Scan
+                      </Button>
+                    </div>
                     <Textarea
                       id="content"
                       placeholder={currentTemplate.placeholder}
@@ -1066,14 +1119,49 @@ export function ModernQRGenerator() {
                       rows={5}
                       className="resize-none text-sm sm:text-base rounded-xl sm:rounded-2xl border-gray-200 focus:border-blue-500 focus:ring-blue-500"
                     />
-                    <div className="text-xs sm:text-sm text-gray-500 text-right">
-                      {content.length} characters
+                    <div className="flex items-center justify-between text-xs sm:text-sm text-gray-500">
+                      <span className="truncate">
+                        {content
+                          ? `Encoded: ${(() => {
+                              const tmpl = templates.find(t => t.id === activeTemplate);
+                              const pref = tmpl?.prefix || '';
+                              if (['wifi','location','phone','sms','event'].includes(activeTemplate)) return '';
+                              if (pref && !(content.startsWith('http') || content.startsWith('mailto') || content.startsWith('tel'))) {
+                                return (pref + content).slice(0, 60) + (pref.length + content.length > 60 ? '…' : '');
+                              }
+                              return (content || '').slice(0, 60) + (content.length > 60 ? '…' : '');
+                            })()}`
+                          : 'Type to generate a live preview'}
+                      </span>
+                      <span>{content.length} chars</span>
                     </div>
                   </div>
                 )}
               </TabsContent>
 
               <TabsContent value="design" className="space-y-4 sm:space-y-5 lg:space-y-6">
+                {/* Scan Readability */}
+                <div className="flex items-center justify-between p-3 rounded-lg border bg-white/70">
+                  <div className="flex items-center gap-2">
+                    <Label className="text-sm font-medium text-gray-700">Scan Readability</Label>
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Badge variant="outline" className="cursor-help">
+                            {readability.label} • {contrast.toFixed(1)}:1
+                          </Badge>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          Higher contrast between foreground and background improves scanning reliability.
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                  </div>
+                  {readability.tone === 'bad' && (
+                    <span className="text-xs text-red-600">Increase contrast for better scanning</span>
+                  )}
+                </div>
+
                 {/* Color Presets */}
                 <div className="space-y-3 sm:space-y-4">
                   <Label className="text-sm sm:text-base font-semibold text-gray-900">Color Theme</Label>
@@ -1162,10 +1250,10 @@ export function ModernQRGenerator() {
                 </div>
 
                 {/* Margin Control */}
-                <div className="space-y-3">
+                <div className="space-y-2">
                   <div className="flex justify-between items-center">
-                    <Label className="text-sm font-medium text-gray-700">Margin</Label>
-                    <span className="text-sm font-semibold text-blue-600">{margin}</span>
+                    <Label className="text-sm font-medium text-gray-700">Margin (Quiet Zone)</Label>
+                    <span className="text-sm font-semibold text-blue-600">{margin}px</span>
                   </div>
                   <Slider
                     value={[margin]}
@@ -1173,8 +1261,12 @@ export function ModernQRGenerator() {
                     min={0}
                     max={10}
                     step={1}
-                    className="py-4"
+                    className="py-2"
                   />
+                  <div className="flex justify-between text-xs text-gray-500">
+                    <span>Recommended: 4–8</span>
+                    {margin < 2 && <span className="text-red-600">Too small may reduce scan reliability</span>}
+                  </div>
                 </div>
 
                 {/* Logo Upload */}
@@ -1206,7 +1298,7 @@ export function ModernQRGenerator() {
                       </div>
 
                       {/* Logo Size Control */}
-                      <div className="space-y-3">
+                      <div className="space-y-2">
                         <div className="flex justify-between items-center">
                           <Label className="text-sm font-medium text-gray-700">Logo Size</Label>
                           <span className="text-sm font-semibold text-blue-600">{logoSize}%</span>
@@ -1217,8 +1309,14 @@ export function ModernQRGenerator() {
                           min={10}
                           max={40}
                           step={5}
-                          className="py-4"
+                          className="py-2"
                         />
+                        <div className="flex justify-between text-xs text-gray-500">
+                          <span>Recommended ≤ {recommendedLogoMax(errorLevel)}%</span>
+                          {logoSize > recommendedLogoMax(errorLevel) && (
+                            <span className="text-amber-600">May require higher error correction</span>
+                          )}
+                        </div>
                       </div>
                     </div>
                   ) : (
@@ -1329,7 +1427,7 @@ export function ModernQRGenerator() {
                         <Copy className="w-5 h-5" />
                       </Button>
                       
-                      {typeof navigator.share === 'function' && (
+                      {typeof navigator !== 'undefined' && typeof navigator.share === 'function' && (
                         <Button
                           onClick={handleShare}
                           variant="outline"

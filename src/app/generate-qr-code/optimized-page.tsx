@@ -209,7 +209,7 @@ const OptimizedQRCodeGeneratorComponent = function OptimizedQRCodeGenerator() {
 
   // Live preview generation
   useEffect(() => {
-    let timeoutId: NodeJS.Timeout;
+    let timeoutId: ReturnType<typeof setTimeout>;
     
     const generateLivePreview = async () => {
       if (!debouncedInputText.trim()) {

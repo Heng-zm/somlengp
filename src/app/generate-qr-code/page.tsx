@@ -3,6 +3,7 @@
 import dynamic from 'next/dynamic';
 import { Loader2 } from 'lucide-react';
 import { FeaturePageLayout } from '@/layouts/feature-page-layout';
+import { QRGeneratorErrorBoundary } from '@/components/qr-generator/error-boundary';
 
 // Lazy load the modernized component
 const ModernQRGenerator = dynamic(
@@ -23,7 +24,9 @@ const ModernQRGenerator = dynamic(
 export default function GenerateQRCodePage() {
   return (
     <FeaturePageLayout title="QR Code Generator">
-      <ModernQRGenerator />
+      <QRGeneratorErrorBoundary>
+        <ModernQRGenerator />
+      </QRGeneratorErrorBoundary>
     </FeaturePageLayout>
   );
 }

@@ -262,7 +262,7 @@ export function QRCodeMobileOptimized({
 
   // Live preview generation with error handling
   useEffect(() => {
-    let timeoutId: NodeJS.Timeout;
+    let timeoutId: ReturnType<typeof setTimeout>;
     
     const generateLivePreview = async () => {
       if (!debouncedInputText.trim()) {
