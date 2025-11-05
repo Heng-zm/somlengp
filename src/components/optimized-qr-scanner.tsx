@@ -219,19 +219,38 @@ const OptimizedQRScannerComponent = function OptimizedQRScanner({
       context.drawImage(video, 0, 0, canvas.width, canvas.height);
       // Calculate scan region
       const region = calculateScanRegion(canvas.width, canvas.height);
-      setDetectionZone(region);
+      // Ensure integer coordinates for getImageData
+      const rx = Math.max(0, Math.floor(region.x));
+      const ry = Math.max(0, Math.floor(region.y));
+      const rw = Math.min(canvas.width - rx, Math.floor(region.width));
+      const rh = Math.min(canvas.height - ry, Math.floor(region.height));
+      setDetectionZone({ x: rx, y: ry, width: rw, height: rh });
       // Get image data for the scan region
-      const imageData = context.getImageData(region.x, region.y, region.width, region.height);
-      // Scan using Web Worker with better options
-      const result = await scanQR(imageData, {
-        inversionAttempts: 'attemptBoth', // Always try both for better detection
-        locateOptions: {
-          skipUntilFound: scanQuality === 'fast',
-          assumeSquare: false,
-          centerROI: false,
-          maxFinderPatternStdDev: scanQuality === 'accurate' ? 5 : 10
-        }
-      });
+      const imageData = context.getImageData(rx, ry, rw, rh);
+      let result: { qrCode: any | null; processingTime: number };
+      if (workerReady) {
+        // Scan using Web Worker with better options
+        result = await scanQR(imageData, {
+          inversionAttempts: 'attemptBoth',
+          locateOptions: {
+            skipUntilFound: scanQuality === 'fast',
+            assumeSquare: false,
+            centerROI: false,
+            maxFinderPatternStdDev: scanQuality === 'accurate' ? 5 : 10
+          }
+        });
+      } else {
+        // Fallback to main-thread jsQR if worker isn't ready
+        const jsqr = await import('jsqr');
+        const start = performance.now();
+        const r = jsqr.default(imageData.data, imageData.width, imageData.height, {
+          inversionAttempts: 'attemptBoth'
+        });
+        result = {
+          qrCode: r ? { data: r.data, location: r.location, binaryData: r.binaryData } : null,
+          processingTime: performance.now() - start
+        };
+      }
       // Update scan statistics
       setScanStats(prev => ({
         scanAttempts: prev.scanAttempts + 1,
@@ -314,7 +333,7 @@ const OptimizedQRScannerComponent = function OptimizedQRScanner({
       // Enhanced video ready detection
       const handleVideoReady = () => {
         // Wait for video to actually start playing and have dimensions
-        if (video.videoWidth > 0 && video.videoHeight > 0 && workerReady) {
+        if (video.videoWidth > 0 && video.videoHeight > 0) {
           // Additional delay to ensure video frame is stable
           setTimeout(() => {
             if (video.readyState >= 2 && !isScanning) {
@@ -331,7 +350,7 @@ const OptimizedQRScannerComponent = function OptimizedQRScanner({
       
       // Fallback timeout in case events don't fire
       const fallbackTimeout = setTimeout(() => {
-        if (video.videoWidth > 0 && video.videoHeight > 0 && workerReady && !isScanning) {
+        if (video.videoWidth > 0 && video.videoHeight > 0 && !isScanning) {
           startScanning();
         }
       }, 2000);
@@ -346,10 +365,10 @@ const OptimizedQRScannerComponent = function OptimizedQRScanner({
   }, [stream, workerReady, startScanning, isScanning]);
   // Start scanning when worker becomes ready
   useEffect(() => {
-    if (stream && workerReady && !isScanning) {
+    if (stream && !isScanning) {
       startScanning();
     }
-  }, [stream, workerReady, isScanning, startScanning]);
+  }, [stream, isScanning, startScanning]);
   // Cleanup on unmount
   useEffect(() => {
     return () => {
