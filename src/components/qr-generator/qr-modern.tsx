@@ -110,6 +110,13 @@ export function ModernQRGenerator() {
   const [qrUrl, setQrUrl] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
   const [isScannerOpen, setIsScannerOpen] = useState(false);
+
+  // Feedback state
+  const [statusMsg, setStatusMsg] = useState('');
+  const [invalidInput, setInvalidInput] = useState(false);
+  const [copyTip, setCopyTip] = useState<'Copy' | 'Copied!'>('Copy');
+  const [downloadTip, setDownloadTip] = useState<'Download' | 'Saved!'>('Download');
+  const [shareTip, setShareTip] = useState<'Share' | 'Shared!'>('Share');
   
   // WiFi specific fields
   const [wifiSSID, setWifiSSID] = useState('');
@@ -301,7 +308,12 @@ export function ModernQRGenerator() {
 
   // Generate and download
   const handleDownload = useCallback(async () => {
-    if (!qrUrl) return;
+    if (!qrUrl) {
+      setInvalidInput(true);
+      setStatusMsg('Enter content to generate a QR first');
+      setTimeout(() => setInvalidInput(false), 800);
+      return;
+    }
     
     try {
       const link = document.createElement('a');
@@ -310,6 +322,9 @@ export function ModernQRGenerator() {
       link.href = qrUrl;
       link.click();
       showSuccessToast(`QR Code downloaded as ${extension.toUpperCase()}!`);
+      setDownloadTip('Saved!');
+      setStatusMsg('QR code downloaded');
+      setTimeout(() => setDownloadTip('Download'), 1200);
     } catch (error) {
       showErrorToast('Download failed');
     }
@@ -317,7 +332,12 @@ export function ModernQRGenerator() {
 
   // Copy to clipboard
   const handleCopy = useCallback(async () => {
-    if (!qrUrl) return;
+    if (!qrUrl) {
+      setInvalidInput(true);
+      setStatusMsg('Enter content to generate a QR first');
+      setTimeout(() => setInvalidInput(false), 800);
+      return;
+    }
     
     try {
       const response = await fetch(qrUrl);
@@ -326,6 +346,9 @@ export function ModernQRGenerator() {
         new ClipboardItem({ [blob.type]: blob })
       ]);
       showSuccessToast('Copied to clipboard!');
+      setCopyTip('Copied!');
+      setStatusMsg('QR code copied to clipboard');
+      setTimeout(() => setCopyTip('Copy'), 1200);
     } catch (error) {
       showErrorToast('Copy failed');
     }
@@ -333,7 +356,17 @@ export function ModernQRGenerator() {
 
   // Share
   const handleShare = useCallback(async () => {
-    if (!qrUrl || typeof navigator === 'undefined' || !navigator.share) return;
+    if (!qrUrl) {
+      setInvalidInput(true);
+      setStatusMsg('Enter content to generate a QR first');
+      setTimeout(() => setInvalidInput(false), 800);
+      return;
+    }
+    if (typeof navigator === 'undefined' || !navigator.share) {
+      showErrorToast('Sharing not supported on this device');
+      setStatusMsg('Share not supported');
+      return;
+    }
     
     try {
       const response = await fetch(qrUrl);
@@ -344,6 +377,9 @@ export function ModernQRGenerator() {
         text: 'Check out this QR code',
         files: [file],
       });
+      setShareTip('Shared!');
+      setStatusMsg('Share sheet opened');
+      setTimeout(() => setShareTip('Share'), 1200);
     } catch (error) {
       if (error instanceof Error && error.name !== 'AbortError') {
         showErrorToast('Share failed');
@@ -670,7 +706,7 @@ export function ModernQRGenerator() {
 
   return (
     <>
-    <div className="min-h-full bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50">
+<div className="min-h-full bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-gray-950 dark:via-black dark:to-gray-900">
       <div className="container mx-auto px-3 sm:px-4 md:px-6 py-4 sm:py-6 md:py-8 max-w-7xl">
         
 
@@ -678,7 +714,7 @@ export function ModernQRGenerator() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 lg:gap-8">
           
           {/* Left: Input & Settings */}
-          <Card className="p-4 sm:p-6 lg:p-8 bg-white/80 backdrop-blur-sm border-0 shadow-xl rounded-2xl lg:rounded-3xl">
+<Card className="p-4 sm:p-6 lg:p-8 bg-white/80 dark:bg-gray-900/70 backdrop-blur-sm border-0 shadow-xl dark:shadow-black/30 rounded-2xl lg:rounded-3xl">
             <Tabs defaultValue="content" className="space-y-4 sm:space-y-6">
               <TabsList className="grid w-full grid-cols-2 p-1 bg-gray-100 rounded-lg sm:rounded-xl">
                 <TabsTrigger value="content" className="rounded-lg data-[state=active]:bg-white data-[state=active]:shadow">
@@ -1117,7 +1153,7 @@ export function ModernQRGenerator() {
                       value={content}
                       onChange={(e) => setContent(e.target.value)}
                       rows={5}
-                      className="resize-none text-sm sm:text-base rounded-xl sm:rounded-2xl border-gray-200 focus:border-blue-500 focus:ring-blue-500"
+                      className={`resize-none text-sm sm:text-base rounded-xl sm:rounded-2xl border-gray-200 focus:border-blue-500 focus:ring-blue-500 ${invalidInput ? 'ring-2 ring-red-300 border-red-300' : ''}`}
                     />
                     <div className="flex items-center justify-between text-xs sm:text-sm text-gray-500">
                       <span className="truncate">
@@ -1346,7 +1382,7 @@ export function ModernQRGenerator() {
           {/* Right: Preview & Actions */}
           <div className="space-y-4 sm:space-y-6">
             {/* Preview Card */}
-            <Card className="p-4 sm:p-6 lg:p-8 bg-white/80 backdrop-blur-sm border-0 shadow-xl rounded-2xl lg:rounded-3xl">
+<Card className="p-4 sm:p-6 lg:p-8 bg-white/80 dark:bg-gray-900/70 backdrop-blur-sm border-0 shadow-xl dark:shadow-black/30 rounded-2xl lg:rounded-3xl">
               <div className="space-y-4 sm:space-y-6">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
@@ -1362,7 +1398,9 @@ export function ModernQRGenerator() {
                 </div>
 
                 {/* QR Code Display */}
-                <div className="relative aspect-square bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl sm:rounded-2xl p-4 sm:p-6 lg:p-8 flex items-center justify-center">
+<div className="relative aspect-square bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-950 rounded-xl sm:rounded-2xl p-4 sm:p-6 lg:p-8 flex items-center justify-center">
+                  {/* Screen reader live region for feedback */}
+                  <div aria-live="polite" className="sr-only">{statusMsg}</div>
                   {qrUrl ? (
                     <Image
                       src={qrUrl}
@@ -1374,7 +1412,7 @@ export function ModernQRGenerator() {
                     />
                   ) : (
                     <div className="text-center space-y-4">
-                      <div className="w-24 h-24 mx-auto rounded-2xl bg-gray-200 flex items-center justify-center">
+<div className="w-24 h-24 mx-auto rounded-2xl bg-gray-200 dark:bg-gray-800 flex items-center justify-center">
                         <QrCode className="w-12 h-12 text-gray-400" />
                       </div>
                       <div>
@@ -1385,62 +1423,80 @@ export function ModernQRGenerator() {
                   )}
                 </div>
 
-                {/* Action Buttons */}
-                {qrUrl && (
-                  <div className="space-y-2 sm:space-y-3">
-                    {/* Format Selector */}
-                    <div className="flex items-center justify-center gap-2">
-                      {(['png', 'jpg', 'svg', 'webp'] as const).map((fmt) => (
-                        <button
-                          key={fmt}
-                          onClick={() => setFormat(fmt)}
-                          className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-all ${
-                            format === fmt
-                              ? 'bg-blue-600 text-white shadow-md'
-                              : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                          }`}
-                        >
-                          {fmt.toUpperCase()}
-                        </button>
-                      ))}
-                    </div>
-                    
-                    {/* Primary Download Button */}
-                    <Button
-                      onClick={handleDownload}
-                      className="w-full h-12 sm:h-14 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold shadow-lg hover:shadow-xl transition-all flex items-center justify-center"
-                      title="Download"
-                      aria-label="Download QR code"
-                    >
-                      <Download className="w-6 h-6" />
-                    </Button>
-                    
-                    {/* Secondary Actions */}
-                    <div className="grid grid-cols-2 gap-2 sm:gap-3">
-                      <Button
-                        onClick={handleCopy}
-                        variant="outline"
-                        className="h-11 sm:h-12 rounded-lg border-2 font-medium hover:bg-gray-50 flex items-center justify-center"
-                        title="Copy"
-                        aria-label="Copy QR code"
-                      >
-                        <Copy className="w-5 h-5" />
-                      </Button>
-                      
-                      {typeof navigator !== 'undefined' && typeof navigator.share === 'function' && (
-                        <Button
-                          onClick={handleShare}
-                          variant="outline"
-                          className="h-11 sm:h-12 rounded-lg border-2 font-medium hover:bg-gray-50 flex items-center justify-center"
-                          title="Share"
-                          aria-label="Share QR code"
-                        >
-                          <Share2 className="w-5 h-5" />
-                        </Button>
-                      )}
-                    </div>
-                  </div>
-                )}
+                    {/* Action Buttons */}
+                    {qrUrl && (
+                      <div className="space-y-2 sm:space-y-3">
+                        {/* Format Selector */}
+                        <div className="flex items-center justify-center gap-2">
+                          {(['png', 'jpg', 'svg', 'webp'] as const).map((fmt) => (
+                            <button
+                              key={fmt}
+                              onClick={() => setFormat(fmt)}
+                              className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-all ${
+                                format === fmt
+                                  ? 'bg-blue-600 text-white shadow-md'
+                                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                              }`}
+                            >
+                              {fmt.toUpperCase()}
+                            </button>
+                          ))}
+                        </div>
+                        
+                        {/* Primary Download Button */}
+                        <TooltipProvider>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Button
+                                onClick={handleDownload}
+                                className="w-full h-12 sm:h-14 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold shadow-lg hover:shadow-xl transition-all flex items-center justify-center"
+                                aria-label="Download QR code"
+                              >
+                                <Download className="w-6 h-6" />
+                              </Button>
+                            </TooltipTrigger>
+                            <TooltipContent>{downloadTip}</TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
+                        
+                        {/* Secondary Actions */}
+                        <div className="grid grid-cols-2 gap-2 sm:gap-3">
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Button
+                                  onClick={handleCopy}
+                                  variant="outline"
+                                  className="h-11 sm:h-12 rounded-lg border-2 font-medium hover:bg-gray-50 flex items-center justify-center"
+                                  aria-label="Copy QR code"
+                                >
+                                  <Copy className="w-5 h-5" />
+                                </Button>
+                              </TooltipTrigger>
+                              <TooltipContent>{copyTip}</TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
+                          
+                          {typeof navigator !== 'undefined' && typeof navigator.share === 'function' && (
+                            <TooltipProvider>
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <Button
+                                    onClick={handleShare}
+                                    variant="outline"
+                                    className="h-11 sm:h-12 rounded-lg border-2 font-medium hover:bg-gray-50 flex items-center justify-center"
+                                    aria-label="Share QR code"
+                                  >
+                                    <Share2 className="w-5 h-5" />
+                                  </Button>
+                                </TooltipTrigger>
+                                <TooltipContent>{shareTip}</TooltipContent>
+                              </Tooltip>
+                            </TooltipProvider>
+                          )}
+                        </div>
+                      </div>
+                    )}
               </div>
             </Card>
 

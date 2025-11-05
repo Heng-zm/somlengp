@@ -123,7 +123,8 @@ const OptimizedFeatureCard = memo(function OptimizedFeatureCard({
     <Card 
       className={cn(
         "w-full h-full p-5 sm:p-6 flex items-center gap-4",
-        "rounded-[12px] bg-white text-foreground border border-gray-200 shadow",
+        // Keep light card on dark backgrounds; ensure text remains dark for readability
+        "rounded-[12px] bg-white dark:bg-white text-gray-900 border border-gray-200 dark:border-gray-800 shadow",
         "hover:bg-gray-50 transition-colors",
         "focus-visible:ring-0"
       )}
@@ -137,7 +138,7 @@ const OptimizedFeatureCard = memo(function OptimizedFeatureCard({
         <Icon className="w-10 h-10 text-gray-900" aria-hidden="true" />
       </div>
       <div className="flex-grow min-w-0">
-        <h2 className="text-[16px] font-semibold mb-1 truncate">{title}</h2>
+        <h2 className="text-[16px] font-semibold mb-1 truncate text-gray-900">{title}</h2>
         <p className="text-[13px] text-gray-600 leading-6 break-words line-clamp-2">{description}</p>
       </div>
       <div

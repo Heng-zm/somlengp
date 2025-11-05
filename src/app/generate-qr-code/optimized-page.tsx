@@ -509,7 +509,7 @@ const OptimizedQRCodeGeneratorComponent = function OptimizedQRCodeGenerator() {
 
   return (
     <FeaturePageLayout title="Advanced QR Code Generator">
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-gray-100">
+<div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-gray-100 dark:from-gray-950 dark:via-black dark:to-gray-900">
         <div className="container mx-auto px-4 py-8 max-w-7xl">
           
           {/* Header with tabs */}

@@ -186,10 +186,10 @@ const HomePageComponent = function HomePage() {
             <SearchToolBar value={searchQuery} onChange={setSearchQuery} onSubmit={scrollToOtherTools} />
             {filteredOtherFeatures.length === 0 ? (
               <div className="mt-3">
-                <Card className="p-5 flex items-center justify-between rounded-2xl border border-gray-200 bg-white">
+<Card className="p-5 flex items-center justify-between rounded-2xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900">
                   <div>
-                    <h4 className="text-base font-semibold text-gray-900">No tools found</h4>
-                    <p className="text-sm text-gray-600">Try different keywords or clear your search.</p>
+<h4 className="text-base font-semibold text-gray-900 dark:text-gray-100">No tools found</h4>
+<p className="text-sm text-gray-600 dark:text-gray-400">Try different keywords or clear your search.</p>
                   </div>
                   <Button variant="outline" onClick={() => setSearchQuery('')}>Clear</Button>
                 </Card>

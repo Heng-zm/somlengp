@@ -6,6 +6,23 @@ import { safeSync, ValidationError, errorHandler } from './error-utils';
 const MAX_TITLE_LENGTH = 100;
 const MAX_DESCRIPTION_LENGTH = 500;
 const MAX_FILE_NAME_LENGTH = 100;
+
+// Deduplication cache to avoid spamming the same toast repeatedly
+const lastShown = new Map<string, number>();
+
+export type ToastUXOptions = {
+  // Remove emoji prefix
+  silent?: boolean;
+  // Visual weight and sizing (supported by our Toast component variants)
+  priority?: 'low' | 'medium' | 'high' | 'critical';
+  size?: 'xs' | 'sm' | 'default' | 'lg' | 'xl';
+  // Custom dedupe key and window
+  idempotentKey?: string;
+  dedupeMs?: number; // default 1000ms
+  // Optional action button label to let users dismiss/undo
+  actionLabel?: string;
+  onAction?: () => void;
+};
 /**
  * Validates and sanitizes toast input parameters
  */
@@ -46,19 +63,46 @@ function safeToast(
   variant: string,
   title: string,
   description?: string,
-  context: Record<string, any> = {}
+  context: Record<string, any> = {},
+  options: ToastUXOptions = {}
 ): ReturnType<typeof toast> | null {
   const { data: result, error } = safeSync(
     () => {
       const { sanitizedTitle, sanitizedDescription } = validateToastInput(title, description, context);
+
+      // Dedupe logic
+      const key = options.idempotentKey || `${variant}|${sanitizedTitle}|${sanitizedDescription ?? ''}`;
+      const now = Date.now();
+      const windowMs = options.dedupeMs ?? 1000;
+      const last = lastShown.get(key) || 0;
+      if (now - last < windowMs) {
+        return null as any; // skip duplicate toast
+      }
+      lastShown.set(key, now);
+
       return toast({
         variant: variant as any,
         title: sanitizedTitle,
         description: sanitizedDescription,
+        // Pass through UI/UX options to Toast component
+        priority: options.priority ?? 'medium',
+        size: options.size ?? 'sm',
+        action: options.actionLabel
+          ? (
+              <button
+                onClick={() => {
+                  try { options.onAction?.(); } catch {}
+                }}
+                className="px-2 py-1 bg-white/20 text-white rounded text-xs hover:bg-white/30 transition-colors"
+              >
+                {options.actionLabel}
+              </button>
+            ) as any
+          : undefined,
       });
     },
     null,
-    { operation: 'createToast', variant, ...context }
+    { operation: 'createToast', variant, ...context, options }
   );
   if (error) {
     errorHandler.handle(error, { function: 'safeToast', variant, title: title?.substring(0, 50) });
@@ -76,32 +120,39 @@ function safeToast(
   }
   return result;
 }
-export const showSuccessToast = (title: string, description?: string) => {
-  return safeToast('success', `✅ ${title}`, description, { type: 'success' });
+export const showSuccessToast = (title: string, description?: string, opts: ToastUXOptions = {}) => {
+  const prefix = opts.silent ? '' : '✅ ';
+  return safeToast('success', `${prefix}${title}`, description, { type: 'success' }, opts);
 };
-export const showErrorToast = (title: string, description?: string) => {
-  return safeToast('error', `❌ ${title}`, description, { type: 'error' });
+export const showErrorToast = (title: string, description?: string, opts: ToastUXOptions = {}) => {
+  const prefix = opts.silent ? '' : '❌ ';
+  return safeToast('error', `${prefix}${title}`, description, { type: 'error' }, opts);
 };
-export const showWarningToast = (title: string, description?: string) => {
-  return safeToast('warning', `⚠️ ${title}`, description, { type: 'warning' });
+export const showWarningToast = (title: string, description?: string, opts: ToastUXOptions = {}) => {
+  const prefix = opts.silent ? '' : '⚠️ ';
+  return safeToast('warning', `${prefix}${title}`, description, { type: 'warning' }, opts);
 };
-export const showInfoToast = (title: string, description?: string) => {
-  return safeToast('info', `ℹ️ ${title}`, description, { type: 'info' });
+export const showInfoToast = (title: string, description?: string, opts: ToastUXOptions = {}) => {
+  const prefix = opts.silent ? '' : 'ℹ️ ';
+  return safeToast('info', `${prefix}${title}`, description, { type: 'info' }, opts);
 };
-export const showLoadingToast = (title: string, description?: string) => {
-  return safeToast('default', `⏳ ${title}`, description, { type: 'loading' });
+export const showLoadingToast = (title: string, description?: string, opts: ToastUXOptions = {}) => {
+  const prefix = opts.silent ? '' : '⏳ ';
+  return safeToast('default', `${prefix}${title}`, description, { type: 'loading' }, opts);
 };
 // Specialized toast functions for common use cases
-export const showAuthSuccessToast = (action: string) => {
+export const showAuthSuccessToast = (action: string, opts: ToastUXOptions = {}) => {
   return showSuccessToast(
-    "🛡️ Authentication Success", 
-    `Successfully ${action}! Welcome back.`
+    "Authentication Success",
+    `Successfully ${action}! Welcome back.`,
+    { ...opts, priority: opts.priority ?? 'high' }
   );
 };
-export const showAuthErrorToast = (error: string) => {
+export const showAuthErrorToast = (error: string, opts: ToastUXOptions = {}) => {
   return showErrorToast(
-    "🔒 Authentication Error", 
-    error
+    "Authentication Error",
+    error,
+    { ...opts, priority: opts.priority ?? 'critical' }
   );
 };
 // File processing toast functions with enhanced error handling
@@ -132,7 +183,7 @@ export const showFileProcessingSuccessToast = (action: string, fileName?: string
         title = "✅ Processing Complete!";
         description = `File has been ${action} successfully and is ready for download.`;
       }
-      return safeToast('success', title, description, { type: 'file-processing', action, fileName: safeFileName, fileCount });
+      return safeToast('success', title, description, { type: 'file-processing', action, fileName: safeFileName, fileCount }, { priority: 'high' });
     },
     null,
     { operation: 'showFileProcessingSuccessToast', action, fileName, fileCount }
@@ -147,7 +198,7 @@ export const showFileProcessingErrorToast = (error: string, fileName?: string) =
       const safeFileName = fileName ? fileName.substring(0, MAX_FILE_NAME_LENGTH) : undefined;
       const title = safeFileName ? `❌ Failed to Process ${safeFileName}` : "❌ File Processing Failed";
       return safeToast('error', title, `${error} Please try again or contact support if the issue persists.`, 
-        { type: 'file-processing-error', error, fileName: safeFileName });
+        { type: 'file-processing-error', error, fileName: safeFileName }, { priority: 'critical' });
     },
     null,
     { operation: 'showFileProcessingErrorToast', error, fileName }
@@ -189,7 +240,7 @@ export const showProgressToast = (title: string, progress: number, description?:
       }
       const progressBar = '█'.repeat(Math.floor(progress / 10)) + '░'.repeat(10 - Math.floor(progress / 10));
       const progressDesc = description ? `${description} [${progressBar}] ${Math.round(progress)}%` : `${progressBar} ${Math.round(progress)}%`;
-      return safeToast('info', `🔄 ${title}`, progressDesc, { type: 'progress', progress });
+      return safeToast('info', `🔄 ${title}`, progressDesc, { type: 'progress', progress }, { priority: 'medium', size: 'default' });
     },
     null,
     { operation: 'showProgressToast', title, progress }
@@ -218,12 +269,13 @@ export const showConfirmationToast = (
         variant: 'warning' as any,
         title: `⚠️ ${title}`,
         description,
+        priority: 'high' as any,
+        size: 'default' as any,
         action: (
           <div className="flex gap-2">
             <button
               onClick={() => {
                 onConfirm();
-                // The toast will auto-dismiss
               }}
               className="px-3 py-1 bg-red-500 text-white rounded text-sm hover:bg-red-600 transition-colors"
             >
@@ -232,7 +284,6 @@ export const showConfirmationToast = (
             <button
               onClick={() => {
                 onCancel?.();
-                // The toast will auto-dismiss
               }}
               className="px-3 py-1 bg-gray-500 text-white rounded text-sm hover:bg-gray-600 transition-colors"
             >
@@ -306,14 +357,16 @@ export const showNetworkStatusToast = (isOnline: boolean, wasOffline = false) =>
       if (isOnline) {
         if (wasOffline) {
           return showSuccessToast(
-            '🌐 Connection Restored',
-            'You are back online! All features are now available.'
+            'Connection Restored',
+            'You are back online! All features are now available.',
+            { priority: 'high' }
           );
         }
       } else {
         return showErrorToast(
-          '📴 Connection Lost',
-          'You are currently offline. Some features may not be available.'
+          'Connection Lost',
+          'You are currently offline. Some features may not be available.',
+          { priority: 'critical' }
         );
       }
       return null;
@@ -330,8 +383,9 @@ export const showUpdateAvailableToast = (version: string, onUpdate?: () => void)
       }
       return toast({
         variant: 'info' as any,
-        title: '🆕 Update Available',
+        title: 'Update Available',
         description: `Version ${version} is now available with new features and improvements.`,
+        priority: 'high' as any,
         action: onUpdate ? (
           <button
             onClick={onUpdate}
@@ -358,8 +412,9 @@ export const showMaintenanceToast = (message: string, scheduledTime?: Date) => {
         description += ` Scheduled for ${timeStr}.`;
       }
       return showWarningToast(
-        '🔧 Maintenance Notice',
-        description
+        'Maintenance Notice',
+        description,
+        { priority: 'medium', size: 'default' }
       );
     },
     null,
@@ -377,20 +432,21 @@ export const showPermissionToast = (permission: string, granted: boolean, requir
       }
       if (granted) {
         return showSuccessToast(
-          `🔑 ${permission} Permission Granted`,
-          'You can now use all features that require this permission.'
+          `${permission} Permission Granted`,
+          'You can now use all features that require this permission.',
+          { priority: 'medium' }
         );
       } else {
         const variant = required ? 'error' : 'warning';
         const description = required 
           ? `This permission is required for the feature to work properly. Please grant access in your browser settings.`
           : `Some features may be limited without this permission.`;
-        return safeToast(variant, `🚫 ${permission} Permission Denied`, description, { 
+        return safeToast(variant, `${permission} Permission Denied`, description, { 
           type: 'permission', 
           permission, 
           granted, 
           required 
-        });
+        }, { priority: required ? 'critical' : 'high' });
       }
     },
     null,

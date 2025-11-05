@@ -92,22 +92,22 @@ const OptimizedQRScannerComponent = function OptimizedQRScanner({
 
   // Auto-start camera when component mounts (with debounce)
   useEffect(() => {
-    let timeoutId: NodeJS.Timeout;
-    if (isSupported && !stream && !isLoading && !cameraError && workerReady) {
-      // Debounce camera request to prevent race conditions
+    let timeoutId: ReturnType<typeof setTimeout>;
+    if (isSupported && !stream && !isLoading && !cameraError) {
+      // Debounce camera request to prevent race conditions (not gated on worker readiness)
       timeoutId = setTimeout(() => {
         requestCamera().catch(err => {
           console.error('Failed to initialize camera:', err);
           onScanError?.('Failed to initialize camera');
         });
-      }, 200); // Increased delay for better stability
+      }, 200);
     }
     return () => {
       if (timeoutId) {
         clearTimeout(timeoutId);
       }
     };
-  }, [isSupported, stream, isLoading, cameraError, workerReady, requestCamera, onScanError]);
+  }, [isSupported, stream, isLoading, cameraError, requestCamera, onScanError]);
   // Get or create canvas from pool for better memory management
   const getCanvas = useCallback(() => {
     if (canvasPoolRef.current.length > 0) {
