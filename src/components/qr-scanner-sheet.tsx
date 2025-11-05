@@ -98,7 +98,7 @@ export function QRScannerSheet({ open, onOpenChange, onScanSuccess, onScanError 
                 className="w-full max-w-lg mx-auto"
                 enableVibration={true}
                 enableSound={false}
-                scanRegion="center"
+                scanRegion="full"
                 scanQuality="accurate"
               />
             </div>

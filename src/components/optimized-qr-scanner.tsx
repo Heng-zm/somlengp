@@ -48,6 +48,9 @@ const OptimizedQRScannerComponent = function OptimizedQRScanner({
   const [isProcessingUpload, setIsProcessingUpload] = useState(false);
   const [scanConfidence, setScanConfidence] = useState<number>(0);
   const [detectionZone, setDetectionZone] = useState({ x: 0, y: 0, width: 0, height: 0 });
+  const [detectedBox, setDetectedBox] = useState<{x:number;y:number;width:number;height:number}|null>(null);
+  const [torchOn, setTorchOn] = useState(false);
+  const [zoom, setZoom] = useState<number>(1);
   const [scanStats, setScanStats] = useState<ScanStats>({
     scanAttempts: 0,
     successfulScans: 0,
@@ -63,7 +66,8 @@ const OptimizedQRScannerComponent = function OptimizedQRScanner({
     permissionState,
     error: cameraError,
     requestCamera,
-    stopCamera
+    stopCamera,
+    switchFacingMode
   } = useQRCamera();
 
   // Use Web Worker for enhanced performance
@@ -125,6 +129,40 @@ const OptimizedQRScannerComponent = function OptimizedQRScanner({
       canvasPoolRef.current.push(canvas);
     }
   }, []);
+  // Helpers to get current video track
+  const getVideoTrack = useCallback(() => {
+    const v = videoRef.current;
+    const ms = v?.srcObject as MediaStream | null;
+    return ms?.getVideoTracks()[0] || null;
+  }, []);
+  // Torch toggle
+  const toggleTorch = useCallback(async () => {
+    try {
+      const track = getVideoTrack();
+      if (!track) return;
+      const caps: any = track.getCapabilities?.();
+      if (caps && 'torch' in caps) {
+        const next = !torchOn;
+        await track.applyConstraints({ advanced: [{ torch: next }] as any });
+        setTorchOn(next);
+      }
+    } catch {}
+  }, [getVideoTrack, torchOn]);
+  // Zoom setter
+  const applyZoom = useCallback(async (value: number) => {
+    try {
+      const track = getVideoTrack();
+      if (!track) return;
+      const caps: any = track.getCapabilities?.();
+      if (caps && 'zoom' in caps) {
+        const min = caps.zoom.min ?? 1;
+        const max = caps.zoom.max ?? 4;
+        const clamped = Math.min(max, Math.max(min, value));
+        await track.applyConstraints({ advanced: [{ zoom: clamped }] as any });
+        setZoom(clamped);
+      }
+    } catch {}
+  }, [getVideoTrack]);
   // Calculate optimal scan region based on video dimensions
   const calculateScanRegion = useCallback((videoWidth: number, videoHeight: number) => {
     switch (scanRegion) {
@@ -198,7 +236,6 @@ const OptimizedQRScannerComponent = function OptimizedQRScanner({
     if (video.paused || video.ended || video.readyState < 2) {
       return;
     }
-    
     // Throttle scans based on adaptive interval
     const now = performance.now();
     const interval = getScanInterval();
@@ -210,7 +247,7 @@ const OptimizedQRScannerComponent = function OptimizedQRScanner({
       qrPerformanceMonitor.recordScanAttempt();
       // Get canvas from pool
       const canvas = getCanvas();
-      const context = canvas.getContext('2d');
+      const context = (canvas.getContext('2d', { willReadFrequently: true } as any) || canvas.getContext('2d')) as CanvasRenderingContext2D | null;
       if (!context) return;
       // Set canvas dimensions to match video
       canvas.width = video.videoWidth;
@@ -228,7 +265,25 @@ const OptimizedQRScannerComponent = function OptimizedQRScanner({
       // Get image data for the scan region
       const imageData = context.getImageData(rx, ry, rw, rh);
       let result: { qrCode: any | null; processingTime: number };
-      if (workerReady) {
+      // Try native BarcodeDetector first (fast on supported browsers)
+      const BD: any = (window as any).BarcodeDetector;
+      if (BD && typeof BD === 'function') {
+        try {
+          const detector = new BD({ formats: ['qr_code', 'qr'] });
+          const cIB = (window as any).createImageBitmap;
+          const bitmap = cIB ? await cIB(canvas) : null;
+          const codes: any[] = await detector.detect(bitmap || (canvas as any));
+          if (codes && codes.length > 0 && codes[0].rawValue) {
+            const box = codes[0].boundingBox;
+            setDetectedBox({ x: box.x, y: box.y, width: box.width, height: box.height });
+            result = { qrCode: { data: codes[0].rawValue, location: {}, binaryData: [] }, processingTime: 5 };
+          } else {
+            result = { qrCode: null, processingTime: 5 };
+          }
+        } catch {
+          result = { qrCode: null, processingTime: 5 };
+        }
+      } else if (workerReady) {
         // Scan using Web Worker with better options
         result = await scanQR(imageData, {
           inversionAttempts: 'attemptBoth',
@@ -256,6 +311,16 @@ const OptimizedQRScannerComponent = function OptimizedQRScanner({
           }
           const enhancedImage = new ImageData(data, imageData.width, imageData.height);
           r = jsQR(enhancedImage.data, enhancedImage.width, enhancedImage.height, { inversionAttempts: 'attemptBoth' });
+        }
+        if (r?.location) {
+          const loc: any = r.location;
+          const minX = Math.min(loc.topLeftCorner.x, loc.bottomLeftCorner.x);
+          const minY = Math.min(loc.topLeftCorner.y, loc.topRightCorner.y);
+          const maxX = Math.max(loc.topRightCorner.x, loc.bottomRightCorner.x);
+          const maxY = Math.max(loc.bottomLeftCorner.y, loc.bottomRightCorner.y);
+          setDetectedBox({ x: rx + minX, y: ry + minY, width: maxX - minX, height: maxY - minY });
+        } else {
+          setDetectedBox(null);
         }
         result = {
           qrCode: r ? { data: r.data, location: r.location, binaryData: r.binaryData } : null,
@@ -336,6 +401,8 @@ const OptimizedQRScannerComponent = function OptimizedQRScanner({
     if (videoRef.current && stream) {
       const video = videoRef.current;
       video.srcObject = stream;
+      video.setAttribute('playsinline', 'true');
+      try { video.play().catch(() => {}); } catch {}
       
       // Enhanced video ready detection
       const handleVideoReady = () => {
