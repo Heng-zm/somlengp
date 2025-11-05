@@ -241,11 +241,22 @@ const OptimizedQRScannerComponent = function OptimizedQRScanner({
         });
       } else {
         // Fallback to main-thread jsQR if worker isn't ready
-        const jsqr = await import('jsqr');
+        const { default: jsQR } = await import('jsqr');
         const start = performance.now();
-        const r = jsqr.default(imageData.data, imageData.width, imageData.height, {
+        let r = jsQR(imageData.data, imageData.width, imageData.height, {
           inversionAttempts: 'attemptBoth'
         });
+        // Simple brightness/contrast pass if not found yet
+        if (!r) {
+          const data = new Uint8ClampedArray(imageData.data);
+          for (let i = 0; i < data.length; i += 4) {
+            const gray = (data[i] * 299 + data[i + 1] * 587 + data[i + 2] * 114) / 1000;
+            const enhanced = Math.max(0, Math.min(255, (gray - 128) * 1.4 + 128));
+            data[i] = data[i + 1] = data[i + 2] = enhanced;
+          }
+          const enhancedImage = new ImageData(data, imageData.width, imageData.height);
+          r = jsQR(enhancedImage.data, enhancedImage.width, enhancedImage.height, { inversionAttempts: 'attemptBoth' });
+        }
         result = {
           qrCode: r ? { data: r.data, location: r.location, binaryData: r.binaryData } : null,
           processingTime: performance.now() - start
@@ -301,13 +312,9 @@ const OptimizedQRScannerComponent = function OptimizedQRScanner({
       qrPerformanceMonitor.startScanning();
       // Use requestAnimationFrame for smooth performance
       const scanLoop = () => {
-        scanQRCode().then(() => {
-          if (isScanning && animationFrameRef.current !== null) {
-            animationFrameRef.current = requestAnimationFrame(scanLoop);
-          }
-        }).catch(() => {
-          // Handle scan errors gracefully
-          if (isScanning && animationFrameRef.current !== null) {
+        scanQRCode().finally(() => {
+          // Keep looping as long as the loop hasn't been stopped
+          if (animationFrameRef.current !== null) {
             animationFrameRef.current = requestAnimationFrame(scanLoop);
           }
         });
