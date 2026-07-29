@@ -13,6 +13,7 @@ export interface FeatureCardData {
   description: string;
   icon: React.ElementType;
   category: ToolCategory;
+  keywords?: string[];
 }
 
 interface OptimizedFeatureGridProps {

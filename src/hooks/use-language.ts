@@ -1,8 +1,8 @@
 'use client';
 
-import { useContext } from 'react';
+import { useCallback, useContext } from 'react';
 import { LanguageContext } from '@/contexts/language-context';
-import { allTranslations, resolveTranslation, type Language } from '@/lib/translations';
+import { allTranslations, resolveTranslation } from '@/lib/translations';
 
 export function useLanguage() {
   const context = useContext(LanguageContext);
@@ -17,13 +17,13 @@ export function useLanguage() {
   const translations = allTranslations[language];
   
   // Helper function to get translated text
-  const t = (key: keyof typeof translations, params?: { size?: number }) => {
+  const t = useCallback((key: keyof typeof translations, params?: { size?: number }) => {
     const value = translations[key];
     if (typeof value === 'function' && params?.size !== undefined) {
       return value(params.size);
     }
     return resolveTranslation(value, params?.size);
-  };
+  }, [translations]);
 
   return {
     language,

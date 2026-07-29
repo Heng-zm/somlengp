@@ -8,9 +8,8 @@ import { GoogleAnalytics } from '@next/third-parties/google'; // Keep this impor
 import { Analytics } from '@vercel/analytics/next';
 import { SpeedInsights } from '@vercel/speed-insights/next';
 import { AppLayout } from '@/layouts/app-layout';
-import { PerformanceOverlay } from '@/components/shared/performance-dashboard';
+import { DevelopmentPerformanceOverlay } from '@/components/dev/performance-overlay-loader';
 import { LanguageProvider } from '@/components/providers/language-provider';
-import { IdleSessionGuard } from '@/components/providers/idle-session-guard';
 import { Kantumruy_Pro } from 'next/font/google';
 import Script from 'next/script';
 
@@ -74,6 +73,8 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const isVercelDeployment = process.env.VERCEL === '1';
+
   return (
     <html lang="en" className={`${kantumruy.variable}`} suppressHydrationWarning={true}>
       <head>
@@ -100,19 +101,20 @@ export default function RootLayout({
         </script> */}
 
         <LanguageProvider>
-          <IdleSessionGuard 
-            timeoutMs={15 * 60 * 1000} // 15 minutes default
-            warnMs={60 * 1000} // Warn 1 minute before
-            redirectPath="/" // Redirect to home on timeout
-          />
           <AppLayout>
             {children}
           </AppLayout>
         </LanguageProvider>
         <Toaster />
-        <Analytics />
-        <SpeedInsights />
-        <PerformanceOverlay />
+        {isVercelDeployment ? (
+          <>
+            <Analytics />
+            <SpeedInsights />
+          </>
+        ) : null}
+        {process.env.NODE_ENV === 'development' ? (
+          <DevelopmentPerformanceOverlay />
+        ) : null}
 
         {/* Performance optimization scripts */}
         <Script

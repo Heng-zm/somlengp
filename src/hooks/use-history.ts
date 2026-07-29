@@ -34,6 +34,19 @@ export interface HistoryActions {
   exportHistory: () => string;
   importHistory: (jsonData: string) => { success: boolean; imported: number; errors: string[] };
 }
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null;
+}
+
+function getString(value: unknown, fallback: string): string {
+  return typeof value === 'string' && value.length > 0 ? value : fallback;
+}
+
+function getPositiveNumber(value: unknown, fallback: number): number {
+  return typeof value === 'number' && Number.isFinite(value) && value > 0 ? value : fallback;
+}
+
 export function useHistory(): {
   history: HistoryItem[];
   isLoaded: boolean;
@@ -48,10 +61,9 @@ export function useHistory(): {
   const historyCache = useRef<HistoryItem[]>([]);
   const saveTimeout = useRef<NodeJS.Timeout | null>(null);
   // Utility function to validate history item
-  const validateHistoryItem = useCallback((item: any): item is HistoryItem => {
+  const validateHistoryItem = useCallback((item: unknown): item is HistoryItem => {
     return (
-      item &&
-      typeof item === 'object' &&
+      isRecord(item) &&
       typeof item.id === 'string' &&
       item.id.length > 0 &&
       typeof item.href === 'string' &&
@@ -59,17 +71,20 @@ export function useHistory(): {
       typeof item.label === 'string' &&
       item.label.length > 0 &&
       typeof item.timestamp === 'number' &&
+      Number.isFinite(item.timestamp) &&
       item.timestamp > 0 &&
       typeof item.count === 'number' &&
+      Number.isFinite(item.count) &&
       item.count > 0 &&
       typeof item.lastVisited === 'number' &&
+      Number.isFinite(item.lastVisited) &&
       item.lastVisited > 0
     );
   }, []);
   // Generate unique ID
   const generateId = useCallback((): string => {
     const timestamp = Date.now();
-    const random = Math.random().toString(36).substr(2, 9);
+    const random = Math.random().toString(36).slice(2, 11);
     return `hist_${timestamp}_${random}`;
   }, []);
   // Debounced save function
@@ -114,24 +129,24 @@ export function useHistory(): {
       }
       // Migrate and validate history items
       const migratedHistory = parsedHistory
-        .map((item: any) => {
-          try {
-            // Handle legacy format
-            const migrated: HistoryItem = {
-              id: item.id || generateId(),
-              href: item.href || '',
-              label: item.label || 'Unknown',
-              timestamp: item.timestamp || Date.now(),
-              count: Math.max(1, item.count || 1),
-              lastVisited: item.lastVisited || item.timestamp || Date.now(),
-              favorite: Boolean(item.favorite),
-              category: item.category || 'General',
-              notes: item.notes || ''
-            };
-            return validateHistoryItem(migrated) ? migrated : null;
-          } catch (itemError) {
+        .map((item: unknown) => {
+          if (!isRecord(item)) {
             return null;
           }
+          // Handle legacy format without trusting persisted value types.
+          const timestamp = getPositiveNumber(item.timestamp, Date.now());
+          const migrated: HistoryItem = {
+            id: getString(item.id, '') || generateId(),
+            href: getString(item.href, ''),
+            label: getString(item.label, 'Unknown'),
+            timestamp,
+            count: getPositiveNumber(item.count, 1),
+            lastVisited: getPositiveNumber(item.lastVisited, timestamp),
+            favorite: item.favorite === true,
+            category: getString(item.category, 'General'),
+            notes: typeof item.notes === 'string' ? item.notes : ''
+          };
+          return validateHistoryItem(migrated) ? migrated : null;
         })
         .filter((item: HistoryItem | null): item is HistoryItem => item !== null)
         .sort((a, b) => b.lastVisited - a.lastVisited);
@@ -143,6 +158,12 @@ export function useHistory(): {
       }
     } catch (error) {
       console.error("Failed to load history from localStorage", error);
+      // Remove malformed data so future mounts do not repeatedly fail to parse it.
+      try {
+        localStorage.removeItem(HISTORY_STORAGE_KEY);
+      } catch {
+        // Storage may be unavailable; the in-memory fallback below still works.
+      }
       setError("Failed to load history");
       setHistory([]);
       historyCache.current = [];
@@ -405,23 +426,27 @@ export function useHistory(): {
     const errors: string[] = [];
     let imported = 0;
     try {
-      const data = JSON.parse(jsonData);
-      if (!data.history || !Array.isArray(data.history)) {
+      const data: unknown = JSON.parse(jsonData);
+      if (!isRecord(data) || !Array.isArray(data.history)) {
         throw new Error('Invalid export format: missing history array');
       }
       const importedItems: HistoryItem[] = [];
-      data.history.forEach((item: any, index: number) => {
+      data.history.forEach((item: unknown, index: number) => {
         try {
+          if (!isRecord(item)) {
+            throw new Error('Invalid item format');
+          }
+          const timestamp = getPositiveNumber(item.timestamp, Date.now());
           const historyItem: HistoryItem = {
-            id: item.id || generateId(),
-            href: item.href || '',
-            label: item.label || 'Imported Item',
-            timestamp: item.timestamp || Date.now(),
-            lastVisited: item.lastVisited || item.timestamp || Date.now(),
-            count: Math.max(1, item.count || 1),
-            favorite: Boolean(item.favorite),
-            category: item.category || 'General',
-            notes: item.notes || ''
+            id: getString(item.id, '') || generateId(),
+            href: getString(item.href, ''),
+            label: getString(item.label, 'Imported Item'),
+            timestamp,
+            lastVisited: getPositiveNumber(item.lastVisited, timestamp),
+            count: getPositiveNumber(item.count, 1),
+            favorite: item.favorite === true,
+            category: getString(item.category, 'General'),
+            notes: typeof item.notes === 'string' ? item.notes : ''
           };
           if (validateHistoryItem(historyItem)) {
             // Check if item already exists

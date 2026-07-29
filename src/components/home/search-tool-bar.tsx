@@ -42,7 +42,8 @@ export const SearchToolBar = memo(function SearchToolBar({
       />
       <input
         ref={inputRef}
-        type="search"
+        type="text"
+        inputMode="search"
         value={value}
         onChange={(event) => onChange(event.target.value)}
         onKeyDown={(event) => {

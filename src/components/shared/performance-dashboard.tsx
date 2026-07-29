@@ -29,6 +29,14 @@ interface PerformanceThresholds {
   good: number;
   needs_improvement: number;
 }
+
+interface PerformanceMemory {
+  usedJSHeapSize: number;
+}
+
+interface PerformanceWithMemory extends Performance {
+  memory?: PerformanceMemory;
+}
 const METRIC_THRESHOLDS: Record<string, PerformanceThresholds> = {
   fcp: { good: 1800, needs_improvement: 3000 },
   lcp: { good: 2500, needs_improvement: 4000 },
@@ -63,6 +71,7 @@ class RealTimePerformanceMonitor {
   private metrics: PerformanceMetrics = {};
   private observers: PerformanceObserver[] = [];
   private callbacks: Array<(metrics: PerformanceMetrics) => void> = [];
+  private navigationLoadHandler?: () => void;
   constructor() {
     if (typeof window !== 'undefined') {
       this.initializeObservers();
@@ -81,7 +90,7 @@ class RealTimePerformanceMonitor {
       });
       paintObserver.observe({ entryTypes: ['paint'] });
       this.observers.push(paintObserver);
-    } catch (error) {
+    } catch {
     }
     // Observe LCP
     try {
@@ -92,7 +101,7 @@ class RealTimePerformanceMonitor {
       });
       lcpObserver.observe({ entryTypes: ['largest-contentful-paint'] });
       this.observers.push(lcpObserver);
-    } catch (error) {
+    } catch {
     }
     // Observe FID
     try {
@@ -104,7 +113,7 @@ class RealTimePerformanceMonitor {
       });
       fidObserver.observe({ entryTypes: ['first-input'] });
       this.observers.push(fidObserver);
-    } catch (error) {
+    } catch {
     }
     // Observe CLS
     try {
@@ -120,7 +129,7 @@ class RealTimePerformanceMonitor {
       });
       clsObserver.observe({ entryTypes: ['layout-shift'] });
       this.observers.push(clsObserver);
-    } catch (error) {
+    } catch {
     }
     // Observe navigation timing
     this.observeNavigationTiming();
@@ -138,7 +147,8 @@ class RealTimePerformanceMonitor {
       if (document.readyState === 'complete') {
         updateNavigationMetrics();
       } else {
-        window.addEventListener('load', updateNavigationMetrics);
+        this.navigationLoadHandler = updateNavigationMetrics;
+        window.addEventListener('load', updateNavigationMetrics, { once: true });
       }
     }
   }
@@ -146,13 +156,13 @@ class RealTimePerformanceMonitor {
   private startMemoryMonitoring() {
     const checkMemory = () => {
       try {
-        if ('memory' in performance) {
-          const memInfo = (performance as any).memory;
-          if (memInfo && typeof memInfo.usedJSHeapSize === 'number') {
+        const memInfo = (performance as PerformanceWithMemory).memory;
+        if (memInfo) {
+          if (typeof memInfo.usedJSHeapSize === 'number') {
             this.updateMetric('memoryUsage', memInfo.usedJSHeapSize);
           }
         }
-      } catch (error) {
+      } catch {
       }
     };
     checkMemory();
@@ -188,6 +198,10 @@ class RealTimePerformanceMonitor {
     if (this.memoryCheckInterval) {
       clearInterval(this.memoryCheckInterval);
       this.memoryCheckInterval = undefined;
+    }
+    if (this.navigationLoadHandler) {
+      window.removeEventListener('load', this.navigationLoadHandler);
+      this.navigationLoadHandler = undefined;
     }
   }
 }
@@ -395,14 +409,18 @@ export const PerformanceDashboard = memo(function PerformanceDashboard({
 export const PerformanceOverlay = memo(function PerformanceOverlay() {
   const [isVisible, setIsVisible] = useState(false);
   useEffect(() => {
+    if (process.env.NODE_ENV !== 'development') {
+      return;
+    }
+
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.ctrlKey && e.shiftKey && e.key === 'P') {
-        setIsVisible(!isVisible);
+        setIsVisible((current) => !current);
       }
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isVisible]);
+  }, []);
   if (process.env.NODE_ENV !== 'development' || !isVisible) {
     return null;
   }

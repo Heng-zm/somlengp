@@ -28,7 +28,10 @@ const customJestConfig = {
     '<rootDir>/.next/',
     '<rootDir>/node_modules/',
   ],
-  modulePathIgnorePatterns: ['<rootDir>/dist/'],
+  modulePathIgnorePatterns: [
+    '<rootDir>/.next/',
+    '<rootDir>/dist/',
+  ],
   transformIgnorePatterns: [
     '/node_modules/(?!(lucide-react)/)',
   ],

@@ -2,10 +2,12 @@
 import { createContext } from 'react';
 import type { Language } from '@/lib/translations';
 
+export type Theme = 'light' | 'dark';
+
 interface LanguageContextType {
     language: Language;
     toggleLanguage: () => void;
-    theme: string;
+    theme: Theme;
     toggleTheme: () => void;
 }
 

@@ -70,6 +70,7 @@ const HomePageComponent = function HomePage() {
         description: t('smartAiChatDesc'),
         icon: Sparkles,
         category: 'ai',
+        keywords: ['ask', 'chat', 'write', 'brainstorm', 'assistant'],
       },
       {
         href: '/voice-transcript',
@@ -77,6 +78,7 @@ const HomePageComponent = function HomePage() {
         description: t('voiceToTextDesc'),
         icon: Mic,
         category: 'audio',
+        keywords: ['transcribe', 'speech to text', 'recording', 'notes'],
       },
       {
         href: '/text-to-speech',
@@ -84,6 +86,7 @@ const HomePageComponent = function HomePage() {
         description: t('textReaderDesc'),
         icon: AudioLines,
         category: 'audio',
+        keywords: ['text to speech', 'read aloud', 'voice', 'listen'],
       },
       {
         href: '/pdf-transcript',
@@ -91,6 +94,7 @@ const HomePageComponent = function HomePage() {
         description: t('pdfReaderDesc'),
         icon: FileText,
         category: 'documents',
+        keywords: ['extract PDF', 'PDF text', 'read document'],
       },
       {
         href: '/combine-pdf',
@@ -98,6 +102,7 @@ const HomePageComponent = function HomePage() {
         description: t('pdfMergerDesc'),
         icon: Combine,
         category: 'documents',
+        keywords: ['merge PDF', 'join PDF', 'combine files'],
       },
       {
         href: '/image-to-pdf',
@@ -105,6 +110,7 @@ const HomePageComponent = function HomePage() {
         description: t('imageToPdfDesc'),
         icon: ImageIcon,
         category: 'documents',
+        keywords: ['photo PDF', 'picture document', 'convert photo'],
       },
       {
         href: '/convert-image-format',
@@ -112,6 +118,7 @@ const HomePageComponent = function HomePage() {
         description: t('imageConverterDesc'),
         icon: Wand2,
         category: 'documents',
+        keywords: ['JPG', 'PNG', 'WebP', 'convert image'],
       },
       {
         href: '/generate-qr-code',
@@ -119,6 +126,7 @@ const HomePageComponent = function HomePage() {
         description: t('qrGeneratorDesc'),
         icon: QrCode,
         category: 'utilities',
+        keywords: ['create QR', 'make QR', 'link code'],
       },
       {
         href: '/scanner',
@@ -127,6 +135,7 @@ const HomePageComponent = function HomePage() {
           'Scan a QR code with your camera or upload an image to read it.',
         icon: ScanLine,
         category: 'utilities',
+        keywords: ['read QR', 'camera QR', 'upload QR'],
       },
       {
         href: '/password-generator',
@@ -134,9 +143,15 @@ const HomePageComponent = function HomePage() {
         description: t('passwordGenDesc'),
         icon: Shield,
         category: 'utilities',
+        keywords: ['secure password', 'random password', 'credentials'],
       },
     ],
     [t]
+  );
+
+  const availableToolHrefs = useMemo(
+    () => new Set(tools.map((tool) => tool.href)),
+    [tools]
   );
 
   useEffect(() => {
@@ -146,7 +161,12 @@ const HomePageComponent = function HomePage() {
       );
       if (Array.isArray(savedFavorites)) {
         setFavoriteHrefs(
-          new Set(savedFavorites.filter((href): href is string => typeof href === 'string'))
+          new Set(
+            savedFavorites.filter(
+              (href): href is string =>
+                typeof href === 'string' && availableToolHrefs.has(href)
+            )
+          )
         );
       }
     } catch {
@@ -154,14 +174,19 @@ const HomePageComponent = function HomePage() {
     } finally {
       setFavoritesLoaded(true);
     }
-  }, []);
+  }, [availableToolHrefs]);
 
   useEffect(() => {
     if (!favoritesLoaded) return;
-    localStorage.setItem(
-      FAVORITES_STORAGE_KEY,
-      JSON.stringify(Array.from(favoriteHrefs))
-    );
+
+    try {
+      localStorage.setItem(
+        FAVORITES_STORAGE_KEY,
+        JSON.stringify(Array.from(favoriteHrefs))
+      );
+    } catch {
+      // Favorites continue to work in memory when storage is unavailable.
+    }
   }, [favoriteHrefs, favoritesLoaded]);
 
   const toggleFavorite = useCallback((href: string) => {
@@ -177,7 +202,11 @@ const HomePageComponent = function HomePage() {
   }, []);
 
   const filteredTools = useMemo(() => {
-    const query = deferredQuery.trim().toLocaleLowerCase();
+    const queryTerms = deferredQuery
+      .trim()
+      .toLocaleLowerCase()
+      .split(/\s+/)
+      .filter(Boolean);
 
     return tools
       .filter((tool) => {
@@ -190,9 +219,17 @@ const HomePageComponent = function HomePage() {
         return true;
       })
       .filter((tool) => {
-        if (!query) return true;
-        return [tool.title, tool.description, tool.category].some((value) =>
-          value.toLocaleLowerCase().includes(query)
+        if (queryTerms.length === 0) return true;
+        const searchText = [
+          tool.title,
+          tool.description,
+          tool.category,
+          ...(tool.keywords ?? []),
+        ]
+          .join(' ')
+          .toLocaleLowerCase();
+        return queryTerms.every((term) =>
+          searchText.includes(term)
         );
       })
       .sort((a, b) => {

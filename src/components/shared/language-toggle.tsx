@@ -19,12 +19,13 @@ interface LanguageToggleProps {
 }
 
 export function LanguageToggle({ variant = 'button', className }: LanguageToggleProps) {
-  const { language, toggleLanguage, t, isKhmer, isEnglish } = useLanguage();
+  const { language, toggleLanguage, isKhmer, isEnglish } = useLanguage();
 
   // For minimal variant (just toggle without dropdown)
   if (variant === 'minimal') {
     return (
       <button
+        type="button"
         onClick={toggleLanguage}
         className={cn(
           'flex items-center gap-2 px-3 py-1.5 text-sm font-medium rounded-md transition-colors',
@@ -33,6 +34,7 @@ export function LanguageToggle({ variant = 'button', className }: LanguageToggle
           className
         )}
         title={`Switch to ${isKhmer ? 'English' : 'ភាសាខ្មែរ'}`}
+        aria-label={`Switch language to ${isKhmer ? 'English' : 'Khmer'}`}
       >
         <Languages className="h-4 w-4" />
         <span className="hidden sm:inline">
@@ -46,6 +48,7 @@ export function LanguageToggle({ variant = 'button', className }: LanguageToggle
   if (variant === 'sidebar') {
     return (
       <button
+        type="button"
         onClick={toggleLanguage}
         className={cn(
           'flex items-center gap-3 px-3 py-2 w-full text-left text-sm font-medium rounded-lg transition-colors',
@@ -54,6 +57,7 @@ export function LanguageToggle({ variant = 'button', className }: LanguageToggle
           className
         )}
         title={`Switch to ${isKhmer ? 'English' : 'ភាសាខ្មែរ'}`}
+        aria-label={`Switch language to ${isKhmer ? 'English' : 'Khmer'}`}
       >
         <Globe className="h-4 w-4 flex-shrink-0" />
         <div className="flex items-center justify-between w-full">

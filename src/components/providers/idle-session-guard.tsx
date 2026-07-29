@@ -1,212 +1,352 @@
 "use client";
 
-import { useEffect, useRef, useState, useMemo, useCallback } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 
 interface RouteTimeout {
-  prefix: string; // e.g. "/checkout"
+  prefix: string;
   timeoutMs: number;
 }
 
 interface IdleSessionGuardProps {
+  enabled?: boolean;
   timeoutMs?: number;
   warnMs?: number;
   redirectPath?: string;
-  pingMs?: number; // keep-alive interval when active
-  pollMs?: number; // server state poll interval
-  routeTimeouts?: RouteTimeout[];
-  roleTimeouts?: Record<string, number>; // e.g. { admin: 30*60*1000, user: 10*60*1000 }
+  pingMs?: number;
+  pollMs?: number;
+  routeTimeouts?: readonly RouteTimeout[];
+  roleTimeouts?: Readonly<Record<string, number>>;
 }
 
-// Monitors user activity and redirects to home after inactivity, clearing client session
-export function IdleSessionGuard({ timeoutMs = 10 * 60 * 1000, warnMs = 60 * 1000, redirectPath = "/", pingMs = 5 * 60 * 1000, pollMs = 30 * 1000, routeTimeouts = [], roleTimeouts = {} }: IdleSessionGuardProps) {
+interface ActivityMessage {
+  forceLogout?: boolean;
+  t?: number;
+}
+
+const EMPTY_ROUTE_TIMEOUTS: readonly RouteTimeout[] = [];
+const EMPTY_ROLE_TIMEOUTS: Readonly<Record<string, number>> = {};
+const ACTIVITY_THROTTLE_MS = 1_000;
+const MANUAL_ACTIVITY_EVENT = "somleng:activity";
+
+export function IdleSessionGuard({
+  enabled = true,
+  timeoutMs = 10 * 60 * 1000,
+  warnMs = 60 * 1000,
+  redirectPath = "/",
+  pingMs = 5 * 60 * 1000,
+  pollMs = 30 * 1000,
+  routeTimeouts = EMPTY_ROUTE_TIMEOUTS,
+  roleTimeouts = EMPTY_ROLE_TIMEOUTS,
+}: IdleSessionGuardProps) {
   const router = useRouter();
   const timeoutRef = useRef<number | null>(null);
   const tickerRef = useRef<number | null>(null);
-  const lastActivityRef = useRef<number>(Date.now());
+  const lastActivityRef = useRef(Date.now());
+  const lastHandledActivityRef = useRef(0);
+  const lastPingRef = useRef(0);
+  const warningVisibleRef = useRef(false);
   const channelRef = useRef<BroadcastChannel | null>(null);
-  const [remainingMs, setRemainingMs] = useState<number>(timeoutMs);
+  const [remainingMs, setRemainingMs] = useState(timeoutMs);
   const [showWarn, setShowWarn] = useState(false);
   const [role, setRole] = useState<string | null>(null);
-  const [effectiveTimeout, setEffectiveTimeout] = useState<number>(timeoutMs);
-  const lastPingRef = useRef<number>(0);
+
+  const getEffectiveTimeout = useCallback(() => {
+    let result = timeoutMs;
+
+    if (role && roleTimeouts[role]) {
+      result = roleTimeouts[role];
+    }
+
+    const path = typeof window === "undefined" ? "/" : window.location.pathname;
+    const routeTimeout = routeTimeouts.find(({ prefix }) =>
+      path.startsWith(prefix)
+    );
+
+    return routeTimeout?.timeoutMs ?? result;
+  }, [role, roleTimeouts, routeTimeouts, timeoutMs]);
 
   const clearClientSession = useCallback(async () => {
-    try { sessionStorage.clear(); } catch {}
-    try { localStorage.clear(); } catch {}
-    // Attempt NextAuth sign-out if available
+    // Keep user preferences and working data. Only remove metadata owned by
+    // this guard; authentication libraries clear their own cookies/tokens.
     try {
-      const mod = await import("next-auth/react").catch(() => null as any);
-      if (mod?.signOut) {
-        await mod.signOut({ redirect: false });
-      }
-    } catch {}
-    try { channelRef.current?.postMessage({ forceLogout: true }); } catch {}
+      localStorage.removeItem("__last_activity");
+    } catch {
+      // Storage may be unavailable.
+    }
+
+    try {
+      const auth = await import("next-auth/react").catch(() => null);
+      await auth?.signOut?.({ redirect: false });
+    } catch {
+      // NextAuth is optional in this application.
+    }
+
+    try {
+      channelRef.current?.postMessage({ forceLogout: true });
+    } catch {
+      // BroadcastChannel is optional.
+    }
   }, []);
 
-  useEffect(() => {
-    // Sync across tabs via BroadcastChannel (fallback to storage events)
-    try { channelRef.current = new BroadcastChannel("idle-activity"); } catch {}
+  const performLogout = useCallback(async () => {
+    await clearClientSession();
 
-    const chooseTimeout = () => {
-      const path = typeof window !== 'undefined' ? window.location.pathname : '/';
-      let t = timeoutMs;
-      // role overrides if provided
-      if (role && roleTimeouts[role]) t = roleTimeouts[role]!;
-      // route-specific override
-      const rt = routeTimeouts.find(r => path.startsWith(r.prefix));
-      if (rt) t = rt.timeoutMs;
-      setEffectiveTimeout(t);
-      return t;
+    try {
+      await fetch("/api/session/revoke", { method: "POST" });
+    } catch {
+      // Continue with the local redirect if the network is unavailable.
+    }
+
+    try {
+      window.location.replace(redirectPath);
+    } catch {
+      router.replace(redirectPath);
+    }
+  }, [clearClientSession, redirectPath, router]);
+
+  useEffect(() => {
+    if (!enabled) return;
+
+    try {
+      channelRef.current = new BroadcastChannel("idle-activity");
+    } catch {
+      channelRef.current = null;
+    }
+
+    const setWarningVisibility = (remaining: number) => {
+      const shouldWarn = remaining <= warnMs;
+
+      if (shouldWarn) {
+        setRemainingMs(remaining);
+      }
+
+      if (warningVisibleRef.current !== shouldWarn) {
+        warningVisibleRef.current = shouldWarn;
+        setShowWarn(shouldWarn);
+      }
     };
 
     const handleIdle = async () => {
-      // Double-check based on last activity timestamp to avoid false triggers
-      const now = Date.now();
-      const last = lastActivityRef.current;
-      if (now - last < effectiveTimeout - 1000) return;
+      const effectiveTimeout = getEffectiveTimeout();
+      const elapsed = Date.now() - lastActivityRef.current;
 
-      await clearClientSession();
-      try { await fetch('/api/session/revoke', { method: 'POST' }).catch(() => {}); } catch {}
-      // Hard redirect to ensure a full reload and session refresh
-      try {
-        window.location.replace(redirectPath);
-      } catch {
-        router.replace(redirectPath);
-      }
-    };
-
-    const updateActivity = () => {
-      lastActivityRef.current = Date.now();
-      try { localStorage.setItem("__last_activity", String(lastActivityRef.current)); } catch {}
-      try { channelRef.current?.postMessage({ t: lastActivityRef.current }); } catch {}
-      if (timeoutRef.current) window.clearTimeout(timeoutRef.current);
-      const t = chooseTimeout();
-      timeoutRef.current = window.setTimeout(() => handleIdle(), t);
-      setShowWarn(false);
-      setRemainingMs(t);
-
-      // keep-alive ping
-      const now = Date.now();
-      if (now - (lastPingRef.current || 0) >= pingMs - 5000) {
-        lastPingRef.current = now;
-        fetch('/api/session/extend', { method: 'POST' }).catch(() => {});
-      }
-    };
-
-    // heartbeat ticker for countdown + warn UI
-    const startTicker = () => {
-      if (tickerRef.current) window.clearInterval(tickerRef.current);
-      tickerRef.current = window.setInterval(() => {
-        const t = effectiveTimeout;
-        const rem = Math.max(0, t - (Date.now() - lastActivityRef.current));
-        setRemainingMs(rem);
-        setShowWarn(rem <= warnMs);
-      }, 1000);
-    };
-
-    // Initial schedule
-    chooseTimeout();
-    updateActivity();
-    startTicker();
-
-    const onVisibility = () => { if (document.visibilityState === "visible") updateActivity(); };
-
-    const events: Array<[keyof DocumentEventMap, EventListener]> = [
-      ["mousemove", updateActivity as unknown as EventListener],
-      ["mousedown", updateActivity as unknown as EventListener],
-      ["keydown", updateActivity as unknown as EventListener],
-      ["wheel", updateActivity as unknown as EventListener],
-      ["touchstart", updateActivity as unknown as EventListener],
-      ["scroll", updateActivity as unknown as EventListener],
-      ["visibilitychange", onVisibility as unknown as EventListener],
-    ];
-
-    events.forEach(([type, handler]) => document.addEventListener(type, handler, { passive: true } as AddEventListenerOptions));
-
-    const onStorage = (e: StorageEvent) => {
-      if (e.key === "__last_activity" && e.newValue) {
-        const v = Number(e.newValue);
-        if (!Number.isNaN(v)) {
-          lastActivityRef.current = v;
-          if (timeoutRef.current) window.clearTimeout(timeoutRef.current);
-          const t = effectiveTimeout;
-          const remaining = Math.max(0, t - (Date.now() - v));
-          timeoutRef.current = window.setTimeout(() => handleIdle(), remaining || 0);
-        }
-      }
-    };
-    window.addEventListener("storage", onStorage);
-
-    const onBC = (msg: MessageEvent) => {
-      const data: any = msg?.data || {};
-      if (data?.forceLogout) {
-        handleIdle();
+      if (elapsed < effectiveTimeout - 1000) {
+        const remaining = Math.max(0, effectiveTimeout - elapsed);
+        timeoutRef.current = window.setTimeout(handleIdle, remaining);
         return;
       }
-      const v = Number(data?.t);
-      if (!Number.isNaN(v)) {
-        lastActivityRef.current = v;
-        if (timeoutRef.current) window.clearTimeout(timeoutRef.current);
-        const t = effectiveTimeout;
-        const remaining = Math.max(0, t - (Date.now() - v));
-        timeoutRef.current = window.setTimeout(() => handleIdle(), remaining || 0);
+
+      await performLogout();
+    };
+
+    const scheduleIdleCheck = (activityAt: number) => {
+      if (timeoutRef.current !== null) {
+        window.clearTimeout(timeoutRef.current);
+      }
+
+      const remaining = Math.max(
+        0,
+        getEffectiveTimeout() - (Date.now() - activityAt)
+      );
+      timeoutRef.current = window.setTimeout(handleIdle, remaining);
+    };
+
+    const updateActivity = (force = false) => {
+      const now = Date.now();
+      if (
+        !force &&
+        now - lastHandledActivityRef.current < ACTIVITY_THROTTLE_MS
+      ) {
+        return;
+      }
+
+      lastHandledActivityRef.current = now;
+      lastActivityRef.current = now;
+      scheduleIdleCheck(now);
+      setWarningVisibility(getEffectiveTimeout());
+
+      try {
+        localStorage.setItem("__last_activity", String(now));
+      } catch {
+        // Cross-tab storage sync is optional.
+      }
+
+      try {
+        channelRef.current?.postMessage({ t: now });
+      } catch {
+        // BroadcastChannel sync is optional.
+      }
+
+      if (now - lastPingRef.current >= pingMs) {
+        lastPingRef.current = now;
+        fetch("/api/session/extend", { method: "POST" }).catch(() => {});
       }
     };
-    channelRef.current?.addEventListener("message", onBC as any);
+
+    const syncExternalActivity = (activityAt: number) => {
+      if (!Number.isFinite(activityAt)) return;
+      lastActivityRef.current = activityAt;
+      scheduleIdleCheck(activityAt);
+      const remaining = Math.max(
+        0,
+        getEffectiveTimeout() - (Date.now() - activityAt)
+      );
+      setWarningVisibility(remaining);
+    };
+
+    const onActivity = () => updateActivity();
+    const onVisibility = () => {
+      if (document.visibilityState === "visible") {
+        updateActivity(true);
+      }
+    };
+    const onStorage = (event: StorageEvent) => {
+      if (event.key === "__last_activity" && event.newValue) {
+        syncExternalActivity(Number(event.newValue));
+      }
+    };
+    const onBroadcast = (event: MessageEvent<ActivityMessage>) => {
+      if (event.data?.forceLogout) {
+        void performLogout();
+        return;
+      }
+
+      if (typeof event.data?.t === "number") {
+        syncExternalActivity(event.data.t);
+      }
+    };
+
+    const activityEvents: Array<keyof DocumentEventMap> = [
+      "mousemove",
+      "mousedown",
+      "keydown",
+      "wheel",
+      "touchstart",
+      "scroll",
+    ];
+
+    updateActivity(true);
+    tickerRef.current = window.setInterval(() => {
+      const remaining = Math.max(
+        0,
+        getEffectiveTimeout() - (Date.now() - lastActivityRef.current)
+      );
+      setWarningVisibility(remaining);
+    }, 1000);
+
+    activityEvents.forEach((type) =>
+      document.addEventListener(type, onActivity, { passive: true })
+    );
+    document.addEventListener("visibilitychange", onVisibility);
+    window.addEventListener("storage", onStorage);
+    window.addEventListener(MANUAL_ACTIVITY_EVENT, onActivity);
+    channelRef.current?.addEventListener("message", onBroadcast);
 
     return () => {
-      events.forEach(([type, handler]) => document.removeEventListener(type, handler));
+      activityEvents.forEach((type) =>
+        document.removeEventListener(type, onActivity)
+      );
+      document.removeEventListener("visibilitychange", onVisibility);
       window.removeEventListener("storage", onStorage);
-      try { channelRef.current?.removeEventListener("message", onBC as any); } catch {}
-      timeoutRef.current && window.clearTimeout(timeoutRef.current);
-      tickerRef.current && window.clearInterval(tickerRef.current);
-      try { channelRef.current?.close(); } catch {}
+      window.removeEventListener(MANUAL_ACTIVITY_EVENT, onActivity);
+      channelRef.current?.removeEventListener("message", onBroadcast);
+
+      if (timeoutRef.current !== null) {
+        window.clearTimeout(timeoutRef.current);
+      }
+      if (tickerRef.current !== null) {
+        window.clearInterval(tickerRef.current);
+      }
+
+      channelRef.current?.close();
+      channelRef.current = null;
     };
-  }, [router, timeoutMs, warnMs, redirectPath, clearClientSession, pingMs, routeTimeouts, roleTimeouts, effectiveTimeout]);
+  }, [
+    enabled,
+    getEffectiveTimeout,
+    performLogout,
+    pingMs,
+    warnMs,
+  ]);
 
-  const minutes = Math.floor(remainingMs / 60000);
-  const seconds = Math.floor((remainingMs % 60000) / 1000).toString().padStart(2, '0');
-
-  // Poll server state for force-logout and role updates
   useEffect(() => {
+    if (!enabled) return;
+
     let timer: number | null = null;
+    let controller: AbortController | null = null;
+
     const poll = async () => {
+      if (document.visibilityState === "hidden") return;
+
+      controller?.abort();
+      controller = new AbortController();
+
       try {
-        if (typeof document !== 'undefined' && document.visibilityState === 'hidden') return;
-        const r = await fetch('/api/session/state', { headers: { 'cache-control': 'no-store' } });
-        const j = await r.json().catch(() => ({}));
-        if (j?.forceLogout) {
-          // Trigger idle sequence immediately
-          lastActivityRef.current = Date.now() - (effectiveTimeout + 1000);
+        const response = await fetch("/api/session/state", {
+          cache: "no-store",
+          signal: controller.signal,
+        });
+        if (!response.ok) return;
+
+        const state = (await response.json()) as {
+          forceLogout?: boolean;
+          role?: string | null;
+        };
+
+        if (state.forceLogout) {
+          await performLogout();
+          return;
         }
-        if (j?.role && j.role !== role) {
-          setRole(j.role);
-        }
-      } catch {}
+
+        setRole((current) =>
+          state.role && state.role !== current ? state.role : current
+        );
+      } catch {
+        // Polling is best-effort and resumes on the next interval.
+      }
     };
-    poll();
-    timer = window.setInterval(poll, pollMs);
-    return () => { if (timer) window.clearInterval(timer); };
-  }, [pollMs, effectiveTimeout, role]);
+
+    void poll();
+    timer = window.setInterval(() => void poll(), pollMs);
+
+    return () => {
+      controller?.abort();
+      if (timer !== null) {
+        window.clearInterval(timer);
+      }
+    };
+  }, [enabled, performLogout, pollMs]);
 
   const staySignedIn = useCallback(() => {
-    // manual activity ping
-    try { localStorage.setItem("__last_activity", String(Date.now())); } catch {}
-    // also dispatch a small event locally
-    window.dispatchEvent(new Event('mousemove'));
+    window.dispatchEvent(new Event(MANUAL_ACTIVITY_EVENT));
   }, []);
 
-  return showWarn ? (
-    <div className="fixed bottom-4 left-1/2 -translate-x-1/2 z-[1000] px-4 py-2 rounded-full shadow-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-black text-gray-800 dark:text-gray-100 flex items-center gap-3">
-      <span className="text-sm">Inactive – redirecting home in {minutes}:{seconds}. Click to stay signed in.</span>
+  if (!enabled || !showWarn) {
+    return null;
+  }
+
+  const minutes = Math.floor(remainingMs / 60000);
+  const seconds = Math.floor((remainingMs % 60000) / 1000)
+    .toString()
+    .padStart(2, "0");
+
+  return (
+    <div
+      role="status"
+      aria-live="polite"
+      className="fixed bottom-4 left-1/2 z-[1000] flex w-[min(92vw,34rem)] -translate-x-1/2 items-center justify-between gap-3 rounded-2xl border border-slate-200 bg-white px-4 py-3 text-slate-800 shadow-lg dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
+    >
+      <span className="text-sm">
+        Inactive — signing out in {minutes}:{seconds}.
+      </span>
       <button
+        type="button"
         onClick={staySignedIn}
-        className="px-3 py-1 text-sm rounded-full border border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-800"
-        aria-label="Stay signed in"
+        className="shrink-0 rounded-xl bg-slate-950 px-3 py-2 text-sm font-semibold text-white hover:bg-slate-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 dark:bg-white dark:text-slate-950 dark:hover:bg-slate-200"
       >
         Stay signed in
       </button>
     </div>
-  ) : null;
+  );
 }

@@ -414,6 +414,7 @@ describe('useHistory Hook', () => {
       
       expect(result.current.history).toEqual([]);
       expect(result.current.error).toBeTruthy();
+      expect(localStorageMock.getItem('voiceScribeFeatureHistory')).toBeNull();
     });
   });
 
