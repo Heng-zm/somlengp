@@ -1,230 +1,443 @@
-
 'use client';
-import { useMemo, useState, useEffect, useCallback, useDeferredValue, memo } from 'react';
-// Optimized individual icon imports for better tree shaking
-import { 
-  Mic, 
-  FileText, 
-  Combine, 
-  Image as ImageIcon, 
-  Wand2, 
-  AudioLines, 
-  Sparkles, 
-  QrCode, 
+
+import {
+  memo,
+  useCallback,
+  useDeferredValue,
+  useEffect,
+  useMemo,
+  useState,
+} from 'react';
+import Link from 'next/link';
+import {
+  ArrowRight,
+  AudioLines,
+  Clock3,
+  Combine,
+  FileText,
+  History,
+  Image as ImageIcon,
+  Mic,
+  QrCode,
+  ScanLine,
   Shield,
+  Sparkles,
+  Star,
+  Wand2,
 } from 'lucide-react';
 import { useLanguage } from '@/hooks/use-language';
-import { getPerformanceTracker, DEFAULT_BUDGETS } from '@/lib/performance-tracker';
-import { OptimizedFeatureGrid } from '@/components/home/optimized-feature-grid';
+import { useHistory } from '@/hooks/use-history';
+import {
+  OptimizedFeatureGrid,
+  type FeatureCardData,
+  type ToolCategory,
+} from '@/components/home/optimized-feature-grid';
 import { SearchToolBar } from '@/components/home/search-tool-bar';
-import { Card } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
 import { Footer } from '@/components/shared/footer';
-// Memory leak prevention: Timers need cleanup
-// Add cleanup in useEffect return function
+import { cn } from '@/lib/utils';
 
-const VISITOR_SESSION_KEY = 'ozo-designer-session-visited';
+const FAVORITES_STORAGE_KEY = 'somleng-favorite-tools';
+
+type CategoryFilter = 'all' | 'favorites' | ToolCategory;
+
+const categoryOptions: Array<{
+  value: CategoryFilter;
+  label: string;
+}> = [
+  { value: 'all', label: 'All tools' },
+  { value: 'favorites', label: 'Favorites' },
+  { value: 'ai', label: 'AI' },
+  { value: 'audio', label: 'Audio' },
+  { value: 'documents', label: 'Documents' },
+  { value: 'utilities', label: 'Utilities' },
+];
+
 const HomePageComponent = function HomePage() {
-  const [visitorCount, setVisitorCount] = useState<number | null>(null);
   const { t } = useLanguage();
-  // Optimized visitor count with caching and retry logic
-  const fetchVisitorCount = useMemo(() => {
-    let retryCount = 0;
-    const maxRetries = 3;
-    const cacheKey = 'visitor_count_cache';
-    const cacheExpiry = 5 * 60 * 1000; // 5 minutes
-    return async (isIncrement: boolean) => {
-      try {
-        // Check cache first for GET requests
-        if (!isIncrement && typeof window !== 'undefined') {
-          const cached = localStorage.getItem(cacheKey);
-          if (cached) {
-            const { count, timestamp } = JSON.parse(cached);
-            if (Date.now() - timestamp < cacheExpiry) {
-              setVisitorCount(count);
-              return;
-            }
-          }
-        }
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort('Request timeout after 5 seconds'), 5000);
-        // Memoized request options to prevent re-renders
-        const requestOptions = {
-          method: isIncrement ? 'POST' : 'GET',
-          signal: controller.signal,
-          headers: {
-            'Cache-Control': 'no-cache',
-          }
-        };
-        const response = await fetch('/api/visit', requestOptions);
-        clearTimeout(timeoutId);
-        if (!response.ok) {
-          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-        }
-        const data = await response.json();
-        if (data.success && typeof data.count === 'number') {
-          setVisitorCount(data.count);
-          // Cache the result for GET requests
-          if (!isIncrement && typeof window !== 'undefined') {
-            localStorage.setItem(cacheKey, JSON.stringify({
-              count: data.count,
-              timestamp: Date.now()
-            }));
-          }
-        } else {
-          throw new Error('Invalid response format');
-        }
-        retryCount = 0; // Reset on success
-      } catch (error) {
-        // Silently ignore abort errors (timeouts are expected)
-        if (error instanceof Error && error.name === 'AbortError') {
-          return;
-        }
-        console.error(`Failed to fetch visitor count (attempt ${retryCount + 1}):`, error);
-        if (retryCount < maxRetries && error instanceof Error) {
-          retryCount++;
-          const delay = Math.pow(2, retryCount) * 1000; // Exponential backoff
-          setTimeout(() => fetchVisitorCount(isIncrement), delay);
-          return;
-        }
-        // Fallback to cached data or default
-        if (!isIncrement && typeof window !== 'undefined') {
-          const cached = localStorage.getItem(cacheKey);
-          if (cached) {
-            const { count } = JSON.parse(cached);
-            setVisitorCount(count);
-          }
-        }
-      }
-    };
-  }, []);
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const hasVisited = sessionStorage.getItem(VISITOR_SESSION_KEY);
-      if (hasVisited) {
-        fetchVisitorCount(false);
-      } else {
-        fetchVisitorCount(true);
-        sessionStorage.setItem(VISITOR_SESSION_KEY, 'true');
-      }
-    }
-  }, [fetchVisitorCount]);
-  // Initialize performance tracking
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const tracker = getPerformanceTracker();
-      // Check performance budgets after page load
-      const budgetTimeout = setTimeout(() => {
-        const budgetCheck = tracker.checkBudget(DEFAULT_BUDGETS);
-        if (!budgetCheck.passed) {
-          // Performance budget exceeded - could log this or show warning
-          console.warn('Performance budget exceeded:', budgetCheck);
-        }
-      }, 2000);
-      return () => clearTimeout(budgetTimeout);
-    }
-  }, []);
-  const featureCards = useMemo(() => [
-    // Most popular tools first for better mobile UX
-    { href: '/ai-assistant', title: t('smartAiChat'), description: t('smartAiChatDesc'), icon: Sparkles },
-    { href: '/generate-qr-code', title: t('qrGenerator'), description: t('qrGeneratorDesc'), icon: QrCode },
-    { href: '/voice-transcript', title: t('voiceToText'), description: t('voiceToTextDesc'), icon: Mic },
-    { href: '/text-to-speech', title: t('textReader'), description: t('textReaderDesc'), icon: AudioLines },
-    // Screen and media tools
-    // Document tools
-    { href: '/pdf-transcript', title: t('pdfReader'), description: t('pdfReaderDesc'), icon: FileText },
-    { href: '/combine-pdf', title: t('pdfMerger'), description: t('pdfMergerDesc'), icon: Combine },
-    { href: '/image-to-pdf', title: t('imageToPdfTitle'), description: t('imageToPdfDesc'), icon: ImageIcon },
-    { href: '/convert-image-format', title: t('imageConverter'), description: t('imageConverterDesc'), icon: Wand2 },
-    // New useful tools
-    { href: '/password-generator', title: t('passwordGen'), description: t('passwordGenDesc'), icon: Shield },
-  ], [t]);
-  const primaryFeature = featureCards[0];
-  const otherFeatures = featureCards.slice(1);
-
-  // Search state and filtering for other tools
+  const { history, isLoaded: historyLoaded } = useHistory();
   const [searchQuery, setSearchQuery] = useState('');
+  const [activeCategory, setActiveCategory] =
+    useState<CategoryFilter>('all');
+  const [favoriteHrefs, setFavoriteHrefs] = useState<Set<string>>(new Set());
+  const [favoritesLoaded, setFavoritesLoaded] = useState(false);
   const deferredQuery = useDeferredValue(searchQuery);
-  const filteredOtherFeatures = useMemo(() => {
-    const q = deferredQuery.trim().toLowerCase();
-    if (!q) return otherFeatures;
-    return otherFeatures.filter((f) =>
-      [f.title, f.description].some((s) => s.toLowerCase().includes(q))
-    );
-  }, [otherFeatures, deferredQuery]);
 
-  const scrollToOtherTools = useCallback(() => {
-    const el = typeof document !== 'undefined' ? document.getElementById('other-tools') : null;
-    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  const tools = useMemo<FeatureCardData[]>(
+    () => [
+      {
+        href: '/ai-assistant',
+        title: t('smartAiChat'),
+        description: t('smartAiChatDesc'),
+        icon: Sparkles,
+        category: 'ai',
+      },
+      {
+        href: '/voice-transcript',
+        title: t('voiceToText'),
+        description: t('voiceToTextDesc'),
+        icon: Mic,
+        category: 'audio',
+      },
+      {
+        href: '/text-to-speech',
+        title: t('textReader'),
+        description: t('textReaderDesc'),
+        icon: AudioLines,
+        category: 'audio',
+      },
+      {
+        href: '/pdf-transcript',
+        title: t('pdfReader'),
+        description: t('pdfReaderDesc'),
+        icon: FileText,
+        category: 'documents',
+      },
+      {
+        href: '/combine-pdf',
+        title: t('pdfMerger'),
+        description: t('pdfMergerDesc'),
+        icon: Combine,
+        category: 'documents',
+      },
+      {
+        href: '/image-to-pdf',
+        title: t('imageToPdfTitle'),
+        description: t('imageToPdfDesc'),
+        icon: ImageIcon,
+        category: 'documents',
+      },
+      {
+        href: '/convert-image-format',
+        title: t('imageConverter'),
+        description: t('imageConverterDesc'),
+        icon: Wand2,
+        category: 'documents',
+      },
+      {
+        href: '/generate-qr-code',
+        title: t('qrGenerator'),
+        description: t('qrGeneratorDesc'),
+        icon: QrCode,
+        category: 'utilities',
+      },
+      {
+        href: '/scanner',
+        title: 'QR scanner',
+        description:
+          'Scan a QR code with your camera or upload an image to read it.',
+        icon: ScanLine,
+        category: 'utilities',
+      },
+      {
+        href: '/password-generator',
+        title: t('passwordGen'),
+        description: t('passwordGenDesc'),
+        icon: Shield,
+        category: 'utilities',
+      },
+    ],
+    [t]
+  );
+
+  useEffect(() => {
+    try {
+      const savedFavorites = JSON.parse(
+        localStorage.getItem(FAVORITES_STORAGE_KEY) ?? '[]'
+      );
+      if (Array.isArray(savedFavorites)) {
+        setFavoriteHrefs(
+          new Set(savedFavorites.filter((href): href is string => typeof href === 'string'))
+        );
+      }
+    } catch {
+      setFavoriteHrefs(new Set());
+    } finally {
+      setFavoritesLoaded(true);
+    }
   }, []);
 
-  // Smooth-scroll to results when user starts searching
   useEffect(() => {
-    if (searchQuery.trim()) scrollToOtherTools();
-  }, [searchQuery, scrollToOtherTools]);
+    if (!favoritesLoaded) return;
+    localStorage.setItem(
+      FAVORITES_STORAGE_KEY,
+      JSON.stringify(Array.from(favoriteHrefs))
+    );
+  }, [favoriteHrefs, favoritesLoaded]);
+
+  const toggleFavorite = useCallback((href: string) => {
+    setFavoriteHrefs((current) => {
+      const next = new Set(current);
+      if (next.has(href)) {
+        next.delete(href);
+      } else {
+        next.add(href);
+      }
+      return next;
+    });
+  }, []);
+
+  const filteredTools = useMemo(() => {
+    const query = deferredQuery.trim().toLocaleLowerCase();
+
+    return tools
+      .filter((tool) => {
+        if (activeCategory === 'favorites') {
+          return favoriteHrefs.has(tool.href);
+        }
+        if (activeCategory !== 'all') {
+          return tool.category === activeCategory;
+        }
+        return true;
+      })
+      .filter((tool) => {
+        if (!query) return true;
+        return [tool.title, tool.description, tool.category].some((value) =>
+          value.toLocaleLowerCase().includes(query)
+        );
+      })
+      .sort((a, b) => {
+        const favoriteDifference =
+          Number(favoriteHrefs.has(b.href)) - Number(favoriteHrefs.has(a.href));
+        return favoriteDifference || tools.indexOf(a) - tools.indexOf(b);
+      });
+  }, [activeCategory, deferredQuery, favoriteHrefs, tools]);
+
+  const recentTools = useMemo(() => {
+    if (!historyLoaded) return [];
+
+    const usedHrefs = new Set<string>();
+    return history
+      .map((item) => tools.find((tool) => tool.href === item.href))
+      .filter((tool): tool is FeatureCardData => {
+        if (!tool || usedHrefs.has(tool.href)) return false;
+        usedHrefs.add(tool.href);
+        return true;
+      })
+      .slice(0, 3);
+  }, [history, historyLoaded, tools]);
+
+  const quickActions = [tools[0], tools[1], tools[7]];
+
   return (
-    <div className="flex min-h-[calc(100dvh-4rem)] flex-col bg-slate-50 dark:bg-slate-950 lg:min-h-dvh">
-      <div className="mx-auto w-full max-w-[1600px] flex-1 px-4 py-6 sm:px-6 sm:py-8 lg:px-8 lg:py-10">
-        <section className="relative overflow-hidden rounded-2xl border border-slate-200 bg-white px-5 py-8 shadow-sm dark:border-slate-800 dark:bg-slate-900 sm:px-8 sm:py-10 lg:px-12 lg:py-14">
-          <div
-            className="pointer-events-none absolute inset-y-0 right-0 hidden w-1/2 bg-[radial-gradient(circle_at_center,_rgba(59,130,246,0.14),_transparent_65%)] lg:block"
-            aria-hidden="true"
-          />
-          <div className="relative max-w-3xl">
-            <div className="mb-5 flex flex-wrap items-center gap-3">
-              <span className="inline-flex items-center rounded-full bg-blue-50 px-3 py-1 text-xs font-semibold text-blue-700 ring-1 ring-inset ring-blue-700/10 dark:bg-blue-500/10 dark:text-blue-300 dark:ring-blue-400/20">
+    <div className="flex min-h-[calc(100dvh-4rem)] flex-col bg-[#f7f8fb] dark:bg-slate-950 lg:min-h-dvh">
+      <div className="mx-auto w-full max-w-[1480px] flex-1 px-4 py-6 sm:px-6 sm:py-8 lg:px-10 lg:py-10">
+        <section className="overflow-hidden rounded-[28px] border border-slate-200/80 bg-slate-950 text-white dark:border-slate-800 dark:bg-slate-900">
+          <div className="grid lg:grid-cols-[minmax(0,1.45fr)_minmax(19rem,0.55fr)]">
+            <div className="px-5 py-8 sm:px-8 sm:py-10 lg:px-12 lg:py-12">
+              <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-[0.18em] text-indigo-300">
+                <span className="h-2 w-2 rounded-full bg-indigo-400" />
                 Somleng workspace
-              </span>
-              {visitorCount !== null && (
-                <span className="text-xs font-medium text-slate-500 dark:text-slate-400">
-                  {visitorCount.toLocaleString()} people have used these tools
-                </span>
-              )}
+              </div>
+              <h1 className="mt-5 max-w-3xl text-3xl font-bold tracking-[-0.035em] text-white sm:text-4xl lg:text-[2.75rem] lg:leading-[1.08]">
+                What would you like to get done?
+              </h1>
+              <p className="mt-4 max-w-2xl text-sm leading-6 text-slate-300 sm:text-base sm:leading-7">
+                Find the right tool for audio, documents, QR codes, images, or
+                everyday AI work.
+              </p>
+
+              <div className="mt-7 max-w-3xl">
+                <SearchToolBar
+                  value={searchQuery}
+                  onChange={setSearchQuery}
+                  placeholder="Try “merge PDF” or “transcribe audio”"
+                />
+              </div>
             </div>
-            <h1 className="max-w-2xl text-3xl font-bold tracking-tight text-slate-950 dark:text-white sm:text-4xl lg:text-5xl">
-              Create, convert, and communicate from one workspace.
-            </h1>
-            <p className="mt-4 max-w-2xl text-base leading-7 text-slate-600 dark:text-slate-300 sm:text-lg">
-              AI, voice, QR, image, and PDF utilities designed to help you finish everyday work faster.
-            </p>
-            <div className="mt-7 max-w-2xl">
-              <SearchToolBar
-                value={searchQuery}
-                onChange={setSearchQuery}
-                onSubmit={scrollToOtherTools}
-              />
+
+            <div className="border-t border-white/10 bg-white/[0.04] p-5 lg:border-l lg:border-t-0 lg:p-8">
+              <p className="text-xs font-bold uppercase tracking-[0.16em] text-slate-400">
+                Quick start
+              </p>
+              <div className="mt-4 space-y-2">
+                {quickActions.map((tool) => (
+                  <Link
+                    key={tool.href}
+                    href={tool.href}
+                    className="group flex items-center gap-3 rounded-2xl border border-white/10 bg-white/[0.04] p-3.5 transition hover:border-white/20 hover:bg-white/[0.08] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400"
+                  >
+                    <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white/10 text-indigo-200">
+                      <tool.icon className="h-5 w-5" aria-hidden="true" />
+                    </span>
+                    <span className="min-w-0 flex-1">
+                      <span className="block truncate text-sm font-semibold text-white">
+                        {tool.title}
+                      </span>
+                      <span className="mt-0.5 block text-xs text-slate-400">
+                        Open tool
+                      </span>
+                    </span>
+                    <ArrowRight
+                      className="h-4 w-4 text-slate-500 transition-transform group-hover:translate-x-0.5 group-hover:text-white"
+                      aria-hidden="true"
+                    />
+                  </Link>
+                ))}
+              </div>
             </div>
           </div>
         </section>
 
-        <div className="mt-8 space-y-8 lg:mt-10 lg:space-y-10">
-          {filteredOtherFeatures.length === 0 ? (
-            <Card className="flex items-center justify-between gap-4 p-5">
-              <div>
-                <h2 className="text-base font-semibold text-slate-950 dark:text-white">
-                  No tools found
+        {recentTools.length > 0 && (
+          <section className="mt-8" aria-labelledby="recent-tools-heading">
+            <div className="mb-4 flex items-center justify-between gap-4">
+              <div className="flex items-center gap-2">
+                <Clock3
+                  className="h-4 w-4 text-slate-400"
+                  aria-hidden="true"
+                />
+                <h2
+                  id="recent-tools-heading"
+                  className="text-sm font-bold text-slate-900 dark:text-white"
+                >
+                  Continue where you left off
                 </h2>
-                <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
-                  Try a different keyword or clear the search.
-                </p>
               </div>
-              <Button variant="outline" onClick={() => setSearchQuery('')}>
-                Clear
-              </Button>
-            </Card>
-          ) : null}
+              <Link
+                href="/history"
+                className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-500 hover:text-indigo-600 dark:text-slate-400 dark:hover:text-indigo-300"
+              >
+                View history
+                <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
+              </Link>
+            </div>
 
-          <OptimizedFeatureGrid
-            primaryFeature={primaryFeature}
-            otherFeatures={filteredOtherFeatures}
-            startNowText={t('startNow')}
-            otherToolsText="Explore tools"
-          />
-        </div>
+            <div className="grid gap-3 sm:grid-cols-3">
+              {recentTools.map((tool) => (
+                <Link
+                  key={tool.href}
+                  href={tool.href}
+                  className="group flex items-center gap-3 rounded-2xl border border-slate-200/80 bg-white p-3.5 transition hover:border-slate-300 hover:shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 dark:border-slate-800 dark:bg-slate-900 dark:hover:border-slate-700"
+                >
+                  <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-200">
+                    <tool.icon className="h-5 w-5" aria-hidden="true" />
+                  </span>
+                  <span className="min-w-0 flex-1 truncate text-sm font-semibold text-slate-800 dark:text-slate-100">
+                    {tool.title}
+                  </span>
+                  <ArrowRight
+                    className="h-4 w-4 shrink-0 text-slate-400 transition-transform group-hover:translate-x-0.5"
+                    aria-hidden="true"
+                  />
+                </Link>
+              ))}
+            </div>
+          </section>
+        )}
+
+        <section className="mt-10" aria-labelledby="all-tools-heading">
+          <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
+            <div>
+              <p className="text-xs font-bold uppercase tracking-[0.16em] text-indigo-600 dark:text-indigo-300">
+                Your toolkit
+              </p>
+              <h2
+                id="all-tools-heading"
+                className="mt-2 text-2xl font-bold tracking-[-0.025em] text-slate-950 dark:text-white sm:text-3xl"
+              >
+                All tools, one workspace
+              </h2>
+              <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">
+                Save favorites and they will always appear first.
+              </p>
+            </div>
+
+            <div
+              className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1 sm:mx-0 sm:flex-wrap sm:px-0"
+              aria-label="Filter tools by category"
+            >
+              {categoryOptions.map((category) => {
+                const isActive = activeCategory === category.value;
+                return (
+                  <button
+                    key={category.value}
+                    type="button"
+                    onClick={() => setActiveCategory(category.value)}
+                    className={cn(
+                      'inline-flex h-10 shrink-0 items-center gap-2 rounded-xl border px-3.5 text-sm font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500',
+                      isActive
+                        ? 'border-slate-950 bg-slate-950 text-white dark:border-white dark:bg-white dark:text-slate-950'
+                        : 'border-slate-200 bg-white text-slate-600 hover:border-slate-300 hover:text-slate-950 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-300 dark:hover:border-slate-700 dark:hover:text-white'
+                    )}
+                    aria-pressed={isActive}
+                  >
+                    {category.value === 'favorites' && (
+                      <Star
+                        className={cn(
+                          'h-3.5 w-3.5',
+                          favoriteHrefs.size > 0 && 'fill-current'
+                        )}
+                        aria-hidden="true"
+                      />
+                    )}
+                    {category.label}
+                    {category.value === 'favorites' && favoriteHrefs.size > 0 && (
+                      <span
+                        className={cn(
+                          'rounded-md px-1.5 py-0.5 text-[10px]',
+                          isActive
+                            ? 'bg-white/15 text-white dark:bg-slate-950/10 dark:text-slate-950'
+                            : 'bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400'
+                        )}
+                      >
+                        {favoriteHrefs.size}
+                      </span>
+                    )}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          <div className="mt-6">
+            {filteredTools.length > 0 ? (
+              <OptimizedFeatureGrid
+                features={filteredTools}
+                favoriteHrefs={favoriteHrefs}
+                onToggleFavorite={toggleFavorite}
+              />
+            ) : (
+              <div className="flex min-h-64 flex-col items-center justify-center rounded-2xl border border-dashed border-slate-300 bg-white/60 px-5 text-center dark:border-slate-700 dark:bg-slate-900/50">
+                {activeCategory === 'favorites' ? (
+                  <Star
+                    className="h-7 w-7 text-slate-300 dark:text-slate-600"
+                    aria-hidden="true"
+                  />
+                ) : (
+                  <History
+                    className="h-7 w-7 text-slate-300 dark:text-slate-600"
+                    aria-hidden="true"
+                  />
+                )}
+                <h3 className="mt-4 text-base font-bold text-slate-900 dark:text-white">
+                  {activeCategory === 'favorites'
+                    ? 'No favorite tools yet'
+                    : 'No matching tools'}
+                </h3>
+                <p className="mt-1 max-w-sm text-sm leading-6 text-slate-500 dark:text-slate-400">
+                  {activeCategory === 'favorites'
+                    ? 'Select the star on any tool to keep it close at hand.'
+                    : 'Try a shorter search or choose a different category.'}
+                </p>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSearchQuery('');
+                    setActiveCategory('all');
+                  }}
+                  className="mt-5 inline-flex h-10 items-center justify-center rounded-xl bg-slate-950 px-4 text-sm font-semibold text-white hover:bg-slate-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 dark:bg-white dark:text-slate-950 dark:hover:bg-slate-200"
+                >
+                  Show all tools
+                </button>
+              </div>
+            )}
+          </div>
+        </section>
       </div>
+
       <Footer />
     </div>
   );
-}
+};
 
 export default memo(HomePageComponent);

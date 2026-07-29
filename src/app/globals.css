@@ -33,7 +33,7 @@ body {
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
+    --background: 220 25% 98%;
     --foreground: 222 47% 11%;
 
     --card: 0 0% 100%;
@@ -42,7 +42,7 @@ body {
     --popover: 0 0% 100%;
     --popover-foreground: 222 47% 11%;
 
-    --primary: 221 83% 53%;
+    --primary: 239 70% 55%;
     --primary-foreground: 210 40% 98%;
 
     --secondary: 210 40% 96%;
@@ -51,17 +51,17 @@ body {
     --muted: 210 40% 96%;
     --muted-foreground: 215 16% 47%;
 
-    --accent: 214 95% 93%;
-    --accent-foreground: 224 76% 48%;
+    --accent: 238 100% 96%;
+    --accent-foreground: 239 70% 45%;
     
     --destructive: 0 72% 51%;
     --destructive-foreground: 210 40% 98%;
 
     --border: 214 32% 91%;
     --input: 214 32% 91%;
-    --ring: 221 83% 53%;
+    --ring: 239 70% 55%;
 
-    --radius: 0.75rem;
+    --radius: 0.875rem;
     
     /* Enhanced monochrome variables - Perfect grayscale progression */
     --mono-black: 0 0% 0%;        /* Pure Black */

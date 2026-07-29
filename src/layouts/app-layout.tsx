@@ -1,9 +1,10 @@
 "use client";
 
 import { useEffect, useMemo, useState } from 'react';
+import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Menu } from 'lucide-react';
+import { Menu, Sparkles } from 'lucide-react';
 import { FeaturePageLayoutProvider } from './feature-page-layout';
 import { Sidebar } from '@/components/shared/sidebar';
 import {
@@ -61,7 +62,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
   return (
     <FeaturePageLayoutProvider>
       <div className="min-h-dvh bg-slate-50 text-slate-950 dark:bg-slate-950 dark:text-slate-50">
-        <aside className="fixed inset-y-0 left-0 z-40 hidden w-72 border-r border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-950 lg:block">
+        <aside className="fixed inset-y-0 left-0 z-40 hidden w-64 border-r border-slate-200/80 bg-white dark:border-slate-800 dark:bg-slate-950 lg:block">
           <Sidebar />
         </aside>
 
@@ -71,7 +72,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
         >
           <SheetContent
             side="left"
-            className="w-[min(88vw,20rem)] border-r border-slate-200 bg-white p-0 dark:border-slate-800 dark:bg-slate-950"
+            className="w-[min(88vw,18rem)] border-r border-slate-200 bg-white p-0 dark:border-slate-800 dark:bg-slate-950"
           >
             <SheetHeader className="sr-only">
               <SheetTitle>Navigation</SheetTitle>
@@ -81,12 +82,12 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
           </SheetContent>
         </Sheet>
 
-        <div className="min-w-0 lg:pl-72">
-          <header className="sticky top-0 z-30 flex h-16 items-center gap-3 border-b border-slate-200 bg-white/95 px-4 backdrop-blur dark:border-slate-800 dark:bg-slate-950/95 lg:hidden">
+        <div className="min-w-0 lg:pl-64">
+          <header className="sticky top-0 z-30 flex h-16 items-center gap-3 border-b border-slate-200/80 bg-white/95 px-4 backdrop-blur dark:border-slate-800 dark:bg-slate-950/95 lg:hidden">
             <button
               type="button"
               onClick={() => setMobileNavigationOpen(true)}
-              className="-ml-1 inline-flex h-10 w-10 items-center justify-center rounded-lg text-slate-600 hover:bg-slate-100 hover:text-slate-950 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 dark:text-slate-300 dark:hover:bg-slate-900 dark:hover:text-white"
+              className="-ml-1 inline-flex h-10 w-10 items-center justify-center rounded-xl text-slate-600 hover:bg-slate-100 hover:text-slate-950 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 dark:text-slate-300 dark:hover:bg-slate-900 dark:hover:text-white"
               aria-label="Open navigation"
             >
               <Menu className="h-5 w-5" aria-hidden="true" />
@@ -101,13 +102,30 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
               </p>
             </div>
 
-            <Link
-              href="/home"
-              className="flex h-9 w-9 items-center justify-center rounded-lg bg-blue-600 text-sm font-bold text-white hover:bg-blue-500"
-              aria-label="Go to dashboard"
-            >
-              S
-            </Link>
+            {pathname === '/ai-assistant' ? (
+              <Link
+                href="/home"
+                className="flex h-9 w-9 items-center justify-center overflow-hidden rounded-xl bg-slate-950 text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 dark:bg-white"
+                aria-label="Go to dashboard"
+              >
+                <Image
+                  src="/icon.svg"
+                  alt=""
+                  width={24}
+                  height={24}
+                  className="h-6 w-6"
+                />
+              </Link>
+            ) : (
+              <Link
+                href="/ai-assistant"
+                className="inline-flex h-9 items-center justify-center gap-1.5 rounded-xl bg-slate-950 px-3 text-xs font-semibold text-white hover:bg-slate-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 dark:bg-white dark:text-slate-950 dark:hover:bg-slate-200"
+                aria-label="Open AI assistant"
+              >
+                <Sparkles className="h-3.5 w-3.5" aria-hidden="true" />
+                Ask AI
+              </Link>
+            )}
           </header>
 
           <main

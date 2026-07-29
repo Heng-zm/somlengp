@@ -39,21 +39,21 @@ export const FeaturePageLayout = React.memo<FeaturePageLayoutProps>(function Fea
     }, [title, pathname, addHistoryItem]);
 
     const header = React.useMemo(() => (
-        <header className="border-b border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-950">
-          <div className="mx-auto flex w-full max-w-[1600px] items-center justify-between gap-4 px-4 py-5 sm:px-6 lg:px-8">
+        <header className="border-b border-slate-200/80 bg-white dark:border-slate-800 dark:bg-slate-950">
+          <div className="mx-auto flex w-full max-w-[1480px] items-center justify-between gap-4 px-4 py-5 sm:px-6 lg:px-10 lg:py-6">
             <div className="min-w-0">
               <Button
                 variant="ghost"
                 size="sm"
                 asChild
-                className="-ml-3 mb-1 h-8 px-2 text-slate-500 hover:text-slate-950 dark:text-slate-400 dark:hover:text-white"
+                className="-ml-2 mb-1 h-8 rounded-lg px-2 text-slate-500 hover:text-slate-950 dark:text-slate-400 dark:hover:text-white"
               >
                 <Link href="/home">
                   <ChevronLeft className="h-4 w-4" aria-hidden="true" />
                   <span>All tools</span>
                 </Link>
               </Button>
-              <h1 className="truncate text-2xl font-bold tracking-tight text-slate-950 dark:text-white sm:text-3xl">
+              <h1 className="truncate text-2xl font-bold tracking-[-0.025em] text-slate-950 dark:text-white sm:text-3xl">
                 {title}
               </h1>
             </div>
@@ -72,13 +72,13 @@ export const FeaturePageLayout = React.memo<FeaturePageLayoutProps>(function Fea
     ), [title, showModelSelector, selectedModel, rightElement]);
 
     const mainContent = React.useMemo(() => (
-        <div className="mx-auto w-full max-w-[1600px] flex-1">
+        <div className="mx-auto w-full max-w-[1480px] flex-1">
             {children}
         </div>
     ), [children]);
 
     return (
-        <section className="flex min-h-[calc(100dvh-4rem)] flex-col bg-slate-50/60 dark:bg-slate-950 lg:min-h-dvh">
+        <section className="flex min-h-[calc(100dvh-4rem)] flex-col bg-[#f7f8fb] dark:bg-slate-950 lg:min-h-dvh">
             {header}
             {mainContent}
         </section>

@@ -3,8 +3,8 @@ import Link from 'next/link';
 
 export const Footer = memo(function Footer() {
   return (
-    <footer className="mt-12 border-t border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-950">
-      <div className="mx-auto flex w-full max-w-[1600px] flex-col gap-4 px-4 py-8 text-sm sm:px-6 md:flex-row md:items-center md:justify-between lg:px-8">
+    <footer className="mt-12 border-t border-slate-200/80 bg-white dark:border-slate-800 dark:bg-slate-950">
+      <div className="mx-auto flex w-full max-w-[1480px] flex-col gap-4 px-4 py-8 text-sm sm:px-6 md:flex-row md:items-center md:justify-between lg:px-10">
         <div>
           <p className="font-semibold text-slate-900 dark:text-white">Somleng</p>
           <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
