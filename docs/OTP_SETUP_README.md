@@ -65,7 +65,11 @@ GMAIL_USER_EMAIL=your_gmail_address_here
 
 # Optional configuration
 COMPANY_NAME=SomlengP
+OTP_SECRET=replace_with_a_long_random_secret
+OTP_CODE_LENGTH=6
 OTP_EXPIRY_MINUTES=5
+OTP_MAX_ATTEMPTS=3
+OTP_RESEND_COOLDOWN_SECONDS=60
 ```
 
 ## Usage
@@ -82,7 +86,7 @@ npm run dev
 ### 2. Use the React Component
 
 ```tsx
-import { OTPVerification } from '@/components/otp/otp-verification';
+import { OTPVerification } from '@/components/features/otp/otp-verification';
 
 function MyComponent() {
   const handleSuccess = (email: string) => {
@@ -178,10 +182,10 @@ src/
 ## Configuration Options
 
 ### OTP Settings
-- **Code Length**: 6 digits (fixed)
+- **Code Length**: 6 digits by default (configurable from 4–8 via `OTP_CODE_LENGTH`)
 - **Expiry Time**: 5 minutes (configurable via `OTP_EXPIRY_MINUTES`)
-- **Max Attempts**: 3 attempts per code
-- **Resend Cooldown**: Must wait for expiry or use resend endpoint
+- **Max Attempts**: 3 attempts by default (configurable via `OTP_MAX_ATTEMPTS`)
+- **Resend Cooldown**: 60 seconds by default (configurable via `OTP_RESEND_COOLDOWN_SECONDS`)
 
 ### Email Customization
 The email template includes:
@@ -193,21 +197,19 @@ The email template includes:
 
 ## Security Features
 
-- ✅ Rate limiting (one active OTP per email)
-- ✅ Attempt tracking with limits
-- ✅ Time-based expiration
-- ✅ Secure random code generation
-- ✅ Input validation and sanitization
-- ✅ OAuth2 authentication for Gmail
+- Signed, HttpOnly, same-site verification challenges
+- Per-email and per-address request limits
+- Attempt tracking and time-based expiration
+- Cryptographically secure random code generation
+- Input validation and same-origin browser checks
+- OAuth2 authentication for Gmail
 
 ## Production Considerations
 
-1. **Database Storage**: Replace in-memory storage with Redis or database
-2. **Rate Limiting**: Add IP-based rate limiting
-3. **Monitoring**: Add logging and analytics
-4. **Email Templates**: Customize for your brand
-5. **Error Handling**: Enhanced error reporting
-6. **Testing**: Add comprehensive test suite
+1. **Shared Rate Limits**: Use a managed limiter when deploying across many server instances
+2. **Monitoring**: Add logging and delivery analytics
+3. **Email Templates**: Customize for your brand
+4. **Secret Management**: Store `OTP_SECRET` in the deployment platform's secret manager
 
 ## Troubleshooting
 

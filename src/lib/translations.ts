@@ -504,7 +504,7 @@ const enTranslations: Translations = {
     
     // Feature Cards - Titles and Descriptions
     smartAiChat: "Smart AI Chat",
-    smartAiChatDesc: "Get instant help from an AI assistant powered by Gemini 1.5 Flash. Perfect for quick questions and tasks.",
+    smartAiChatDesc: "Get instant help from Somleng AI for questions, writing, planning, and everyday tasks.",
     qrGenerator: "QR Generator",
     qrGeneratorDesc: "Create QR codes instantly for links, text, or contact info. Share easily across devices.",
     voiceToText: "Voice to Text",
@@ -745,7 +745,7 @@ const kmTranslations: Translations = {
     
     // Feature Cards - Titles and Descriptions
     smartAiChat: "ជ្រោមជាង AI ឆ្លាត",
-    smartAiChatDesc: "ទទួលបានជំនួយភ្លាមៗពីជំនួយការ AI ដោយ Gemini 1.5 Flash។ ល្អសម្រាប់សំណួរ និងការងាររហ័ស។",
+    smartAiChatDesc: "ទទួលបានជំនួយភ្លាមៗពី Somleng AI សម្រាប់សំណួរ ការសរសេរ ផែនការ និងការងារប្រចាំថ្ងៃ។",
     qrGenerator: "បម្រុងបង្កើត QR",
     qrGeneratorDesc: "បង្កើតកូដ QR ភ្លាមៗសម្រាប់តំណ អត្ថបទ ឬព័ត៌មានទំនាក់ទំនង។ ចែករំលែកបានយ៉ាងងាយស្រួលតាមឧបករណ៍។",
     voiceToText: "សំឡេងទៅអត្ថបទ",

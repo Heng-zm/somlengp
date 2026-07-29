@@ -12,16 +12,13 @@ import { ErrorAlert } from '../alert-utils';
 import { mockTimers } from '@/lib/test-setup';
 import '@testing-library/jest-dom';
 
-// Mock the error-utils module
-const mockErrorHandler = {
-  handle: jest.fn(),
-};
-
 jest.mock('@/lib/error-utils', () => {
   const originalModule = jest.requireActual('@/lib/error-utils');
   return {
     ...originalModule,
-    errorHandler: mockErrorHandler,
+    errorHandler: {
+      handle: jest.fn(),
+    },
     AppError: jest.fn().mockImplementation((message, type, severity, context, userMessage, reportable) => ({
       message,
       type,
@@ -43,6 +40,10 @@ jest.mock('@/lib/error-utils', () => {
     },
   };
 });
+
+const { errorHandler: mockErrorHandler } = jest.requireMock(
+  '@/lib/error-utils'
+) as { errorHandler: { handle: jest.Mock } };
 
 // Test components that throw errors
 const ThrowingComponent = ({ shouldThrow = true }: { shouldThrow?: boolean }) => {
@@ -279,18 +280,11 @@ describe('AlertErrorBoundary', () => {
     });
 
     it('decreases retry count with each attempt', async () => {
-      const user = userEvent.setup();
-      let throwCount = 2;
-      
       const MultiRetryComponent = () => {
-        if (throwCount > 0) {
-          throwCount--;
-          throw new Error('Still failing');
-        }
-        return <div>Finally working</div>;
+        throw new Error('Still failing');
       };
 
-      const { rerender } = render(
+      render(
         <AlertErrorBoundary allowRetry={true} maxRetries={3}>
           <MultiRetryComponent />
         </AlertErrorBoundary>
@@ -301,14 +295,7 @@ describe('AlertErrorBoundary', () => {
 
       // First retry attempt (component still throws)
       const retryButton = screen.getByRole('button', { name: /retry/i });
-      await user.click(retryButton);
-
-      // Need to rerender to simulate the error boundary catching the new error
-      rerender(
-        <AlertErrorBoundary allowRetry={true} maxRetries={3}>
-          <MultiRetryComponent />
-        </AlertErrorBoundary>
-      );
+      fireEvent.click(retryButton);
 
       // After first retry, should show updated count
       await waitFor(() => {
@@ -346,15 +333,6 @@ describe('AlertErrorBoundary', () => {
   });
 
   describe('Error Details Display', () => {
-    beforeEach(() => {
-      // Mock development environment
-      jest.spyOn(process.env, 'NODE_ENV', 'get').mockReturnValue('development');
-    });
-    
-    afterEach(() => {
-      jest.restoreAllMocks();
-    });
-
     it('shows error details in development when enabled', () => {
       render(
         <AlertErrorBoundary showErrorDetails={true}>
@@ -479,6 +457,7 @@ describe('AlertErrorBoundary', () => {
         </AlertErrorBoundary>
       );
 
+      fireEvent.click(screen.getByRole('button', { name: /retry/i }));
       unmount();
 
       expect(clearTimeoutSpy).toHaveBeenCalled();

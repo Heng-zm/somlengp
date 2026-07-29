@@ -45,68 +45,13 @@ const nextConfig = {
     ],
   },
 
-  // Bundle optimization (enhanced for better performance)
-  webpack: (config, { dev, isServer }) => {
+  // Keep Next.js' route-aware chunking; overriding splitChunks makes every
+  // route download unrelated feature libraries.
+  webpack: (config, { dev }) => {
     // Reduce memory usage during build
     if (!dev) {
       // Disable source maps to save memory
       config.devtool = false;
-      
-      // Enhanced chunk splitting for better caching
-      if (!isServer && config.optimization) {
-        config.optimization.splitChunks = {
-          chunks: 'all',
-          minSize: 20000,
-          maxSize: 244000,
-          maxInitialRequests: 30,
-          maxAsyncRequests: 30,
-          cacheGroups: {
-            // Framework chunks
-            framework: {
-              test: /[\\/]node_modules[\\/](react|react-dom)[\\/]/,
-              name: 'framework',
-              chunks: 'all',
-              priority: 40,
-              enforce: true,
-            },
-            // UI library chunks
-            ui: {
-              test: /[\\/]node_modules[\\/](@radix-ui|lucide-react|framer-motion)[\\/]/,
-              name: 'ui',
-              chunks: 'all',
-              priority: 30,
-            },
-            // PDF and file processing
-            fileProcessing: {
-              test: /[\\/]node_modules[\\/](pdf-lib|jszip|docx|qrcode)[\\/]/,
-              name: 'file-processing',
-              chunks: 'all',
-              priority: 25,
-            },
-            // Analytics and AI
-            analytics: {
-              test: /[\\/]node_modules[\\/](@genkit-ai|@google\/generative-ai|@vercel\/analytics)[\\/]/,
-              name: 'analytics',
-              chunks: 'all',
-              priority: 20,
-            },
-            // Other vendor libraries
-            vendor: {
-              test: /[\\/]node_modules[\\/]/,
-              name: 'vendors',
-              chunks: 'all',
-              priority: 10,
-            },
-            // Common modules used across pages
-            commons: {
-              name: 'commons',
-              minChunks: 2,
-              chunks: 'all',
-              priority: 5,
-            },
-          },
-        };
-      }
     }
 
     // Handle handlebars issue with Genkit
@@ -132,20 +77,6 @@ const nextConfig = {
   
   // Output configuration for better performance
   output: 'standalone', // Enable standalone output for deployment optimization
-
-  // ESLint configuration
-  eslint: {
-    // Only run ESLint on these directories during build
-    dirs: ['src'],
-    // Don't fail build on ESLint warnings in production
-    ignoreDuringBuilds: process.env.NODE_ENV === 'production',
-  },
-
-  // TypeScript configuration
-  typescript: {
-    // Don't fail build on TypeScript errors in production
-    ignoreBuildErrors: process.env.NODE_ENV === 'production',
-  },
 
   // Redirects and rewrites for better UX
   async redirects() {
@@ -183,7 +114,7 @@ const nextConfig = {
           },
           {
             key: 'Permissions-Policy',
-            value: 'camera=(), microphone=(), geolocation=()',
+            value: 'camera=(self), microphone=(self), geolocation=()',
           },
           // Performance headers
           {

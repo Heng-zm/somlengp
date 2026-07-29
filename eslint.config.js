@@ -21,11 +21,13 @@ export default [
       'scripts/**/*.js',
       'scripts/**/*.cjs',
       '**/*.config.js',
+      'next.config.*.js',
       '**/*.test.js',
       '**/*.test.ts',
       '**/*.spec.js', 
       '**/*.spec.ts',
       'tailwind*.js',
+      'test-*.js',
       'next.config.js',
       'src/lib/performance-monitor.tsx'
     ]

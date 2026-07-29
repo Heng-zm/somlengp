@@ -1,38 +1,46 @@
-
 import { memo } from 'react';
-import { Heart } from 'lucide-react';
-
-// Static style to avoid re-creation on each render
-const footerStyle = { paddingTop: '1px', paddingBottom: '30px' };
+import Link from 'next/link';
 
 export const Footer = memo(function Footer() {
   return (
-    <footer className="bg-background border-t border-border mt-16" style={footerStyle}>
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
-          <div className="flex items-center space-x-1 text-sm text-muted-foreground">
-            <span>© 2025 Somleng. All rights reserved.</span>
-            <span className="hidden sm:inline">•</span>
-            <span className="hidden sm:inline flex items-center space-x-1">
-              <span>Made with</span>
-              <Heart className="h-3 w-3 text-red-500 fill-current" />
-              <span>by Ozo Designer</span>
-            </span>
-          </div>
-          
-          <div className="flex space-x-6 text-xs text-muted-foreground">
-            <a href="#" className="hover:text-primary transition-colors duration-200">
-              Privacy Policy
-            </a>
-            <a href="#" className="hover:text-primary transition-colors duration-200">
-              Terms of Service
-            </a>
-            <a href="#" className="hover:text-primary transition-colors duration-200">
-              Support
-            </a>
-          </div>
+    <footer className="mt-12 border-t border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-950">
+      <div className="mx-auto flex w-full max-w-[1600px] flex-col gap-4 px-4 py-8 text-sm sm:px-6 md:flex-row md:items-center md:justify-between lg:px-8">
+        <div>
+          <p className="font-semibold text-slate-900 dark:text-white">Somleng</p>
+          <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+            © {new Date().getFullYear()} Somleng. Built for focused work.
+          </p>
         </div>
+        <nav
+          className="flex flex-wrap gap-x-5 gap-y-2 text-xs font-medium text-slate-500 dark:text-slate-400"
+          aria-label="Footer"
+        >
+          <Link
+            href="/privacy"
+            className="hover:text-blue-600 dark:hover:text-blue-400"
+          >
+            Privacy
+          </Link>
+          <Link
+            href="/terms"
+            className="hover:text-blue-600 dark:hover:text-blue-400"
+          >
+            Terms
+          </Link>
+          <Link
+            href="/contact"
+            className="hover:text-blue-600 dark:hover:text-blue-400"
+          >
+            Contact
+          </Link>
+          <Link
+            href="/pricing"
+            className="hover:text-blue-600 dark:hover:text-blue-400"
+          >
+            Pricing
+          </Link>
+        </nav>
       </div>
     </footer>
-  )
+  );
 });

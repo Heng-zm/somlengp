@@ -9,7 +9,7 @@ import {
   type AlertingOptions,
 } from '../performance-alerts';
 import { renderHook, act } from '@testing-library/react';
-import { mockTimers, waitForTimeout } from '@/lib/test-setup';
+import { mockTimers } from '@/lib/test-setup';
 
 // Mock window globals
 const mockWindow = {
@@ -34,15 +34,14 @@ const mockFetch = jest.fn();
 global.fetch = mockFetch;
 
 // Setup window and navigator mocks
-if (!global.window) {
-  Object.defineProperty(global, 'window', {
-    configurable: true,
-    value: mockWindow,
-    writable: true,
-  });
-} else {
-  Object.assign(global.window, mockWindow);
-}
+Object.defineProperty(global.window, 'localStorage', {
+  configurable: true,
+  value: mockWindow.localStorage,
+});
+Object.defineProperty(global.window, 'gtag', {
+  configurable: true,
+  value: mockWindow.gtag,
+});
 
 if (!global.navigator) {
   Object.defineProperty(global, 'navigator', {
@@ -51,7 +50,10 @@ if (!global.navigator) {
     writable: true,
   });
 } else {
-  Object.assign(global.navigator, mockNavigator);
+  Object.defineProperty(global.navigator, 'userAgent', {
+    configurable: true,
+    value: mockNavigator.userAgent,
+  });
 }
 
 // Mock console methods to reduce noise
@@ -338,6 +340,10 @@ describe('PerformanceAlerting', () => {
     });
 
     it('filters statistics by time range', () => {
+      act(() => {
+        timers.advanceByTime(101);
+      });
+
       // Test with very short time range (should return 0)
       const recentStats = alerting.getAlertStats(100); // 100ms ago
       expect(recentStats.total).toBe(0);
@@ -405,22 +411,25 @@ describe('PerformanceAlerting', () => {
   describe('Notification Systems', () => {
     beforeEach(() => {
       // Mock Notification constructor
-      global.Notification = jest.fn().mockImplementation((title, options) => ({
+      const notificationConstructor = jest.fn().mockImplementation((title, options) => ({
         title,
         ...options,
         close: jest.fn(),
-      })) as any;
+      })) as unknown as typeof Notification;
       
       // Add static properties to the mock
-      Object.assign(global.Notification, {
+      Object.assign(notificationConstructor, {
         permission: 'granted' as NotificationPermission,
         requestPermission: jest.fn().mockResolvedValue('granted' as NotificationPermission),
+      });
+      Object.defineProperty(global.window, 'Notification', {
+        configurable: true,
+        writable: true,
+        value: notificationConstructor,
       });
     });
 
     it('sends browser notification when enabled and permission granted', async () => {
-      mockWindow.Notification.permission = 'granted';
-      
       const alerting = new PerformanceAlerting({
         enableNotifications: true,
       });
@@ -431,7 +440,7 @@ describe('PerformanceAlerting', () => {
         timers.advanceByTime(5000);
       });
 
-      expect(global.Notification).toHaveBeenCalled();
+      expect(window.Notification).toHaveBeenCalled();
     });
 
     it('sends Slack webhook when configured', async () => {
@@ -447,7 +456,8 @@ describe('PerformanceAlerting', () => {
         timers.advanceByTime(5000);
       });
 
-      await waitForTimeout(100); // Allow async operations to complete
+      await Promise.resolve();
+      await Promise.resolve();
 
       expect(mockFetch).toHaveBeenCalledWith(
         slackUrl,
@@ -472,7 +482,8 @@ describe('PerformanceAlerting', () => {
         timers.advanceByTime(5000);
       });
 
-      await waitForTimeout(100);
+      await Promise.resolve();
+      await Promise.resolve();
 
       expect(mockFetch).toHaveBeenCalledWith(
         emailEndpoint,
@@ -516,7 +527,8 @@ describe('PerformanceAlerting', () => {
         timers.advanceByTime(5000);
       });
 
-      await waitForTimeout(100);
+      await Promise.resolve();
+      await Promise.resolve();
 
       // Should not throw error
       expect(consoleSpy.error).toHaveBeenCalledWith(
@@ -583,6 +595,18 @@ describe('PerformanceAlerting', () => {
 });
 
 describe('Utility Functions', () => {
+  beforeEach(() => {
+    jest.useFakeTimers();
+    getPerformanceAlerting({
+      debounceTime: 5_000,
+      enableNotifications: false,
+    }).clearAlerts();
+  });
+
+  afterEach(() => {
+    jest.useRealTimers();
+  });
+
   describe('getPerformanceAlerting', () => {
     it('returns singleton instance', () => {
       const instance1 = getPerformanceAlerting();
@@ -637,6 +661,18 @@ describe('Utility Functions', () => {
 });
 
 describe('usePerformanceAlerting Hook', () => {
+  beforeEach(() => {
+    jest.useFakeTimers();
+    getPerformanceAlerting({
+      debounceTime: 5_000,
+      enableNotifications: false,
+    }).clearAlerts();
+  });
+
+  afterEach(() => {
+    jest.useRealTimers();
+  });
+
   it('provides alerting functionality', () => {
     const { result } = renderHook(() => usePerformanceAlerting());
 

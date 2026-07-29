@@ -1,84 +1,139 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { OTPManager } from '@/lib/otp-manager';
+import {
+  clearChallengeCookie,
+  getChallengeToken,
+  getOTPChallengeConfiguration,
+  setChallengeCookie,
+} from '@/lib/otp-route-utils';
+import { OTPService } from '@/lib/otp-service';
+import { isRequestOriginAllowed } from '@/lib/request-security';
+import {
+  checkRateLimit,
+  createRateLimitResponse,
+  getClientAddress,
+  hashRateLimitValue,
+} from '@/lib/server-rate-limit';
 
-// Initialize OTP Manager with environment variables
-const getOTPManager = () => {
-  const requiredEnvVars = [
-    'GMAIL_CLIENT_ID',
-    'GMAIL_CLIENT_SECRET', 
-    'GMAIL_REFRESH_TOKEN',
-    'GMAIL_USER_EMAIL'
-  ];
-
-  for (const envVar of requiredEnvVars) {
-    if (!process.env[envVar]) {
-      throw new Error(`Missing required environment variable: ${envVar}`);
-    }
-  }
-
-  return new OTPManager({
-    gmail: {
-      clientId: process.env.GMAIL_CLIENT_ID!,
-      clientSecret: process.env.GMAIL_CLIENT_SECRET!,
-      refreshToken: process.env.GMAIL_REFRESH_TOKEN!,
-      user: process.env.GMAIL_USER_EMAIL!,
-    },
-    options: {
-      companyName: process.env.COMPANY_NAME || 'SomlengP',
-      expiryMinutes: parseInt(process.env.OTP_EXPIRY_MINUTES || '5'),
-    },
-  });
-};
+interface VerifyOTPBody {
+  email?: unknown;
+  code?: unknown;
+}
 
 export async function POST(request: NextRequest) {
-  try {
-    const body = await request.json();
-    const { email, code } = body;
+  if (!isRequestOriginAllowed(request)) {
+    return NextResponse.json(
+      { success: false, error: 'Request origin is not allowed' },
+      { status: 403 }
+    );
+  }
 
-    // Validate required fields
-    if (!email || !code) {
+  let body: VerifyOTPBody;
+  try {
+    body = (await request.json()) as VerifyOTPBody;
+  } catch {
+    return NextResponse.json(
+      { success: false, error: 'A valid JSON body is required' },
+      { status: 400 }
+    );
+  }
+
+  if (typeof body.email !== 'string' || !OTPService.isValidEmail(body.email)) {
+    return NextResponse.json(
+      { success: false, error: 'A valid email address is required' },
+      { status: 400 }
+    );
+  }
+
+  const email = OTPService.normalizeEmail(body.email);
+  const addressLimit = checkRateLimit(
+    `otp-verify:ip:${getClientAddress(request)}`,
+    20,
+    5 * 60_000
+  );
+  if (!addressLimit.allowed) {
+    return createRateLimitResponse(addressLimit);
+  }
+
+  const emailLimit = checkRateLimit(
+    `otp-verify:email:${hashRateLimitValue(email)}`,
+    10,
+    5 * 60_000
+  );
+  if (!emailLimit.allowed) {
+    return createRateLimitResponse(emailLimit);
+  }
+
+  try {
+    const { secret, codeLength } = getOTPChallengeConfiguration();
+    const code =
+      typeof body.code === 'string' ? body.code.replace(/\s/g, '') : '';
+
+    if (!new RegExp(`^\\d{${codeLength}}$`).test(code)) {
       return NextResponse.json(
-        { success: false, error: 'Email and code are required' },
+        {
+          success: false,
+          error: `Verification code must contain ${codeLength} digits`,
+        },
         { status: 400 }
       );
     }
 
-    // Initialize OTP Manager
-    const otpManager = getOTPManager();
+    const result = OTPService.verifyChallenge(
+      getChallengeToken(request),
+      email,
+      code,
+      secret
+    );
 
-    // Verify OTP
-    const result = await otpManager.verifyOTP(email, code);
-
-    if (result.success) {
-      return NextResponse.json({
+    if (result.status === 'success') {
+      const response = NextResponse.json({
         success: true,
-        message: 'OTP verified successfully',
+        message: 'Verification completed successfully',
       });
-    } else {
-      const statusCode = result.error?.includes('expired') || 
-                        result.error?.includes('not found') ? 410 : 400;
+      clearChallengeCookie(response);
+      return response;
+    }
 
-      return NextResponse.json(
+    if (result.status === 'missing' || result.status === 'expired') {
+      const response = NextResponse.json(
         {
           success: false,
-          error: result.error,
-          attemptsRemaining: result.attemptsRemaining,
+          error:
+            result.status === 'expired'
+              ? 'Verification code has expired. Please request a new code.'
+              : 'No active verification request was found.',
+          attemptsRemaining: 0,
         },
-        { status: statusCode }
+        { status: 410 }
       );
+      clearChallengeCookie(response);
+      return response;
     }
-  } catch (error) {
-    console.error('Verify OTP API Error:', error);
-    
-    if (error instanceof Error && error.message.includes('Missing required environment variable')) {
+
+    if (!('updatedToken' in result)) {
       return NextResponse.json(
-        { success: false, error: 'Service configuration error' },
+        { success: false, error: 'Failed to verify the code' },
         { status: 500 }
       );
     }
 
+    const locked = result.status === 'locked';
+    const response = NextResponse.json(
+      {
+        success: false,
+        error: locked
+          ? 'Maximum verification attempts reached. Please request a new code.'
+          : 'The verification code is incorrect.',
+        attemptsRemaining: result.attemptsRemaining,
+      },
+      { status: locked ? 429 : 400 }
+    );
+    setChallengeCookie(response, result.updatedToken, result.expiresAt);
+    return response;
+  } catch (error) {
+    console.error('Verify OTP API error:', error);
     return NextResponse.json(
-      { success: false, error: 'Failed to verify OTP' },
+      { success: false, error: 'Failed to verify the code' },
       { status: 500 }
     );
   }

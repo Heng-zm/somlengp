@@ -4,7 +4,6 @@ import {Toaster} from '@/components/ui/toaster';
 import './globals.css';
 import '../styles/performance-optimizations.css';
 import '../styles/mobile-optimizations.css';
-import '../styles/smooth-interface.css';
 import { GoogleAnalytics } from '@next/third-parties/google'; // Keep this import
 import { Analytics } from '@vercel/analytics/next';
 import { SpeedInsights } from '@vercel/speed-insights/next';
@@ -30,11 +29,11 @@ const kantumruy = Kantumruy_Pro({
 export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 1,
-  maximumScale: 1, // Prevent zoom to avoid input focus zoom
-  userScalable: false, // Disable user zoom to prevent input focus zoom
+  maximumScale: 5,
+  userScalable: true,
   themeColor: [
-    { media: '(prefers-color-scheme: light)', color: 'hsl(240 10% 99%)' },
-    { media: '(prefers-color-scheme: dark)', color: 'hsl(224 71% 4%)' },
+    { media: '(prefers-color-scheme: light)', color: '#f8fafc' },
+    { media: '(prefers-color-scheme: dark)', color: '#020617' },
   ],
 };
 
@@ -80,11 +79,11 @@ export default function RootLayout({
       <head>
         {/* Theme is now handled by LanguageProvider to prevent hydration mismatch */}
       </head>
-      <body className={`antialiased font-sans`}>
+      <body className="min-h-dvh bg-slate-50 font-sans antialiased selection:bg-blue-100 selection:text-blue-950 dark:bg-slate-950 dark:selection:bg-blue-900 dark:selection:text-blue-50">
         {/* Skip link for keyboard users */}
         <a
           href="#main-content"
-          className="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-[100] focus:px-4 focus:py-2 focus:rounded-md focus:bg-primary focus:text-primary-foreground"
+          className="sr-only focus:not-sr-only focus:fixed focus:left-3 focus:top-3 focus:z-[100] focus:rounded-lg focus:bg-blue-600 focus:px-4 focus:py-2 focus:text-sm focus:font-semibold focus:text-white focus:shadow-lg"
         >
           Skip to content
         </a>

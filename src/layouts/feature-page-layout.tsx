@@ -38,40 +38,49 @@ export const FeaturePageLayout = React.memo<FeaturePageLayoutProps>(function Fea
         }
     }, [title, pathname, addHistoryItem]);
 
-    // Memoize header and main content
     const header = React.useMemo(() => (
-        <header className="fixed top-0 left-0 right-0 z-50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b flex items-center justify-between p-2 sm:p-4">
-            <Button variant="ghost" size="icon" asChild>
-              <Link href="/home" className="flex items-center justify-center">
-                <ChevronLeft />
-                <span className="sr-only">Back to Home</span>
-              </Link>
-            </Button>
-            <h1 className="text-lg sm:text-xl font-bold">{title}</h1>
+        <header className="border-b border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-950">
+          <div className="mx-auto flex w-full max-w-[1600px] items-center justify-between gap-4 px-4 py-5 sm:px-6 lg:px-8">
+            <div className="min-w-0">
+              <Button
+                variant="ghost"
+                size="sm"
+                asChild
+                className="-ml-3 mb-1 h-8 px-2 text-slate-500 hover:text-slate-950 dark:text-slate-400 dark:hover:text-white"
+              >
+                <Link href="/home">
+                  <ChevronLeft className="h-4 w-4" aria-hidden="true" />
+                  <span>All tools</span>
+                </Link>
+              </Button>
+              <h1 className="truncate text-2xl font-bold tracking-tight text-slate-950 dark:text-white sm:text-3xl">
+                {title}
+              </h1>
+            </div>
+
             {rightElement ? (
-                rightElement
+              <div className="shrink-0">{rightElement}</div>
             ) : showModelSelector ? (
-                <ModelSelector
-                    selectedModel={selectedModel}
-                    onModelChange={setSelectedModel}
-                    size="sm"
-                />
-            ) : (
-                <div className="w-10"></div>
-            )}
+              <ModelSelector
+                selectedModel={selectedModel}
+                onModelChange={setSelectedModel}
+                size="sm"
+              />
+            ) : null}
+          </div>
         </header>
     ), [title, showModelSelector, selectedModel, rightElement]);
 
     const mainContent = React.useMemo(() => (
-        <div className="flex-grow overflow-y-auto pt-16">
+        <div className="mx-auto w-full max-w-[1600px] flex-1">
             {children}
         </div>
     ), [children]);
 
     return (
-        <div className="flex flex-col h-full">
+        <section className="flex min-h-[calc(100dvh-4rem)] flex-col bg-slate-50/60 dark:bg-slate-950 lg:min-h-dvh">
             {header}
             {mainContent}
-        </div>
+        </section>
     );
 });

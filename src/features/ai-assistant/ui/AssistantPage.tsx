@@ -8,14 +8,6 @@ import { Textarea } from '@/components/ui/textarea';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Badge } from '@/components/ui/badge';
 import NextImage from 'next/image';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
 // Optimized icon imports - only load what's actually used
 import {
   Send, 
@@ -26,7 +18,6 @@ import {
   ChevronDown,
   Zap,
   Rocket,
-  CheckCircle2,
   AlertCircle,
   Loader2,
   Brain,
@@ -91,12 +82,42 @@ interface TokenUsage {
   total: number;
 }
 
+function parseTokenUsage(value: unknown): TokenUsage | undefined {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) {
+    return undefined;
+  }
+
+  const candidate = value as Partial<TokenUsage>;
+  if (
+    typeof candidate.prompt !== 'number' ||
+    typeof candidate.completion !== 'number' ||
+    typeof candidate.total !== 'number' ||
+    !Number.isFinite(candidate.prompt) ||
+    !Number.isFinite(candidate.completion) ||
+    !Number.isFinite(candidate.total)
+  ) {
+    return undefined;
+  }
+
+  return {
+    prompt: candidate.prompt,
+    completion: candidate.completion,
+    total: candidate.total,
+  };
+}
+
 interface AIModel {
   id: string;
   name: string;
   displayName: string;
   description: string;
-  icon: string;
+}
+
+interface AssistantApiResponse {
+  response?: unknown;
+  message?: unknown;
+  model?: unknown;
+  tokens?: unknown;
 }
 
 interface CodeOverview {
@@ -124,31 +145,14 @@ interface ErrorBoundaryState {
   error?: Error;
 }
 
-const AI_MODELS: AIModel[] = [
-  {
-    id: 'gemini-2.5-flash',
-    name: 'gemini-2.5-flash',
-    displayName: 'Gemini 2.5 Flash',
-    description: 'Next-generation model with improved performance',
-    icon: 'Rocket'
-  },
-  {
-    id: 'gemini-2.0-flash-exp',
-    name: 'gemini-2.0-flash-exp',
-    displayName: 'Gemini 2.0 Flash',
-    description: 'Currently the primary available model with enhanced capabilities',
-    icon: 'Sparkles'
-  },
-  {
-    id: 'gemini-1.5-flash',
-    name: 'gemini-1.5-flash',
-    displayName: 'Gemini 1.5 Flash',
-    description: 'Fast and efficient for most tasks',
-    icon: 'Zap'
-  }
-];
+const AI_MODEL: AIModel = {
+  id: 'somleng-ai',
+  name: 'Somleng AI',
+  displayName: 'Somleng AI',
+  description: 'Secure assistant service',
+};
 
-// Gemini-like suggestion chips (monochrome)
+// Assistant suggestion chips (monochrome)
 const SUGGESTIONS: string[] = [
   'Summarize this text',
   'Brainstorm ideas',
@@ -547,47 +551,18 @@ const TypingIndicator = memo(function TypingIndicator() {
   );
 });
 
-// Hydration-safe model select rendered only on client to avoid dev mismatch warnings
-function ModelSelectPill({ selectedModel, setSelectedModel }: { selectedModel: AIModel; setSelectedModel: (m: AIModel) => void }) {
+function ModelPill({ model }: { model: AIModel }) {
   return (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <button
-          type="button"
-          aria-label="Model Select"
-          className="group relative flex items-center rounded-full bg-gray-100 dark:bg-gray-900 border border-gray-300 dark:border-gray-700 pl-3 pr-2 h-8 sm:h-9"
-        >
-          <span className="text-gray-700 dark:text-gray-300 text-xs sm:text-sm font-semibold">Model Select</span>
-          <span className="ml-2 h-6 w-6 sm:h-7 sm:w-7 rounded-full bg-white dark:bg-black border border-gray-300 dark:border-gray-700 flex items-center justify-center shadow-sm">
-            <ChevronDown className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-gray-700 dark:text-gray-300" />
-          </span>
-        </button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent className="w-64 bg-white dark:bg-black border-gray-200 dark:border-gray-700">
-        <DropdownMenuLabel className="text-gray-600 dark:text-gray-400">Select Model</DropdownMenuLabel>
-        <DropdownMenuSeparator className="bg-gray-200 dark:bg-gray-700" />
-        {AI_MODELS.map((model) => (
-          <DropdownMenuItem
-            key={model.id}
-            onClick={() => setSelectedModel(model)}
-            className={cn(
-              "flex items-center gap-3 p-3 text-black dark:text-white hover:bg-gray-100 dark:hover:bg-gray-800",
-              selectedModel.id === model.id && "bg-gray-100 dark:bg-gray-800"
-            )}
-          >
-            <div className="flex-1">
-              <div className="font-medium text-black dark:text-white">{model.displayName}</div>
-              <div className="text-xs text-gray-600 dark:text-gray-400">{model.description}</div>
-            </div>
-            {selectedModel.id === model.id && <CheckCircle2 className="w-4 h-4 text-black dark:text-white" />}
-          </DropdownMenuItem>
-        ))}
-      </DropdownMenuContent>
-    </DropdownMenu>
+    <div
+      aria-label={`Active model: ${model.displayName}`}
+      title={model.description}
+      className="inline-flex h-7 items-center gap-1.5 rounded-full bg-blue-50 px-2.5 text-xs font-semibold text-blue-700 ring-1 ring-inset ring-blue-700/10 dark:bg-blue-500/10 dark:text-blue-300 dark:ring-blue-400/20"
+    >
+      <Sparkles className="h-3.5 w-3.5" aria-hidden="true" />
+      <span>{model.displayName}</span>
+    </div>
   );
 }
-
-const ClientModelSelectPill = dynamic(async () => ModelSelectPill, { ssr: false });
 
 // Virtualized list (client-only)
 const VirtualizedMessageList = dynamic(() => import('@/components/ai-assistant/optimized-message-list').then(mod => ({ default: mod.default })), { ssr: false, loading: () => <div className="center-loading text-gray-500">Loading…</div> });
@@ -604,7 +579,7 @@ function AIAssistantPageInternal() {
   const [unlockError, setUnlockError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isTyping, setIsTyping] = useState(false);
-  const [selectedModel, setSelectedModel] = useState<AIModel>(AI_MODELS[0]);
+  const selectedModel = AI_MODEL;
   const [lightbox, setLightbox] = useState<{ src: string; alt: string } | null>(null);
   const [listHeight, setListHeight] = useState(0);
   const [showScrollToBottom, setShowScrollToBottom] = useState(false);
@@ -707,14 +682,10 @@ function AIAssistantPageInternal() {
   const pathname = usePathname();
   
   useEffect(() => {
-    // Session expiration time: 5 minutes for testing (change to 30 * 24 * 60 * 60 * 1000 for production)
-    const SESSION_EXPIRY_MS = 5 * 60 * 1000; // 5 minutes
+    const SESSION_EXPIRY_MS = 30 * 24 * 60 * 60 * 1000;
     
     // Cleanup expired sessions on load
-    const cleaned = cleanupExpiredSessions('chat_', SESSION_EXPIRY_MS);
-    if (cleaned > 0) {
-      console.log(`Cleaned up ${cleaned} expired session(s)`);
-    }
+    cleanupExpiredSessions('chat_', SESSION_EXPIRY_MS);
 
     // Check if current session is expired
     const parsed = parseShareableRoute(pathname);
@@ -731,7 +702,6 @@ function AIAssistantPageInternal() {
           }
         } else {
           setTimeRemaining('Expired');
-          console.warn('Session expired:', parsed.id);
         }
       };
       
@@ -745,14 +715,15 @@ function AIAssistantPageInternal() {
     
     // Only generate route if we're on base /ai-assistant path
     if (pathname === '/ai-assistant') {
-      const { route, id } = generateShareableRoute('/ai-assistant', { 
+      const { route } = generateShareableRoute('/ai-assistant', { 
         prefix: 'chat',
         includeTimestamp: true // Enable timestamp for expiration
       });
       // Update URL without page reload
       window.history.replaceState(null, '', route);
-      console.log('Generated shareable session:', id);
       setSessionAge('Just now');
+      setSessionExpired(false);
+      setTimeRemaining(formatTimeRemaining(SESSION_EXPIRY_MS));
     }
   }, [pathname]);
 
@@ -820,13 +791,7 @@ function AIAssistantPageInternal() {
         try { localStorage.removeItem('aiAssistantMessages'); } catch {}
       }
 
-      setMessages([{
-        id: generateMessageId(),
-        role: 'assistant',
-        content: `Hello! 👋 I'm your AI Assistant powered by ${selectedModel.displayName}. I'm here to help you with questions, creative tasks, problem-solving, and more. What would you like to discuss today?`,
-        timestamp: new Date(),
-        model: selectedModel.name,
-      }]);
+      setMessages([]);
     };
 
     loadMessages();
@@ -913,8 +878,6 @@ function AIAssistantPageInternal() {
         role: msg.role,
         content: msg.content,
       }));
-      const modelName = selectedModel.name;
-
       // Create abort controller for this request
       abortControllerRef.current = new AbortController();
 
@@ -923,7 +886,6 @@ function AIAssistantPageInternal() {
       if (uploadedFile) {
         const form = new FormData();
         form.append('messages', JSON.stringify(baseMessages));
-        form.append('model', modelName);
         form.append('file', uploadedFile);
         response = await fetch('/api/ai-assistant', {
           method: 'POST',
@@ -931,7 +893,7 @@ function AIAssistantPageInternal() {
           signal: abortControllerRef.current.signal,
         });
       } else {
-        const requestData = { messages: baseMessages, model: modelName };
+        const requestData = { messages: baseMessages };
         response = await fetch('/api/ai-assistant', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -953,10 +915,10 @@ function AIAssistantPageInternal() {
         throw new Error(errorMessage);
       }
 
-      let data: any = {};
+      let data: AssistantApiResponse = {};
       try {
-        data = await response.json();
-      } catch (error) {
+        data = (await response.json()) as AssistantApiResponse;
+      } catch {
         throw new Error('Failed to parse response data');
       }
 
@@ -980,14 +942,17 @@ function AIAssistantPageInternal() {
         role: 'assistant',
         content,
         timestamp: new Date(),
-        model: selectedModel.name,
-        tokens: data.tokens || undefined,
+        model:
+          typeof data.model === 'string' && data.model.trim()
+            ? data.model.trim()
+            : selectedModel.name,
+        tokens: parseTokenUsage(data.tokens),
       };
 
       setMessages(prev => [...prev, assistantMessage]);
 
-    } catch (error: any) {
-      if (error?.name === 'AbortError') {
+    } catch (error: unknown) {
+      if (error instanceof Error && error.name === 'AbortError') {
         const canceledMessage: Message = {
           id: generateMessageId(),
           role: 'assistant',
@@ -1039,14 +1004,8 @@ function AIAssistantPageInternal() {
     });
     attachmentUrlsRef.current.clear();
 
-    setMessages([{
-      id: generateMessageId(),
-      role: 'assistant',
-      content: `Hello! 👋 I'm your AI Assistant powered by ${selectedModel.displayName}. I'm here to help you with questions, creative tasks, problem-solving, and more. What would you like to discuss today?`,
-      timestamp: new Date(),
-      model: selectedModel.name,
-    }]);
-  }, [selectedModel.displayName, selectedModel.name]);
+    setMessages([]);
+  }, []);
 
   const cancelRequest = useCallback(() => {
     if (abortControllerRef.current) {
@@ -1086,46 +1045,32 @@ function AIAssistantPageInternal() {
   }, [lightbox]);
 
   return (
-    <div className="flex h-screen bg-white dark:bg-black">
+    <div className="flex h-[calc(100dvh-4rem)] bg-slate-50 dark:bg-slate-950 lg:h-dvh">
       
       {/* Main Content */}
-      <div className="w-full flex flex-col min-w-0" style={{ maxWidth: '100vw', boxSizing: 'border-box' }}>
-        {/* Monochrome Header matching provided UI */}
-        <header className="relative px-2 sm:px-3 py-2 sm:py-3 border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-black" style={{ minWidth: 0, maxWidth: '100%' }}>
-          {/* Left action */}
-          <div className="absolute left-2 top-1/2 -translate-y-1/2">
-            <Link href="/">
-              <Button
-                variant="ghost"
-                size="icon"
-                className="text-gray-600 dark:text-gray-400 hover:text-black dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800 h-10 w-10"
-                aria-label="Go back"
-              >
-                <ArrowLeft className="w-5 h-5" />
-              </Button>
-            </Link>
+      <div className="flex w-full min-w-0 flex-col">
+        <header className="flex h-16 items-center justify-between gap-4 border-b border-slate-200 bg-white px-4 dark:border-slate-800 dark:bg-slate-950 sm:px-6">
+          <div className="min-w-0">
+            <h1 className="truncate text-base font-semibold text-slate-950 dark:text-white">
+              AI Assistant
+            </h1>
+            <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">
+              Ask, create, and explore
+            </p>
           </div>
 
-          {/* Right action */}
-          <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-2">
+          <div className="flex shrink-0 items-center gap-2">
+            <ModelPill model={selectedModel} />
             <Button
               variant="ghost"
               size="icon"
-              className="text-gray-600 dark:text-gray-400 hover:text-black dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800 h-8 w-8 sm:h-10 sm:w-10"
+              className="h-9 w-9 text-slate-500 hover:text-slate-950 dark:text-slate-400 dark:hover:text-white"
               onClick={clearMessages}
               aria-label="Clear conversation"
               title="Clear conversation"
             >
-              <Trash2 className="w-4 h-4 sm:w-5 sm:h-5" />
+              <Trash2 className="h-4 w-4" />
             </Button>
-          </div>
-
-          {/* Center title and model select */}
-          <div className="flex flex-col items-center text-center">
-            <h1 className="text-base sm:text-lg font-semibold text-black dark:text-white">Ai Assistant</h1>
-            <div className="mt-1">
-              <ClientModelSelectPill selectedModel={selectedModel} setSelectedModel={setSelectedModel} />
-            </div>
           </div>
         </header>
 
@@ -1139,7 +1084,7 @@ function AIAssistantPageInternal() {
                   Session Expired
                 </p>
                 <p className="text-yellow-700 dark:text-yellow-300">
-                  This conversation is older than 5 minutes and may be removed soon. Created {sessionAge}.
+                  This conversation is older than 30 days and may be removed soon. Created {sessionAge}.
                 </p>
               </div>
               <Button
@@ -1174,21 +1119,19 @@ function AIAssistantPageInternal() {
           </div>
         )}
 
-        {/* Monochrome Messages Area */}
-        <div className="relative flex-1 overflow-hidden bg-white dark:bg-black">
+        <div className="relative flex-1 overflow-hidden bg-slate-50 dark:bg-slate-950">
           <ScrollArea ref={scrollAreaRef} className="h-full">
-            <div className="w-full max-w-3xl mx-auto px-2 sm:px-4" style={{ minWidth: 0, maxWidth: '100vw', boxSizing: 'border-box' }}>
+            <div className="mx-auto w-full max-w-4xl px-3 sm:px-6" style={{ minWidth: 0, boxSizing: 'border-box' }}>
               {messages.length === 0 ? (
-                /* Welcome Screen - Monochrome */
                 <div className="flex flex-col items-center justify-center h-full px-4 py-12">
                   <div className="text-center max-w-md">
-                    <div className="w-16 h-16 mx-auto mb-4 bg-gray-200 dark:bg-gray-800 rounded-2xl flex items-center justify-center">
-                      <Sparkles className="w-8 h-8 text-gray-600 dark:text-gray-400" />
+                    <div className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-2xl bg-blue-600 text-white shadow-md shadow-blue-600/20">
+                      <Sparkles className="h-8 w-8" />
                     </div>
-                    <h1 className="text-2xl font-semibold text-black dark:text-white mb-2">
+                    <h2 className="mb-2 text-2xl font-bold tracking-tight text-slate-950 dark:text-white">
                       How can I help you today?
-                    </h1>
-                    <p className="text-gray-600 dark:text-gray-400 text-sm">
+                    </h2>
+                    <p className="text-sm leading-6 text-slate-500 dark:text-slate-400">
                       I'm your AI assistant powered by {selectedModel.displayName}. Ask me anything!
                     </p>
                   </div>
@@ -1232,16 +1175,15 @@ function AIAssistantPageInternal() {
             <button
               aria-label="Scroll to bottom"
               onClick={scrollToBottom}
-              className="absolute bottom-3 right-3 z-10 h-10 w-10 rounded-full bg-gray-900 text-white dark:bg-gray-200 dark:text-black shadow-md hover:opacity-90"
+              className="absolute bottom-3 right-3 z-10 h-10 w-10 rounded-full bg-blue-600 text-white shadow-md hover:bg-blue-500"
             >
               <ChevronDown className="w-5 h-5 mx-auto" />
             </button>
           )}
         </div>
 
-        {/* Monochrome Input Area */}
-        <div className="p-4 border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-black">
-          <div className="max-w-3xl mx-auto">
+        <div className="border-t border-slate-200 bg-white p-3 dark:border-slate-800 dark:bg-slate-950 sm:p-4">
+          <div className="mx-auto max-w-4xl">
             {/* Suggestion chips - only show when no messages */}
             {messages.length === 0 && (
               <div className="mb-4">
@@ -1250,7 +1192,7 @@ function AIAssistantPageInternal() {
                     <button
                       key={suggestion}
                       onClick={() => setInput(suggestion)}
-                      className="flex-shrink-0 px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 text-black dark:text-white rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+                      className="flex-shrink-0 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700 shadow-sm hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:hover:border-blue-500/40 dark:hover:bg-blue-500/10 dark:hover:text-blue-300"
                     >
                       {suggestion}
                     </button>
@@ -1346,7 +1288,7 @@ function AIAssistantPageInternal() {
                 }}
               >
                 <div className={cn(
-                  "w-full bg-white dark:bg-gray-900 border border-gray-300/70 dark:border-gray-700/70 ring-1 ring-inset ring-gray-200 dark:ring-gray-800 pr-16 sm:pr-14 pl-5 py-2.5 focus-within:ring-2 focus-within:ring-gray-400 dark:focus-within:ring-gray-500 shadow-sm",
+                  "w-full border border-slate-300 bg-white py-2.5 pl-5 pr-16 shadow-sm focus-within:border-blue-500 focus-within:ring-4 focus-within:ring-blue-500/10 dark:border-slate-700 dark:bg-slate-900",
                   isPillRound ? "rounded-[9999px]" : "rounded-2xl"
                 )}>
                   <Textarea
@@ -1406,7 +1348,7 @@ function AIAssistantPageInternal() {
                   type="button"
                   aria-label="Upload"
                   onClick={() => fileInputRef.current?.click()}
-                  className="absolute right-2 top-1/2 -translate-y-1/2 h-10 w-10 rounded-full bg-white dark:bg-black border border-gray-300 dark:border-gray-700 ring-1 ring-inset ring-gray-200 dark:ring-gray-800 flex items-center justify-center shadow-sm"
+                  className="absolute right-2 top-1/2 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-lg text-slate-500 hover:bg-slate-100 hover:text-slate-950 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-white"
                 >
                   <Upload className="w-5 h-5 text-gray-700 dark:text-gray-300" />
                 </button>
@@ -1419,8 +1361,7 @@ function AIAssistantPageInternal() {
                 size="icon"
                 aria-label={isLoading ? 'Cancel' : 'Send'}
                 className={cn(
-                  'h-12 w-12 rounded-full bg-gray-200 dark:bg-gray-800 text-gray-800 dark:text-gray-100 hover:bg-gray-300 dark:hover:bg-gray-700',
-                  'border border-gray-300 dark:border-gray-700',
+                  'h-12 w-12 rounded-xl bg-blue-600 text-white shadow-sm hover:bg-blue-500',
                   (!input.trim() || isLoading) && 'opacity-50 cursor-not-allowed'
                 )}
               >
@@ -1433,7 +1374,7 @@ function AIAssistantPageInternal() {
             </div>
             
             {/* Footer */}
-            <p className="text-xs text-gray-600 dark:text-gray-400 text-center mt-2">
+            <p className="mt-2 text-center text-xs text-slate-500 dark:text-slate-400">
               AI can make mistakes. Check important info.
             </p>
           </div>

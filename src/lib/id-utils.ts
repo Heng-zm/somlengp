@@ -773,17 +773,29 @@ export function parseShareableRoute(route: string): {
  */
 export function extractTimestampFromId(id: string): number | null {
   try {
-    // Remove prefix (e.g., 'chat')
-    const withoutPrefix = id.replace(/^[a-zA-Z]+/, '');
-    
-    // Check if starts with timestamp pattern (base36 number followed by underscore)
-    const match = withoutPrefix.match(/^([a-z0-9]+)_/);
-    if (match) {
-      const timestamp = parseInt(match[1], 36);
-      if (!isNaN(timestamp) && timestamp > 0) {
+    if (typeof id !== 'string' || !id) return null;
+
+    const earliestSupportedTimestamp = Date.UTC(2000, 0, 1);
+    const latestSupportedTimestamp = Date.now() + 5 * 60 * 1000;
+    const firstSegment = id.split('_', 1)[0].toLowerCase();
+
+    // Timestamped routes historically concatenate an alphabetic prefix and a
+    // base-36 timestamp. Removing every leading letter also removed part of
+    // that timestamp, so validate plausible timestamp suffixes instead.
+    for (let length = 8; length <= Math.min(10, firstSegment.length); length++) {
+      const candidate = firstSegment.slice(-length);
+      if (!/^[a-z0-9]+$/.test(candidate)) continue;
+
+      const timestamp = Number.parseInt(candidate, 36);
+      if (
+        Number.isSafeInteger(timestamp) &&
+        timestamp >= earliestSupportedTimestamp &&
+        timestamp <= latestSupportedTimestamp
+      ) {
         return timestamp;
       }
     }
+
     return null;
   } catch (error) {
     errorHandler.handle(error, { function: 'extractTimestampFromId', id });

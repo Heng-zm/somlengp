@@ -29,7 +29,7 @@ export interface UserPreferences {
   
   // AI Assistant Preferences
   aiAssistant: {
-    model: 'gemini-1.5-flash' | 'gemini-2.0-flash-exp';
+    model: 'somleng-ai';
     temperature: number; // 0.1 - 1.0
     maxTokens: number;
     systemPrompt: string | null;
@@ -91,7 +91,7 @@ export const defaultUserPreferences: UserPreferences = {
   },
   
   aiAssistant: {
-    model: 'gemini-1.5-flash',
+    model: 'somleng-ai',
     temperature: 0.7,
     maxTokens: 2048,
     systemPrompt: null,
@@ -271,7 +271,7 @@ export function getPreferenceDisplayValue(key: string, value: any): string {
     case 'fontSize':
       return value.charAt(0).toUpperCase() + value.slice(1);
     case 'model':
-      return value.includes('2.0') ? 'Gemini 2.0 Flash' : 'Gemini 1.5 Flash';
+      return 'Somleng AI';
     case 'responseFormat':
       return value === 'markdown' ? 'Markdown' : 'Plain Text';
     default:

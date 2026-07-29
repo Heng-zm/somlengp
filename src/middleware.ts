@@ -1,15 +1,33 @@
 import { NextRequest, NextResponse } from 'next/server';
 
 // Simple in-memory rate limiter per IP for API routes
-const RATE_LIMIT = Number(process.env.API_RATE_LIMIT_REQUESTS || 60); // requests
-const RATE_WINDOW_MS = Number(process.env.API_RATE_LIMIT_WINDOW_MS || 60_000); // 60s
+function positiveInteger(value: string | undefined, fallback: number): number {
+  const parsed = Number.parseInt(value || '', 10);
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : fallback;
+}
+
+const RATE_LIMIT = positiveInteger(process.env.API_RATE_LIMIT_REQUESTS, 60);
+const RATE_WINDOW_MS = positiveInteger(
+  process.env.API_RATE_LIMIT_WINDOW_MS,
+  60_000
+);
 
 const buckets = new Map<string, { count: number; resetAt: number }>();
+let lastBucketCleanup = 0;
 
 function rateLimit(key: string): { ok: boolean; retryAfter?: number } {
   const now = Date.now();
+  if (now - lastBucketCleanup >= RATE_WINDOW_MS) {
+    for (const [bucketKey, record] of buckets) {
+      if (record.resetAt <= now) {
+        buckets.delete(bucketKey);
+      }
+    }
+    lastBucketCleanup = now;
+  }
+
   const rec = buckets.get(key);
-  if (!rec || now > rec.resetAt) {
+  if (!rec || now >= rec.resetAt) {
     buckets.set(key, { count: 1, resetAt: now + RATE_WINDOW_MS });
     return { ok: true };
   }
@@ -51,8 +69,6 @@ export function middleware(req: NextRequest) {
   if (allowedOrigins.length > 0) {
     if (allowedOrigins.includes('*') || (origin && allowedOrigins.includes(origin))) {
       res.headers.set('Access-Control-Allow-Origin', origin || '*');
-    } else {
-      res.headers.set('Access-Control-Allow-Origin', 'null');
     }
     res.headers.set('Vary', 'Origin');
     res.headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization');

@@ -13,10 +13,8 @@ import {
   QrCode, 
   Shield,
 } from 'lucide-react';
-import { ScrollArea } from '@/components/ui/scroll-area';
 import { useLanguage } from '@/hooks/use-language';
 import { getPerformanceTracker, DEFAULT_BUDGETS } from '@/lib/performance-tracker';
-import { OptimizedHomeHeader } from '@/components/home/optimized-home-header';
 import { OptimizedFeatureGrid } from '@/components/home/optimized-feature-grid';
 import { SearchToolBar } from '@/components/home/search-tool-bar';
 import { Card } from '@/components/ui/card';
@@ -28,7 +26,7 @@ import { Footer } from '@/components/shared/footer';
 const VISITOR_SESSION_KEY = 'ozo-designer-session-visited';
 const HomePageComponent = function HomePage() {
   const [visitorCount, setVisitorCount] = useState<number | null>(null);
-  const { language, toggleLanguage, theme, toggleTheme, t } = useLanguage();
+  const { t } = useLanguage();
   // Optimized visitor count with caching and retry logic
   const fetchVisitorCount = useMemo(() => {
     let retryCount = 0;
@@ -164,48 +162,68 @@ const HomePageComponent = function HomePage() {
   useEffect(() => {
     if (searchQuery.trim()) scrollToOtherTools();
   }, [searchQuery, scrollToOtherTools]);
-  // Memoized callbacks for better performance
-  const handleThemeToggle = useCallback(() => {
-    toggleTheme();
-  }, [toggleTheme]);
-  const handleLanguageToggle = useCallback(() => {
-    toggleLanguage();
-  }, [toggleLanguage]);
   return (
-    <>
-      <div className="flex flex-col h-full text-foreground">
-        <OptimizedHomeHeader
-          visitorCount={visitorCount}
-          theme={theme}
-          language={language}
-          onThemeToggle={handleThemeToggle}
-          onLanguageToggle={handleLanguageToggle}
-        />
-        <ScrollArea className="flex-grow pt-20 sm:pt-24 md:pt-28">
-          <main id="main-content" role="main" className="px-4 py-6 sm:px-6 sm:py-8 md:px-8 md:py-10 lg:px-12 lg:py-12 space-y-8 sm:space-y-10 md:space-y-12 max-w-[1600px] mx-auto">
-            <SearchToolBar value={searchQuery} onChange={setSearchQuery} onSubmit={scrollToOtherTools} />
-            {filteredOtherFeatures.length === 0 ? (
-              <div className="mt-3">
-<Card className="p-5 flex items-center justify-between rounded-2xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900">
-                  <div>
-<h4 className="text-base font-semibold text-gray-900 dark:text-gray-100">No tools found</h4>
-<p className="text-sm text-gray-600 dark:text-gray-400">Try different keywords or clear your search.</p>
-                  </div>
-                  <Button variant="outline" onClick={() => setSearchQuery('')}>Clear</Button>
-                </Card>
+    <div className="flex min-h-[calc(100dvh-4rem)] flex-col bg-slate-50 dark:bg-slate-950 lg:min-h-dvh">
+      <div className="mx-auto w-full max-w-[1600px] flex-1 px-4 py-6 sm:px-6 sm:py-8 lg:px-8 lg:py-10">
+        <section className="relative overflow-hidden rounded-2xl border border-slate-200 bg-white px-5 py-8 shadow-sm dark:border-slate-800 dark:bg-slate-900 sm:px-8 sm:py-10 lg:px-12 lg:py-14">
+          <div
+            className="pointer-events-none absolute inset-y-0 right-0 hidden w-1/2 bg-[radial-gradient(circle_at_center,_rgba(59,130,246,0.14),_transparent_65%)] lg:block"
+            aria-hidden="true"
+          />
+          <div className="relative max-w-3xl">
+            <div className="mb-5 flex flex-wrap items-center gap-3">
+              <span className="inline-flex items-center rounded-full bg-blue-50 px-3 py-1 text-xs font-semibold text-blue-700 ring-1 ring-inset ring-blue-700/10 dark:bg-blue-500/10 dark:text-blue-300 dark:ring-blue-400/20">
+                Somleng workspace
+              </span>
+              {visitorCount !== null && (
+                <span className="text-xs font-medium text-slate-500 dark:text-slate-400">
+                  {visitorCount.toLocaleString()} people have used these tools
+                </span>
+              )}
+            </div>
+            <h1 className="max-w-2xl text-3xl font-bold tracking-tight text-slate-950 dark:text-white sm:text-4xl lg:text-5xl">
+              Create, convert, and communicate from one workspace.
+            </h1>
+            <p className="mt-4 max-w-2xl text-base leading-7 text-slate-600 dark:text-slate-300 sm:text-lg">
+              AI, voice, QR, image, and PDF utilities designed to help you finish everyday work faster.
+            </p>
+            <div className="mt-7 max-w-2xl">
+              <SearchToolBar
+                value={searchQuery}
+                onChange={setSearchQuery}
+                onSubmit={scrollToOtherTools}
+              />
+            </div>
+          </div>
+        </section>
+
+        <div className="mt-8 space-y-8 lg:mt-10 lg:space-y-10">
+          {filteredOtherFeatures.length === 0 ? (
+            <Card className="flex items-center justify-between gap-4 p-5">
+              <div>
+                <h2 className="text-base font-semibold text-slate-950 dark:text-white">
+                  No tools found
+                </h2>
+                <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
+                  Try a different keyword or clear the search.
+                </p>
               </div>
-            ) : null}
-            <OptimizedFeatureGrid
-              primaryFeature={primaryFeature}
-              otherFeatures={filteredOtherFeatures}
-              startNowText={t('startNow')}
-              otherToolsText={"Other Tool"}
-            />
-          </main>
-          <Footer />
-        </ScrollArea>
+              <Button variant="outline" onClick={() => setSearchQuery('')}>
+                Clear
+              </Button>
+            </Card>
+          ) : null}
+
+          <OptimizedFeatureGrid
+            primaryFeature={primaryFeature}
+            otherFeatures={filteredOtherFeatures}
+            startNowText={t('startNow')}
+            otherToolsText="Explore tools"
+          />
+        </div>
       </div>
-    </>
+      <Footer />
+    </div>
   );
 }
 

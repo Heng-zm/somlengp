@@ -420,23 +420,17 @@ const ProfilePageComponent = function ProfilePage() {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="space-y-4">
-                  <div className="grid gap-2">
-                    <Label>AI Model</Label>
-                    <Select
-                      value={tempPreferences.aiAssistant.model}
-                      onValueChange={(value) => handlePreferenceChange('aiAssistant', 'model', value)}
-                      disabled={!isEditing}
-                    >
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="gemini-1.5-flash">Gemini 1.5 Flash</SelectItem>
-                        <SelectItem value="gemini-2.0-flash-exp">Gemini 2.0 Flash</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
+                  <div className="space-y-4">
+                    <div className="grid gap-2">
+                      <Label>AI Model</Label>
+                      <div className="flex items-center justify-between rounded-lg border border-border bg-muted/40 px-3.5 py-3">
+                        <div>
+                          <p className="text-sm font-semibold text-foreground">Somleng AI</p>
+                          <p className="mt-1 text-xs text-muted-foreground">Managed automatically for the best available response.</p>
+                        </div>
+                        <Badge variant="secondary">Active</Badge>
+                      </div>
+                    </div>
 
                   <div className="flex items-center justify-between">
                     <div>

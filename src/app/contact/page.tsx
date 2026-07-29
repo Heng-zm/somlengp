@@ -97,29 +97,9 @@ const ContactPageComponent = function ContactPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100">
-      {/* Navigation */}
-      <nav className="bg-white/80 backdrop-blur-md border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <Link href="/home" className="flex items-center space-x-2">
-              <div className="w-8 h-8 bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg flex items-center justify-center">
-                <Mail className="w-5 h-5 text-white" />
-              </div>
-              <span className="text-xl font-bold text-gray-900">{CONTACT.brandName}</span>
-            </Link>
-            
-            <Button asChild variant="ghost">
-              <Link href="/home">
-                ← Back to Homepage
-              </Link>
-            </Button>
-          </div>
-        </div>
-      </nav>
-
+    <div className="company-page min-h-full bg-slate-50 dark:bg-slate-950">
       {/* Header */}
-      <section className="pt-16 pb-8">
+      <section className="px-4 pb-8 pt-12 sm:px-6 lg:px-8 lg:pt-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">
             Get in Touch

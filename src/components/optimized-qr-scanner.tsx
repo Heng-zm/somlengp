@@ -1,18 +1,33 @@
 'use client';
-import React, { useRef, useEffect, useState, useCallback, memo, useMemo } from 'react';
+
+import React, {
+  memo,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
+import {
+  Camera,
+  CameraOff,
+  ImageUp,
+  Loader2,
+  RefreshCw,
+  SwitchCamera,
+  Upload,
+  X,
+  Zap,
+  ZapOff,
+  ZoomIn,
+} from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useQRCamera } from '@/hooks/use-camera-permission';
 import { useQRScannerWorker } from '@/hooks/use-qr-worker';
 import { qrPerformanceMonitor } from '@/utils/qr-performance';
-import { Upload } from 'lucide-react';
-// Memory leak prevention: Timers need cleanup
-// Add cleanup in useEffect return function
-
-// Performance optimization needed: Consider memoizing inline styles, inline event handlers, dynamic classNames
-// Use useMemo for objects/arrays and useCallback for functions
 
 export interface OptimizedQRScannerProps {
-  onScanSuccess?: (data: string, location?: any, confidence?: number) => void;
+  onScanSuccess?: (data: string, location?: QRLocation, confidence?: number) => void;
   onScanError?: (error: string) => void;
   onClose?: () => void;
   className?: string;
@@ -21,795 +36,953 @@ export interface OptimizedQRScannerProps {
   scanRegion?: 'full' | 'center' | 'auto';
   scanQuality?: 'fast' | 'balanced' | 'accurate';
 }
-interface ScanStats {
-  scanAttempts: number;
-  successfulScans: number;
-  averageProcessingTime: number;
-  lastScanTime: number;
+
+interface QRPoint {
+  x: number;
+  y: number;
 }
-const OptimizedQRScannerComponent = function OptimizedQRScanner({ 
-  onScanSuccess, 
-  onScanError, 
-  onClose, 
+
+interface QRLocation {
+  topLeftCorner?: QRPoint;
+  topRightCorner?: QRPoint;
+  bottomLeftCorner?: QRPoint;
+  bottomRightCorner?: QRPoint;
+}
+
+interface DecodeResult {
+  data: string;
+  location?: QRLocation;
+  processingTime: number;
+  source: 'native' | 'worker' | 'main-thread';
+}
+
+interface NativeBarcode {
+  rawValue?: string;
+}
+
+interface NativeBarcodeDetector {
+  detect(source: CanvasImageSource): Promise<NativeBarcode[]>;
+}
+
+interface NativeBarcodeDetectorConstructor {
+  new (options?: { formats?: string[] }): NativeBarcodeDetector;
+  getSupportedFormats?: () => Promise<string[]>;
+}
+
+interface ExtendedCapabilities extends MediaTrackCapabilities {
+  torch?: boolean;
+  zoom?: {
+    min?: number;
+    max?: number;
+    step?: number;
+  };
+}
+
+interface ExtendedSettings extends MediaTrackSettings {
+  torch?: boolean;
+  zoom?: number;
+}
+
+type ScannerStatus = 'starting' | 'scanning' | 'found' | 'paused' | 'error';
+
+const MAX_UPLOAD_BYTES = 16 * 1024 * 1024;
+const MAX_UPLOAD_DIMENSION = 2048;
+
+function getCameraErrorMessage(error?: { name?: string; message?: string } | null): string {
+  switch (error?.name) {
+    case 'NotAllowedError':
+    case 'PermissionDeniedError':
+      return 'Camera access was denied. Allow camera access in your browser settings, then try again.';
+    case 'NotFoundError':
+    case 'DevicesNotFoundError':
+      return 'No camera was found on this device.';
+    case 'NotReadableError':
+    case 'TrackStartError':
+      return 'The camera is already in use by another application.';
+    case 'OverconstrainedError':
+      return 'This camera does not support the requested quality. Try switching cameras.';
+    default:
+      return error?.message || 'Unable to start the camera.';
+  }
+}
+
+function calculateRegion(
+  width: number,
+  height: number,
+  scanRegion: OptimizedQRScannerProps['scanRegion'],
+) {
+  if (scanRegion === 'full') {
+    return { x: 0, y: 0, width, height };
+  }
+
+  const shortestSide = Math.min(width, height);
+  const size = scanRegion === 'center' ? shortestSide * 0.68 : shortestSide * 0.82;
+
+  return {
+    x: (width - size) / 2,
+    y: (height - size) / 2,
+    width: size,
+    height: size,
+  };
+}
+
+const OptimizedQRScannerComponent = function OptimizedQRScanner({
+  onScanSuccess,
+  onScanError,
+  onClose,
   className = '',
   enableVibration = true,
   enableSound = false,
   scanRegion = 'auto',
-  scanQuality = 'balanced'
+  scanQuality = 'balanced',
 }: OptimizedQRScannerProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const canvasPoolRef = useRef<HTMLCanvasElement[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const animationFrameRef = useRef<number | null>(null);
-  const lastScanTimeRef = useRef<number>(0);
+  const scanFrameRef = useRef<() => Promise<void>>(async () => undefined);
+  const scanLoopRef = useRef<FrameRequestCallback>(() => undefined);
+  const scanInFlightRef = useRef(false);
+  const scanningRef = useRef(false);
+  const cameraRequestStartedRef = useRef(false);
+  const lastScanTimeRef = useRef(0);
+  const lastScannedDataRef = useRef('');
+  const lastReportedErrorRef = useRef(0);
+  const nativeDetectorRef = useRef<NativeBarcodeDetector | null>(null);
+  const nativeDetectorCheckedRef = useRef(false);
+  const onScanSuccessRef = useRef(onScanSuccess);
+  const onScanErrorRef = useRef(onScanError);
+  const onCloseRef = useRef(onClose);
+
+  onScanSuccessRef.current = onScanSuccess;
+  onScanErrorRef.current = onScanError;
+  onCloseRef.current = onClose;
+
+  const [status, setStatus] = useState<ScannerStatus>('starting');
+  const [statusMessage, setStatusMessage] = useState('Starting camera…');
   const [isScanning, setIsScanning] = useState(false);
-  const [lastScannedData, setLastScannedData] = useState<string>('');
   const [isProcessingUpload, setIsProcessingUpload] = useState(false);
-  const [scanConfidence, setScanConfidence] = useState<number>(0);
-  const [detectionZone, setDetectionZone] = useState({ x: 0, y: 0, width: 0, height: 0 });
-  const [detectedBox, setDetectedBox] = useState<{x:number;y:number;width:number;height:number}|null>(null);
   const [torchOn, setTorchOn] = useState(false);
-  const [zoom, setZoom] = useState<number>(1);
-  const [scanStats, setScanStats] = useState<ScanStats>({
-    scanAttempts: 0,
-    successfulScans: 0,
-    averageProcessingTime: 0,
-    lastScanTime: 0
-  });
-  // Use optimized camera hook - auto-request camera on mount
+  const [supportsTorch, setSupportsTorch] = useState(false);
+  const [zoom, setZoom] = useState(1);
+  const [zoomRange, setZoomRange] = useState<{ min: number; max: number; step: number } | null>(null);
+
   const {
     stream,
     isLoading,
     isSupported,
-    hasPermission,
     permissionState,
+    devices,
     error: cameraError,
     requestCamera,
     stopCamera,
-    switchFacingMode
+    switchFacingMode,
   } = useQRCamera();
 
-  // Use Web Worker for enhanced performance
   const {
     isReady: workerReady,
     scanQR,
     stats: workerStats,
-    error: workerError
+    error: workerError,
   } = useQRScannerWorker();
 
-  // Memoized styles for performance
-  const scanFrameStyle = useMemo(() => ({
-    width: '300px',
-    height: '300px'
-  }), []);
+  const scanInterval = useMemo(() => {
+    if (scanQuality === 'fast') return 100;
+    if (scanQuality === 'accurate') return 220;
+    return 150;
+  }, [scanQuality]);
 
-  const scanBeamStyle = useMemo(() => ({
-    top: '50%',
-    background: 'linear-gradient(90deg, transparent, rgba(156,163,175,0.8), transparent)'
-  }), []);
-
-  const videoStyle = useMemo(() => ({
-    minHeight: '400px',
-    maxHeight: '600px'
-  }), []);
-
-  // Auto-start camera when component mounts (with debounce)
-  useEffect(() => {
-    let timeoutId: ReturnType<typeof setTimeout>;
-    if (isSupported && !stream && !isLoading && !cameraError) {
-      // Debounce camera request to prevent race conditions (not gated on worker readiness)
-      timeoutId = setTimeout(() => {
-        requestCamera().catch(err => {
-          console.error('Failed to initialize camera:', err);
-          onScanError?.('Failed to initialize camera');
-        });
-      }, 200);
-    }
-    return () => {
-      if (timeoutId) {
-        clearTimeout(timeoutId);
-      }
-    };
-  }, [isSupported, stream, isLoading, cameraError, requestCamera, onScanError]);
-  // Get or create canvas from pool for better memory management
-  const getCanvas = useCallback(() => {
-    if (canvasPoolRef.current.length > 0) {
-      return canvasPoolRef.current.pop()!;
-    }
-    return document.createElement('canvas');
-  }, []);
-  // Return canvas to pool
-  const returnCanvas = useCallback((canvas: HTMLCanvasElement) => {
-    if (canvasPoolRef.current.length < 3) { // Keep max 3 canvases
-      const ctx = canvas.getContext('2d');
-      if (ctx) {
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-      }
-      canvasPoolRef.current.push(canvas);
+  const reportError = useCallback((message: string, notify = true) => {
+    setStatus('error');
+    setStatusMessage(message);
+    if (notify) {
+      onScanErrorRef.current?.(message);
     }
   }, []);
-  // Helpers to get current video track
+
   const getVideoTrack = useCallback(() => {
-    const v = videoRef.current;
-    const ms = v?.srcObject as MediaStream | null;
-    return ms?.getVideoTracks()[0] || null;
-  }, []);
-  // Torch toggle
-  const toggleTorch = useCallback(async () => {
-    try {
-      const track = getVideoTrack();
-      if (!track) return;
-      const caps: any = track.getCapabilities?.();
-      if (caps && 'torch' in caps) {
-        const next = !torchOn;
-        await track.applyConstraints({ advanced: [{ torch: next }] as any });
-        setTorchOn(next);
-      }
-    } catch {}
-  }, [getVideoTrack, torchOn]);
-  // Zoom setter
-  const applyZoom = useCallback(async (value: number) => {
-    try {
-      const track = getVideoTrack();
-      if (!track) return;
-      const caps: any = track.getCapabilities?.();
-      if (caps && 'zoom' in caps) {
-        const min = caps.zoom.min ?? 1;
-        const max = caps.zoom.max ?? 4;
-        const clamped = Math.min(max, Math.max(min, value));
-        await track.applyConstraints({ advanced: [{ zoom: clamped }] as any });
-        setZoom(clamped);
-      }
-    } catch {}
+    return stream?.getVideoTracks()[0] || null;
+  }, [stream]);
+
+  const updateTrackControls = useCallback(() => {
+    const track = getVideoTrack();
+    if (!track) {
+      setSupportsTorch(false);
+      setZoomRange(null);
+      setTorchOn(false);
+      setZoom(1);
+      return;
+    }
+
+    const capabilities = track.getCapabilities?.() as ExtendedCapabilities | undefined;
+    const settings = track.getSettings() as ExtendedSettings;
+    const nextZoomRange = capabilities?.zoom;
+
+    setSupportsTorch(Boolean(capabilities?.torch));
+    setTorchOn(Boolean(settings.torch));
+
+    if (
+      nextZoomRange &&
+      Number.isFinite(nextZoomRange.min) &&
+      Number.isFinite(nextZoomRange.max) &&
+      Number(nextZoomRange.max) > Number(nextZoomRange.min)
+    ) {
+      const min = Number(nextZoomRange.min);
+      const max = Number(nextZoomRange.max);
+      setZoomRange({
+        min,
+        max,
+        step: Number(nextZoomRange.step) || 0.1,
+      });
+      setZoom(Math.min(max, Math.max(min, Number(settings.zoom) || min)));
+    } else {
+      setZoomRange(null);
+      setZoom(1);
+    }
   }, [getVideoTrack]);
-  // Calculate optimal scan region based on video dimensions
-  const calculateScanRegion = useCallback((videoWidth: number, videoHeight: number) => {
-    switch (scanRegion) {
-      case 'center':
-        const centerSize = Math.min(videoWidth, videoHeight) * 0.6;
-        return {
-          x: (videoWidth - centerSize) / 2,
-          y: (videoHeight - centerSize) / 2,
-          width: centerSize,
-          height: centerSize
-        };
-      case 'full':
-        return { x: 0, y: 0, width: videoWidth, height: videoHeight };
-      case 'auto':
-      default:
-        // Smart region based on common QR code positions
-        const margin = Math.min(videoWidth, videoHeight) * 0.1;
-        return {
-          x: margin,
-          y: margin,
-          width: videoWidth - 2 * margin,
-          height: videoHeight - 2 * margin
-        };
+
+  const getNativeDetector = useCallback(async () => {
+    if (nativeDetectorCheckedRef.current) {
+      return nativeDetectorRef.current;
     }
-  }, [scanRegion]);
-  // Adaptive scan interval based on device performance
-  const getScanInterval = useCallback(() => {
-    const baseInterval = scanQuality === 'fast' ? 100 : scanQuality === 'accurate' ? 200 : 150;
-    // Adjust based on processing times
-    if (workerStats.averageProcessingTime > 100) {
-      return baseInterval + 50; // Slightly slower for heavy processing
-    } else if (workerStats.averageProcessingTime < 50) {
-      return Math.max(80, baseInterval - 30); // Faster for light processing
+
+    nativeDetectorCheckedRef.current = true;
+    const Detector = (
+      window as typeof window & { BarcodeDetector?: NativeBarcodeDetectorConstructor }
+    ).BarcodeDetector;
+
+    if (!Detector) {
+      return null;
     }
-    return baseInterval;
-  }, [scanQuality, workerStats.averageProcessingTime]);
-  // Trigger haptic feedback
-  const triggerVibration = useCallback((pattern: number | number[] = 200) => {
-    if (enableVibration && 'vibrate' in navigator) {
-      navigator.vibrate(pattern);
+
+    try {
+      const supportedFormats = await Detector.getSupportedFormats?.();
+      if (supportedFormats && !supportedFormats.includes('qr_code')) {
+        return null;
+      }
+      nativeDetectorRef.current = new Detector({ formats: ['qr_code'] });
+    } catch {
+      nativeDetectorRef.current = null;
     }
-  }, [enableVibration]);
-  // Trigger audio feedback
-  const triggerSound = useCallback(() => {
-    if (enableSound) {
+
+    return nativeDetectorRef.current;
+  }, []);
+
+  const decodeCanvas = useCallback(async (
+    canvas: HTMLCanvasElement,
+    getImageData: () => ImageData,
+  ): Promise<DecodeResult | null> => {
+    const startedAt = performance.now();
+    const detector = await getNativeDetector();
+
+    if (detector) {
       try {
-        const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
-        const oscillator = audioContext.createOscillator();
-        const gainNode = audioContext.createGain();
-        oscillator.connect(gainNode);
-        gainNode.connect(audioContext.destination);
-        oscillator.frequency.value = 800;
-        oscillator.type = 'sine';
-        gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
-        gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
-        oscillator.start(audioContext.currentTime);
-        oscillator.stop(audioContext.currentTime + 0.3);
-      } catch (error) {
+        const barcodes = await detector.detect(canvas);
+        const match = barcodes.find((barcode) => barcode.rawValue?.trim());
+        if (match?.rawValue) {
+          return {
+            data: match.rawValue,
+            processingTime: performance.now() - startedAt,
+            source: 'native',
+          };
+        }
+      } catch {
+        // Native detection is an optimization. The worker remains the reliable fallback.
       }
     }
-  }, [enableSound]);
-  // Enhanced QR scanning with worker
-  const scanQRCode = useCallback(async () => {
-    const video = videoRef.current;
-    if (!video || !workerReady || !isScanning || 
-        video.videoWidth === 0 || video.videoHeight === 0) {
-      return;
-    }
-    
-    // Verify video is actually playing
-    if (video.paused || video.ended || video.readyState < 2) {
-      return;
-    }
-    // Throttle scans based on adaptive interval
-    const now = performance.now();
-    const interval = getScanInterval();
-    if (now - lastScanTimeRef.current < interval) {
-      return;
-    }
-    lastScanTimeRef.current = now;
-    try {
-      qrPerformanceMonitor.recordScanAttempt();
-      // Get canvas from pool
-      const canvas = getCanvas();
-      const context = (canvas.getContext('2d', { willReadFrequently: true } as any) || canvas.getContext('2d')) as CanvasRenderingContext2D | null;
-      if (!context) return;
-      // Set canvas dimensions to match video
-      canvas.width = video.videoWidth;
-      canvas.height = video.videoHeight;
-      // Draw current video frame to canvas
-      context.drawImage(video, 0, 0, canvas.width, canvas.height);
-      // Calculate scan region
-      const region = calculateScanRegion(canvas.width, canvas.height);
-      // Ensure integer coordinates for getImageData
-      const rx = Math.max(0, Math.floor(region.x));
-      const ry = Math.max(0, Math.floor(region.y));
-      const rw = Math.min(canvas.width - rx, Math.floor(region.width));
-      const rh = Math.min(canvas.height - ry, Math.floor(region.height));
-      setDetectionZone({ x: rx, y: ry, width: rw, height: rh });
-      // Get image data for the scan region
-      const imageData = context.getImageData(rx, ry, rw, rh);
-      let result: { qrCode: any | null; processingTime: number };
-      // Try native BarcodeDetector first (fast on supported browsers)
-      const BD: any = (window as any).BarcodeDetector;
-      if (BD && typeof BD === 'function') {
-        try {
-          const detector = new BD({ formats: ['qr_code', 'qr'] });
-          const cIB = (window as any).createImageBitmap;
-          const bitmap = cIB ? await cIB(canvas) : null;
-          const codes: any[] = await detector.detect(bitmap || (canvas as any));
-          if (codes && codes.length > 0 && codes[0].rawValue) {
-            const box = codes[0].boundingBox;
-            setDetectedBox({ x: box.x, y: box.y, width: box.width, height: box.height });
-            result = { qrCode: { data: codes[0].rawValue, location: {}, binaryData: [] }, processingTime: 5 };
-          } else {
-            result = { qrCode: null, processingTime: 5 };
-          }
-        } catch {
-          result = { qrCode: null, processingTime: 5 };
-        }
-      } else if (workerReady) {
-        // Scan using Web Worker with better options
-        result = await scanQR(imageData, {
+
+    const imageData = getImageData();
+
+    if (workerReady) {
+      try {
+        const result = await scanQR(imageData, {
           inversionAttempts: 'attemptBoth',
           locateOptions: {
             skipUntilFound: scanQuality === 'fast',
             assumeSquare: false,
             centerROI: false,
-            maxFinderPatternStdDev: scanQuality === 'accurate' ? 5 : 10
-          }
+            maxFinderPatternStdDev: scanQuality === 'accurate' ? 5 : 10,
+          },
         });
-      } else {
-        // Fallback to main-thread jsQR if worker isn't ready
-        const { default: jsQR } = await import('jsqr');
-        const start = performance.now();
-        let r = jsQR(imageData.data, imageData.width, imageData.height, {
-          inversionAttempts: 'attemptBoth'
-        });
-        // Simple brightness/contrast pass if not found yet
-        if (!r) {
-          const data = new Uint8ClampedArray(imageData.data);
-          for (let i = 0; i < data.length; i += 4) {
-            const gray = (data[i] * 299 + data[i + 1] * 587 + data[i + 2] * 114) / 1000;
-            const enhanced = Math.max(0, Math.min(255, (gray - 128) * 1.4 + 128));
-            data[i] = data[i + 1] = data[i + 2] = enhanced;
-          }
-          const enhancedImage = new ImageData(data, imageData.width, imageData.height);
-          r = jsQR(enhancedImage.data, enhancedImage.width, enhancedImage.height, { inversionAttempts: 'attemptBoth' });
+
+        if (result.qrCode?.data) {
+          return {
+            data: result.qrCode.data,
+            location: result.qrCode.location,
+            processingTime: result.processingTime,
+            source: 'worker',
+          };
         }
-        if (r?.location) {
-          const loc: any = r.location;
-          const minX = Math.min(loc.topLeftCorner.x, loc.bottomLeftCorner.x);
-          const minY = Math.min(loc.topLeftCorner.y, loc.topRightCorner.y);
-          const maxX = Math.max(loc.topRightCorner.x, loc.bottomRightCorner.x);
-          const maxY = Math.max(loc.bottomLeftCorner.y, loc.bottomRightCorner.y);
-          setDetectedBox({ x: rx + minX, y: ry + minY, width: maxX - minX, height: maxY - minY });
-        } else {
-          setDetectedBox(null);
-        }
-        result = {
-          qrCode: r ? { data: r.data, location: r.location, binaryData: r.binaryData } : null,
-          processingTime: performance.now() - start
-        };
+
+        return null;
+      } catch {
+        // Fall back to the main thread if the worker is unavailable or restarted.
       }
-      // Update scan statistics
-      setScanStats(prev => ({
-        scanAttempts: prev.scanAttempts + 1,
-        successfulScans: result.qrCode ? prev.successfulScans + 1 : prev.successfulScans,
-        averageProcessingTime: result.processingTime,
-        lastScanTime: now
-      }));
-      // Calculate confidence based on various factors
-      let confidence = 0;
-      if (result.qrCode) {
-        confidence = Math.min(100, 
-          50 + // Base confidence
-          (result.processingTime < 50 ? 20 : 10) + // Speed bonus
-          (result.qrCode.data.length > 10 ? 15 : 5) + // Content complexity
-          15 // Completion bonus
-        );
-        setScanConfidence(confidence);
-        // Check if this is a new scan result
-        if (result.qrCode.data && result.qrCode.data.trim() !== '' && result.qrCode.data !== lastScannedData) {
-          setLastScannedData(result.qrCode.data);
-          setIsScanning(false);
-          // Record successful scan
-          qrPerformanceMonitor.recordSuccessfulScan(result.qrCode.data);
-          // Provide feedback
-          triggerVibration([50, 50, 50]);
-          triggerSound();
-          onScanSuccess?.(result.qrCode.data, result.qrCode.location, confidence);
-        }
-      } else {
-        setScanConfidence(Math.max(0, scanConfidence - 5)); // Gradually decrease confidence
-      }
-      // Return canvas to pool
-      returnCanvas(canvas);
-    } catch (error) {
-      console.error('QR scanning error:', error);
-      qrPerformanceMonitor.recordFailedScan(error instanceof Error ? error.message : 'Unknown error');
-      onScanError?.('Failed to scan QR code');
     }
-  }, [
-    isScanning, workerReady, scanQuality, lastScannedData, scanConfidence,
-    onScanSuccess, onScanError, scanQR, getCanvas, returnCanvas,
-    calculateScanRegion, getScanInterval, triggerVibration, triggerSound
-  ]);
-  // Start continuous scanning loop
-  const startScanning = useCallback(() => {
-    if (!isScanning && animationFrameRef.current === null) {
-      setIsScanning(true);
-      qrPerformanceMonitor.startScanning();
-      // Use requestAnimationFrame for smooth performance
-      const scanLoop = () => {
-        scanQRCode().finally(() => {
-          // Keep looping as long as the loop hasn't been stopped
-          if (animationFrameRef.current !== null) {
-            animationFrameRef.current = requestAnimationFrame(scanLoop);
-          }
-        });
+
+    const { default: jsQR } = await import('jsqr');
+    const result = jsQR(imageData.data, imageData.width, imageData.height, {
+      inversionAttempts: 'attemptBoth',
+    });
+
+    if (!result?.data) {
+      return null;
+    }
+
+    return {
+      data: result.data,
+      location: result.location,
+      processingTime: performance.now() - startedAt,
+      source: 'main-thread',
+    };
+  }, [getNativeDetector, scanQR, scanQuality, workerReady]);
+
+  const triggerFeedback = useCallback(() => {
+    if (enableVibration && 'vibrate' in navigator) {
+      navigator.vibrate([45, 45, 70]);
+    }
+
+    if (!enableSound) return;
+
+    try {
+      const AudioContextClass = window.AudioContext
+        || (window as typeof window & { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
+      if (!AudioContextClass) return;
+
+      const audioContext = new AudioContextClass();
+      const oscillator = audioContext.createOscillator();
+      const gain = audioContext.createGain();
+
+      oscillator.connect(gain);
+      gain.connect(audioContext.destination);
+      oscillator.frequency.setValueAtTime(820, audioContext.currentTime);
+      gain.gain.setValueAtTime(0.18, audioContext.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.18);
+      oscillator.onended = () => {
+        void audioContext.close();
       };
-      animationFrameRef.current = requestAnimationFrame(scanLoop);
+      oscillator.start();
+      oscillator.stop(audioContext.currentTime + 0.18);
+    } catch {
+      // Audio feedback is optional and must never interrupt a successful scan.
     }
-  }, [isScanning, scanQRCode]);
-  // Stop scanning
+  }, [enableSound, enableVibration]);
+
   const stopScanning = useCallback(() => {
+    scanningRef.current = false;
+    scanInFlightRef.current = false;
     setIsScanning(false);
+
     if (animationFrameRef.current !== null) {
       cancelAnimationFrame(animationFrameRef.current);
       animationFrameRef.current = null;
     }
-    setScanConfidence(0);
   }, []);
-  // Set up video element when stream is available
-  useEffect(() => {
-    if (videoRef.current && stream) {
-      const video = videoRef.current;
-      video.srcObject = stream;
-      video.setAttribute('playsinline', 'true');
-      try { video.play().catch(() => {}); } catch {}
-      
-      // Enhanced video ready detection
-      const handleVideoReady = () => {
-        // Wait for video to actually start playing and have dimensions
-        if (video.videoWidth > 0 && video.videoHeight > 0) {
-          // Additional delay to ensure video frame is stable
-          setTimeout(() => {
-            if (video.readyState >= 2 && !isScanning) {
-              startScanning();
-            }
-          }, 300);
-        }
-      };
-      
-      // Multiple event listeners for better compatibility
-      video.onloadedmetadata = handleVideoReady;
-      video.oncanplay = handleVideoReady;
-      video.onplaying = handleVideoReady;
-      
-      // Fallback timeout in case events don't fire
-      const fallbackTimeout = setTimeout(() => {
-        if (video.videoWidth > 0 && video.videoHeight > 0 && !isScanning) {
-          startScanning();
-        }
-      }, 2000);
-      
-      return () => {
-        clearTimeout(fallbackTimeout);
-        video.onloadedmetadata = null;
-        video.oncanplay = null;
-        video.onplaying = null;
-      };
+
+  const startScanning = useCallback(() => {
+    if (scanningRef.current) return;
+
+    scanningRef.current = true;
+    setIsScanning(true);
+    setStatus('scanning');
+    setStatusMessage('Hold the QR code inside the frame');
+    qrPerformanceMonitor.startScanning();
+
+    animationFrameRef.current = requestAnimationFrame((time) => {
+      scanLoopRef.current(time);
+    });
+  }, []);
+
+  const scanFrame = useCallback(async () => {
+    const video = videoRef.current;
+    const canvas = canvasRef.current;
+
+    if (
+      !scanningRef.current
+      || !video
+      || !canvas
+      || video.paused
+      || video.ended
+      || video.readyState < HTMLMediaElement.HAVE_CURRENT_DATA
+      || video.videoWidth === 0
+      || video.videoHeight === 0
+    ) {
+      return;
     }
-  }, [stream, workerReady, startScanning, isScanning]);
-  // Start scanning when worker becomes ready
-  useEffect(() => {
-    if (stream && !isScanning) {
-      startScanning();
+
+    const now = performance.now();
+    if (now - lastScanTimeRef.current < scanInterval) {
+      return;
     }
-  }, [stream, isScanning, startScanning]);
-  // Cleanup on unmount
+    lastScanTimeRef.current = now;
+
+    const region = calculateRegion(video.videoWidth, video.videoHeight, scanRegion);
+    const sourceX = Math.max(0, Math.floor(region.x));
+    const sourceY = Math.max(0, Math.floor(region.y));
+    const sourceWidth = Math.max(
+      1,
+      Math.min(video.videoWidth - sourceX, Math.floor(region.width)),
+    );
+    const sourceHeight = Math.max(
+      1,
+      Math.min(video.videoHeight - sourceY, Math.floor(region.height)),
+    );
+
+    if (canvas.width !== sourceWidth || canvas.height !== sourceHeight) {
+      canvas.width = sourceWidth;
+      canvas.height = sourceHeight;
+    }
+
+    const context = canvas.getContext('2d', { willReadFrequently: true });
+    if (!context) {
+      reportError('Image processing is not available in this browser.');
+      stopScanning();
+      return;
+    }
+
+    context.drawImage(
+      video,
+      sourceX,
+      sourceY,
+      sourceWidth,
+      sourceHeight,
+      0,
+      0,
+      sourceWidth,
+      sourceHeight,
+    );
+
+    qrPerformanceMonitor.recordScanAttempt();
+
+    try {
+      const result = await decodeCanvas(
+        canvas,
+        () => context.getImageData(0, 0, sourceWidth, sourceHeight),
+      );
+
+      if (!result || !result.data.trim() || result.data === lastScannedDataRef.current) {
+        return;
+      }
+
+      lastScannedDataRef.current = result.data;
+      const confidence = result.source === 'native'
+        ? 98
+        : result.processingTime < 80
+          ? 95
+          : 90;
+
+      stopScanning();
+      setStatus('found');
+      setStatusMessage('QR code detected');
+      qrPerformanceMonitor.recordSuccessfulScan(result.data);
+      triggerFeedback();
+      onScanSuccessRef.current?.(result.data, result.location, confidence);
+    } catch (error) {
+      qrPerformanceMonitor.recordFailedScan(
+        error instanceof Error ? error.message : 'Unknown scanner error',
+      );
+
+      const timestamp = Date.now();
+      if (timestamp - lastReportedErrorRef.current > 5000) {
+        lastReportedErrorRef.current = timestamp;
+        onScanErrorRef.current?.('The scanner could not process this frame. Retrying…');
+      }
+    }
+  }, [
+    decodeCanvas,
+    reportError,
+    scanInterval,
+    scanRegion,
+    stopScanning,
+    triggerFeedback,
+  ]);
+
+  scanFrameRef.current = scanFrame;
+  scanLoopRef.current = () => {
+    if (!scanningRef.current) {
+      animationFrameRef.current = null;
+      return;
+    }
+
+    if (scanInFlightRef.current) {
+      animationFrameRef.current = requestAnimationFrame((time) => {
+        scanLoopRef.current(time);
+      });
+      return;
+    }
+
+    scanInFlightRef.current = true;
+    void scanFrameRef.current().finally(() => {
+      scanInFlightRef.current = false;
+      if (scanningRef.current) {
+        animationFrameRef.current = requestAnimationFrame((time) => {
+          scanLoopRef.current(time);
+        });
+      } else {
+        animationFrameRef.current = null;
+      }
+    });
+  };
+
+  useEffect(() => {
+    if (
+      !isSupported
+      || stream
+      || isLoading
+      || cameraError
+      || cameraRequestStartedRef.current
+    ) {
+      return;
+    }
+
+    cameraRequestStartedRef.current = true;
+    const timeout = window.setTimeout(() => {
+      setStatus('starting');
+      setStatusMessage('Requesting camera access…');
+      void requestCamera().then((result) => {
+        if (!result.success) {
+          cameraRequestStartedRef.current = false;
+          reportError(getCameraErrorMessage(result.error));
+        }
+      });
+    }, 150);
+
+    return () => window.clearTimeout(timeout);
+  }, [cameraError, isLoading, isSupported, reportError, requestCamera, stream]);
+
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video || !stream) return;
+
+    video.srcObject = stream;
+    updateTrackControls();
+
+    const handleReady = () => {
+      if (video.videoWidth > 0 && video.videoHeight > 0) {
+        startScanning();
+      }
+    };
+
+    video.addEventListener('loadedmetadata', handleReady);
+    video.addEventListener('playing', handleReady);
+    void video.play().then(handleReady).catch(() => {
+      setStatus('paused');
+      setStatusMessage('Tap resume to start the camera preview');
+    });
+
+    return () => {
+      video.removeEventListener('loadedmetadata', handleReady);
+      video.removeEventListener('playing', handleReady);
+      stopScanning();
+      if (video.srcObject === stream) {
+        video.srcObject = null;
+      }
+    };
+  }, [startScanning, stopScanning, stream, updateTrackControls]);
+
   useEffect(() => {
     return () => {
       stopScanning();
       stopCamera();
-      canvasPoolRef.current.forEach(canvas => {
-        // Canvas cleanup is handled by garbage collection
-      });
-      canvasPoolRef.current = [];
     };
-  }, [stopScanning, stopCamera]);
-  // Initialize camera
-  const handleInitialize = useCallback(async () => {
-    try {
-      await requestCamera();
-    } catch (error) {
-      console.error('Failed to initialize camera:', error);
-      onScanError?.('Failed to initialize camera');
-    }
-  }, [requestCamera, onScanError]);
-  // Handle stop scanning - memoized for performance
-  const handleStopScanning = useCallback(() => {
-    stopScanning();
-    stopCamera();
-    onClose?.();
-  }, [stopScanning, stopCamera, onClose]);
+  }, [stopCamera, stopScanning]);
 
-  // Handle upload click - memoized for performance
+  const handlePermissionRequest = useCallback(async () => {
+    cameraRequestStartedRef.current = true;
+    setStatus('starting');
+    setStatusMessage('Requesting camera access…');
+    const result = await requestCamera();
+
+    if (!result.success) {
+      cameraRequestStartedRef.current = false;
+      reportError(getCameraErrorMessage(result.error));
+    }
+  }, [reportError, requestCamera]);
+
+  const handleResume = useCallback(async () => {
+    const video = videoRef.current;
+    if (!video) return;
+
+    try {
+      await video.play();
+      startScanning();
+    } catch {
+      reportError('The camera preview could not be resumed.');
+    }
+  }, [reportError, startScanning]);
+
+  const handleSwitchCamera = useCallback(async () => {
+    stopScanning();
+    setStatus('starting');
+    setStatusMessage('Switching camera…');
+    const result = await switchFacingMode('high');
+
+    if (!result.success) {
+      reportError(getCameraErrorMessage(result.error));
+    }
+  }, [reportError, stopScanning, switchFacingMode]);
+
+  const handleTorchToggle = useCallback(async () => {
+    const track = getVideoTrack();
+    if (!track || !supportsTorch) return;
+
+    const nextValue = !torchOn;
+    try {
+      await track.applyConstraints({
+        advanced: [{ torch: nextValue } as MediaTrackConstraintSet],
+      });
+      setTorchOn(nextValue);
+    } catch {
+      reportError('This camera could not change the flashlight setting.', false);
+    }
+  }, [getVideoTrack, reportError, supportsTorch, torchOn]);
+
+  const handleZoomChange = useCallback(async (value: number) => {
+    const track = getVideoTrack();
+    if (!track || !zoomRange) return;
+
+    const nextZoom = Math.min(zoomRange.max, Math.max(zoomRange.min, value));
+    setZoom(nextZoom);
+
+    try {
+      await track.applyConstraints({
+        advanced: [{ zoom: nextZoom } as MediaTrackConstraintSet],
+      });
+    } catch {
+      updateTrackControls();
+    }
+  }, [getVideoTrack, updateTrackControls, zoomRange]);
+
   const handleUploadClick = useCallback(() => {
     fileInputRef.current?.click();
   }, []);
-  // File upload handling
+
   const handleFileUpload = useCallback(async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
-    if (!file || !workerReady) return;
+    event.target.value = '';
+
+    if (!file) return;
     if (!file.type.startsWith('image/')) {
-      onScanError?.('Please select a valid image file');
+      reportError('Choose an image file containing a QR code.');
       return;
     }
+    if (file.size > MAX_UPLOAD_BYTES) {
+      reportError('The selected image is larger than 16 MB.');
+      return;
+    }
+
     setIsProcessingUpload(true);
+    setStatus('starting');
+    setStatusMessage('Scanning the selected image…');
+
+    let bitmap: ImageBitmap | null = null;
+    let objectUrl: string | null = null;
+
     try {
-      const img = new Image();
-      img.onload = async () => {
-        try {
-          const canvas = getCanvas();
-          const context = canvas.getContext('2d');
-          if (!context || !canvas) {
-            onScanError?.('Canvas not available for image processing');
-            return;
-          }
-          canvas.width = img.width;
-          canvas.height = img.height;
-          context.drawImage(img, 0, 0);
-          const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
-          const result = await scanQR(imageData, { 
-            inversionAttempts: 'attemptBoth',
-            locateOptions: {
-              skipUntilFound: false,
-              assumeSquare: false,
-              centerROI: false
-            }
-          });
-          if (result.qrCode) {
-            setLastScannedData(result.qrCode.data);
-            triggerVibration();
-            triggerSound();
-            onScanSuccess?.(result.qrCode.data, result.qrCode.location, 95);
-          } else {
-            onScanError?.('No QR code found in the uploaded image');
-          }
-          returnCanvas(canvas);
-        } catch (error) {
-          console.error('QR code processing error:', error);
-          onScanError?.('Failed to process the uploaded image');
-        } finally {
-          setIsProcessingUpload(false);
-        }
-      };
-      img.onerror = () => {
-        onScanError?.('Failed to load the uploaded image');
-        setIsProcessingUpload(false);
-      };
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        if (e.target?.result) {
-          img.src = e.target.result as string;
-        }
-      };
-      reader.readAsDataURL(file);
+      let source: CanvasImageSource;
+      let sourceWidth: number;
+      let sourceHeight: number;
+
+      if ('createImageBitmap' in window) {
+        bitmap = await window.createImageBitmap(file);
+        source = bitmap;
+        sourceWidth = bitmap.width;
+        sourceHeight = bitmap.height;
+      } else {
+        objectUrl = URL.createObjectURL(file);
+        const image = await new Promise<HTMLImageElement>((resolve, reject) => {
+          const element = new Image();
+          element.onload = () => resolve(element);
+          element.onerror = () => reject(new Error('Image could not be loaded'));
+          element.src = objectUrl as string;
+        });
+        source = image;
+        sourceWidth = image.naturalWidth;
+        sourceHeight = image.naturalHeight;
+      }
+
+      const scale = Math.min(
+        1,
+        MAX_UPLOAD_DIMENSION / Math.max(sourceWidth, sourceHeight),
+      );
+      const width = Math.max(1, Math.round(sourceWidth * scale));
+      const height = Math.max(1, Math.round(sourceHeight * scale));
+      const canvas = document.createElement('canvas');
+      canvas.width = width;
+      canvas.height = height;
+
+      const context = canvas.getContext('2d', { willReadFrequently: true });
+      if (!context) {
+        throw new Error('Image processing is not available');
+      }
+
+      context.drawImage(source, 0, 0, width, height);
+      const result = await decodeCanvas(
+        canvas,
+        () => context.getImageData(0, 0, width, height),
+      );
+
+      if (!result?.data) {
+        reportError('No QR code was found in that image.');
+        return;
+      }
+
+      lastScannedDataRef.current = result.data;
+      setStatus('found');
+      setStatusMessage('QR code detected');
+      triggerFeedback();
+      onScanSuccessRef.current?.(result.data, result.location, 96);
     } catch (error) {
-      console.error('File upload error:', error);
-      onScanError?.('Failed to process the uploaded file');
+      reportError(
+        error instanceof Error
+          ? error.message
+          : 'The selected image could not be processed.',
+      );
+    } finally {
+      bitmap?.close();
+      if (objectUrl) URL.revokeObjectURL(objectUrl);
       setIsProcessingUpload(false);
     }
-    if (event.target) {
-      event.target.value = '';
-    }
-  }, [workerReady, onScanSuccess, onScanError, scanQR, getCanvas, returnCanvas, triggerVibration, triggerSound]);
-  // Handle camera permission request with better user feedback
-  const handlePermissionRequest = useCallback(async () => {
-    try {
-      const result = await requestCamera();
-      if (!result.success && result.error) {
-        let errorMessage = 'Failed to access camera';
-        if (result.error.name === 'NotAllowedError') {
-          errorMessage = 'Camera permission was denied. Please allow camera access and try again.';
-        } else if (result.error.name === 'NotFoundError') {
-          errorMessage = 'No camera found on this device.';
-        } else if (result.error.name === 'NotReadableError') {
-          errorMessage = 'Camera is already in use by another application.';
-        }
-        onScanError?.(errorMessage);
-      }
-    } catch (error) {
-      onScanError?.('An unexpected error occurred while accessing the camera.');
-    }
-  }, [requestCamera, onScanError]);
+  }, [decodeCanvas, reportError, triggerFeedback]);
+
+  const handleClose = useCallback(() => {
+    stopScanning();
+    stopCamera();
+    onCloseRef.current?.();
+  }, [stopCamera, stopScanning]);
+
+  const uploadInput = (
+    <input
+      ref={fileInputRef}
+      type="file"
+      accept="image/*"
+      onChange={handleFileUpload}
+      className="sr-only"
+      tabIndex={-1}
+      aria-label="Upload an image containing a QR code"
+    />
+  );
 
   if (!isSupported) {
     return (
-      <div className={`flex flex-col items-center justify-center p-8 bg-gray-100 rounded-lg border border-gray-300 ${className}`}>
-        <h3 className="text-gray-800 font-semibold text-lg mb-2">Camera Not Supported</h3>
-        <p className="text-gray-700 text-center text-sm mb-4">
-          Camera access is not supported in this browser or requires HTTPS. You can still upload an image to scan for QR codes.
-        </p>
-        <div className="flex gap-3">
-          <Button
-            onClick={handleUploadClick}
-            disabled={isProcessingUpload || !workerReady}
-            className="bg-transparent hover:bg-white/20 text-white p-3 rounded-xl shadow-lg border border-white/30 backdrop-blur-sm"
-            size="icon"
-          >
-            {isProcessingUpload ? (
-              <div className="animate-spin rounded-full h-5 w-5 border-2 border-white border-t-transparent"></div>
-            ) : (
-              <Upload className="h-5 w-5" />
-            )}
-          </Button>
-          <Button onClick={onClose} variant="outline">Close</Button>
+      <div className={`rounded-2xl border border-border bg-card p-6 text-center ${className}`}>
+        <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-muted">
+          <CameraOff className="h-6 w-6 text-muted-foreground" aria-hidden="true" />
         </div>
-        <input
-          ref={fileInputRef}
-          type="file"
-          accept="image/*"
-          onChange={handleFileUpload}
-          className="hidden"
-          aria-label="Upload QR code image"
-        />
+        <h3 className="text-lg font-semibold text-foreground">Camera unavailable</h3>
+        <p className="mx-auto mt-2 max-w-sm text-sm text-muted-foreground">
+          This browser cannot access a camera here. You can still scan a QR code from an image.
+        </p>
+        <div className="mt-5 flex flex-wrap justify-center gap-2">
+          <Button onClick={handleUploadClick} disabled={isProcessingUpload}>
+            {isProcessingUpload
+              ? <Loader2 className="mr-2 h-4 w-4 animate-spin" aria-hidden="true" />
+              : <ImageUp className="mr-2 h-4 w-4" aria-hidden="true" />}
+            Choose image
+          </Button>
+          {onClose && (
+            <Button variant="outline" onClick={handleClose}>Close</Button>
+          )}
+        </div>
+        {uploadInput}
       </div>
     );
   }
 
-  // Handle permission denied state
-  if (isSupported && permissionState === 'denied') {
+  if (!stream && !isLoading) {
+    const denied = permissionState === 'denied';
+    const message = denied
+      ? 'Camera access is blocked. Update this site’s camera permission, then try again.'
+      : cameraError
+        ? getCameraErrorMessage(cameraError)
+        : 'Enable the camera to scan live, or choose an image from your device.';
+
     return (
-      <div className={`flex flex-col items-center justify-center p-8 bg-red-50 rounded-lg border border-red-200 ${className}`}>
-        <h3 className="text-red-800 font-semibold text-lg mb-2">Camera Permission Denied</h3>
-        <p className="text-red-700 text-center text-sm mb-4">
-          Camera permission was denied. To use the QR scanner, please:
-        </p>
-        <ul className="text-red-600 text-sm mb-4 space-y-1">
-          <li>• Click the camera icon in your browser&apos;s address bar</li>
-          <li>• Allow camera access for this site</li>
-          <li>• Refresh the page and try again</li>
-        </ul>
-        <p className="text-red-600 text-center text-sm mb-4">
-          Or you can upload an image to scan for QR codes.
-        </p>
-        <div className="flex gap-3">
-          <Button
-            onClick={handleUploadClick}
-            disabled={isProcessingUpload || !workerReady}
-            variant="outline"
-          >
-            {isProcessingUpload ? (
-              <div className="animate-spin rounded-full h-4 w-4 border-2 border-gray-600 border-t-transparent mr-2"></div>
-            ) : (
-              <Upload className="h-4 w-4 mr-2" />
-            )}
-            Upload Image
-          </Button>
-          <Button onClick={handlePermissionRequest} variant="default">
-            Try Again
-          </Button>
-          <Button onClick={onClose} variant="outline">Close</Button>
+      <div className={`rounded-2xl border border-border bg-card p-6 text-center ${className}`}>
+        <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-muted">
+          <Camera className="h-6 w-6 text-foreground" aria-hidden="true" />
         </div>
-        <input
-          ref={fileInputRef}
-          type="file"
-          accept="image/*"
-          onChange={handleFileUpload}
-          className="hidden"
-          aria-label="Upload QR code image"
-        />
+        <h3 className="text-lg font-semibold text-foreground">
+          {denied ? 'Camera permission required' : 'Scan a QR code'}
+        </h3>
+        <p className="mx-auto mt-2 max-w-sm text-sm text-muted-foreground">{message}</p>
+        <div className="mt-5 flex flex-wrap justify-center gap-2">
+          <Button onClick={handlePermissionRequest}>
+            <RefreshCw className="mr-2 h-4 w-4" aria-hidden="true" />
+            {denied || cameraError ? 'Try camera again' : 'Enable camera'}
+          </Button>
+          <Button variant="outline" onClick={handleUploadClick} disabled={isProcessingUpload}>
+            <Upload className="mr-2 h-4 w-4" aria-hidden="true" />
+            Choose image
+          </Button>
+          {onClose && (
+            <Button variant="ghost" onClick={handleClose}>Close</Button>
+          )}
+        </div>
+        {uploadInput}
       </div>
     );
   }
 
-  // Handle no camera stream yet (waiting for permission or loading)
-  if (isSupported && !stream && !isLoading && !cameraError) {
-    return (
-      <div className={`flex flex-col items-center justify-center p-8 bg-blue-50 rounded-lg border border-blue-200 ${className}`}>
-        <h3 className="text-blue-800 font-semibold text-lg mb-2">Camera Access Required</h3>
-        <p className="text-blue-700 text-center text-sm mb-4">
-          Please allow camera access to use the QR code scanner, or upload an image instead.
-        </p>
-        <div className="flex gap-3">
-          <Button onClick={handlePermissionRequest} variant="default">
-            Enable Camera
-          </Button>
-          <Button
-            onClick={handleUploadClick}
-            disabled={isProcessingUpload || !workerReady}
-            variant="outline"
-          >
-            {isProcessingUpload ? (
-              <div className="animate-spin rounded-full h-4 w-4 border-2 border-gray-600 border-t-transparent mr-2"></div>
-            ) : (
-              <Upload className="h-4 w-4 mr-2" />
-            )}
-            Upload Image
-          </Button>
-          <Button onClick={onClose} variant="outline">Close</Button>
-        </div>
-        <input
-          ref={fileInputRef}
-          type="file"
-          accept="image/*"
-          onChange={handleFileUpload}
-          className="hidden"
-          aria-label="Upload QR code image"
-        />
-      </div>
-    );
-  }
   return (
-    <div className={`relative bg-black rounded-2xl overflow-hidden ${className}`}>
-      {/* Video Preview */}
-      <div className="relative">
+    <div className={`relative overflow-hidden rounded-2xl bg-black ${className}`}>
+      <div className="relative min-h-[420px] sm:min-h-[500px]">
         <video
           ref={videoRef}
           autoPlay
           playsInline
           muted
-          className="w-full h-full object-cover"
-          style={videoStyle}
+          className="absolute inset-0 h-full w-full object-cover"
+          aria-label="Live camera preview"
         />
-        {/* Enhanced Scanning Overlay */}
-        <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-          <div className="relative">
-            {/* Transparent scanning frame */}
-            <div 
-              className="relative transition-all duration-500 ease-in-out"
-              style={scanFrameStyle}
-            >
-              {/* Subtle background overlay */}
-              <div className="absolute inset-0 border border-white/20 rounded-3xl"></div>
-              {/* Corner brackets - transparent with white borders */}
-              <div className="absolute -top-2 -left-2 w-12 h-12 border-l-2 border-t-2 border-gray-300 rounded-tl-3xl transition-all duration-500"></div>
-              <div className="absolute -top-2 -right-2 w-12 h-12 border-r-2 border-t-2 border-gray-300 rounded-tr-3xl transition-all duration-500"></div>
-              <div className="absolute -bottom-2 -left-2 w-12 h-12 border-l-2 border-b-2 border-gray-300 rounded-bl-3xl transition-all duration-500"></div>
-              <div className="absolute -bottom-2 -right-2 w-12 h-12 border-r-2 border-b-2 border-gray-300 rounded-br-3xl transition-all duration-500"></div>
-              {/* Confidence indicator - transparent background */}
-              {scanConfidence > 0 && (
-                <div className="absolute -top-12 left-1/2 transform -translate-x-1/2">
-                  <div className="bg-black/60 backdrop-blur-sm text-white px-4 py-2 rounded-full text-xs font-medium shadow-lg border border-gray-300/30">
-                    <span className="flex items-center gap-1">
-                      <div className="w-2 h-2 rounded-full bg-gray-200"></div>
-                      {scanConfidence}% match
-                    </span>
-                  </div>
-                </div>
-              )}
-              {/* Scanning beam - transparent */}
-              {isScanning && (
-                <div className="absolute inset-4">
-                  <div className="relative w-full h-full rounded-2xl overflow-hidden">
-                    <div 
-                      className="absolute left-0 right-0 h-0.5 opacity-60 animate-bounce"
-                      style={scanBeamStyle}
-                    ></div>
-                  </div>
-                </div>
-              )}
-            </div>
-            {/* Status and statistics */}
-            <div className="mt-4 text-center space-y-1">
-              <p className="text-white text-sm font-medium">
-                {isScanning ? 'Scanning for QR codes...' : 'Position QR code within the frame'}
-              </p>
-              {workerStats.totalScans > 0 && (
-                <p className="text-white/70 text-xs">
-                  Scanned: {workerStats.successfulScans}/{workerStats.totalScans} • 
-                  Avg: {workerStats.averageProcessingTime.toFixed(0)}ms
-                </p>
-              )}
-            </div>
+
+        <div
+          className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_0,transparent_34%,rgba(0,0,0,0.62)_35%,rgba(0,0,0,0.78)_100%)]"
+          aria-hidden="true"
+        />
+
+        <div className="pointer-events-none absolute inset-0 flex items-center justify-center p-8">
+          <div className="relative aspect-square w-full max-w-[300px]">
+            <div className="absolute left-0 top-0 h-12 w-12 rounded-tl-2xl border-l-4 border-t-4 border-white" />
+            <div className="absolute right-0 top-0 h-12 w-12 rounded-tr-2xl border-r-4 border-t-4 border-white" />
+            <div className="absolute bottom-0 left-0 h-12 w-12 rounded-bl-2xl border-b-4 border-l-4 border-white" />
+            <div className="absolute bottom-0 right-0 h-12 w-12 rounded-br-2xl border-b-4 border-r-4 border-white" />
+            {isScanning && (
+              <div className="absolute inset-x-4 top-1/2 h-px -translate-y-1/2 animate-pulse bg-gradient-to-r from-transparent via-white to-transparent shadow-[0_0_12px_rgba(255,255,255,0.9)]" />
+            )}
           </div>
         </div>
-        {/* Control buttons overlay - Only show when camera stream is available */}
-        {stream && (
-          <>
-            {/* Upload button - bottom right */}
-            <div className="absolute bottom-4 right-4">
+
+        <div className="absolute inset-x-0 top-0 flex items-center justify-between gap-3 p-4">
+          <div
+            className="flex min-w-0 items-center gap-2 rounded-full border border-white/15 bg-black/55 px-3 py-2 text-sm text-white backdrop-blur-md"
+            role="status"
+            aria-live="polite"
+          >
+            <span
+              className={`h-2 w-2 flex-none rounded-full ${
+                status === 'error'
+                  ? 'bg-red-400'
+                  : status === 'found'
+                    ? 'bg-emerald-400'
+                    : 'bg-white animate-pulse'
+              }`}
+            />
+            <span className="truncate">{statusMessage}</span>
+          </div>
+
+          {onClose && (
+            <Button
+              type="button"
+              size="icon"
+              variant="ghost"
+              onClick={handleClose}
+              className="h-10 w-10 flex-none rounded-full border border-white/15 bg-black/55 text-white hover:bg-black/75 hover:text-white"
+              aria-label="Close scanner"
+            >
+              <X className="h-5 w-5" aria-hidden="true" />
+            </Button>
+          )}
+        </div>
+
+        <div className="absolute inset-x-0 bottom-0 space-y-3 bg-gradient-to-t from-black/90 via-black/60 to-transparent p-4 pt-16">
+          {zoomRange && (
+            <div className="mx-auto flex max-w-sm items-center gap-3 rounded-full border border-white/15 bg-black/45 px-4 py-2 backdrop-blur-md">
+              <ZoomIn className="h-4 w-4 flex-none text-white" aria-hidden="true" />
+              <input
+                type="range"
+                min={zoomRange.min}
+                max={zoomRange.max}
+                step={zoomRange.step}
+                value={zoom}
+                onChange={(event) => void handleZoomChange(Number(event.target.value))}
+                className="h-1.5 w-full cursor-pointer accent-white"
+                aria-label="Camera zoom"
+                aria-valuetext={`${zoom.toFixed(1)} times`}
+              />
+              <span className="w-9 text-right text-xs tabular-nums text-white">
+                {zoom.toFixed(1)}×
+              </span>
+            </div>
+          )}
+
+          <div className="flex items-center justify-center gap-2">
+            {devices.length > 1 && (
               <Button
+                type="button"
+                size="icon"
+                variant="ghost"
+                onClick={handleSwitchCamera}
+                disabled={isLoading}
+                className="h-11 w-11 rounded-full border border-white/15 bg-white/10 text-white hover:bg-white/20 hover:text-white"
+                aria-label="Switch camera"
+              >
+                <SwitchCamera className="h-5 w-5" aria-hidden="true" />
+              </Button>
+            )}
+
+            {supportsTorch && (
+              <Button
+                type="button"
+                size="icon"
+                variant="ghost"
+                onClick={handleTorchToggle}
+                className="h-11 w-11 rounded-full border border-white/15 bg-white/10 text-white hover:bg-white/20 hover:text-white"
+                aria-label={torchOn ? 'Turn flashlight off' : 'Turn flashlight on'}
+                aria-pressed={torchOn}
+              >
+                {torchOn
+                  ? <ZapOff className="h-5 w-5" aria-hidden="true" />
+                  : <Zap className="h-5 w-5" aria-hidden="true" />}
+              </Button>
+            )}
+
+            {status === 'paused' ? (
+              <Button type="button" onClick={handleResume} className="rounded-full px-5">
+                <Camera className="mr-2 h-4 w-4" aria-hidden="true" />
+                Resume
+              </Button>
+            ) : (
+              <Button
+                type="button"
                 onClick={handleUploadClick}
-                disabled={isProcessingUpload || !workerReady}
-                className="bg-transparent hover:bg-white/20 text-white p-3 rounded-xl shadow-lg border border-white/30 backdrop-blur-sm"
-                size="icon"
+                disabled={isProcessingUpload}
+                className="rounded-full bg-white px-5 text-black hover:bg-white/90"
               >
-                {isProcessingUpload ? (
-                  <div className="animate-spin rounded-full h-5 w-5 border-2 border-white border-t-transparent"></div>
-                ) : (
-                  <Upload className="h-5 w-5" />
-                )}
+                {isProcessingUpload
+                  ? <Loader2 className="mr-2 h-4 w-4 animate-spin" aria-hidden="true" />
+                  : <Upload className="mr-2 h-4 w-4" aria-hidden="true" />}
+                Scan image
               </Button>
+            )}
+          </div>
+
+          {(workerStats.totalScans > 0 || workerError) && (
+            <p className="text-center text-xs text-white/65">
+              {workerError
+                ? 'Using compatibility scanner'
+                : `${workerStats.totalScans} frames checked · ${workerStats.averageProcessingTime.toFixed(0)} ms average`}
+            </p>
+          )}
+        </div>
+
+        {(isLoading || isProcessingUpload) && (
+          <div className="absolute inset-0 z-20 flex items-center justify-center bg-black/65 backdrop-blur-sm">
+            <div className="rounded-2xl border border-white/15 bg-black/55 px-6 py-5 text-center text-white">
+              <Loader2 className="mx-auto h-7 w-7 animate-spin" aria-hidden="true" />
+              <p className="mt-3 text-sm">
+                {isProcessingUpload ? 'Scanning image…' : 'Preparing camera…'}
+              </p>
             </div>
-            {/* Close button - top right */}
-            <div className="absolute top-4 right-4">
-              <Button
-                onClick={handleStopScanning}
-                className="bg-transparent hover:bg-white/20 text-white p-3 rounded-xl shadow-lg border border-white/30 backdrop-blur-sm"
-                size="icon"
-              >
-                <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </Button>
-            </div>
-          </>
+          </div>
         )}
       </div>
-      {/* Error Display */}
-      {(cameraError || workerError) && (
-        <div className="absolute top-4 left-4 right-4 bg-black/80 text-white p-3 rounded-lg">
-          <p className="text-sm font-medium">Error:</p>
-          <p className="text-xs">{cameraError?.message || workerError}</p>
-        </div>
-      )}
-      {/* Loading State */}
-      {(isLoading || !workerReady || isProcessingUpload) && (
-        <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
-          <div className="bg-white/20 backdrop-blur-md rounded-xl p-6 text-center">
-            <div className="animate-spin rounded-full h-8 w-8 border-2 border-white border-t-transparent mx-auto mb-3"></div>
-            <p className="text-white text-sm">
-              {isProcessingUpload ? 'Processing uploaded image...' : 
-               !workerReady ? 'Initializing scanner...' : 
-               'Requesting camera access...'}
-            </p>
-          </div>
-        </div>
-      )}
-      {/* Hidden canvas for image processing */}
-      <canvas ref={canvasRef} className="hidden" />
-      {/* Hidden file input for upload */}
-      <input
-        ref={fileInputRef}
-        type="file"
-        accept="image/*"
-        onChange={handleFileUpload}
-        className="hidden"
-        aria-label="Upload QR code image"
-      />
+
+      <canvas ref={canvasRef} className="hidden" aria-hidden="true" />
+      {uploadInput}
     </div>
   );
 };
 
-// Export memoized component for performance optimization
 export const OptimizedQRScanner = memo(OptimizedQRScannerComponent);
 export default OptimizedQRScanner;

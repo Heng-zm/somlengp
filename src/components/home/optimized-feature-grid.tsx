@@ -45,38 +45,30 @@ const PrimaryFeatureCard = memo(function PrimaryFeatureCard({
 
   const cardContent = (
     <Card className={cn(
-      "w-full p-6 sm:p-8 md:p-12 flex flex-col justify-between overflow-hidden rounded-2xl",
-      "transition-all duration-500 ease-out",
-      "bg-gradient-to-br from-primary/10 via-background to-background",
-      "hover:shadow-2xl hover:border-primary/30 hover:scale-[1.01] group",
-      "transform-gpu", // Force GPU acceleration
-      "border-2",
+      "group flex w-full flex-col justify-between overflow-hidden rounded-2xl border border-blue-200 bg-gradient-to-br from-blue-600 to-indigo-700 p-6 text-white shadow-md sm:p-8 lg:p-10",
+      "transition duration-300 hover:-translate-y-0.5 hover:shadow-lg dark:border-blue-500/30",
       isVisible ? "opacity-100 translate-y-0" : "opacity-50 translate-y-4"
     )}>
-      <div className="flex flex-col sm:flex-row items-start sm:items-center gap-6 sm:gap-8">
-        <div className="flex items-center justify-center h-[88px] w-[88px] bg-gray-100 rounded-[12px] border border-gray-200">
-          <Icon className="w-10 h-10 sm:w-12 sm:h-12 text-black" aria-hidden="true" />
+      <div className="flex flex-col items-start gap-6 sm:flex-row sm:items-center sm:gap-8">
+        <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl bg-white/15 ring-1 ring-inset ring-white/25 backdrop-blur sm:h-20 sm:w-20">
+          <Icon className="h-8 w-8 text-white sm:h-10 sm:w-10" aria-hidden="true" />
         </div>
-        <div className="flex-grow text-center sm:text-left space-y-3 min-w-0">
-          <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold tracking-tight break-words">{title}</h2>
-          <p className="text-gray-700 text-base sm:text-lg mt-2 max-w-2xl mx-auto sm:mx-0 leading-relaxed break-words">{description}</p>
+        <div className="min-w-0 flex-1">
+          <p className="mb-2 text-xs font-semibold uppercase tracking-[0.18em] text-blue-100">
+            Featured
+          </p>
+          <h2 className="break-words text-2xl font-bold tracking-tight sm:text-3xl">{title}</h2>
+          <p className="mt-3 max-w-2xl break-words text-sm leading-6 text-blue-100 sm:text-base">{description}</p>
         </div>
       </div>
-      <div className="flex items-center justify-center sm:justify-end mt-8 gap-3">
+      <div className="mt-8 flex items-center sm:justify-end">
         <Button 
-          variant="default" 
           size="lg"
-          className="rounded-full bg-black text-white hover:bg-black/90 will-change-transform transition-all duration-300 hover:shadow-lg hover:scale-[1.02] active:scale-95 px-8 py-6 text-base font-semibold"
+          className="bg-white text-blue-700 shadow-sm hover:bg-blue-50"
         >
           {startNowText}
+          <ArrowRight className="h-4 w-4" aria-hidden="true" />
         </Button>
-        <div
-          className="flex items-center justify-center rounded-full bg-black text-white shadow-sm shrink-0 aspect-square"
-          style={{ width: 44, height: 44 }}
-          aria-hidden="true"
-        >
-          <ArrowRight className="h-5 w-5" />
-        </div>
       </div>
     </Card>
   );
@@ -122,11 +114,9 @@ const OptimizedFeatureCard = memo(function OptimizedFeatureCard({
   const cardContent = (
     <Card 
       className={cn(
-        "w-full h-full p-5 sm:p-6 flex items-center gap-4",
-        // Keep light card on dark backgrounds; ensure text remains dark for readability
-        "rounded-[12px] bg-white dark:bg-white text-gray-900 border border-gray-200 dark:border-gray-800 shadow",
-        "hover:bg-gray-50 transition-colors",
-        "focus-visible:ring-0"
+        "group flex h-full w-full items-center gap-4 rounded-xl border border-slate-200 bg-white p-5 text-slate-950 shadow-sm",
+        "transition duration-200 hover:-translate-y-0.5 hover:border-blue-200 hover:shadow-md",
+        "dark:border-slate-800 dark:bg-slate-900 dark:text-white dark:hover:border-blue-500/40"
       )}
       onClick={action}
       role={action ? 'button' : undefined}
@@ -134,23 +124,17 @@ const OptimizedFeatureCard = memo(function OptimizedFeatureCard({
       aria-label={action ? `${title} - ${description}` : undefined}
       onKeyDown={action ? (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); action?.(); } } : undefined}
     >
-      <div className="flex items-center justify-center h-[75px] w-[75px] shrink-0 rounded-[18px] bg-gray-50 border border-gray-200">
-        <Icon className="w-10 h-10 text-gray-900" aria-hidden="true" />
+      <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-blue-50 text-blue-600 ring-1 ring-inset ring-blue-100 dark:bg-blue-500/10 dark:text-blue-400 dark:ring-blue-500/20 sm:h-14 sm:w-14">
+        <Icon className="h-6 w-6" aria-hidden="true" />
       </div>
-      <div className="flex-grow min-w-0">
-        <h2 className="text-[16px] font-semibold mb-1 truncate text-gray-900">{title}</h2>
-        <p className="text-[13px] text-gray-600 leading-6 break-words line-clamp-2">{description}</p>
+      <div className="min-w-0 flex-1">
+        <h2 className="truncate text-sm font-semibold text-slate-950 dark:text-white sm:text-base">{title}</h2>
+        <p className="mt-1 line-clamp-2 break-words text-sm leading-5 text-slate-500 dark:text-slate-400">{description}</p>
       </div>
-      <div
-        className="ml-auto flex items-center justify-center rounded-full bg-black text-white shadow-sm pointer-events-none shrink-0 aspect-square"
-        style={{ width: 26, height: 26 }}
+      <ArrowRight
+        className="ml-auto h-4 w-4 shrink-0 text-slate-400 transition-transform group-hover:translate-x-0.5"
         aria-hidden="true"
-      >
-        <span
-          className="block rounded-full bg-white"
-          style={{ width: 14, height: 8 }}
-        />
-      </div>
+      />
     </Card>
   );
 
@@ -222,8 +206,7 @@ const VirtualFeatureGrid = memo(function VirtualFeatureGrid({
     <div 
       ref={gridRef}
       className={cn(
-        "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3",
-        "gap-5 sm:gap-6 lg:gap-8 auto-rows-fr",
+        "grid grid-cols-1 auto-rows-fr gap-4 sm:grid-cols-2 xl:grid-cols-3",
         className
       )}
     >
@@ -272,12 +255,19 @@ export const OptimizedFeatureGrid = memo(function OptimizedFeatureGrid({
       />
       
       {/* Other Features */}
-      <div id="other-tools" className="space-y-6 mt-12">
-        <div>
-          <h3 className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground">
+      <div id="other-tools" className="mt-10 space-y-5 scroll-mt-6">
+        <div className="flex items-end justify-between gap-4">
+          <div>
+          <p className="text-xs font-semibold uppercase tracking-[0.16em] text-blue-600 dark:text-blue-400">
+            Toolkit
+          </p>
+          <h3 className="mt-2 text-2xl font-bold tracking-tight text-slate-950 dark:text-white">
             {otherToolsText}
           </h3>
-          <div className="mt-2 h-1 w-20 bg-foreground rounded-full" />
+          </div>
+          <p className="hidden text-sm text-slate-500 dark:text-slate-400 sm:block">
+            {otherFeatures.length} tools available
+          </p>
         </div>
         <VirtualFeatureGrid 
           features={otherFeatures}

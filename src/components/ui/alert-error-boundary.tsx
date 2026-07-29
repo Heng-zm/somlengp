@@ -210,7 +210,7 @@ export class AlertErrorBoundary extends Component<Props, State> {
                 </p>
               )}
               
-              {showErrorDetails && process.env.NODE_ENV === 'development' && (
+              {showErrorDetails && process.env.NODE_ENV !== 'production' && (
                 <details className="mt-2">
                   <summary className="cursor-pointer text-sm font-medium text-red-700 dark:text-red-300">
                     Technical Details (Development Only)

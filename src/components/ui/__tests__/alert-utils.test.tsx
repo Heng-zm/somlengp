@@ -22,6 +22,10 @@ import { axe, toHaveNoViolations } from 'jest-axe';
 // Extend Jest with axe matchers
 expect.extend(toHaveNoViolations);
 
+afterEach(() => {
+  jest.useRealTimers();
+});
+
 // Mock error handler to prevent console spam during tests
 jest.mock('@/lib/error-utils', () => {
   const originalModule = jest.requireActual('@/lib/error-utils');
@@ -506,8 +510,8 @@ describe('useAlerts hook', () => {
   });
 
   it('cleans up timeouts on unmount', () => {
-    const clearTimeoutSpy = jest.spyOn(global, 'clearTimeout');
     const timers = mockTimers();
+    const clearTimeoutSpy = jest.spyOn(global, 'clearTimeout');
 
     function UnmountTestComponent({ mounted }: { mounted: boolean }) {
       const { addAlert } = useAlerts();
@@ -525,10 +529,10 @@ describe('useAlerts hook', () => {
       return mounted ? <div>Mounted</div> : null;
     }
 
-    const { rerender } = render(<UnmountTestComponent mounted={true} />);
+    const { unmount } = render(<UnmountTestComponent mounted={true} />);
     
     // Unmount component
-    rerender(<UnmountTestComponent mounted={false} />);
+    unmount();
 
     // Should have called clearTimeout for cleanup
     expect(clearTimeoutSpy).toHaveBeenCalled();

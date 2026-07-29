@@ -1,14 +1,25 @@
 'use client';
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { FormEvent, useCallback, useEffect, useState } from 'react';
+import {
+  CheckCircle2,
+  Clock3,
+  Loader2,
+  Mail,
+  RefreshCw,
+  ShieldCheck,
+} from 'lucide-react';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Loader2, Mail, Clock, RefreshCw } from 'lucide-react';
-// Memory leak prevention: Timers need cleanup
-// Add cleanup in useEffect return function
 
 interface OTPVerificationProps {
   onSuccess?: (email: string) => void;
@@ -21,10 +32,43 @@ interface OTPVerificationProps {
 
 interface OTPStatus {
   exists: boolean;
-  expires?: string;
   attempts?: number;
   maxAttempts?: number;
+  attemptsRemaining?: number;
   timeRemaining?: number;
+  resendAvailableIn?: number;
+}
+
+interface OTPAPIResponse {
+  success?: boolean;
+  error?: string;
+  message?: string;
+  expiresIn?: number;
+  resendAvailableIn?: number;
+  retryAfter?: number;
+  attemptsRemaining?: number;
+  codeLength?: number;
+  status?: OTPStatus;
+}
+
+function formatTime(seconds: number): string {
+  const safeSeconds = Math.max(0, Math.ceil(seconds));
+  const minutes = Math.floor(safeSeconds / 60);
+  const remainingSeconds = safeSeconds % 60;
+  return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
+}
+
+async function readResponse(response: Response): Promise<OTPAPIResponse> {
+  try {
+    return (await response.json()) as OTPAPIResponse;
+  } catch {
+    return {
+      success: false,
+      error: response.ok
+        ? 'The server returned an invalid response.'
+        : 'The request could not be completed.',
+    };
+  }
 }
 
 export function OTPVerification({
@@ -35,74 +79,77 @@ export function OTPVerification({
   description = 'Enter your email to receive a verification code',
   className = '',
 }: OTPVerificationProps) {
-  const [step, setStep] = useState<'email' | 'verify'>('email');
+  const [step, setStep] = useState<'email' | 'verify' | 'verified'>('email');
   const [email, setEmail] = useState(initialEmail);
   const [otp, setOtp] = useState('');
+  const [codeLength, setCodeLength] = useState(6);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
   const [otpStatus, setOtpStatus] = useState<OTPStatus | null>(null);
   const [timeRemaining, setTimeRemaining] = useState(0);
-  const [canResend, setCanResend] = useState(false);
+  const [resendRemaining, setResendRemaining] = useState(0);
 
-  // Format time remaining
-  const formatTime = (seconds: number): string => {
-    const mins = Math.floor(seconds / 60);
-    const secs = seconds % 60;
-    return `${mins}:${secs.toString().padStart(2, '0')}`;
-  };
+  const reportError = useCallback(
+    (errorMessage: string) => {
+      setError(errorMessage);
+      onError?.(errorMessage);
+    },
+    [onError]
+  );
 
-  // Check OTP status
   const checkOTPStatus = useCallback(async () => {
-    if (!email) return;
-    
+    if (!email) {
+      return;
+    }
+
     try {
-      const response = await fetch(`/api/otp/send?email=${encodeURIComponent(email)}`);
-      const data = await response.json();
-      
-      if (data.success && data.status) {
+      const response = await fetch(
+        `/api/otp/send?email=${encodeURIComponent(email)}`,
+        { cache: 'no-store' }
+      );
+      const data = await readResponse(response);
+
+      if (response.ok && data.success && data.status) {
         setOtpStatus(data.status);
-        if (data.status.timeRemaining) {
-          setTimeRemaining(data.status.timeRemaining);
-          setCanResend(false);
-        } else {
-          setCanResend(true);
+        setTimeRemaining(data.status.timeRemaining || 0);
+        setResendRemaining(data.status.resendAvailableIn || 0);
+        if (data.codeLength && data.codeLength >= 4 && data.codeLength <= 8) {
+          setCodeLength(data.codeLength);
         }
       }
-    } catch (error) {
-      console.error('Failed to check OTP status:', error);
+    } catch (statusError) {
+      if (process.env.NODE_ENV === 'development') {
+        console.warn('Unable to refresh OTP status:', statusError);
+      }
     }
   }, [email]);
 
-  // Countdown timer
   useEffect(() => {
-    let interval: NodeJS.Timeout;
-    
-    if (timeRemaining > 0) {
-      interval = setInterval(() => {
-        setTimeRemaining((prev) => {
-          if (prev <= 1) {
-            setCanResend(true);
-            return 0;
-          }
-          return prev - 1;
-        });
-      }, 1000);
+    if (step !== 'verify') {
+      return;
     }
 
-    return () => clearInterval(interval);
-  }, [timeRemaining]);
+    const interval = window.setInterval(() => {
+      setTimeRemaining((current) => Math.max(0, current - 1));
+      setResendRemaining((current) => Math.max(0, current - 1));
+    }, 1_000);
 
-  // Check status when step changes to verify
+    return () => window.clearInterval(interval);
+  }, [step]);
+
   useEffect(() => {
     if (step === 'verify') {
-      checkOTPStatus();
+      void checkOTPStatus();
     }
-  }, [step, checkOTPStatus]);
+  }, [checkOTPStatus, step]);
 
-  const sendOTP = async () => {
-    if (!email || !email.includes('@')) {
-      setError('Please enter a valid email address');
+  const sendOTP = async (event: FormEvent) => {
+    event.preventDefault();
+    const normalizedEmail = email.trim();
+
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalizedEmail)) {
+      reportError('Please enter a valid email address.');
       return;
     }
 
@@ -113,36 +160,37 @@ export function OTPVerification({
     try {
       const response = await fetch('/api/otp/send', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ email }),
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: normalizedEmail }),
       });
+      const data = await readResponse(response);
 
-      const data = await response.json();
-
-      if (data.success) {
-        setMessage('Verification code sent successfully!');
+      if (response.ok && data.success) {
+        setEmail(normalizedEmail);
+        setMessage(data.message || 'Verification code sent.');
         setStep('verify');
-        setCanResend(false);
-        setTimeRemaining(300); // 5 minutes
-        await checkOTPStatus();
+        setOtp('');
+        setTimeRemaining(data.expiresIn || 0);
+        setResendRemaining(data.resendAvailableIn || 0);
+        if (data.codeLength && data.codeLength >= 4 && data.codeLength <= 8) {
+          setCodeLength(data.codeLength);
+        }
       } else {
-        setError(data.error || 'Failed to send verification code');
-        onError?.(data.error || 'Failed to send verification code');
+        setResendRemaining(data.retryAfter || 0);
+        reportError(data.error || 'Failed to send the verification code.');
       }
     } catch {
-      const errorMessage = 'Network error. Please try again.';
-      setError(errorMessage);
-      onError?.(errorMessage);
+      reportError('Network error. Please check your connection and try again.');
     } finally {
       setLoading(false);
     }
   };
 
-  const verifyOTP = async () => {
-    if (!otp || otp.length !== 6) {
-      setError('Please enter a valid 6-digit code');
+  const verifyOTP = async (event: FormEvent) => {
+    event.preventDefault();
+
+    if (!new RegExp(`^\\d{${codeLength}}$`).test(otp)) {
+      reportError(`Please enter the complete ${codeLength}-digit code.`);
       return;
     }
 
@@ -153,35 +201,39 @@ export function OTPVerification({
     try {
       const response = await fetch('/api/otp/verify', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, code: otp }),
       });
+      const data = await readResponse(response);
 
-      const data = await response.json();
-
-      if (data.success) {
-        setMessage('Email verified successfully!');
+      if (response.ok && data.success) {
+        setMessage(data.message || 'Email verified successfully.');
+        setStep('verified');
         onSuccess?.(email);
       } else {
-        setError(data.error || 'Invalid verification code');
-        onError?.(data.error || 'Invalid verification code');
-        
-        if (data.attemptsRemaining !== undefined) {
-          setError(`${data.error} (${data.attemptsRemaining} attempts remaining)`);
-        }
+        const attempts =
+          typeof data.attemptsRemaining === 'number'
+            ? ` ${data.attemptsRemaining} attempt${
+                data.attemptsRemaining === 1 ? '' : 's'
+              } remaining.`
+            : '';
+        reportError(
+          `${data.error || 'The verification code is invalid.'}${attempts}`
+        );
+        await checkOTPStatus();
       }
     } catch {
-      const errorMessage = 'Network error. Please try again.';
-      setError(errorMessage);
-      onError?.(errorMessage);
+      reportError('Network error. Please check your connection and try again.');
     } finally {
       setLoading(false);
     }
   };
 
   const resendOTP = async () => {
+    if (resendRemaining > 0) {
+      return;
+    }
+
     setLoading(true);
     setError('');
     setMessage('');
@@ -189,25 +241,26 @@ export function OTPVerification({
     try {
       const response = await fetch('/api/otp/resend', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email }),
       });
+      const data = await readResponse(response);
 
-      const data = await response.json();
-
-      if (data.success) {
-        setMessage('New verification code sent!');
-        setCanResend(false);
-        setTimeRemaining(300); // 5 minutes
-        setOtp(''); // Clear the input
-        await checkOTPStatus();
+      if (response.ok && data.success) {
+        setMessage(data.message || 'A new verification code was sent.');
+        setOtp('');
+        setOtpStatus(null);
+        setTimeRemaining(data.expiresIn || 0);
+        setResendRemaining(data.resendAvailableIn || 0);
+        if (data.codeLength && data.codeLength >= 4 && data.codeLength <= 8) {
+          setCodeLength(data.codeLength);
+        }
       } else {
-        setError(data.error || 'Failed to resend verification code');
+        setResendRemaining(data.retryAfter || 0);
+        reportError(data.error || 'Failed to resend the verification code.');
       }
     } catch {
-      setError('Network error. Please try again.');
+      reportError('Network error. Please check your connection and try again.');
     } finally {
       setLoading(false);
     }
@@ -220,150 +273,155 @@ export function OTPVerification({
     setMessage('');
     setOtpStatus(null);
     setTimeRemaining(0);
-    setCanResend(false);
+    setResendRemaining(0);
   };
 
   return (
     <Card className={className}>
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Mail className="h-5 w-5" />
-          {title}
-        </CardTitle>
-        <CardDescription>
-          {step === 'email' ? description : `Enter the 6-digit code sent to ${email}`}
-        </CardDescription>
+      <CardHeader className="space-y-3">
+        <div className="flex size-11 items-center justify-center rounded-2xl bg-primary/10 text-primary">
+          {step === 'verified' ? (
+            <CheckCircle2 className="size-5" aria-hidden="true" />
+          ) : (
+            <ShieldCheck className="size-5" aria-hidden="true" />
+          )}
+        </div>
+        <div className="space-y-1">
+          <CardTitle>{step === 'verified' ? 'Email verified' : title}</CardTitle>
+          <CardDescription>
+            {step === 'email'
+              ? description
+              : step === 'verify'
+                ? `Enter the ${codeLength}-digit code sent to ${email}`
+                : `${email} has been verified successfully.`}
+          </CardDescription>
+        </div>
       </CardHeader>
+
       <CardContent className="space-y-4">
-        {step === 'email' ? (
-          <div className="space-y-4">
+        {step === 'email' && (
+          <form className="space-y-4" onSubmit={sendOTP}>
             <div className="space-y-2">
-              <Label htmlFor="email">Email Address</Label>
-              <Input
-                id="email"
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="Enter your email address"
-                disabled={loading}
-              />
-            </div>
-            <Button
-              onClick={sendOTP}
-              disabled={loading || !email}
-              className="w-full"
-            >
-              {loading ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Sending...
-                </>
-              ) : (
-                'Send Verification Code'
-              )}
-            </Button>
-          </div>
-        ) : (
-          <div className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="otp">Verification Code</Label>
-              <Input
-                id="otp"
-                type="text"
-                value={otp}
-                onChange={(e) => {
-                  const value = e.target.value.replace(/\D/g, '').slice(0, 6);
-                  setOtp(value);
-                }}
-                placeholder="Enter 6-digit code"
-                maxLength={6}
-                disabled={loading}
-                className="text-center text-lg tracking-wider"
-              />
-            </div>
-
-            {/* Timer */}
-            {timeRemaining > 0 && (
-              <div className="flex items-center justify-center text-sm text-gray-600">
-                <Clock className="mr-1 h-4 w-4" />
-                Code expires in {formatTime(timeRemaining)}
+              <Label htmlFor="otp-email">Email address</Label>
+              <div className="relative">
+                <Mail
+                  className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground"
+                  aria-hidden="true"
+                />
+                <Input
+                  id="otp-email"
+                  type="email"
+                  value={email}
+                  onChange={(event) => setEmail(event.target.value)}
+                  placeholder="you@example.com"
+                  autoComplete="email"
+                  disabled={loading}
+                  className="pl-9"
+                  required
+                />
               </div>
-            )}
+            </div>
+            <Button type="submit" disabled={loading || !email.trim()} className="w-full">
+              {loading && <Loader2 className="mr-2 size-4 animate-spin" />}
+              {loading ? 'Sending…' : 'Send verification code'}
+            </Button>
+          </form>
+        )}
 
-            <div className="flex gap-2">
+        {step === 'verify' && (
+          <form className="space-y-4" onSubmit={verifyOTP}>
+            <div className="space-y-2">
+              <Label htmlFor="otp-code">Verification code</Label>
+              <Input
+                id="otp-code"
+                type="text"
+                inputMode="numeric"
+                autoComplete="one-time-code"
+                pattern={`[0-9]{${codeLength}}`}
+                value={otp}
+                onChange={(event) =>
+                  setOtp(
+                    event.target.value.replace(/\D/g, '').slice(0, codeLength)
+                  )
+                }
+                placeholder={'0'.repeat(codeLength)}
+                maxLength={codeLength}
+                disabled={loading}
+                className="h-12 text-center text-xl tracking-[0.35em]"
+                autoFocus
+                required
+              />
+            </div>
+
+            <div className="flex items-center justify-between gap-3 rounded-xl bg-muted/60 px-3 py-2 text-xs text-muted-foreground">
+              <span className="flex items-center gap-1.5">
+                <Clock3 className="size-3.5" aria-hidden="true" />
+                {timeRemaining > 0
+                  ? `Expires in ${formatTime(timeRemaining)}`
+                  : 'Code expired'}
+              </span>
+              {otpStatus?.attempts !== undefined &&
+                otpStatus.maxAttempts !== undefined && (
+                  <span>
+                    {otpStatus.attempts}/{otpStatus.maxAttempts} attempts used
+                  </span>
+                )}
+            </div>
+
+            <div className="grid grid-cols-2 gap-2">
               <Button
+                type="button"
                 variant="outline"
                 onClick={goBack}
                 disabled={loading}
-                className="flex-1"
               >
-                Back
+                Change email
               </Button>
               <Button
-                onClick={verifyOTP}
-                disabled={loading || !otp || otp.length !== 6}
-                className="flex-1"
+                type="submit"
+                disabled={loading || otp.length !== codeLength || timeRemaining <= 0}
               >
-                {loading ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Verifying...
-                  </>
-                ) : (
-                  'Verify Code'
-                )}
+                {loading && <Loader2 className="mr-2 size-4 animate-spin" />}
+                {loading ? 'Verifying…' : 'Verify code'}
               </Button>
             </div>
 
-            {/* Resend button */}
-            <div className="text-center">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={resendOTP}
-                disabled={!canResend || loading}
-              >
-                {loading ? (
-                  <>
-                    <Loader2 className="mr-2 h-3 w-3 animate-spin" />
-                    Resending...
-                  </>
-                ) : (
-                  <>
-                    <RefreshCw className="mr-1 h-3 w-3" />
-                    {canResend ? 'Resend Code' : 'Resend available soon'}
-                  </>
-                )}
-              </Button>
-            </div>
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              onClick={resendOTP}
+              disabled={resendRemaining > 0 || loading}
+              className="w-full"
+            >
+              <RefreshCw className="mr-2 size-3.5" aria-hidden="true" />
+              {resendRemaining > 0
+                ? `Resend in ${formatTime(resendRemaining)}`
+                : 'Send a new code'}
+            </Button>
+          </form>
+        )}
 
-            {/* Status info */}
-            {otpStatus && (
-              <div className="text-xs text-gray-500 text-center">
-                {otpStatus.attempts !== undefined && otpStatus.maxAttempts && (
-                  <p>
-                    Verification attempts: {otpStatus.attempts}/{otpStatus.maxAttempts}
-                  </p>
-                )}
-              </div>
-            )}
+        {step === 'verified' && (
+          <div className="rounded-xl border border-emerald-500/25 bg-emerald-500/10 p-4 text-sm text-emerald-700 dark:text-emerald-300">
+            Verification is complete. You can safely continue.
           </div>
         )}
 
-        {/* Messages */}
-        {message && (
-          <Alert>
-            <AlertDescription className="text-green-700">
-              {message}
-            </AlertDescription>
-          </Alert>
-        )}
-
-        {error && (
-          <Alert variant="destructive">
-            <AlertDescription>{error}</AlertDescription>
-          </Alert>
-        )}
+        <div aria-live="polite" aria-atomic="true" className="space-y-3">
+          {message && step !== 'verified' && (
+            <Alert>
+              <AlertDescription className="text-emerald-700 dark:text-emerald-300">
+                {message}
+              </AlertDescription>
+            </Alert>
+          )}
+          {error && (
+            <Alert variant="destructive">
+              <AlertDescription>{error}</AlertDescription>
+            </Alert>
+          )}
+        </div>
       </CardContent>
     </Card>
   );

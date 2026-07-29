@@ -88,6 +88,24 @@ interface UseQRWorkerReturn {
     failedScans: number;
   };
 }
+type QRScanResult = {
+  qrCode: QRCodeResult | null;
+  processingTime: number;
+};
+type PendingWorkerRequest =
+  | {
+      kind: 'init';
+      resolve: () => void;
+      reject: (reason?: unknown) => void;
+      timeout: ReturnType<typeof setTimeout>;
+    }
+  | {
+      kind: 'scan';
+      resolve: (value: QRScanResult) => void;
+      reject: (reason?: unknown) => void;
+      timeout: ReturnType<typeof setTimeout>;
+    };
+
 export function useQRWorker(options: UseQRWorkerOptions = {}): UseQRWorkerReturn {
   const {
     autoInit = true,
@@ -105,11 +123,8 @@ export function useQRWorker(options: UseQRWorkerOptions = {}): UseQRWorkerReturn
     failedScans: 0
   });
   const workerRef = useRef<Worker | null>(null);
-  const pendingScansRef = useRef(new Map<string, {
-    resolve: (value: any) => void;
-    reject: (reason: any) => void;
-    timeout: NodeJS.Timeout;
-  }>());
+  const workerBlobUrlRef = useRef<string | null>(null);
+  const pendingScansRef = useRef(new Map<string, PendingWorkerRequest>());
   const scanIdCounterRef = useRef(0);
   // Generate unique scan ID
   const generateScanId = useCallback(() => {
@@ -198,7 +213,9 @@ export function useQRWorker(options: UseQRWorkerOptions = {}): UseQRWorkerReturn
           };
         `;
         const workerBlob = new Blob([workerCode], { type: 'application/javascript' });
-        worker = new Worker(URL.createObjectURL(workerBlob));
+        const workerBlobUrl = URL.createObjectURL(workerBlob);
+        workerBlobUrlRef.current = workerBlobUrl;
+        worker = new Worker(workerBlobUrl);
       }
       workerRef.current = worker;
       // Set up message handler
@@ -210,9 +227,9 @@ export function useQRWorker(options: UseQRWorkerOptions = {}): UseQRWorkerReturn
               // This is a response to init
               setIsReady(true);
               const pending = pendingScansRef.current.get(id);
-              if (pending) {
+              if (pending?.kind === 'init') {
                 clearTimeout(pending.timeout);
-                pending.resolve(undefined);
+                pending.resolve();
                 pendingScansRef.current.delete(id);
               }
             } else {
@@ -222,7 +239,7 @@ export function useQRWorker(options: UseQRWorkerOptions = {}): UseQRWorkerReturn
           case 'result':
             if (id && pendingScansRef.current.has(id)) {
               const pending = pendingScansRef.current.get(id);
-              if (pending) {
+              if (pending?.kind === 'scan') {
                 clearTimeout(pending.timeout);
                 // Update stats
                 setStats(prev => ({
@@ -246,11 +263,13 @@ export function useQRWorker(options: UseQRWorkerOptions = {}): UseQRWorkerReturn
               const pending = pendingScansRef.current.get(id);
               if (pending) {
                 clearTimeout(pending.timeout);
-                setStats(prev => ({
-                  ...prev,
-                  totalScans: prev.totalScans + 1,
-                  failedScans: prev.failedScans + 1
-                }));
+                if (pending.kind === 'scan') {
+                  setStats(prev => ({
+                    ...prev,
+                    totalScans: prev.totalScans + 1,
+                    failedScans: prev.failedScans + 1
+                  }));
+                }
                 pending.reject(new Error(data?.error || 'Unknown worker error'));
                 pendingScansRef.current.delete(id);
               }
@@ -272,9 +291,12 @@ export function useQRWorker(options: UseQRWorkerOptions = {}): UseQRWorkerReturn
       const initId = generateScanId();
       return new Promise<void>((resolve, reject) => {
         const timeout = setTimeout(() => {
+          pendingScansRef.current.delete(initId);
+          setIsReady(false);
           reject(new Error('Worker initialization timeout'));
         }, scanTimeout);
         pendingScansRef.current.set(initId, {
+          kind: 'init',
           resolve,
           reject,
           timeout
@@ -304,6 +326,10 @@ export function useQRWorker(options: UseQRWorkerOptions = {}): UseQRWorkerReturn
       // Terminate worker
       workerRef.current.terminate();
       workerRef.current = null;
+      if (workerBlobUrlRef.current) {
+        URL.revokeObjectURL(workerBlobUrlRef.current);
+        workerBlobUrlRef.current = null;
+      }
       setIsReady(false);
       setIsScanning(false);
       setIsInitializing(false);
@@ -314,7 +340,7 @@ export function useQRWorker(options: UseQRWorkerOptions = {}): UseQRWorkerReturn
   const scanQR = useCallback(async (
     imageData: ImageData, 
     scanOptions: QRScanOptions = {}
-  ): Promise<{ qrCode: QRCodeResult | null; processingTime: number }> => {
+  ): Promise<QRScanResult> => {
     if (!workerRef.current || !isReady) {
       throw new Error('Worker not ready. Call initWorker() first.');
     }
@@ -325,21 +351,24 @@ export function useQRWorker(options: UseQRWorkerOptions = {}): UseQRWorkerReturn
     return new Promise((resolve, reject) => {
       const timeout = setTimeout(() => {
         pendingScansRef.current.delete(scanId);
+        setIsScanning(pendingScansRef.current.size > 0);
         reject(new Error('Scan timeout'));
       }, scanTimeout);
       pendingScansRef.current.set(scanId, {
+        kind: 'scan',
         resolve,
         reject,
         timeout
       });
-      workerRef.current!.postMessage({
+      const message = {
         type: 'scan',
         data: {
           imageData,
           options: scanOptions
         },
         id: scanId
-      } as QRWorkerMessage);
+      } as QRWorkerMessage;
+      workerRef.current!.postMessage(message, [imageData.data.buffer]);
       setIsScanning(true);
     });
   }, [isReady, maxConcurrentScans, scanTimeout, generateScanId]);

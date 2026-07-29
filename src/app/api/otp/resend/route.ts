@@ -1,82 +1,144 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { OTPManager } from '@/lib/otp-manager';
+import {
+  getChallengeToken,
+  getOTPChallengeConfiguration,
+  getOTPRouteConfiguration,
+  setChallengeCookie,
+} from '@/lib/otp-route-utils';
+import { OTPService } from '@/lib/otp-service';
+import { isRequestOriginAllowed } from '@/lib/request-security';
+import {
+  checkRateLimit,
+  createRateLimitResponse,
+  getClientAddress,
+  hashRateLimitValue,
+} from '@/lib/server-rate-limit';
 
-// Initialize OTP Manager with environment variables
-const getOTPManager = () => {
-  const requiredEnvVars = [
-    'GMAIL_CLIENT_ID',
-    'GMAIL_CLIENT_SECRET', 
-    'GMAIL_REFRESH_TOKEN',
-    'GMAIL_USER_EMAIL'
-  ];
-
-  for (const envVar of requiredEnvVars) {
-    if (!process.env[envVar]) {
-      throw new Error(`Missing required environment variable: ${envVar}`);
-    }
-  }
-
-  return new OTPManager({
-    gmail: {
-      clientId: process.env.GMAIL_CLIENT_ID!,
-      clientSecret: process.env.GMAIL_CLIENT_SECRET!,
-      refreshToken: process.env.GMAIL_REFRESH_TOKEN!,
-      user: process.env.GMAIL_USER_EMAIL!,
-    },
-    options: {
-      companyName: process.env.COMPANY_NAME || 'SomlengP',
-      expiryMinutes: parseInt(process.env.OTP_EXPIRY_MINUTES || '5'),
-    },
-  });
-};
+interface ResendOTPBody {
+  email?: unknown;
+  subject?: unknown;
+}
 
 export async function POST(request: NextRequest) {
-  try {
-    const body = await request.json();
-    const { email, subject, customMessage } = body;
+  if (!isRequestOriginAllowed(request)) {
+    return NextResponse.json(
+      { success: false, error: 'Request origin is not allowed' },
+      { status: 403 }
+    );
+  }
 
-    // Validate required fields
-    if (!email) {
-      return NextResponse.json(
-        { success: false, error: 'Email is required' },
-        { status: 400 }
+  let body: ResendOTPBody;
+  try {
+    body = (await request.json()) as ResendOTPBody;
+  } catch {
+    return NextResponse.json(
+      { success: false, error: 'A valid JSON body is required' },
+      { status: 400 }
+    );
+  }
+
+  if (typeof body.email !== 'string' || !OTPService.isValidEmail(body.email)) {
+    return NextResponse.json(
+      { success: false, error: 'A valid email address is required' },
+      { status: 400 }
+    );
+  }
+
+  if (
+    body.subject !== undefined &&
+    (typeof body.subject !== 'string' || body.subject.trim().length > 160)
+  ) {
+    return NextResponse.json(
+      { success: false, error: 'Subject must be 160 characters or fewer' },
+      { status: 400 }
+    );
+  }
+
+  const email = OTPService.normalizeEmail(body.email);
+  const addressLimit = checkRateLimit(
+    `otp-send:ip:${getClientAddress(request)}`,
+    10,
+    15 * 60_000
+  );
+  if (!addressLimit.allowed) {
+    return createRateLimitResponse(addressLimit);
+  }
+
+  const emailLimit = checkRateLimit(
+    `otp-send:email:${hashRateLimitValue(email)}`,
+    3,
+    15 * 60_000
+  );
+  if (!emailLimit.allowed) {
+    return createRateLimitResponse(emailLimit);
+  }
+
+  try {
+    const challengeConfiguration = getOTPChallengeConfiguration();
+    const currentStatus = OTPService.getChallengeStatus(
+      getChallengeToken(request),
+      email,
+      challengeConfiguration.secret
+    );
+
+    if (currentStatus.exists && (currentStatus.resendAvailableIn || 0) > 0) {
+      const retryAfter = currentStatus.resendAvailableIn || 1;
+      const response = NextResponse.json(
+        {
+          success: false,
+          error: 'Please wait before requesting another code',
+          retryAfter,
+        },
+        { status: 429 }
       );
+      response.headers.set('Retry-After', String(retryAfter));
+      response.headers.set('Cache-Control', 'no-store');
+      return response;
     }
 
-    // Initialize OTP Manager
-    const otpManager = getOTPManager();
-
-    // Resend OTP
-    const result = await otpManager.resendOTP(email, {
-      subject: subject || 'Your New Verification Code',
-      customMessage,
+    const { manager, secret, challengeOptions, codeLength } =
+      getOTPRouteConfiguration();
+    const sendResult = await manager.sendOTP(email, {
+      subject:
+        typeof body.subject === 'string'
+          ? body.subject.trim() || 'Your new verification code'
+          : 'Your new verification code',
     });
 
-    if (result.success) {
-      return NextResponse.json({
-        success: true,
-        messageId: result.messageId,
-        message: 'New OTP sent successfully',
-        // code: result.code, // Only for development/testing
-      });
-    } else {
+    if (!sendResult.success || !sendResult.code) {
+      console.error('OTP resend delivery failed:', sendResult.error);
       return NextResponse.json(
-        { success: false, error: result.error },
-        { status: 400 }
-      );
-    }
-  } catch (error) {
-    console.error('Resend OTP API Error:', error);
-    
-    if (error instanceof Error && error.message.includes('Missing required environment variable')) {
-      return NextResponse.json(
-        { success: false, error: 'Service configuration error' },
-        { status: 500 }
+        {
+          success: false,
+          error: 'Unable to send the verification email. Please try again later.',
+        },
+        { status: 502 }
       );
     }
 
+    const challenge = OTPService.createChallenge(
+      email,
+      sendResult.code,
+      secret,
+      challengeOptions
+    );
+    const now = Date.now();
+    const response = NextResponse.json({
+      success: true,
+      message: 'A new verification code was sent',
+      expiresIn: Math.max(0, Math.ceil((challenge.expiresAt - now) / 1_000)),
+      resendAvailableIn: Math.max(
+        0,
+        Math.ceil((challenge.resendAvailableAt - now) / 1_000)
+      ),
+      codeLength,
+    });
+    setChallengeCookie(response, challenge.token, challenge.expiresAt);
+    return response;
+  } catch (error) {
+    console.error('Resend OTP API error:', error);
     return NextResponse.json(
-      { success: false, error: 'Failed to resend OTP' },
+      { success: false, error: 'Failed to resend the verification code' },
       { status: 500 }
     );
   }

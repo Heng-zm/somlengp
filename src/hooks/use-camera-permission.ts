@@ -28,6 +28,9 @@ import {
   isCameraPermissionDenied,
   requestOptimizedCameraForQR
 } from '@/utils/camera-permissions';
+
+const DEFAULT_CAMERA_CONSTRAINTS: CameraConstraints = { video: true };
+
 export interface UseCameraPermissionOptions {
   /** Auto-request permission on mount */
   autoRequest?: boolean;
@@ -74,7 +77,7 @@ export interface UseCameraPermissionReturn {
 export function useCameraPermission(options: UseCameraPermissionOptions = {}): UseCameraPermissionReturn {
   const {
     autoRequest = false,
-    defaultConstraints = { video: true },
+    defaultConstraints = DEFAULT_CAMERA_CONSTRAINTS,
     quality = 'medium',
     facingMode = 'user',
     useFallback = true,
@@ -153,6 +156,7 @@ export function useCameraPermission(options: UseCameraPermissionOptions = {}): U
       cleanup();
       const result = await requestFn();
       if (result.success && result.stream) {
+        currentStreamRef.current = result.stream;
         setStream(result.stream);
         setHasPermission(true);
         setPermissionState(result.permissions?.camera || 'granted');
@@ -225,15 +229,46 @@ export function useCameraPermission(options: UseCameraPermissionOptions = {}): U
     });
   }, [handleRequest]);
   // Switch facing mode
-  const switchFacingModeFn = useCallback((quality: 'low' | 'medium' | 'high' | 'ultra' = 'medium') => {
-    return handleRequest(() => {
-      const result = switchCameraFacing(currentStreamRef.current, quality);
-      // Update facing mode based on current stream
-      const newFacingMode = currentFacingMode === 'user' ? 'environment' : 'user';
-      setCurrentFacingMode(newFacingMode);
+  const switchFacingModeFn = useCallback(async (
+    quality: 'low' | 'medium' | 'high' | 'ultra' = 'medium'
+  ): Promise<CameraPermissionResult> => {
+    const previousStream = currentStreamRef.current;
+    const nextFacingMode = currentFacingMode === 'user' ? 'environment' : 'user';
+
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      const result = await switchCameraFacing(previousStream, quality);
+      if (result.success && result.stream) {
+        currentStreamRef.current = result.stream;
+        setStream(result.stream);
+        setHasPermission(true);
+        setPermissionState(result.permissions?.camera || 'granted');
+        setCurrentFacingMode(nextFacingMode);
+        void refreshDevices();
+      } else {
+        currentStreamRef.current = null;
+        setStream(null);
+        setHasPermission(false);
+        setError(result.error || null);
+      }
       return result;
-    });
-  }, [handleRequest, currentFacingMode]);
+    } catch (err) {
+      const switchError = {
+        name: 'CameraSwitchError',
+        message: err instanceof Error ? err.message : 'Unable to switch camera',
+        code: 'CAMERA_SWITCH_ERROR'
+      };
+      currentStreamRef.current = null;
+      setStream(null);
+      setHasPermission(false);
+      setError(switchError);
+      return { success: false, error: switchError };
+    } finally {
+      setIsLoading(false);
+    }
+  }, [currentFacingMode, refreshDevices]);
   // Stop camera
   const stopCamera = useCallback(() => {
     cleanup();
@@ -364,16 +399,24 @@ export function useQRCamera(autoStart = false) {
     useFallback: true,
     autoStop: true
   });
+
+  const {
+    requestOptimizedForQR,
+    isSupported
+  } = hook;
+
   // Override with QR-optimized request
   const requestOptimized = useCallback(async () => {
-    return hook.requestOptimizedForQR();
-  }, [hook]);
+    return requestOptimizedForQR();
+  }, [requestOptimizedForQR]);
+
   // Auto-start if requested
   useEffect(() => {
-    if (autoStart && hook.isSupported) {
-      requestOptimized();
+    if (autoStart && isSupported) {
+      void requestOptimized();
     }
-  }, [autoStart, hook.isSupported, requestOptimized]);
+  }, [autoStart, isSupported, requestOptimized]);
+
   return {
     ...hook,
     requestCamera: requestOptimized

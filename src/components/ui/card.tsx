@@ -1,23 +1,22 @@
 
-import { memo } from 'react';
 import * as React from "react"
 
 import { cn } from "@/lib/utils"
 
 // Static variants to avoid re-creation on each render
 const cardVariants = {
-  default: "rounded-lg border bg-card text-card-foreground shadow-sm",
-  elevated: "rounded-xl border bg-card text-card-foreground shadow-lg hover:shadow-xl",
-  glass: "rounded-xl border border-white/20 bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl text-card-foreground shadow-xl",
-  interactive: "rounded-xl border bg-card text-card-foreground shadow-md hover:shadow-xl cursor-pointer transition-all duration-300",
-  centered: "rounded-xl border bg-card text-card-foreground shadow-lg center-card-content",
-  hero: "rounded-2xl border bg-gradient-to-b from-card to-card/50 text-card-foreground shadow-xl center-card-content min-h-[300px]"
+  default: "rounded-xl border border-border bg-card text-card-foreground shadow-sm",
+  elevated: "rounded-xl border border-border bg-card text-card-foreground shadow-md",
+  glass: "rounded-xl border border-white/60 bg-white/85 text-card-foreground shadow-lg backdrop-blur-xl dark:border-white/10 dark:bg-slate-900/85",
+  interactive: "cursor-pointer rounded-xl border border-border bg-card text-card-foreground shadow-sm transition duration-200 hover:border-primary/30 hover:shadow-md",
+  centered: "center-card-content rounded-xl border border-border bg-card text-card-foreground shadow-sm",
+  hero: "center-card-content min-h-[300px] rounded-2xl border border-border bg-gradient-to-b from-card to-secondary/40 text-card-foreground shadow-md"
 };
 
 const animationVariants = {
   none: "",
-  hover: "hover:scale-[1.01] hover:-translate-y-1 transition-all duration-300 will-change-transform",
-  float: "hover:scale-[1.02] hover:-translate-y-2 transition-all duration-300 will-change-transform",
+  hover: "transition-shadow duration-200 hover:shadow-md",
+  float: "transition duration-200 hover:-translate-y-0.5 hover:shadow-md",
 };
 
 const Card = React.memo(React.forwardRef<
@@ -27,7 +26,7 @@ const Card = React.memo(React.forwardRef<
     animation?: "none" | "hover" | "float";
     centered?: boolean;
   }
->(({ className, variant = "default", animation = "hover", centered = false, ...props }, ref) => {
+>(({ className, variant = "default", animation = "none", centered = false, ...props }, ref) => {
   return (
     <div
       ref={ref}
@@ -68,7 +67,7 @@ const CardTitle = React.memo(React.forwardRef<
   <div
     ref={ref}
     className={cn(
-      "text-2xl font-semibold leading-none tracking-tight",
+      "text-xl font-semibold leading-6 tracking-tight",
       className
     )}
     {...props}

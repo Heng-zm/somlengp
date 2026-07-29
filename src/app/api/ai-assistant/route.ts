@@ -1,266 +1,421 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { GoogleGenerativeAI } from '@google/generative-ai';
-
-// Gemini client is initialized per-request inside the handler to ensure fresh env values.
+import {
+  createPreflightResponse,
+  isRequestOriginAllowed,
+} from '@/lib/request-security';
+import {
+  applyRateLimitHeaders,
+  checkRateLimit,
+  createRateLimitResponse,
+  getClientAddress,
+} from '@/lib/server-rate-limit';
 
 interface Message {
   role: 'user' | 'assistant';
   content: string;
 }
 
-interface RequestBody {
-  messages: Message[];
-  model?: string;
+interface UpstreamResponse {
+  ok?: unknown;
+  reply?: unknown;
+  message?: unknown;
+  error?: unknown;
+  model?: unknown;
+  detected_language?: unknown;
 }
 
-interface AIResponse {
-  response: string;
-  model: string;
-  tokens?: {
-    prompt: number;
-    completion: number;
-    total: number;
-  };
+const MAX_MESSAGES = 30;
+const MAX_MESSAGE_CHARACTERS = 12_000;
+const MAX_TOTAL_CHARACTERS = 60_000;
+const MAX_UPSTREAM_MESSAGE_CHARACTERS = 48_000;
+const MAX_MULTIPART_MESSAGES_CHARACTERS = 80_000;
+const MAX_FILE_BYTES = 10 * 1024 * 1024;
+const MAX_TEXT_FILE_BYTES = 1_000_000;
+const MAX_REQUEST_BYTES = 12 * 1024 * 1024;
+const MAX_UPSTREAM_RESPONSE_CHARACTERS = 1_000_000;
+const UPSTREAM_TIMEOUT_MS = 45_000;
+
+function parseMessages(value: unknown): Message[] | null {
+  if (!Array.isArray(value) || value.length === 0 || value.length > MAX_MESSAGES) {
+    return null;
+  }
+
+  let totalCharacters = 0;
+  const messages: Message[] = [];
+
+  for (const valueItem of value) {
+    if (!valueItem || typeof valueItem !== 'object') {
+      return null;
+    }
+
+    const item = valueItem as Partial<Message>;
+    if (
+      (item.role !== 'user' && item.role !== 'assistant') ||
+      typeof item.content !== 'string' ||
+      item.content.length > MAX_MESSAGE_CHARACTERS
+    ) {
+      return null;
+    }
+
+    totalCharacters += item.content.length;
+    if (totalCharacters > MAX_TOTAL_CHARACTERS) {
+      return null;
+    }
+
+    messages.push({ role: item.role, content: item.content });
+  }
+
+  const lastMessage = messages[messages.length - 1];
+  return lastMessage.role === 'user' && lastMessage.content.trim()
+    ? messages
+    : null;
+}
+
+function createUpstreamMessage(messages: Message[]): string {
+  if (messages.length === 1) {
+    return messages[0].content.trim();
+  }
+
+  const header =
+    'Continue the conversation below and answer the final user message. Use earlier turns only as context.';
+  const turns: string[] = [];
+  let length = header.length;
+
+  for (let index = messages.length - 1; index >= 0; index -= 1) {
+    const message = messages[index];
+    const label = message.role === 'assistant' ? 'Assistant' : 'User';
+    const turn = `${label}:\n${message.content.trim()}`;
+    const separatorLength = turns.length > 0 ? 2 : 0;
+
+    if (
+      turns.length > 0 &&
+      length + separatorLength + turn.length > MAX_UPSTREAM_MESSAGE_CHARACTERS
+    ) {
+      break;
+    }
+
+    turns.unshift(turn);
+    length += separatorLength + turn.length;
+  }
+
+  return `${header}\n\n${turns.join('\n\n')}`;
+}
+
+function getUpstreamConfig(): { url: URL; apiKey: string } | null {
+  const urlValue = process.env.AI_ASSISTANT_API_URL?.trim();
+  const apiKey = process.env.AI_ASSISTANT_API_KEY?.trim();
+
+  if (!urlValue || !apiKey) {
+    return null;
+  }
+
+  try {
+    const url = new URL(urlValue);
+    const isLocalDevelopment =
+      process.env.NODE_ENV !== 'production' &&
+      url.protocol === 'http:' &&
+      (url.hostname === 'localhost' || url.hostname === '127.0.0.1');
+
+    if (
+      (url.protocol !== 'https:' && !isLocalDevelopment) ||
+      url.username ||
+      url.password
+    ) {
+      return null;
+    }
+
+    return { url, apiKey };
+  } catch {
+    return null;
+  }
+}
+
+function getUpstreamData(value: unknown): UpstreamResponse | null {
+  return value && typeof value === 'object' && !Array.isArray(value)
+    ? (value as UpstreamResponse)
+    : null;
+}
+
+function getUpstreamErrorStatus(status: number): number {
+  if (status === 429) {
+    return 429;
+  }
+  if (status === 408 || status === 504) {
+    return 504;
+  }
+  if (status === 401 || status === 403) {
+    return 503;
+  }
+  if (status >= 400 && status < 500) {
+    return 400;
+  }
+  return 502;
+}
+
+function getUpstreamErrorMessage(status: number): string {
+  if (status === 429) {
+    return 'AI request limit reached. Please wait and try again.';
+  }
+  if (status === 504) {
+    return 'The AI service took too long to respond. Please try again.';
+  }
+  if (status === 503) {
+    return 'The AI service is not configured correctly.';
+  }
+  if (status === 400) {
+    return 'The AI service could not process this message.';
+  }
+  return 'The AI service is temporarily unavailable. Please try again.';
+}
+
+async function addFileContext(
+  lastMessage: Message,
+  uploadedFile: File
+): Promise<NextResponse | null> {
+  const allowedTypes = [/^image\//, /^text\//, /json/i, /pdf/i, /markdown/i];
+
+  if (uploadedFile.size > MAX_FILE_BYTES) {
+    return NextResponse.json({ error: 'File too large' }, { status: 413 });
+  }
+  if (!allowedTypes.some((pattern) => pattern.test(uploadedFile.type))) {
+    return NextResponse.json({ error: 'Unsupported file type' }, { status: 415 });
+  }
+
+  const metadata = `${uploadedFile.name} (${uploadedFile.type || 'application/octet-stream'}, ${uploadedFile.size} bytes)`;
+  const isText =
+    /^text\//.test(uploadedFile.type) ||
+    /(json|markdown)/i.test(uploadedFile.type);
+
+  if (isText && uploadedFile.size <= MAX_TEXT_FILE_BYTES) {
+    const text = await uploadedFile.text();
+    const content =
+      text.length > 8_000 ? `${text.slice(0, 8_000)}\n...[truncated]` : text;
+    lastMessage.content =
+      `${lastMessage.content}\n\nAttached file: ${metadata}\n\n` +
+      (content || '(empty file)');
+  } else {
+    lastMessage.content = `${lastMessage.content}\n\nAttached file: ${metadata}.`;
+  }
+
+  return null;
 }
 
 export async function POST(request: NextRequest): Promise<NextResponse> {
+  if (!isRequestOriginAllowed(request)) {
+    return NextResponse.json(
+      { error: 'Request origin is not allowed' },
+      { status: 403 }
+    );
+  }
+
+  const contentLength = Number(request.headers.get('content-length') || 0);
+  if (Number.isFinite(contentLength) && contentLength > MAX_REQUEST_BYTES) {
+    return NextResponse.json({ error: 'Request is too large' }, { status: 413 });
+  }
+
+  const rateLimit = checkRateLimit(
+    `ai-assistant:${getClientAddress(request)}`,
+    12,
+    60_000
+  );
+  if (!rateLimit.allowed) {
+    return createRateLimitResponse(
+      rateLimit,
+      'Too many AI requests. Please wait before trying again.'
+    );
+  }
+
   try {
-    // Parse JSON or multipart form
     const contentType = request.headers.get('content-type') || '';
-    let messages: Message[] = [];
-    let model = 'gemini-2.5-flash';
+    let rawMessages: unknown;
     let uploadedFile: File | null = null;
 
     if (contentType.includes('multipart/form-data')) {
       const form = await request.formData();
-      const messagesStr = (form.get('messages') as string) || '[]';
+      const messagesValue = form.get('messages');
+
+      if (
+        typeof messagesValue !== 'string' ||
+        messagesValue.length > MAX_MULTIPART_MESSAGES_CHARACTERS
+      ) {
+        return NextResponse.json(
+          { error: 'Messages payload is invalid or too large' },
+          { status: 413 }
+        );
+      }
+
       try {
-        messages = JSON.parse(messagesStr) as Message[];
+        rawMessages = JSON.parse(messagesValue) as unknown;
       } catch {
-        messages = [];
+        rawMessages = null;
       }
-      model = ((form.get('model') as string) || 'gemini-2.5-flash').trim();
-      const f = form.get('file');
-      if (f && typeof f !== 'string') {
-        uploadedFile = f as unknown as File;
+
+      const fileValue = form.get('file');
+      if (fileValue && typeof fileValue !== 'string') {
+        uploadedFile = fileValue;
       }
+    } else if (contentType.includes('application/json')) {
+      const body = (await request.json()) as { messages?: unknown };
+      rawMessages = body.messages;
     } else {
-      const body: RequestBody = await request.json();
-      messages = body.messages || [];
-      model = (body.model || 'gemini-2.5-flash').trim();
+      return NextResponse.json(
+        { error: 'Content-Type must be application/json or multipart/form-data' },
+        { status: 415 }
+      );
     }
 
-    // Resolve and normalize model early so we can report it consistently later
-    // Based on testing, only gemini-2.0-flash-exp is currently available with this API key
-    const modelMap: Record<string, string> = {
-      // Map all model requests to the working model
-      'gemini-1.5-flash': 'gemini-2.0-flash-exp', // fallback to working model
-      'gemini-2.0-flash-exp': 'gemini-2.0-flash-exp',
-      'gemini-2.5-flash': 'gemini-2.0-flash-exp', // fallback to working model
-    };
-
-    const requestedModel = (model || 'gemini-2.5-flash').trim();
-    let effectiveModel = requestedModel in modelMap ? requestedModel : 'gemini-2.5-flash';
-    let geminiModelName = modelMap[effectiveModel];
-
-    // Validate input
-    if (!messages || !Array.isArray(messages) || messages.length === 0) {
+    const messages = parseMessages(rawMessages);
+    if (!messages) {
       return NextResponse.json(
-        { error: 'Invalid messages array' },
+        {
+          error:
+            'Messages must end with a user message and stay within the supported size limits.',
+        },
         { status: 400 }
       );
     }
 
-    // Check if Gemini API key is available (prefer GOOGLE_API_KEY, fallback to GEMINI_API_KEY)
-    const apiKey = process.env.GOOGLE_API_KEY || process.env.GEMINI_API_KEY;
-    if (!apiKey) {
+    if (uploadedFile) {
+      const fileError = await addFileContext(
+        messages[messages.length - 1],
+        uploadedFile
+      );
+      if (fileError) {
+        return fileError;
+      }
+    }
+
+    const config = getUpstreamConfig();
+    if (!config) {
       return NextResponse.json(
-        { 
-          error: 'AI service is not configured. Please set GOOGLE_API_KEY (preferred) or GEMINI_API_KEY in .env.local.',
-          response: "I apologize, but the AI service is currently not available. The administrator needs to configure the AI API key."
+        {
+          error:
+            'AI service is not configured. Set AI_ASSISTANT_API_URL and AI_ASSISTANT_API_KEY.',
+          response: 'The AI service is currently unavailable.',
         },
         { status: 503 }
       );
     }
 
-    // Initialize Gemini AI client with the resolved key per-request to avoid stale env issues
-    const genAI = new GoogleGenerativeAI(apiKey);
+    const controller = new AbortController();
+    let timedOut = false;
+    const timeout = setTimeout(() => {
+      timedOut = true;
+      controller.abort();
+    }, UPSTREAM_TIMEOUT_MS);
+    const abortUpstream = () => controller.abort();
+    request.signal.addEventListener('abort', abortUpstream, { once: true });
 
-    // Get the Gemini model
-    let geminiModel;
+    let upstreamResponse: Response;
     try {
-      geminiModel = genAI.getGenerativeModel({ model: geminiModelName });
+      upstreamResponse = await fetch(config.url, {
+        method: 'POST',
+        headers: {
+          Accept: 'application/json',
+          'Content-Type': 'application/json',
+          'X-Api-Key': config.apiKey,
+        },
+        body: JSON.stringify({
+          message: createUpstreamMessage(messages),
+        }),
+        cache: 'no-store',
+        signal: controller.signal,
+      });
     } catch (error) {
-      if (process.env.NODE_ENV === 'development') {
-        console.warn('Error getting Gemini model:', error);
+      if (controller.signal.aborted) {
+        const status = timedOut ? 504 : 499;
+        const message = timedOut
+          ? 'The AI service took too long to respond. Please try again.'
+          : 'The request was canceled.';
+        return applyRateLimitHeaders(
+          NextResponse.json({ error: message, response: message }, { status }),
+          rateLimit
+        );
       }
-      return NextResponse.json(
-        { error: 'Failed to initialize AI model' },
-        { status: 500 }
+      throw error;
+    } finally {
+      clearTimeout(timeout);
+      request.signal.removeEventListener('abort', abortUpstream);
+    }
+
+    const responseText = await upstreamResponse.text();
+    if (responseText.length > MAX_UPSTREAM_RESPONSE_CHARACTERS) {
+      return applyRateLimitHeaders(
+        NextResponse.json(
+          {
+            error: 'The AI service returned an invalid response.',
+            response: 'The AI service returned an invalid response.',
+          },
+          { status: 502 }
+        ),
+        rateLimit
       );
     }
 
-    // Convert messages to Gemini format
-    let history = messages.slice(0, -1).map(msg => ({
-      role: msg.role === 'assistant' ? 'model' : 'user',
-      parts: [{ text: msg.content }],
-    }));
-
-    // Ensure the first message in history is from user (Gemini requirement)
-    if (history.length > 0 && history[0].role === 'model') {
-      // If the first message is from model, we need to either remove it
-      // or prepend a user message. For safety, we'll start fresh.
-      history = [];
-    }
-
-    const lastMessage = messages[messages.length - 1];
-
-    // If a file was uploaded, enrich the last user message with file context
-    if (uploadedFile && lastMessage && lastMessage.role === 'user') {
-      // Enforce file limits and types
-      const MAX_FILE_BYTES = 10 * 1024 * 1024; // 10MB
-      const allowedTypes = [/^image\//, /^text\//, /json/, /pdf/, /markdown/];
-      if (uploadedFile.size > MAX_FILE_BYTES) {
-        return NextResponse.json({ error: 'File too large' }, { status: 413 });
-      }
-      if (!allowedTypes.some((re) => re.test(uploadedFile.type))) {
-        return NextResponse.json({ error: 'Unsupported file type' }, { status: 415 });
-      }
-      try {
-        const MAX_TEXT_BYTES = 1_000_000; // 1MB
-        const meta = `${uploadedFile.name} (${uploadedFile.type || 'application/octet-stream'}, ${uploadedFile.size} bytes)`;
-        if (/^text\//.test(uploadedFile.type) || /(json|markdown)/i.test(uploadedFile.type)) {
-          const sizeOk = uploadedFile.size <= MAX_TEXT_BYTES;
-          const text = sizeOk ? await uploadedFile.text() : '';
-          const trimmed = text.length > 8000 ? text.slice(0, 8000) + '\n...[truncated]' : text;
-          lastMessage.content = `${lastMessage.content ? lastMessage.content + "\n\n" : ''}Attached file: ${meta}\n\n${trimmed || '(file too large to inline)'}\n`;
-        } else {
-          lastMessage.content = `${lastMessage.content ? lastMessage.content + "\n\n" : ''}Attached file: ${meta}.`;
-        }
-      } catch (e) {
-        // If file enrichment fails, continue without file context
-      }
-    }
-    
+    let upstreamData: UpstreamResponse | null = null;
     try {
-      // Start chat with history
-      const chat = geminiModel.startChat({
-        history: history.length > 0 ? history : undefined,
-        generationConfig: {
-          maxOutputTokens: 2048,
-          temperature: 0.7,
-          topP: 0.8,
-          topK: 10,
-        },
-      });
-
-      // Send message and get response
-      let result;
-      try {
-        result = await chat.sendMessage(lastMessage.content);
-      } catch (sendErr: any) {
-        // If the selected model isn't available (404), retry once with gemini-2.0-flash-exp
-        const isNotFound = sendErr?.status === 404 || /not found/i.test(sendErr?.message || '');
-        if (isNotFound && geminiModelName !== 'gemini-2.0-flash-exp') {
-          // Fallback to the only working model
-          effectiveModel = 'gemini-2.0-flash-exp';
-          geminiModelName = 'gemini-2.0-flash-exp';
-          geminiModel = genAI.getGenerativeModel({ model: geminiModelName });
-          const fallbackChat = geminiModel.startChat({
-            history: history.length > 0 ? history : undefined,
-            generationConfig: {
-              maxOutputTokens: 2048,
-              temperature: 0.7,
-              topP: 0.8,
-              topK: 10,
-            },
-          });
-          result = await fallbackChat.sendMessage(lastMessage.content);
-        } else {
-          throw sendErr;
-        }
-      }
-
-      const response = result.response;
-      const text = response.text();
-
-      // Get token usage if available
-      let tokens;
-      try {
-        const usage: any = response?.usageMetadata;
-        if (usage) {
-          tokens = {
-            prompt: usage.promptTokenCount || 0,
-            completion: usage.candidatesTokenCount || 0,
-            total: usage.totalTokenCount || 0,
-          };
-        }
-      } catch (tokenError) {
-        // Token info is optional, continue without it
-        if (process.env.NODE_ENV === 'development') {
-          console.warn('Token usage info not available:', tokenError);
-        }
-      }
-
-      const aiResponse: AIResponse = {
-        response: text,
-        model: effectiveModel,
-        tokens,
-      };
-
-      return NextResponse.json(aiResponse);
-
-    } catch (aiError: any) {
-      if (process.env.NODE_ENV === 'development') {
-        console.warn('Gemini AI Error:', aiError);
-      }
-      
-      let errorMessage = 'An error occurred while processing your request.';
-      
-      if (aiError.message?.includes('quota')) {
-        errorMessage = 'AI service quota exceeded. Please try again later.';
-      } else if (aiError.message?.includes('safety')) {
-        errorMessage = 'Your message was filtered for safety reasons. Please rephrase your request.';
-      } else if (aiError.message?.includes('blocked')) {
-        errorMessage = 'Your request was blocked. Please try rephrasing your message.';
-      } else if (aiError?.status === 404) {
-        errorMessage = 'Requested model is not available. Falling back to a supported model may help.';
-      }
-
-      return NextResponse.json({
-        error: errorMessage,
-        response: errorMessage, // Provide response for the chat
-        model: effectiveModel,
-      });
+      upstreamData = getUpstreamData(JSON.parse(responseText) as unknown);
+    } catch {
+      upstreamData = null;
     }
 
-  } catch (error: any) {
-    if (process.env.NODE_ENV === 'development') {
-      console.error('API Error:', error);
+    if (!upstreamResponse.ok || !upstreamData || upstreamData.ok === false) {
+      const status = getUpstreamErrorStatus(upstreamResponse.status);
+      const message = getUpstreamErrorMessage(status);
+      return applyRateLimitHeaders(
+        NextResponse.json({ error: message, response: message }, { status }),
+        rateLimit
+      );
     }
-    
-    return NextResponse.json(
-      { 
-        error: 'Internal server error',
-        response: 'I encountered an unexpected error. Please try again later.',
-      },
-      { status: 500 }
+
+    const reply =
+      typeof upstreamData.reply === 'string' ? upstreamData.reply.trim() : '';
+    if (!reply) {
+      return applyRateLimitHeaders(
+        NextResponse.json(
+          {
+            error: 'The AI service returned an invalid response.',
+            response: 'The AI service returned an invalid response.',
+          },
+          { status: 502 }
+        ),
+        rateLimit
+      );
+    }
+
+    const model =
+      typeof upstreamData.model === 'string' && upstreamData.model.trim()
+        ? upstreamData.model.trim()
+        : 'Somleng AI';
+    const detectedLanguage =
+      typeof upstreamData.detected_language === 'string'
+        ? upstreamData.detected_language
+        : undefined;
+
+    return applyRateLimitHeaders(
+      NextResponse.json({
+        response: reply,
+        model,
+        detectedLanguage,
+      }),
+      rateLimit
+    );
+  } catch (error) {
+    const isInvalidJson =
+      error instanceof SyntaxError ||
+      (error instanceof Error && /JSON|body/i.test(error.message));
+    const status = isInvalidJson ? 400 : 502;
+    const message = isInvalidJson
+      ? 'A valid request body is required.'
+      : 'The AI service is temporarily unavailable. Please try again.';
+
+    return applyRateLimitHeaders(
+      NextResponse.json({ error: message, response: message }, { status }),
+      rateLimit
     );
   }
 }
 
-// Handle preflight requests for CORS
 export async function OPTIONS(request: NextRequest) {
-  const origin = request.headers.get('origin') || '';
-  const allowed = (process.env.ALLOWED_ORIGINS || '').split(',').map(s => s.trim()).filter(Boolean);
-  const allowOrigin = allowed.length === 0 ? '*' : (allowed.includes('*') || allowed.includes(origin) ? origin : 'null');
-  return new NextResponse(null, {
-    status: 200,
-    headers: {
-      'Access-Control-Allow-Origin': allowOrigin,
-      'Access-Control-Allow-Methods': 'POST, OPTIONS',
-      'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-      'Vary': 'Origin',
-    },
-  });
+  return createPreflightResponse(request);
 }

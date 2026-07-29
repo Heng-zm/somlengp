@@ -228,7 +228,7 @@ const Alert = React.forwardRef<HTMLDivElement, AlertProps>(
             </Button>
           )}
           {/* Dismiss button */}
-          {(dismissible || (!persistent && !autoClose)) && (
+          {dismissible === true && (
             <Button
               variant="ghost"
               size="sm"

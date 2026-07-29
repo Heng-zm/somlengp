@@ -1,116 +1,200 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { OTPManager } from '@/lib/otp-manager';
+import {
+  getChallengeToken,
+  getOTPChallengeConfiguration,
+  getOTPRouteConfiguration,
+  setChallengeCookie,
+} from '@/lib/otp-route-utils';
+import { OTPService } from '@/lib/otp-service';
+import { isRequestOriginAllowed } from '@/lib/request-security';
+import {
+  checkRateLimit,
+  createRateLimitResponse,
+  getClientAddress,
+  hashRateLimitValue,
+} from '@/lib/server-rate-limit';
 
-// Initialize OTP Manager with environment variables
-const getOTPManager = () => {
-  const requiredEnvVars = [
-    'GMAIL_CLIENT_ID',
-    'GMAIL_CLIENT_SECRET', 
-    'GMAIL_REFRESH_TOKEN',
-    'GMAIL_USER_EMAIL'
-  ];
+const SEND_WINDOW_MS = 15 * 60_000;
 
-  for (const envVar of requiredEnvVars) {
-    if (!process.env[envVar]) {
-      throw new Error(`Missing required environment variable: ${envVar}`);
-    }
-  }
+interface SendOTPBody {
+  email?: unknown;
+  subject?: unknown;
+}
 
-  return new OTPManager({
-    gmail: {
-      clientId: process.env.GMAIL_CLIENT_ID!,
-      clientSecret: process.env.GMAIL_CLIENT_SECRET!,
-      refreshToken: process.env.GMAIL_REFRESH_TOKEN!,
-      user: process.env.GMAIL_USER_EMAIL!,
-    },
-    options: {
-      companyName: process.env.COMPANY_NAME || 'SomlengP',
-      expiryMinutes: parseInt(process.env.OTP_EXPIRY_MINUTES || '5'),
-    },
-  });
-};
+function configurationError(error: unknown): boolean {
+  return (
+    error instanceof Error &&
+    (error.message.includes('environment variable') ||
+      error.message.includes('OTP_SECRET'))
+  );
+}
 
 export async function POST(request: NextRequest) {
-  try {
-    const body = await request.json();
-    const { email, subject, customMessage } = body;
+  if (!isRequestOriginAllowed(request)) {
+    return NextResponse.json(
+      { success: false, error: 'Request origin is not allowed' },
+      { status: 403 }
+    );
+  }
 
-    // Validate required fields
-    if (!email) {
-      return NextResponse.json(
-        { success: false, error: 'Email is required' },
-        { status: 400 }
+  let body: SendOTPBody;
+  try {
+    body = (await request.json()) as SendOTPBody;
+  } catch {
+    return NextResponse.json(
+      { success: false, error: 'A valid JSON body is required' },
+      { status: 400 }
+    );
+  }
+
+  if (typeof body.email !== 'string' || !OTPService.isValidEmail(body.email)) {
+    return NextResponse.json(
+      { success: false, error: 'A valid email address is required' },
+      { status: 400 }
+    );
+  }
+
+  if (
+    body.subject !== undefined &&
+    (typeof body.subject !== 'string' || body.subject.trim().length > 160)
+  ) {
+    return NextResponse.json(
+      { success: false, error: 'Subject must be 160 characters or fewer' },
+      { status: 400 }
+    );
+  }
+
+  const email = OTPService.normalizeEmail(body.email);
+  const addressLimit = checkRateLimit(
+    `otp-send:ip:${getClientAddress(request)}`,
+    10,
+    SEND_WINDOW_MS
+  );
+  if (!addressLimit.allowed) {
+    return createRateLimitResponse(addressLimit);
+  }
+
+  const emailLimit = checkRateLimit(
+    `otp-send:email:${hashRateLimitValue(email)}`,
+    3,
+    SEND_WINDOW_MS
+  );
+  if (!emailLimit.allowed) {
+    return createRateLimitResponse(emailLimit);
+  }
+
+  try {
+    const challengeConfiguration = getOTPChallengeConfiguration();
+    const currentStatus = OTPService.getChallengeStatus(
+      getChallengeToken(request),
+      email,
+      challengeConfiguration.secret
+    );
+
+    if (currentStatus.exists && (currentStatus.resendAvailableIn || 0) > 0) {
+      const retryAfter = currentStatus.resendAvailableIn || 1;
+      const response = NextResponse.json(
+        {
+          success: false,
+          error: 'Please wait before requesting another code',
+          retryAfter,
+          status: currentStatus,
+        },
+        { status: 429 }
       );
+      response.headers.set('Retry-After', String(retryAfter));
+      response.headers.set('Cache-Control', 'no-store');
+      return response;
     }
 
-    // Initialize OTP Manager
-    const otpManager = getOTPManager();
-
-    // Send OTP
-    const result = await otpManager.sendOTP(email, {
-      subject,
-      customMessage,
+    const { manager, secret, challengeOptions, codeLength } =
+      getOTPRouteConfiguration();
+    const sendResult = await manager.sendOTP(email, {
+      subject:
+        typeof body.subject === 'string' ? body.subject.trim() || undefined : undefined,
     });
 
-    if (result.success) {
-      // Don't return the actual code in production for security
-      const response = {
-        success: true,
-        messageId: result.messageId,
-        message: 'OTP sent successfully',
-        // code: result.code, // Only for development/testing
-      };
-
-      return NextResponse.json(response);
-    } else {
+    if (!sendResult.success || !sendResult.code) {
+      console.error('OTP email delivery failed:', sendResult.error);
       return NextResponse.json(
-        { success: false, error: result.error },
-        { status: 400 }
+        {
+          success: false,
+          error: 'Unable to send the verification email. Please try again later.',
+        },
+        { status: 502 }
       );
     }
+
+    const challenge = OTPService.createChallenge(
+      email,
+      sendResult.code,
+      secret,
+      challengeOptions
+    );
+    const expiresIn = Math.max(
+      0,
+      Math.ceil((challenge.expiresAt - Date.now()) / 1_000)
+    );
+    const resendAvailableIn = Math.max(
+      0,
+      Math.ceil((challenge.resendAvailableAt - Date.now()) / 1_000)
+    );
+    const response = NextResponse.json({
+      success: true,
+      message: 'Verification code sent',
+      expiresIn,
+      resendAvailableIn,
+      codeLength,
+    });
+    setChallengeCookie(response, challenge.token, challenge.expiresAt);
+    return response;
   } catch (error) {
-    console.error('Send OTP API Error:', error);
-    
-    if (error instanceof Error && error.message.includes('Missing required environment variable')) {
-      return NextResponse.json(
-        { success: false, error: 'Service configuration error' },
-        { status: 500 }
-      );
-    }
-
+    console.error('Send OTP API error:', error);
     return NextResponse.json(
-      { success: false, error: 'Failed to send OTP' },
+      {
+        success: false,
+        error: configurationError(error)
+          ? 'Verification service is not configured'
+          : 'Failed to send the verification code',
+      },
       { status: 500 }
     );
   }
 }
 
 export async function GET(request: NextRequest) {
-  try {
-    const { searchParams } = new URL(request.url);
-    const email = searchParams.get('email');
+  const email = request.nextUrl.searchParams.get('email') || '';
 
-    if (!email) {
-      return NextResponse.json(
-        { success: false, error: 'Email parameter is required' },
-        { status: 400 }
-      );
-    }
-
-    // Initialize OTP Manager
-    const otpManager = getOTPManager();
-
-    // Get OTP status
-    const status = otpManager.getOTPStatus(email);
-
-    return NextResponse.json({
-      success: true,
-      status,
-    });
-  } catch (error) {
-    console.error('Get OTP Status API Error:', error);
+  if (!OTPService.isValidEmail(email)) {
     return NextResponse.json(
-      { success: false, error: 'Failed to get OTP status' },
+      { success: false, error: 'A valid email parameter is required' },
+      { status: 400 }
+    );
+  }
+
+  try {
+    const { secret, codeLength } = getOTPChallengeConfiguration();
+    const status = OTPService.getChallengeStatus(
+      getChallengeToken(request),
+      email,
+      secret
+    );
+    const response = NextResponse.json({
+      success: true,
+      status: {
+        ...status,
+        expires: status.expiresAt
+          ? new Date(status.expiresAt).toISOString()
+          : undefined,
+      },
+      codeLength,
+    });
+    response.headers.set('Cache-Control', 'no-store');
+    return response;
+  } catch (error) {
+    console.error('Get OTP status API error:', error);
+    return NextResponse.json(
+      { success: false, error: 'Failed to get verification status' },
       { status: 500 }
     );
   }

@@ -235,6 +235,5 @@ export default {
   },
   plugins: [
     require('tailwindcss-animate'),
-    require('./tailwind-no-shadows.js'),
   ],
 } satisfies Config;

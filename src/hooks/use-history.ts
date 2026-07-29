@@ -228,6 +228,7 @@ export function useHistory(): {
       // Check if item exists first
       const itemExists = history.some(item => item.id === id);
       if (!itemExists) {
+        setError('History item not found');
         return false;
       }
       setHistory(prevHistory => {
@@ -252,6 +253,7 @@ export function useHistory(): {
       // Check if item exists first
       const itemExists = history.some(item => item.id === id);
       if (!itemExists) {
+        setError('History item not found');
         return false;
       }
       setHistory(prevHistory => {

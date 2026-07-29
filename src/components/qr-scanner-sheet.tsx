@@ -1,12 +1,23 @@
 'use client';
 
-import React, { useState } from 'react';
-import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from '@/components/ui/sheet';
+import React, { useCallback, useMemo, useState } from 'react';
+import {
+  CheckCircle2,
+  Copy,
+  ExternalLink,
+  FileText,
+  RefreshCw,
+} from 'lucide-react';
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+} from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
 import { OptimizedQRScanner } from './optimized-qr-scanner';
-import { showSuccessToast, showErrorToast } from '@/lib/toast-utils';
-// Performance optimization needed: Consider memoizing inline event handlers
-// Use useMemo for objects/arrays and useCallback for functions
+import { showErrorToast, showSuccessToast } from '@/lib/toast-utils';
 
 interface QRScannerSheetProps {
   open: boolean;
@@ -15,169 +26,205 @@ interface QRScannerSheetProps {
   onScanError?: (error: string) => void;
 }
 
-export function QRScannerSheet({ open, onOpenChange, onScanSuccess, onScanError }: QRScannerSheetProps) {
-  const [scannedData, setScannedData] = useState<string>('');
+type QRContentType = 'URL' | 'Email' | 'Phone' | 'Wi-Fi' | 'Contact' | 'Text';
 
-  const handleScanSuccess = (data: string, location?: any, confidence?: number) => {
-    setScannedData(data);
-    const message = confidence ? `QR Code Scanned! (${confidence}% confidence)` : 'QR Code Scanned!';
-    showSuccessToast(message);
-    onScanSuccess?.(data);
-  };
+function getSafeWebUrl(value: string): URL | null {
+  try {
+    const url = new URL(value);
+    return url.protocol === 'http:' || url.protocol === 'https:' ? url : null;
+  } catch {
+    return null;
+  }
+}
 
-  const handleScanError = (error: string) => {
-    showErrorToast('Scan Failed');
-    onScanError?.(error);
-  };
+function getContentType(value: string): QRContentType {
+  if (getSafeWebUrl(value)) return 'URL';
+  if (/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) return 'Email';
+  if (/^\+?[\d\s\-()]{7,}$/.test(value)) return 'Phone';
+  if (value.startsWith('WIFI:')) return 'Wi-Fi';
+  if (value.startsWith('VCARD:') || value.startsWith('BEGIN:VCARD')) return 'Contact';
+  return 'Text';
+}
 
-  const handleClose = () => {
+async function copyText(value: string): Promise<void> {
+  if (navigator.clipboard?.writeText) {
+    await navigator.clipboard.writeText(value);
+    return;
+  }
+
+  const textArea = document.createElement('textarea');
+  textArea.value = value;
+  textArea.style.position = 'fixed';
+  textArea.style.opacity = '0';
+  document.body.appendChild(textArea);
+  textArea.focus();
+  textArea.select();
+
+  const copied = document.execCommand('copy');
+  textArea.remove();
+  if (!copied) throw new Error('Clipboard is unavailable');
+}
+
+export function QRScannerSheet({
+  open,
+  onOpenChange,
+  onScanSuccess,
+  onScanError,
+}: QRScannerSheetProps) {
+  const [scannedData, setScannedData] = useState('');
+  const contentType = useMemo(() => getContentType(scannedData), [scannedData]);
+  const webUrl = useMemo(() => getSafeWebUrl(scannedData), [scannedData]);
+
+  const handleOpenChange = useCallback((nextOpen: boolean) => {
+    if (!nextOpen) setScannedData('');
+    onOpenChange(nextOpen);
+  }, [onOpenChange]);
+
+  const handleClose = useCallback(() => {
     setScannedData('');
     onOpenChange(false);
-  };
+  }, [onOpenChange]);
 
-  const copyToClipboard = async () => {
-    if (scannedData) {
-      try {
-        await navigator.clipboard.writeText(scannedData);
-        showSuccessToast('Copied to clipboard!');
-      } catch (error) {
-        showErrorToast('Failed to copy');
-      }
-    }
-  };
+  const handleScanSuccess = useCallback((
+    data: string,
+    _location?: unknown,
+    confidence?: number,
+  ) => {
+    setScannedData(data);
+    showSuccessToast(
+      'QR code scanned',
+      confidence ? `${confidence}% detection confidence` : undefined,
+      { silent: true },
+    );
+    onScanSuccess?.(data);
+  }, [onScanSuccess]);
 
-  const openInNewTab = () => {
-    if (scannedData && isValidUrl(scannedData)) {
-      window.open(scannedData, '_blank', 'noopener,noreferrer');
-    }
-  };
+  const handleScanError = useCallback((error: string) => {
+    showErrorToast('Unable to scan', error, { silent: true });
+    onScanError?.(error);
+  }, [onScanError]);
 
-  const isValidUrl = (text: string): boolean => {
+  const handleCopy = useCallback(async () => {
+    if (!scannedData) return;
+
     try {
-      new URL(text);
-      return true;
+      await copyText(scannedData);
+      showSuccessToast('Copied to clipboard', undefined, { silent: true });
     } catch {
-      return text.startsWith('http://') || text.startsWith('https://');
+      showErrorToast(
+        'Copy failed',
+        'Select the scanned content and copy it manually.',
+        { silent: true },
+      );
     }
-  };
+  }, [scannedData]);
 
-  const getContentType = (text: string): string => {
-    if (isValidUrl(text)) return 'URL';
-    if (text.includes('@') && text.includes('.')) return 'Email';
-    if (text.match(/^\+?[\d\s\-()]+$/)) return 'Phone';
-    if (text.startsWith('WIFI:')) return 'WiFi';
-    if (text.startsWith('VCARD:') || text.startsWith('BEGIN:VCARD')) return 'Contact';
-    return 'Text';
-  };
+  const handleOpenUrl = useCallback(() => {
+    if (!webUrl) return;
+    window.open(webUrl.toString(), '_blank', 'noopener,noreferrer');
+  }, [webUrl]);
+
+  const handleScanAnother = useCallback(() => {
+    setScannedData('');
+  }, []);
 
   return (
-    <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent 
-        side="bottom" 
-        className="flex flex-col h-auto max-h-[90vh] rounded-t-3xl border-0 bg-gradient-to-b from-white via-white to-gray-50/80 backdrop-blur-xl shadow-2xl"
+    <Sheet open={open} onOpenChange={handleOpenChange}>
+      <SheetContent
+        side="bottom"
+        className="flex max-h-[94dvh] flex-col rounded-t-3xl border-x-0 border-b-0 bg-background p-0 shadow-2xl"
       >
-        {/* Fixed Header */}
-        <div className="flex-shrink-0">
-          <SheetHeader className="pb-2 pt-2">
-            {/* Accessible title for Radix Dialog requirement */}
-            <SheetTitle className="sr-only">QR Scanner</SheetTitle>
-            <SheetDescription className="sr-only">Scan a QR code using the camera</SheetDescription>
-            <div className="w-12 h-1.5 bg-gray-300 rounded-full mx-auto" />
-          </SheetHeader>
-        </div>
+        <SheetHeader className="flex-none border-b border-border/70 px-5 pb-4 pt-3 text-left">
+          <div className="mx-auto mb-2 h-1.5 w-11 rounded-full bg-muted-foreground/25" />
+          <SheetTitle>{scannedData ? 'Scan complete' : 'Scan a QR code'}</SheetTitle>
+          <SheetDescription>
+            {scannedData
+              ? 'Review the decoded content before copying it or opening a link.'
+              : 'Point your camera at a QR code or scan one from an image.'}
+          </SheetDescription>
+        </SheetHeader>
 
-        {/* Scrollable Content */}
-        <div className="flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-transparent hover:scrollbar-thumb-gray-400 transition-colors px-2">
+        <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain p-4 sm:p-6">
           {!scannedData ? (
-            /* Scanner View */
-            <div className="space-y-4 pb-6">
-              <OptimizedQRScanner
-                onScanSuccess={handleScanSuccess}
-                onScanError={handleScanError}
-                onClose={handleClose}
-                className="w-full max-w-lg mx-auto"
-                enableVibration={true}
-                enableSound={false}
-                scanRegion="full"
-                scanQuality="accurate"
-              />
-            </div>
+            <OptimizedQRScanner
+              onScanSuccess={handleScanSuccess}
+              onScanError={handleScanError}
+              onClose={handleClose}
+              className="mx-auto w-full max-w-xl"
+              enableVibration
+              enableSound={false}
+              scanRegion="auto"
+              scanQuality="balanced"
+            />
           ) : (
-            /* Results View */
-            <div className="space-y-6 pb-6">
-              {/* Success Header */}
-              <div className="text-center bg-gray-100 rounded-2xl p-6 mx-2">
-                <div className="w-16 h-16 bg-gray-800 rounded-full flex items-center justify-center mx-auto mb-3">
-                  <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                  </svg>
-                </div>
-                <h3 className="text-xl font-bold text-gray-800 mb-2">QR Code Detected!</h3>
-                <p className="text-gray-700 text-sm">Successfully scanned and decoded the QR code</p>
-              </div>
+            <div className="mx-auto w-full max-w-xl space-y-5 pb-[max(0.5rem,env(safe-area-inset-bottom))]">
+              <section className="rounded-2xl border border-emerald-200 bg-emerald-50 p-5 text-center dark:border-emerald-900/60 dark:bg-emerald-950/30">
+                <CheckCircle2
+                  className="mx-auto h-10 w-10 text-emerald-600 dark:text-emerald-400"
+                  aria-hidden="true"
+                />
+                <h3 className="mt-3 text-lg font-semibold text-foreground">
+                  QR code detected
+                </h3>
+                <p className="mt-1 text-sm text-muted-foreground">
+                  The code was decoded successfully.
+                </p>
+              </section>
 
-              {/* Content Details */}
-              <div className="bg-white rounded-2xl p-6 mx-2 border border-gray-100 shadow-sm">
-                <div className="flex items-center justify-between mb-4">
-                  <h4 className="font-semibold text-gray-800">📄 Scanned Content</h4>
-                  <span className="text-xs font-medium px-2 py-1 bg-gray-200 text-gray-800 rounded-full">
-                    {getContentType(scannedData)}
+              <section
+                className="rounded-2xl border border-border bg-card p-5"
+                aria-labelledby="scanned-content-title"
+              >
+                <div className="flex items-center justify-between gap-3">
+                  <div className="flex min-w-0 items-center gap-2">
+                    <FileText className="h-5 w-5 flex-none text-muted-foreground" aria-hidden="true" />
+                    <h3 id="scanned-content-title" className="truncate font-semibold text-foreground">
+                      Scanned content
+                    </h3>
+                  </div>
+                  <span className="rounded-full bg-muted px-2.5 py-1 text-xs font-medium text-muted-foreground">
+                    {contentType}
                   </span>
                 </div>
-                
-                <div className="bg-gray-50 rounded-xl p-4 mb-4">
-                  <p className="text-gray-800 text-sm break-all font-mono leading-relaxed">
+
+                <div className="mt-4 max-h-48 overflow-auto rounded-xl bg-muted/70 p-4">
+                  <p className="whitespace-pre-wrap break-all font-mono text-sm leading-relaxed text-foreground">
                     {scannedData}
                   </p>
                 </div>
+                <p className="mt-2 text-right text-xs text-muted-foreground">
+                  {scannedData.length.toLocaleString()} characters
+                </p>
+              </section>
 
-                <div className="text-xs text-gray-500 text-center">
-                  Content length: {scannedData.length} characters
-                </div>
-              </div>
-
-              {/* Action Buttons */}
-              <div className="grid grid-cols-2 gap-3 mx-2">
-                <Button
-                  onClick={copyToClipboard}
-                  className="bg-gray-800 hover:bg-gray-700 text-white rounded-xl py-3"
-                >
-                  <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
-                  </svg>
-                  Copy
+              <div className={`grid gap-3 ${webUrl ? 'sm:grid-cols-2' : 'grid-cols-1'}`}>
+                <Button onClick={handleCopy} className="h-11 rounded-xl">
+                  <Copy className="mr-2 h-4 w-4" aria-hidden="true" />
+                  Copy content
                 </Button>
-
-                {isValidUrl(scannedData) && (
+                {webUrl && (
                   <Button
-                    onClick={openInNewTab}
-                    className="bg-gray-600 hover:bg-gray-500 text-white rounded-xl py-3"
+                    onClick={handleOpenUrl}
+                    variant="outline"
+                    className="h-11 rounded-xl"
                   >
-                    <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                    </svg>
-                    Open
+                    <ExternalLink className="mr-2 h-4 w-4" aria-hidden="true" />
+                    Open link
                   </Button>
                 )}
               </div>
 
-              {/* Scan Another */}
-              <div className="flex justify-center mx-2">
-                <Button
-                  onClick={() => setScannedData('')}
-                  variant="outline"
-                  className="rounded-xl px-8 py-3 border-2 border-gray-300 hover:border-gray-400 hover:bg-gray-50"
-                >
-                  <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                  </svg>
-                  Scan Another QR Code
-                </Button>
-              </div>
+              <Button
+                onClick={handleScanAnother}
+                variant="ghost"
+                className="h-11 w-full rounded-xl"
+              >
+                <RefreshCw className="mr-2 h-4 w-4" aria-hidden="true" />
+                Scan another code
+              </Button>
             </div>
           )}
         </div>
-
       </SheetContent>
     </Sheet>
   );

@@ -40,6 +40,11 @@ interface AlertingOptions {
   emailEndpoint?: string;
   debounceTime: number; // milliseconds
 }
+interface PerformanceContext {
+  url?: string;
+  userAgent?: string;
+  connection?: string;
+}
 // Default alert configurations for Core Web Vitals and other metrics
 const DEFAULT_ALERT_CONFIGS: AlertConfig[] = [
   {
@@ -132,40 +137,46 @@ class PerformanceAlerting {
   // Initialize browser notifications
   private async initializeNotifications() {
     if (typeof window === 'undefined' || !('Notification' in window)) return;
-    this.notificationPermission = Notification.permission;
-    if (this.notificationPermission === 'default') {
-      this.notificationPermission = await Notification.requestPermission();
+    try {
+      this.notificationPermission = window.Notification.permission;
+      if (this.notificationPermission === 'default') {
+        this.notificationPermission =
+          await window.Notification.requestPermission();
+      }
+    } catch (error) {
+      console.warn('Failed to initialize browser notifications:', error);
     }
   }
   // Load stored alerts from localStorage
   private loadStoredAlerts() {
     if (typeof window === 'undefined') return;
     try {
-      const stored = localStorage.getItem('performance_alerts');
+      const stored = window.localStorage.getItem('performance_alerts');
       if (stored) {
-        this.alerts = JSON.parse(stored);
+        const parsed: unknown = JSON.parse(stored);
+        this.alerts = Array.isArray(parsed)
+          ? parsed.slice(-MAX_ALERTS_STORED)
+          : [];
         // Clean up old alerts (older than 24 hours)
         const oneDayAgo = Date.now() - (24 * 60 * 60 * 1000);
         this.alerts = this.alerts.filter(alert => alert.timestamp > oneDayAgo);
         this.saveAlerts();
       }
     } catch (error) {
+      console.warn('Failed to load stored alerts:', error);
     }
   }
   // Save alerts to localStorage
   private saveAlerts() {
     if (typeof window === 'undefined') return;
     try {
-      localStorage.setItem('performance_alerts', JSON.stringify(this.alerts));
+      window.localStorage.setItem('performance_alerts', JSON.stringify(this.alerts));
     } catch (error) {
+      console.warn('Failed to save alerts:', error);
     }
   }
   // Check if a metric value violates any alert thresholds
-  checkMetric(metric: string, value: number, context: {
-    url?: string;
-    userAgent?: string;
-    connection?: string;
-  } = {}) {
+  checkMetric(metric: string, value: number, context: PerformanceContext = {}) {
     const relevantConfigs = this.alertConfigs.filter(
       config => config.enabled && config.metric === metric && value > config.threshold
     );
@@ -184,11 +195,7 @@ class PerformanceAlerting {
     metric: string, 
     value: number, 
     config: AlertConfig, 
-    context: {
-      url?: string;
-      userAgent?: string;
-      connection?: string;
-    }
+    context: PerformanceContext
   ) {
     const alertKey = `${metric}_${config.severity}`;
     // Clear existing timeout for this alert type
@@ -211,6 +218,9 @@ class PerformanceAlerting {
         description: config.description
       };
       this.alerts.push(alert);
+      if (this.alerts.length > MAX_ALERTS_STORED) {
+        this.alerts = this.alerts.slice(-MAX_ALERTS_STORED);
+      }
       this.saveAlerts();
       this.sendAlert(alert);
       this.alertQueue.delete(alertKey);
@@ -246,7 +256,7 @@ class PerformanceAlerting {
     const title = `Performance Alert: ${alert.metric}`;
     const body = `${alert.description}
 Value: ${alert.value}${alert.metric === 'CLS' ? '' : 'ms'}`;
-    const notification = new Notification(title, {
+    const notification = new window.Notification(title, {
       body,
       icon: '/icon.svg',
       tag: `performance_${alert.metric}`,
@@ -329,7 +339,7 @@ Value: ${alert.value}${alert.metric === 'CLS' ? '' : 'ms'}`;
   // Track alert in analytics
   private trackAlert(alert: PerformanceAlert) {
     if (typeof window !== 'undefined' && 'gtag' in window) {
-      (window as any).gtag('event', 'performance_alert', {
+      window.gtag?.('event', 'performance_alert', {
         metric: alert.metric,
         value: alert.value,
         threshold: alert.threshold,
@@ -420,15 +430,16 @@ let alertingInstance: PerformanceAlerting | null = null;
 export function getPerformanceAlerting(options?: Partial<AlertingOptions>): PerformanceAlerting {
   if (!alertingInstance && typeof window !== 'undefined') {
     alertingInstance = new PerformanceAlerting(options);
+  } else if (alertingInstance && options) {
+    alertingInstance.updateConfig(options);
   }
   return alertingInstance!;
 }
 // Utility function to check performance and trigger alerts
-export function checkPerformanceMetrics(metrics: Record<string, number>, context?: {
-  url?: string;
-  userAgent?: string;
-  connection?: string;
-}) {
+export function checkPerformanceMetrics(
+  metrics: Record<string, number>,
+  context?: PerformanceContext
+) {
   const alerting = getPerformanceAlerting();
   Object.entries(metrics).forEach(([metric, value]) => {
     if (typeof value === 'number' && value > 0) {
@@ -440,7 +451,7 @@ export function checkPerformanceMetrics(metrics: Record<string, number>, context
 export function usePerformanceAlerting() {
   const alerting = getPerformanceAlerting();
   return {
-    checkMetric: (metric: string, value: number, context?: any) => 
+    checkMetric: (metric: string, value: number, context?: PerformanceContext) =>
       alerting.checkMetric(metric, value, context),
     getAlerts: (unresolved?: boolean) => alerting.getAlerts(unresolved),
     resolveAlert: (alertId: string) => alerting.resolveAlert(alertId),

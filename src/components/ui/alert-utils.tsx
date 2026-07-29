@@ -58,7 +58,7 @@ export interface AlertContainerAlert {
   priority?: 'low' | 'medium' | 'high' | 'critical';
 }
 // Validation utilities for alert inputs
-const validateAlertProps = (props: SafeAlertProps, context: Record<string, any> = {}): SafeAlertProps => {
+const validateAlertProps = (props: SafeAlertProps, context: Record<string, unknown> = {}): SafeAlertProps => {
   const { title, description, dismissible, timeout, className, ariaLabel } = props;
   // Validate description (required)
   validateInput(description, [
@@ -93,7 +93,7 @@ const validateAlertProps = (props: SafeAlertProps, context: Record<string, any> 
   if (timeout !== undefined) {
     validateInput(timeout, [
       {
-        condition: (val: any) => typeof val === 'number' && Number.isInteger(val),
+        condition: (val: unknown) => typeof val === 'number' && Number.isInteger(val),
         message: 'Timeout must be a positive integer',
         userMessage: 'Invalid timeout value'
       },
@@ -120,7 +120,7 @@ const validateAlertProps = (props: SafeAlertProps, context: Record<string, any> 
   return {
     title: title?.trim(),
     description: description.trim(),
-    dismissible: dismissible ?? true,
+    dismissible,
     timeout: timeout,
     className: className?.trim(),
     ariaLabel: ariaLabel?.trim(),
@@ -162,7 +162,7 @@ const createSafeAlertComponent = (
       return (
         <Alert
           ref={ref}
-          variant={variant as any}
+          variant={variant as AlertProps['variant']}
           dismissible={dismissible}
           onDismiss={validatedProps.onDismiss}
           className={validatedProps.className}
@@ -354,31 +354,22 @@ export function AlertContainer({
         console.warn(`Alert count ${alerts.length} exceeds maximum (${maxAlerts}). Truncating.`);
         return alerts.slice(0, maxAlerts);
       }
-      // Validate each alert
-      return alerts.map((alert, index) => {
-        if (!alert.id || typeof alert.id !== 'string') {
-          throw new ValidationError(`Alert at index ${index} must have a valid string id`, { alert, index });
-        }
-        if (!alert.type || !['success', 'error', 'warning', 'info', 'loading', 'security', 'maintenance', 'premium'].includes(alert.type)) {
-          throw new ValidationError(`Alert at index ${index} must have a valid type`, { alert, index });
-        }
-        if (!alert.description || typeof alert.description !== 'string') {
-          throw new ValidationError(`Alert at index ${index} must have a valid description`, { alert, index });
-        }
-        return alert;
-      });
+      return alerts;
     },
     [],
-    { operation: 'validateAlerts', alertCount: alerts.length }
+    {
+      operation: 'validateAlerts',
+      alertCount: Array.isArray(alerts) ? alerts.length : 0,
+    }
   );
   // Sort alerts by priority if specified - moved before conditional returns
   const sortedAlerts = React.useMemo(() => {
-    return validatedAlerts?.sort((a, b) => {
+    return [...(validatedAlerts || [])].sort((a, b) => {
       const priorityOrder = { critical: 4, high: 3, medium: 2, low: 1 };
       const aPriority = priorityOrder[a.priority || 'medium'];
       const bPriority = priorityOrder[b.priority || 'medium'];
       return bPriority - aPriority;
-    }) || [];
+    });
   }, [validatedAlerts]);
   if (validationError) {
     console.error('AlertContainer validation error:', validationError);
@@ -396,6 +387,12 @@ export function AlertContainer({
   const renderAlert = (alert: AlertContainerAlert) => {
     const { data: renderedAlert, error: renderError } = safeSync(
       () => {
+        if (!alert.id || typeof alert.id !== 'string') {
+          throw new ValidationError('Alert must have a valid string id', { alert });
+        }
+        if (!['success', 'error', 'warning', 'info', 'loading', 'security', 'maintenance', 'premium'].includes(alert.type)) {
+          throw new ValidationError('Alert must have a valid type', { alert });
+        }
         const baseProps = {
           title: alert.title,
           description: alert.description,
@@ -404,6 +401,10 @@ export function AlertContainer({
           ariaLabel: alert.ariaLabel,
           id: alert.id
         };
+        validateAlertProps(baseProps, {
+          operation: 'renderAlert',
+          alertId: alert.id,
+        });
         switch (alert.type) {
           case 'success':
             return <SuccessAlert key={alert.id} {...baseProps} />;
@@ -456,13 +457,16 @@ export function AlertContainer({
 // Enhanced Hook for managing alert state with comprehensive error handling
 export function useAlerts() {
   const [alerts, setAlerts] = React.useState<AlertContainerAlert[]>([]);
-  const [timeouts, setTimeouts] = React.useState<Map<string, NodeJS.Timeout>>(new Map());
+  const timeoutsRef = React.useRef<Map<string, ReturnType<typeof setTimeout>>>(
+    new Map()
+  );
   // Cleanup timeouts on unmount
   React.useEffect(() => {
     return () => {
-      timeouts.forEach(timeout => clearTimeout(timeout));
+      timeoutsRef.current.forEach(timeout => clearTimeout(timeout));
+      timeoutsRef.current.clear();
     };
-  }, [timeouts]);
+  }, []);
   const removeAlert = React.useCallback((id: string) => {
     const { error } = safeSync(
       () => {
@@ -471,15 +475,11 @@ export function useAlerts() {
         }
         setAlerts(prev => prev.filter(alert => alert.id !== id));
         // Clear associated timeout
-        setTimeouts(prev => {
-          const newTimeouts = new Map(prev);
-          const timeout = newTimeouts.get(id);
-          if (timeout) {
-            clearTimeout(timeout);
-            newTimeouts.delete(id);
-          }
-          return newTimeouts;
-        });
+        const timeout = timeoutsRef.current.get(id);
+        if (timeout) {
+          clearTimeout(timeout);
+          timeoutsRef.current.delete(id);
+        }
       },
       undefined,
       { operation: 'removeAlert', alertId: id }
@@ -566,15 +566,15 @@ export function useAlerts() {
       const timeoutId = setTimeout(() => {
         removeAlert(validatedAlert.id);
       }, validatedAlert.timeout);
-      setTimeouts(prev => new Map(prev.set(validatedAlert.id, timeoutId)));
+      timeoutsRef.current.set(validatedAlert.id, timeoutId);
     }
   }, [removeAlert]);
   const clearAllAlerts = React.useCallback(() => {
     const { error } = safeSync(
       () => {
         // Clear all timeouts
-        timeouts.forEach(timeout => clearTimeout(timeout));
-        setTimeouts(new Map());
+        timeoutsRef.current.forEach(timeout => clearTimeout(timeout));
+        timeoutsRef.current.clear();
         // Clear alerts
         setAlerts([]);
       },
@@ -585,7 +585,7 @@ export function useAlerts() {
       console.error('Failed to clear alerts:', error);
       errorHandler.handle(error, { operation: 'clearAllAlerts' });
     }
-  }, [timeouts]);
+  }, []);
   const getAlertsByType = React.useCallback((type: AlertType) => {
     return alerts.filter(alert => alert.type === type);
   }, [alerts]);

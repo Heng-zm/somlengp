@@ -73,31 +73,6 @@ if (!navigator.clipboard) {
   });
 }
 
-// Mock console methods for cleaner test output
-const originalError = console.error;
-const originalWarn = console.warn;
-
-beforeAll(() => {
-  console.error = jest.fn((message, ...args) => {
-    if (typeof message === 'string' && message.includes('Warning:')) {
-      return;
-    }
-    originalError(message, ...args);
-  });
-  
-  console.warn = jest.fn((message, ...args) => {
-    if (typeof message === 'string' && message.includes('Alert count')) {
-      return;
-    }
-    originalWarn(message, ...args);
-  });
-});
-
-afterAll(() => {
-  console.error = originalError;
-  console.warn = originalWarn;
-});
-
 // Global test utilities
 export const waitForTimeout = (ms: number) => 
   new Promise(resolve => setTimeout(resolve, ms));

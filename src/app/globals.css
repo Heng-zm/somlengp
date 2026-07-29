@@ -8,9 +8,6 @@
 /* Import monochrome color system utilities */
 @import '../styles/monochrome-utilities.css';
 
-/* Import shadow removal styles */
-@import '../styles/no-shadows.css';
-
 /* Import UX/UI enhancements */
 @import '../styles/ux-enhancements.css';
 
@@ -36,36 +33,35 @@ body {
 
 @layer base {
   :root {
-    /* Enhanced Pure Black, Gray, and White Color Profile */
-    --background: 0 0% 100%; /* Pure White background */
-    --foreground: 0 0% 0%; /* Pure Black text */
+    --background: 0 0% 100%;
+    --foreground: 222 47% 11%;
 
-    --card: 0 0% 98%; /* Ultra light gray cards */
-    --card-foreground: 0 0% 4%; /* Near Black text */
+    --card: 0 0% 100%;
+    --card-foreground: 222 47% 11%;
 
-    --popover: 0 0% 100%; /* Pure White */
-    --popover-foreground: 0 0% 0%; /* Pure Black */
+    --popover: 0 0% 100%;
+    --popover-foreground: 222 47% 11%;
 
-    --primary: 0 0% 0%; /* Pure Black primary */
-    --primary-foreground: 0 0% 100%; /* Pure White on primary */
+    --primary: 221 83% 53%;
+    --primary-foreground: 210 40% 98%;
 
-    --secondary: 0 0% 96%; /* Very light Gray secondary */
-    --secondary-foreground: 0 0% 10%; /* Dark Gray text */
+    --secondary: 210 40% 96%;
+    --secondary-foreground: 222 47% 11%;
     
-    --muted: 0 0% 90%; /* Light Gray */
-    --muted-foreground: 0 0% 32%; /* Medium Dark Gray */
+    --muted: 210 40% 96%;
+    --muted-foreground: 215 16% 47%;
 
-    --accent: 0 0% 10%; /* Very Dark Gray accent */
-    --accent-foreground: 0 0% 96%; /* Very Light Gray on accent */
+    --accent: 214 95% 93%;
+    --accent-foreground: 224 76% 48%;
     
-    --destructive: 0 0% 15%; /* Dark Gray for destructive */
-    --destructive-foreground: 0 0% 100%; /* Pure White on destructive */
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 210 40% 98%;
 
-    --border: 0 0% 85%; /* Light Gray borders */
-    --input: 0 0% 96%; /* Very Light Gray inputs */
-    --ring: 0 0% 0%; /* Pure Black focus rings */
+    --border: 214 32% 91%;
+    --input: 214 32% 91%;
+    --ring: 221 83% 53%;
 
-    --radius: 0.8rem;
+    --radius: 0.75rem;
     
     /* Enhanced monochrome variables - Perfect grayscale progression */
     --mono-black: 0 0% 0%;        /* Pure Black */
@@ -80,34 +76,33 @@ body {
   }
 
   .dark {
-    /* Dark Mode: Refined Black, Gray, and White */
-    --background: 0 0% 4%; /* Near Black background */
-    --foreground: 0 0% 96%; /* Near White text */
+    --background: 222 47% 7%;
+    --foreground: 210 40% 98%;
 
-    --card: 0 0% 10%; /* Dark Gray cards */
-    --card-foreground: 0 0% 96%; /* Near White text */
+    --card: 222 47% 9%;
+    --card-foreground: 210 40% 98%;
 
-    --popover: 0 0% 4%; /* Near Black */
-    --popover-foreground: 0 0% 100%; /* Pure White */
+    --popover: 222 47% 7%;
+    --popover-foreground: 210 40% 98%;
 
-    --primary: 0 0% 100%; /* Pure White primary in dark mode */
-    --primary-foreground: 0 0% 0%; /* Pure Black on primary */
+    --primary: 217 91% 60%;
+    --primary-foreground: 210 40% 98%;
 
-    --secondary: 0 0% 10%; /* Very Dark Gray secondary */
-    --secondary-foreground: 0 0% 90%; /* Very Light Gray text */
+    --secondary: 217 33% 17%;
+    --secondary-foreground: 210 40% 98%;
     
-    --muted: 0 0% 15%; /* Dark Gray muted */
-    --muted-foreground: 0 0% 64%; /* Medium Light Gray */
+    --muted: 217 33% 17%;
+    --muted-foreground: 215 20% 65%;
 
-    --accent: 0 0% 90%; /* Very Light Gray accent */
-    --accent-foreground: 0 0% 4%; /* Near Black on accent */
+    --accent: 217 33% 17%;
+    --accent-foreground: 213 94% 68%;
     
-    --destructive: 0 0% 85%; /* Light Gray for destructive in dark */
-    --destructive-foreground: 0 0% 0%; /* Pure Black on destructive */
+    --destructive: 0 63% 45%;
+    --destructive-foreground: 210 40% 98%;
 
-    --border: 0 0% 15%; /* Dark Gray borders */
-    --input: 0 0% 10%; /* Very Dark Gray inputs */
-    --ring: 0 0% 100%; /* Pure White focus rings */
+    --border: 217 33% 17%;
+    --input: 217 33% 17%;
+    --ring: 224 76% 48%;
     
     /* Enhanced dark mode monochrome variables - Properly inverted */
     --mono-black: 0 0% 100%;      /* Pure White (inverted) */
@@ -128,6 +123,32 @@ body {
   }
   body {
     @apply bg-background text-foreground;
+  }
+}
+
+@layer components {
+  /* Compatibility surface for legacy public pages inside the new application shell. */
+  .dark .company-page .text-gray-900,
+  .dark .company-page .text-gray-800 {
+    @apply text-slate-50;
+  }
+
+  .dark .company-page .text-gray-700,
+  .dark .company-page .text-gray-600 {
+    @apply text-slate-300;
+  }
+
+  .dark .company-page .text-gray-500 {
+    @apply text-slate-400;
+  }
+
+  .dark .company-page .bg-white,
+  .dark .company-page .bg-white\/50 {
+    @apply bg-slate-900;
+  }
+
+  .dark .company-page .border-gray-200 {
+    @apply border-slate-800;
   }
 }
 
